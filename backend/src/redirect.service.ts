@@ -136,7 +136,12 @@ export class RedirectService {
    * Supports nesting: Cond1 ? (Cond2 ? A : B) : C
    */
   private processConditionals(template: string): string {
-    const trimmed = template.trim();
+    let trimmed = template.trim();
+
+    // Remove outer parentheses if they wrap the entire expression
+    while (this.hasOuterParentheses(trimmed)) {
+      trimmed = trimmed.substring(1, trimmed.length - 1).trim();
+    }
 
     // Simple check if it might be a conditional
     if (!trimmed.includes('?') || !trimmed.includes(':')) {
@@ -156,6 +161,31 @@ export class RedirectService {
   }
 
   /**
+   * Check if string has matching outer parentheses that wrap the entire expression
+   */
+  private hasOuterParentheses(str: string): boolean {
+    const trimmed = str.trim();
+    if (!trimmed.startsWith('(') || !trimmed.endsWith(')')) {
+      return false;
+    }
+
+    // Check if first '(' matches the last ')'
+    let balance = 0;
+    for (let i = 0; i < trimmed.length; i++) {
+      if (trimmed[i] === '(') balance++;
+      else if (trimmed[i] === ')') balance--;
+
+      // If balance hits 0 before the end, these aren't matching outer parens
+      if (balance === 0 && i < trimmed.length - 1) {
+        return false;
+      }
+    }
+
+    // They are matching outer parens
+    return true;
+  }
+
+  /**
    * Parses the string to find the top-level ternary operator components.
    * Respects parentheses nesting.
    */
@@ -165,29 +195,57 @@ export class RedirectService {
     let balance = 0;
     let questionMarkIndex = -1;
     let colonIndex = -1;
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
 
     // 1. Find the split point (?)
     for (let i = 0; i < template.length; i++) {
       const char = template[i];
-      if (char === '(') balance++;
-      else if (char === ')') balance--;
-      else if (char === '?' && balance === 0) {
-        questionMarkIndex = i;
-        break;
+
+      // Track quotes
+      if (char === "'" && !inDoubleQuote) {
+        inSingleQuote = !inSingleQuote;
+      } else if (char === '"' && !inSingleQuote) {
+        inDoubleQuote = !inDoubleQuote;
+      }
+
+      if (!inSingleQuote && !inDoubleQuote) {
+        if (char === '(') balance++;
+        else if (char === ')') balance--;
+        else if (char === '?' && balance === 0) {
+          questionMarkIndex = i;
+          break;
+        }
       }
     }
 
     if (questionMarkIndex === -1) return null;
 
-    // 2. Find the corresponding colon (:)
+    // 2. Find the corresponding colon (:) - skip URL colons (://)
     balance = 0;
+    inSingleQuote = false;
+    inDoubleQuote = false;
     for (let i = questionMarkIndex + 1; i < template.length; i++) {
       const char = template[i];
-      if (char === '(') balance++;
-      else if (char === ')') balance--;
-      else if (char === ':' && balance === 0) {
-        colonIndex = i;
-        break;
+
+      // Track quotes
+      if (char === "'" && !inDoubleQuote) {
+        inSingleQuote = !inSingleQuote;
+      } else if (char === '"' && !inSingleQuote) {
+        inDoubleQuote = !inDoubleQuote;
+      }
+
+      if (!inSingleQuote && !inDoubleQuote) {
+        if (char === '(') balance++;
+        else if (char === ')') balance--;
+        else if (char === ':' && balance === 0) {
+          // Skip URL colons (check if followed by //)
+          if (template.substring(i + 1, i + 3) === '//') {
+            continue;
+          }
+          colonIndex = i;
+          break;
+        }
       }
     }
 
@@ -238,7 +296,18 @@ export class RedirectService {
         return left >= right;
       case '~=': // Regex match
         try {
-          return new RegExp(String(right)).test(String(left));
+          // Support regex with flags: value ~= /pattern/flags format
+          let pattern = String(right);
+          let flags = '';
+
+          // Check if it's in /pattern/flags format
+          const regexMatch = pattern.match(/^\/(.+)\/([gimsuy]*)$/);
+          if (regexMatch) {
+            pattern = regexMatch[1];
+            flags = regexMatch[2];
+          }
+
+          return new RegExp(pattern, flags).test(String(left));
         } catch {
           return false;
         }
@@ -285,17 +354,11 @@ export class RedirectService {
         // Try each operator (longest first to match '==' before '=')
         for (const op of operators) {
           if (condition.substring(i, i + op.length) === op) {
-            // Check if it's surrounded by whitespace or at boundaries
-            const before = i === 0 || /\s/.test(condition[i - 1]);
-            const after = i + op.length === condition.length || /\s/.test(condition[i + op.length]);
-
-            if (before && after) {
-              return {
-                leftPart: condition.substring(0, i).trim(),
-                operator: op,
-                rightPart: condition.substring(i + op.length).trim(),
-              };
-            }
+            return {
+              leftPart: condition.substring(0, i).trim(),
+              operator: op,
+              rightPart: condition.substring(i + op.length).trim(),
+            };
           }
         }
       }
@@ -378,27 +441,30 @@ export class RedirectService {
   }
 
   private replacePlaceholders(
-    template: string,
-    variables: Record<string, string | undefined>,
+      template: string,
+      variables: Record<string, string | undefined>,
   ): string {
     const result = template.replace(
-      /(?<!\{)\{([^{}]+)\}(?!\})/g,
-      (match, content) => {
-        const [key, modifierChain] = content.split(':');
+        /(?<!\{)\{([^{}]+)\}(?!\})/g,
+        (match, content) => {
+          // Split only on the first colon to separate key from modifier chain
+          const colonIndex = content.indexOf(':');
+          const key = colonIndex === -1 ? content : content.substring(0, colonIndex);
+          const modifierChain = colonIndex === -1 ? undefined : content.substring(colonIndex + 1);
 
-        let value = key ? variables[key] : '';
+          let value = key ? variables[key] : '';
 
-        if (value === undefined && modifierChain) {
-          value = key;
-        }
+          if (value === undefined && modifierChain) {
+            value = key;
+          }
 
-        if (value === undefined && key && !modifierChain) return match;
+          if (value === undefined && key && !modifierChain) return match;
 
-        if (modifierChain) {
-          return this.applyModifiers(value ?? '', modifierChain);
-        }
+          if (modifierChain) {
+            return this.applyModifiers(value ?? '', modifierChain);
+          }
 
-        return value ?? '';
+          return value ?? '';
       },
     );
 
