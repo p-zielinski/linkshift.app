@@ -11,12 +11,14 @@ import express from 'express';
 import { RedirectRule, RedirectService } from './redirect.service';
 import { RuleValidatorService } from './rule-validator.service';
 import { CreateRuleDto } from './create-rule.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly redirectService: RedirectService,
     private readonly ruleValidator: RuleValidatorService,
+    private readonly configService: ConfigService,
   ) {}
 
   // Define rules here (or fetch from DB/ConfigService)
@@ -94,6 +96,10 @@ export class AppController {
     @Req() req: express.Request,
     @Res() res: express.Response,
   ) {
+    if (req.hostname === this.configService.get('API_HOSTNAME')) {
+      return res.send('Redirect API is running');
+    }
+
     // Pass rules to the service
     const target = await this.redirectService.getRedirect(req, this.rules);
 
