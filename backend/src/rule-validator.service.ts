@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RedirectService } from './redirect.service';
+import dayjs from "dayjs";
 
 export interface ValidationResult {
   isValid: boolean;
@@ -21,9 +22,11 @@ export class RuleValidatorService {
     'ip',
     'userAgent',
     'random',
+    'geo.country',
   ];
 
   validate(source: string, destination: string): ValidationResult {
+
     const result: ValidationResult = {
       isValid: true,
       errors: [],
@@ -80,8 +83,12 @@ export class RuleValidatorService {
       return;
     }
 
+    // 0. Validate Conditional Logic (Brackets, time/date functions)
+    this.validateConditionalSyntax(destination, result);
+
     // 1. Check regex groups ($1, $2...)
     const regexGroups = destination.match(/\$(\d+)/g);
+
     if (regexGroups) {
       regexGroups.forEach((group) => {
         const index = parseInt(group.substring(1), 10);
@@ -134,6 +141,52 @@ export class RuleValidatorService {
       result.errors.push(
         suggestion ? `${msg} Did you mean "${suggestion}"?` : msg,
       );
+    }
+  }
+
+  private validateConditionalSyntax(
+      destination: string,
+      result: ValidationResult,
+  ): void {
+    // Only strictly validate if it looks like a conditional
+    if (!destination.includes('?') || !destination.includes(':')) {
+      return;
+    }
+
+    // Validate datetime() calls
+    const datetimeRegex = /datetime\s*\(\s*(['"])(.*?)\1\s*(?:,\s*(['"])(.*?)\3)?\s*\)/g;
+    let match;
+    while ((match = datetimeRegex.exec(destination)) !== null) {
+      const dateStr = match[2];
+      const tz = match[4];
+
+      if (!dateStr) {
+        result.errors.push(`datetime() requires at least one argument.`);
+        continue;
+      }
+
+      // Check date validity
+      const isValidDate = dayjs(dateStr).isValid();
+      if (!isValidDate) {
+        result.errors.push(`Invalid date format in datetime(): "${dateStr}".`);
+      }
+
+      // Check timezone validity if present
+      if (tz) {
+        try {
+          // This throws if TZ is invalid and timezone plugin is loaded
+          // However, dayjs.tz() usually just returns invalid date or UTC fallback depending on config.
+          // A reliable check is:
+          if (dayjs.tz(dateStr, tz).toString() === 'Invalid Date') {
+            // It might be the date or the tz. Since we checked date above (loosely),
+            // let's assume strict TZ check if possible.
+            // But actually Intl.DateTimeFormat is the underlying engine
+            Intl.DateTimeFormat(undefined, { timeZone: tz });
+          }
+        } catch (e) {
+          result.errors.push(`Invalid timezone in datetime(): "${tz}".`);
+        }
+      }
     }
   }
 

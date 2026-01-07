@@ -26,6 +26,7 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@ngrok/ngrok": "^1.7.0",
+    "dayjs": "^1.11.19",
     "dotenv": "^17.2.3",
     "jexl": "^2.3.0",
     "nest-winston": "^1.10.2",

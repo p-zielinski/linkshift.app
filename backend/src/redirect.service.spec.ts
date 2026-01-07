@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RedirectService, RedirectRule } from './redirect.service';
 import { Request } from 'express';
 import { Logger } from '@nestjs/common';
+import dayjs from "dayjs";
 
 describe('RedirectService', () => {
   let service: RedirectService;
@@ -343,6 +344,264 @@ describe('RedirectService', () => {
       );
 
       delete (RedirectService as any).manipulators.broken;
+    });
+  });
+
+  describe('Conditional Redirects (Traffic Splitting & Logic)', () => {
+    let randomSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      randomSpy = jest.spyOn(Math, 'random');
+    });
+
+    afterEach(() => {
+      randomSpy.mockRestore();
+    });
+
+    it('should split traffic based on random percentage', async () => {
+      // 30% traffic to google, 70% to bing
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: '{random:0:100} < 30 ? https://google.com : https://bing.com',
+        },
+      ];
+
+      // Case 1: Random < 30 (e.g., 10)
+      randomSpy.mockReturnValue(0.099);
+      const req1 = createMockRequest('http://test.com');
+      expect(await service.getRedirect(req1, rules)).toBe('https://google.com');
+
+      // Case 2: Random >= 30 (e.g., 50)
+      randomSpy.mockReturnValue(0.495);
+      const req2 = createMockRequest('http://test.com');
+      expect(await service.getRedirect(req2, rules)).toBe('https://bing.com');
+    });
+
+    it('should route based on UserAgent string equality', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: '{userAgent} == MyBot ? /bot-handler : /human-handler',
+        },
+      ];
+
+      const reqBot = createMockRequest('http://test.com', { 'user-agent': 'MyBot' });
+      expect(await service.getRedirect(reqBot, rules)).toBe('/bot-handler');
+
+      const reqHuman = createMockRequest('http://test.com', { 'user-agent': 'Mozilla/5.0' });
+      expect(await service.getRedirect(reqHuman, rules)).toBe('/human-handler');
+    });
+
+    it('should route based on UserAgent regex match (~=)', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: "'{userAgent}' ~= Mobile ? /mobile-site : /desktop-site",
+        },
+      ];
+
+      const reqMobile = createMockRequest('http://test.com', {
+        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)'
+      });
+      expect(await service.getRedirect(reqMobile, rules)).toBe('/mobile-site');
+
+      const reqDesktop = createMockRequest('http://test.com', {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+      });
+      expect(await service.getRedirect(reqDesktop, rules)).toBe('/desktop-site');
+    });
+
+    it('should route based on UserAgent includes check with manipulation', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+              "'{userAgent:to_lower_case}' includes 'chrome' ? /chrome-browser : /other-browser",
+        },
+      ];
+
+      // Chrome User Agent
+      const reqChrome = createMockRequest('http://test.com', {
+        'user-agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      });
+      expect(await service.getRedirect(reqChrome, rules)).toBe('/chrome-browser');
+
+      // Firefox User Agent (does not contain 'chrome' typically)
+      const reqFirefox = createMockRequest('http://test.com', {
+        'user-agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
+      });
+      expect(await service.getRedirect(reqFirefox, rules)).toBe('/other-browser');
+    });
+
+    it('should handle nested conditions (If-Else-If logic)', async () => {
+      // Logic: If Country is PL -> /pl, Else If Country is US -> /us, Else -> /global
+      // Note: Test helper defaults IP to 127.0.0.1 which mocks to 'PL' in our service
+
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+              "'{geo.country}' == 'PL' ? /pl : ('{geo.country}' == 'US' ? /us : /global)",
+        },
+      ];
+
+      // Case 1: IP 127.0.0.1 -> PL
+      const reqPL = createMockRequest('http://test.com');
+      expect(await service.getRedirect(reqPL, rules)).toBe('/pl');
+
+      // Case 2: Unknown IP (defaults to US in stub)
+      const reqUS = createMockRequest('http://test.com');
+      (reqUS as any).ip = '8.8.8.8';
+      (reqUS as any).socket.remoteAddress = '8.8.8.8';
+
+      // We need to re-create the service or mock the private method,
+      // but since we can't easily mock private, we rely on the stub logic:
+      // Stub returns 'US' for anything not local.
+      expect(await service.getRedirect(reqUS, rules)).toBe('/us');
+    });
+
+    it('should handle complex mixed logic with parentheses', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: "(10 > 5) ? (2 == 2 ? yes : no) : fail",
+        },
+      ];
+      const req = createMockRequest('http://test.com');
+      expect(await service.getRedirect(req, rules)).toBe('yes');
+    });
+  });
+
+  describe('Date/Time Based Conditionals', () => {
+    let dateSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      // Mock current time to 2024-06-15 12:00:00 UTC
+      const mockDate = new Date('2024-06-15T12:00:00Z');
+      dateSpy = jest.spyOn(global.Date, 'now').mockReturnValue(mockDate.getTime());
+    });
+
+    afterEach(() => {
+      dateSpy.mockRestore();
+    });
+
+    it('should route based on current time being after a specific date', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: "time() > datetime('2024-01-01') ? /new-year-passed : /before-new-year",
+        },
+      ];
+
+      const req = createMockRequest('http://test.com');
+      expect(await service.getRedirect(req, rules)).toBe('/new-year-passed');
+    });
+
+    it('should route based on current time being before a specific date', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: "time() < datetime('2025-01-01') ? /this-year : /next-year",
+        },
+      ];
+
+      const req = createMockRequest('http://test.com');
+      expect(await service.getRedirect(req, rules)).toBe('/this-year');
+    });
+
+    it('should handle datetime with specific time (UTC default)', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: "time() > datetime('2024-06-15 10:00') ? /after-10am : /before-10am",
+        },
+      ];
+
+      const req = createMockRequest('http://test.com');
+      // Current mocked time is 12:00 UTC, which is > 10:00 UTC
+      expect(await service.getRedirect(req, rules)).toBe('/after-10am');
+    });
+
+    it('should handle datetime with timezone specification', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: "time() > datetime('2024-06-15 08:00', 'America/New_York') ? /after-8am-ny : /before-8am-ny",
+        },
+      ];
+
+      const req = createMockRequest('http://test.com');
+      // Current mocked time is 12:00 UTC = 08:00 EDT (New York)
+      // So time() (12:00 UTC) > datetime('2024-06-15 08:00', 'America/New_York') (also 12:00 UTC)
+      // This should be false (equal times)
+      expect(await service.getRedirect(req, rules)).toBe('/before-8am-ny');
+    });
+
+    it('should handle date-only format (defaults to 00:00 UTC)', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: "time() >= datetime('2024-06-15') ? /today-or-after : /before-today",
+        },
+      ];
+
+      const req = createMockRequest('http://test.com');
+      // Current mocked time is 2024-06-15 12:00 UTC, datetime('2024-06-15') = 2024-06-15 00:00 UTC
+      expect(await service.getRedirect(req, rules)).toBe('/today-or-after');
+    });
+
+    it('should handle invalid dates gracefully (return false/NaN logic)', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: "time() > datetime('invalid-date') ? /yes : /no",
+        },
+      ];
+
+      const req = createMockRequest('http://test.com');
+      // Invalid date should parse to NaN, comparison with NaN is always false
+      expect(await service.getRedirect(req, rules)).toBe('/no');
+    });
+
+    it('should handle comparison between two datetime values', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: "datetime('2024-12-25') < datetime('2025-01-01') ? /christmas-first : /newyear-first",
+        },
+      ];
+
+      const req = createMockRequest('http://test.com');
+      expect(await service.getRedirect(req, rules)).toBe('/christmas-first');
+    });
+
+    it('should support complex nested datetime conditions', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+              "time() < datetime('2024-06-01') ? /may : (time() < datetime('2024-07-01') ? /june : /july-or-later)",
+        },
+      ];
+
+      const req = createMockRequest('http://test.com');
+      // Current mocked time is 2024-06-15, which is after June 1 but before July 1
+      expect(await service.getRedirect(req, rules)).toBe('/june');
+    });
+
+    it('should handle equality checks with datetime', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: "datetime('2024-01-01') == datetime('2024-01-01') ? /same : /different",
+        },
+      ];
+
+      const req = createMockRequest('http://test.com');
+      expect(await service.getRedirect(req, rules)).toBe('/same');
     });
   });
 });
