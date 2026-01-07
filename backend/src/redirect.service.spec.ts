@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RedirectService, RedirectRule } from './redirect.service';
 import { Request } from 'express';
 import { Logger } from '@nestjs/common';
-import dayjs from "dayjs";
+import dayjs from 'dayjs';
 
 describe('RedirectService', () => {
   let service: RedirectService;
@@ -18,8 +18,8 @@ describe('RedirectService', () => {
   });
 
   const createMockRequest = (
-      urlStr: string,
-      headers: Record<string, string> = {},
+    urlStr: string,
+    headers: Record<string, string> = {},
   ): Request => {
     const url = new URL(urlStr);
     return {
@@ -370,62 +370,48 @@ describe('RedirectService', () => {
       const rules: RedirectRule[] = [
         {
           source: '*',
-          destination: '{0:100:random} < 30 ? https://google.com : https://bing.com',
+          destination:
+            '{0:100:random} < 30 ? https://google.com : https://bing.com',
         },
       ];
 
-      // Case 1: Random < 30 (e.g., 10)
+      // Case 1: Random < 30 (e.g., 29)
       // Math.random is called TWICE: once for extractVariables (variables.random),
       // and once for the {0:100:random} manipulator
       randomSpy.mockReturnValueOnce(0.1); // First call (for variables.random) - ignored
-      randomSpy.mockReturnValueOnce(0.099); // Second call (for manipulator) -> 10
+      randomSpy.mockReturnValueOnce(0.29); // Second call: 0.29 * 101 = 29.29 -> floor = 29
       const req1 = createMockRequest('http://test.com');
-      expect(await service.getRedirect(req1, rules)).toBe('https://google.com');
+      const result1 = await service.getRedirect(req1, rules);
+      expect(result1).toBe('https://google.com');
 
       // Case 2: Random >= 30 (e.g., 50)
       randomSpy.mockReturnValueOnce(0.1); // First call (for variables.random) - ignored
-      randomSpy.mockReturnValueOnce(0.5); // Second call (for manipulator) -> 50
+      randomSpy.mockReturnValueOnce(0.5); // Second call: 0.5 * 101 = 50.5 -> floor = 50
       const req2 = createMockRequest('http://test.com');
-      expect(await service.getRedirect(req2, rules)).toBe('https://bing.com');
+      const result2 = await service.getRedirect(req2, rules);
+      expect(result2).toBe('https://bing.com');
     });
 
     it('should route based on UserAgent regex match (~=)', async () => {
       const rules: RedirectRule[] = [
         {
           source: '*',
-          // Use case-insensitive regex or match actual substring
-          destination: "'{userAgent}' ~= 'iPhone' ? /mobile-site : /desktop-site",
+          destination:
+            "'{userAgent}' ~= 'iPhone' ? /mobile-site : /desktop-site",
         },
       ];
 
       const reqMobile = createMockRequest('http://test.com', {
-        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)'
+        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)',
       });
-      expect(await service.getRedirect(reqMobile, rules)).toBe('/mobile-site');
+      const result1 = await service.getRedirect(reqMobile, rules);
+      expect(result1).toBe('/mobile-site');
 
       const reqDesktop = createMockRequest('http://test.com', {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
       });
-      expect(await service.getRedirect(reqDesktop, rules)).toBe('/desktop-site');
-    });
-
-    it('should route based on UserAgent regex match (~=)', async () => {
-      const rules: RedirectRule[] = [
-        {
-          source: '*',
-          destination: "'{userAgent}' ~= 'Mobile' ? /mobile-site : /desktop-site",
-        },
-      ];
-
-      const reqMobile = createMockRequest('http://test.com', {
-        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)'
-      });
-      expect(await service.getRedirect(reqMobile, rules)).toBe('/mobile-site');
-
-      const reqDesktop = createMockRequest('http://test.com', {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-      });
-      expect(await service.getRedirect(reqDesktop, rules)).toBe('/desktop-site');
+      const result2 = await service.getRedirect(reqDesktop, rules);
+      expect(result2).toBe('/desktop-site');
     });
 
     it('should route based on UserAgent includes check with manipulation', async () => {
@@ -433,23 +419,27 @@ describe('RedirectService', () => {
         {
           source: '*',
           destination:
-              "'{userAgent:to_lower_case}' includes 'chrome' ? /chrome-browser : /other-browser",
+            "'{userAgent:to_lower_case}' includes 'chrome' ? /chrome-browser : /other-browser",
         },
       ];
 
       // Chrome User Agent
       const reqChrome = createMockRequest('http://test.com', {
         'user-agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       });
-      expect(await service.getRedirect(reqChrome, rules)).toBe('/chrome-browser');
+      expect(await service.getRedirect(reqChrome, rules)).toBe(
+        '/chrome-browser',
+      );
 
       // Firefox User Agent (does not contain 'chrome' typically)
       const reqFirefox = createMockRequest('http://test.com', {
         'user-agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
       });
-      expect(await service.getRedirect(reqFirefox, rules)).toBe('/other-browser');
+      expect(await service.getRedirect(reqFirefox, rules)).toBe(
+        '/other-browser',
+      );
     });
 
     it('should handle nested conditions (If-Else-If logic)', async () => {
@@ -460,7 +450,7 @@ describe('RedirectService', () => {
         {
           source: '*',
           destination:
-              "'{geo.country}' == 'PL' ? /pl : ('{geo.country}' == 'US' ? /us : /global)",
+            "'{geo.country}' == 'PL' ? /pl : ('{geo.country}' == 'US' ? /us : /global)",
         },
       ];
 
@@ -483,7 +473,7 @@ describe('RedirectService', () => {
       const rules: RedirectRule[] = [
         {
           source: '*',
-          destination: "(10 > 5) ? (2 == 2 ? yes : no) : fail",
+          destination: '(10 > 5) ? (2 == 2 ? yes : no) : fail',
         },
       ];
       const req = createMockRequest('http://test.com');
@@ -497,7 +487,9 @@ describe('RedirectService', () => {
     beforeEach(() => {
       // Mock current time to 2024-06-15 12:00:00 UTC
       const mockDate = new Date('2024-06-15T12:00:00Z');
-      dateSpy = jest.spyOn(global.Date, 'now').mockReturnValue(mockDate.getTime());
+      dateSpy = jest
+        .spyOn(global.Date, 'now')
+        .mockReturnValue(mockDate.getTime());
     });
 
     afterEach(() => {
@@ -508,7 +500,8 @@ describe('RedirectService', () => {
       const rules: RedirectRule[] = [
         {
           source: '*',
-          destination: "time() > datetime('2024-01-01') ? /new-year-passed : /before-new-year",
+          destination:
+            "time() > datetime('2024-01-01') ? /new-year-passed : /before-new-year",
         },
       ];
 
@@ -520,7 +513,8 @@ describe('RedirectService', () => {
       const rules: RedirectRule[] = [
         {
           source: '*',
-          destination: "time() < datetime('2025-01-01') ? /this-year : /next-year",
+          destination:
+            "time() < datetime('2025-01-01') ? /this-year : /next-year",
         },
       ];
 
@@ -532,7 +526,8 @@ describe('RedirectService', () => {
       const rules: RedirectRule[] = [
         {
           source: '*',
-          destination: "time() > datetime('2024-06-15 10:00') ? /after-10am : /before-10am",
+          destination:
+            "time() > datetime('2024-06-15 10:00') ? /after-10am : /before-10am",
         },
       ];
 
@@ -545,7 +540,8 @@ describe('RedirectService', () => {
       const rules: RedirectRule[] = [
         {
           source: '*',
-          destination: "time() > datetime('2024-06-15 08:00', 'America/New_York') ? /after-8am-ny : /before-8am-ny",
+          destination:
+            "time() > datetime('2024-06-15 08:00', 'America/New_York') ? /after-8am-ny : /before-8am-ny",
         },
       ];
 
@@ -560,7 +556,8 @@ describe('RedirectService', () => {
       const rules: RedirectRule[] = [
         {
           source: '*',
-          destination: "time() >= datetime('2024-06-15') ? /today-or-after : /before-today",
+          destination:
+            "time() >= datetime('2024-06-15') ? /today-or-after : /before-today",
         },
       ];
 
@@ -586,7 +583,8 @@ describe('RedirectService', () => {
       const rules: RedirectRule[] = [
         {
           source: '*',
-          destination: "datetime('2024-12-25') < datetime('2025-01-01') ? /christmas-first : /newyear-first",
+          destination:
+            "datetime('2024-12-25') < datetime('2025-01-01') ? /christmas-first : /newyear-first",
         },
       ];
 
@@ -599,7 +597,7 @@ describe('RedirectService', () => {
         {
           source: '*',
           destination:
-              "time() < datetime('2024-06-01') ? /may : (time() < datetime('2024-07-01') ? /june : /july-or-later)",
+            "time() < datetime('2024-06-01') ? /may : (time() < datetime('2024-07-01') ? /june : /july-or-later)",
         },
       ];
 
@@ -612,7 +610,8 @@ describe('RedirectService', () => {
       const rules: RedirectRule[] = [
         {
           source: '*',
-          destination: "datetime('2024-01-01') == datetime('2024-01-01') ? /same : /different",
+          destination:
+            "datetime('2024-01-01') == datetime('2024-01-01') ? /same : /different",
         },
       ];
 

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Request } from 'express';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 
@@ -38,8 +38,8 @@ export class RedirectService {
   };
 
   async getRedirect(
-      req: Request,
-      rules: RedirectRule[],
+    req: Request,
+    rules: RedirectRule[],
   ): Promise<string | null> {
     const url = this.getRequestUrl(req);
     const variables = this.extractVariables(req, url);
@@ -88,7 +88,7 @@ export class RedirectService {
     segments.forEach((seg, i) => (variables[`segments.${i}`] = seg));
     subdomains.forEach((sub, i) => (variables[`domain.subdomains.${i}`] = sub));
     url.searchParams.forEach(
-        (value, key) => (variables[`query.${key}`] = value),
+      (value, key) => (variables[`query.${key}`] = value),
     );
 
     return variables;
@@ -190,7 +190,7 @@ export class RedirectService {
    * Respects parentheses nesting.
    */
   private splitConditional(
-      template: string,
+    template: string,
   ): { condition: string; truePart: string; falsePart: string } | null {
     let balance = 0;
     let questionMarkIndex = -1;
@@ -267,19 +267,22 @@ export class RedirectService {
    * - Date/Time functions: time(), datetime(date, timezone?)
    */
   private evaluateCondition(condition: string): boolean {
-    // First, preprocess the condition to resolve functions
     const preprocessed = this.preprocessCondition(condition.trim());
-
-    // Find operator position more carefully
-    // We need to handle: strings (quoted), function calls, and URLs
     const operatorMatch = this.findOperatorPosition(preprocessed);
 
-    if (!operatorMatch) return false;
+    if (!operatorMatch) {
+      this.logger.debug(`No operator found in condition: ${condition}`);
+      return false;
+    }
 
     const { leftPart, operator, rightPart } = operatorMatch;
-
     const left = this.parseValue(leftPart);
     const right = this.parseValue(rightPart);
+
+    // Temporary debug log
+    this.logger.debug(
+      `Evaluating: ${JSON.stringify(left)} ${operator} ${JSON.stringify(right)}`,
+    );
 
     switch (operator) {
       case '==':
@@ -398,19 +401,19 @@ export class RedirectService {
 
     // 1. Check for time()
     if (/^time\s*\(\s*\)$/.test(trimmed)) {
-      return Date.now(); // Use Date.now() instead of dayjs for consistency
+      return Date.now();
     }
 
     // 2. Check for datetime('date', 'timezone'?)
     const dtMatch = trimmed.match(
-        /^datetime\s*\(\s*(['"])(.*?)\1\s*(?:,\s*(['"])(.*?)\3)?\s*\)$/,
+      /^datetime\s*\(\s*(['"])(.*?)\1\s*(?:,\s*(['"])(.*?)\3)?\s*\)$/,
     );
 
     if (dtMatch) {
       const dateStr = dtMatch[2];
       const tz = dtMatch[4];
 
-      let parsed;
+      let parsed: Dayjs | undefined;
       if (tz) {
         parsed = dayjs.tz(dateStr, tz);
       } else {
@@ -419,7 +422,7 @@ export class RedirectService {
 
       if (!parsed.isValid()) {
         this.logger.warn(
-            `Invalid date in rule condition: ${dateStr} (tz: ${tz || 'UTC'})`,
+          `Invalid date in rule condition: ${dateStr} (tz: ${tz || 'UTC'})`,
         );
         return NaN;
       }
@@ -429,42 +432,52 @@ export class RedirectService {
 
     // 3. Remove surrounding quotes for strings
     if (
-        (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-        (trimmed.startsWith("'") && trimmed.endsWith("'"))
+      (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+      (trimmed.startsWith("'") && trimmed.endsWith("'"))
     ) {
       return trimmed.substring(1, trimmed.length - 1);
     }
 
-    // 4. Try parsing as number
+    // 4. Try parsing as number - MUST be before returning trimmed
     const num = Number(trimmed);
-    return isNaN(num) ? trimmed : num;
+    if (!isNaN(num)) {
+      return num; // Return number, not trimmed string!
+    }
+
+    // 5. Return as string if not a number
+    return trimmed;
   }
 
   private replacePlaceholders(
-      template: string,
-      variables: Record<string, string | undefined>,
+    template: string,
+    variables: Record<string, string | undefined>,
   ): string {
     const result = template.replace(
-        /(?<!\{)\{([^{}]+)\}(?!\})/g,
-        (match, content) => {
-          // Split only on the first colon to separate key from modifier chain
-          const colonIndex = content.indexOf(':');
-          const key = colonIndex === -1 ? content : content.substring(0, colonIndex);
-          const modifierChain = colonIndex === -1 ? undefined : content.substring(colonIndex + 1);
+      /(?<!\{)\{([^{}]+)\}(?!\})/g,
+      (match, content: string) => {
+        const lastColonIndex: number = content.lastIndexOf(':');
+        const key =
+          lastColonIndex === -1
+            ? content
+            : content.substring(0, lastColonIndex);
+        const modifierChain =
+          lastColonIndex === -1
+            ? undefined
+            : content.substring(lastColonIndex + 1);
 
-          let value = key ? variables[key] : '';
+        let value = key ? variables[key] : '';
 
-          if (value === undefined && modifierChain) {
-            value = key;
-          }
+        if (value === undefined && modifierChain) {
+          value = key;
+        }
 
-          if (value === undefined && key && !modifierChain) return match;
+        if (value === undefined && key && !modifierChain) return match;
 
-          if (modifierChain) {
-            return this.applyModifiers(value ?? '', modifierChain);
-          }
+        if (modifierChain) {
+          return this.applyModifiers(value ?? '', modifierChain);
+        }
 
-          return value ?? '';
+        return value ?? '';
       },
     );
 
@@ -478,8 +491,8 @@ export class RedirectService {
       if (manipulator) {
         try {
           return manipulator(acc);
-        } catch (e) {
-          this.logger.error(`Error applying manipulator ${mod}`, e.stack);
+        } catch (e: any) {
+          this.logger.error(`Error applying manipulator ${mod}`, e?.stack);
           return acc;
         }
       }
