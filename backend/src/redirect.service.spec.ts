@@ -479,6 +479,87 @@ describe('RedirectService', () => {
       const req = createMockRequest('http://test.com');
       expect(await service.getRedirect(req, rules)).toBe('yes');
     });
+
+    it('should handle multiple nested operators with parentheses', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+            '(({random} >= 0) ? (({random} < 10000000) ? /in-range : /too-high) : /negative)',
+        },
+      ];
+      const req = createMockRequest('http://test.com');
+      // Random is always >= 0 and usually < 10000000 (0..1000000 in stub)
+      expect(await service.getRedirect(req, rules)).toBe('/in-range');
+    });
+
+    it('should correctly process logic where operators are inside strings', async () => {
+      // The '>' inside the string should be ignored by the parser
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+            "'{userAgent}' includes 'MSIE > 6' ? /legacy-browser : /modern-browser",
+        },
+      ];
+      const req = createMockRequest('http://test.com', {
+        'user-agent': 'Mozilla/4.0 (compatible; MSIE > 6)',
+      });
+      expect(await service.getRedirect(req, rules)).toBe('/legacy-browser');
+    });
+
+    it('should handle deeply nested conditions with multiple branches', async () => {
+      // If A ? (B ? T1 : F1) : (C ? T2 : F2)
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+            '1 > 0 ? (10 < 5 ? /fail-inner : /success-inner) : (1 == 1 ? /fail-outer : /fail-outer-2)',
+        },
+      ];
+      const req = createMockRequest('http://test.com');
+      expect(await service.getRedirect(req, rules)).toBe('/success-inner');
+    });
+
+    it('should handle extremely deep nesting of conditional logic', async () => {
+      // A ? (B ? (C ? T : F) : F) : F
+      // 1>0 ? (2>1 ? (3>2 ? /deep-success : /deep-fail-3) : /deep-fail-2) : /deep-fail-1
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+            '1 > 0 ? (2 > 1 ? (3 > 2 ? /deep-success : /deep-fail-3) : /deep-fail-2) : /deep-fail-1',
+        },
+      ];
+      const req = createMockRequest('http://test.com');
+      expect(await service.getRedirect(req, rules)).toBe('/deep-success');
+    });
+
+    it('should correctly handle a mix of true/false branches in deep nesting', async () => {
+      // 1>0 (True) -> Check Inner
+      // Inner: 2<1 (False) -> Go to False branch of Inner
+      // Inner False Branch: 4>3 (True) -> /branch-success
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+            '1 > 0 ? (2 < 1 ? /fail-1 : (4 > 3 ? /branch-success : /fail-2)) : /fail-3',
+        },
+      ];
+      const req = createMockRequest('http://test.com');
+      expect(await service.getRedirect(req, rules)).toBe('/branch-success');
+    });
+
+    it('should handle logic where condition itself is wrapped in many parentheses', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: '(((( 5 > 1 )))) ? /paren-success : /paren-fail',
+        },
+      ];
+      const req = createMockRequest('http://test.com');
+      expect(await service.getRedirect(req, rules)).toBe('/paren-success');
+    });
   });
 
   describe('Date/Time Based Conditionals', () => {
@@ -617,6 +698,74 @@ describe('RedirectService', () => {
 
       const req = createMockRequest('http://test.com');
       expect(await service.getRedirect(req, rules)).toBe('/same');
+    });
+  });
+
+  describe('Advanced Conditional Operators Execution', () => {
+    it('should execute inequality (!=) correctly', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: "'{method}' != 'POST' ? /not-post : /is-post",
+        },
+      ];
+      const req = createMockRequest('http://test.com'); // Default GET
+      expect(await service.getRedirect(req, rules)).toBe('/not-post');
+    });
+
+    it('should execute includes operator correctly', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+            "'{userAgent}' includes 'Mobile' ? /mobile-app : /web-app",
+        },
+      ];
+      const req = createMockRequest('http://test.com', {
+        'user-agent': 'Some Mobile Device v1',
+      });
+      expect(await service.getRedirect(req, rules)).toBe('/mobile-app');
+    });
+
+    it('should execute regex match (~=) with flags (case insensitive)', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: "'{path}' ~= /admin/i ? /secure-area : /public-area",
+        },
+      ];
+      // Path contains 'ADMIN' (uppercase), regex uses /i flag
+      const req = createMockRequest('http://test.com/ADMIN/dashboard');
+      expect(await service.getRedirect(req, rules)).toBe('/secure-area');
+    });
+
+    it('should execute numeric comparisons (>=, <=)', async () => {
+      const rules: RedirectRule[] = [
+        { source: '*', destination: '10 <= 10 ? /eq : /fail' },
+        { source: '*', destination: '5 >= 6 ? /fail : /pass' },
+      ];
+
+      const req = createMockRequest('http://test.com');
+      // 10 <= 10 -> true
+      expect(await service.getRedirect(req, [rules[0]])).toBe('/eq');
+      // 5 >= 6 -> false
+      expect(await service.getRedirect(req, [rules[1]])).toBe('/pass');
+    });
+
+    it('should handle complex mixed conditions', async () => {
+      // If (path includes 'shop') AND (random < 1000001) -> /commerce
+      // Since our parser doesn't support logical AND/OR yet (&&, ||),
+      // we simulate AND using nested ternaries: ConditionA ? (ConditionB ? True : False) : False
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+            "'{path}' includes 'shop' ? (1 == 1 ? /commerce : /blog) : /home",
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/my-shop/items');
+      expect(await service.getRedirect(req, rules)).toBe('/commerce');
     });
   });
 });
