@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Request } from 'express';
+import express, { Request } from 'express';
 import dayjs, { Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -36,6 +36,23 @@ export class RedirectService {
     random: RedirectService.processRandom,
     round: (val) => String(Math.round(Number(val || 0))),
   };
+
+  async applyRedirect(req: express.Request, res: express.Response) {
+    const rules: RedirectRule[] = [];
+
+    const target = await this.getRedirect(req, rules);
+
+    if (target) {
+      res.redirect(302, target);
+      return;
+    }
+
+    res.status(404).send({
+      message: `Target for ${req.method} ${req.url} does not exist.`,
+      error: 'Not Found',
+      statusCode: 404,
+    });
+  }
 
   async getRedirect(
     req: Request,

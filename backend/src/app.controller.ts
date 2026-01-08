@@ -21,75 +21,28 @@ export class AppController {
     private readonly configService: ConfigService,
   ) {}
 
-  // Define rules here (or fetch from DB/ConfigService)
-  private readonly rules: RedirectRule[] = [
-    {
-      source: /^\/blog\/(.+)$/,
-      destination:
-        'https://new-blog.com/posts/$1?from={domain.root:to_upper_case.url_encode}',
-    },
-    {
-      source: '*',
-      destination:
-        'https://backup-site.com/{path}?v={:random}&sum={query.id:add_10}',
-    },
-  ];
+  // For reference only
+  // private readonly rules: RedirectRule[] = [
+  //   {
+  //     source: /^\/blog\/(.+)$/,
+  //     destination:
+  //       'https://new-blog.com/posts/$1?from={domain.root:to_upper_case.url_encode}',
+  //   },
+  //   {
+  //     source: '*',
+  //     destination:
+  //       'https://backup-site.com/{path}?v={:random}&sum={query.id:add_10}',
+  //   },
+  // ];
 
-  @Post('api/rules')
-  addRule(@Body() createRuleDto: CreateRuleDto) {
-    // 1. Validate incoming data
-    const validation = this.ruleValidator.validate(
-      createRuleDto.source,
-      createRuleDto.destination,
-    );
-
-    if (!validation.isValid) {
-      throw new BadRequestException({
-        message: 'Validation failed',
-        errors: validation.errors,
-        warnings: validation.warnings,
-      });
-    }
-
-    // 2. Convert source string to RegExp object if applicable
-    let finalSource: string | RegExp = createRuleDto.source;
-
-    // Detect regex format: /pattern/flags
-    if (
-      typeof createRuleDto.source === 'string' &&
-      createRuleDto.source.startsWith('/') &&
-      createRuleDto.source.lastIndexOf('/') > 0
-    ) {
-      const lastSlashIndex = createRuleDto.source.lastIndexOf('/');
-      const pattern = createRuleDto.source.substring(1, lastSlashIndex);
-      const flags = createRuleDto.source.substring(lastSlashIndex + 1);
-
-      try {
-        finalSource = new RegExp(pattern, flags);
-      } catch (e) {
-        // Fallback or re-throw, though validator should have caught this
-        throw new BadRequestException(`Invalid regex format: ${e.message}`);
-      }
-    }
-
-    // 3. Create and store the rule
-    const newRule: RedirectRule = {
-      source: finalSource,
-      destination: createRuleDto.destination,
-    };
-
-    this.rules.push(newRule);
-
-    // Return the created rule (converting RegExp back to string for JSON response)
-    return {
-      message: 'Rule added successfully',
-      rule: {
-        ...newRule,
-        source: newRule.source.toString(),
-      },
-      totalRules: this.rules.length,
-    };
-  }
+  // @Post('api/v1/users')
+  // async createUser(@Req() req: express.Request, @Res() res: express.Response) {
+  //   if (req.hostname !== this.configService.get('API_HOSTNAME')) {
+  //     await this.redirectService.applyRedirect(req, res);
+  //     return;
+  //   }
+  //   ///zustand request validation, using services, returning data or errors.
+  // }
 
   @All('*')
   async handleRedirect(
@@ -97,14 +50,15 @@ export class AppController {
     @Res() res: express.Response,
   ) {
     if (req.hostname === this.configService.get('API_HOSTNAME')) {
-      return res.send('Redirect API is running');
+      return res
+        .send({
+          message: `Cannot ${req.method} ${req.url}`,
+          error: 'Not Found',
+          statusCode: 404,
+        })
+        .status(404);
     }
 
-    // Pass rules to the service
-    const target = await this.redirectService.getRedirect(req, this.rules);
-
-    console.log(`Redirecting to: ${target}`);
-
-    return res.redirect(302, target ?? 'http://google.com/search?q=404');
+    await this.redirectService.applyRedirect(req, res);
   }
 }
