@@ -1,8 +1,25 @@
-import { Injectable, Logger } from '@nestjs/common';
 import express, { Request } from 'express';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { PrismaService } from './prisma.service';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
+import { RuleValidatorService } from './rule-validator.service';
+import {
+  CreateRedirectRuleDto,
+  UpdateRedirectRuleDto,
+} from './zod-schames/redirect-rule.schemas';
+import { CreateDomainDto, UpdateDomainDto } from './zod-schames/domain.schemas';
+import {
+  CreateDomainGroupDto,
+  UpdateDomainGroupDto,
+} from './zod-schames/domain-group.schemas';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -17,6 +34,424 @@ type Manipulator = (val: string) => string;
 @Injectable()
 export class RedirectService {
   private readonly logger = new Logger(RedirectService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly ruleValidator: RuleValidatorService,
+  ) {}
+
+  // --- Management Methods (CRUD) ---
+
+  async listDomains(organizationId: string) {
+    return this.prisma.domain.findMany({
+      where: {
+        deletedAt: null,
+        domainGroup: {
+          organizationId,
+          deletedAt: null,
+        },
+      },
+      include: {
+        domainGroup: {
+          select: { id: true, name: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getDomainById(id: string, organizationId: string) {
+    const domain = await this.prisma.domain.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        domainGroup: { organizationId, deletedAt: null },
+      },
+      include: { domainGroup: true },
+    });
+
+    if (!domain) {
+      throw new NotFoundException('Domain not found');
+    }
+    return domain;
+  }
+
+  async createDomain(organizationId: string, data: CreateDomainDto) {
+    // 1. Verify domain group exists and belongs to organization
+    const domainGroup = await this.prisma.domainGroup.findFirst({
+      where: {
+        id: data.domainGroupId,
+        organizationId,
+        deletedAt: null,
+      },
+    });
+
+    if (!domainGroup) {
+      throw new NotFoundException('Domain group not found');
+    }
+
+    // 2. Check duplicate name
+    const existing = await this.prisma.domain.findFirst({
+      where: {
+        name: data.name,
+        deletedAt: null,
+      },
+    });
+
+    if (existing) {
+      throw new ConflictException('Domain name already exists');
+    }
+
+    // 3. Create
+    return this.prisma.domain.create({
+      data: {
+        name: data.name,
+        domainGroupId: data.domainGroupId,
+      },
+      include: { domainGroup: true },
+    });
+  }
+
+  async updateDomain(
+    id: string,
+    organizationId: string,
+    data: UpdateDomainDto,
+  ) {
+    // 1. Verify domain exists
+    const existing = await this.prisma.domain.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        domainGroup: { organizationId, deletedAt: null },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Domain not found');
+    }
+
+    // 2. Check duplicates if name changes
+    if (data.name && data.name !== existing.name) {
+      const duplicate = await this.prisma.domain.findFirst({
+        where: {
+          name: data.name,
+          deletedAt: null,
+        },
+      });
+
+      if (duplicate) {
+        throw new ConflictException('Domain name already exists');
+      }
+    }
+
+    // 3. Verify new group if changing
+    if (data.domainGroupId) {
+      const newDomainGroup = await this.prisma.domainGroup.findFirst({
+        where: {
+          id: data.domainGroupId,
+          organizationId,
+          deletedAt: null,
+        },
+      });
+
+      if (!newDomainGroup) {
+        throw new NotFoundException('Domain group not found');
+      }
+    }
+
+    // 4. Update
+    return this.prisma.domain.update({
+      where: { id },
+      data: {
+        ...data,
+        updatedAt: new Date(),
+      },
+      include: { domainGroup: true },
+    });
+  }
+
+  async deleteDomain(id: string, organizationId: string) {
+    const existing = await this.prisma.domain.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        domainGroup: { organizationId, deletedAt: null },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Domain not found');
+    }
+
+    await this.prisma.domain.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+
+    return true;
+  }
+
+  async listDomainGroups(organizationId: string) {
+    return this.prisma.domainGroup.findMany({
+      where: {
+        organizationId,
+        deletedAt: null,
+      },
+      include: {
+        domains: {
+          where: { deletedAt: null },
+        },
+        redirectRules: {
+          where: { deletedAt: null },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  async getDomainGroupById(id: string, organizationId: string) {
+    const domainGroup = await this.prisma.domainGroup.findFirst({
+      where: {
+        id,
+        organizationId,
+        deletedAt: null,
+      },
+      include: {
+        domains: {
+          where: { deletedAt: null },
+        },
+        redirectRules: {
+          where: { deletedAt: null },
+          orderBy: { priority: 'desc' },
+        },
+      },
+    });
+
+    if (!domainGroup) {
+      throw new NotFoundException('Domain group not found');
+    }
+    return domainGroup;
+  }
+
+  async createDomainGroup(organizationId: string, data: CreateDomainGroupDto) {
+    return this.prisma.domainGroup.create({
+      data: {
+        name: data.name,
+        organizationId,
+      },
+      include: {
+        domains: true,
+        redirectRules: true,
+      },
+    });
+  }
+
+  async updateDomainGroup(
+    id: string,
+    organizationId: string,
+    data: UpdateDomainGroupDto,
+  ) {
+    // 1. Verify existence
+    const existing = await this.prisma.domainGroup.findFirst({
+      where: {
+        id,
+        organizationId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Domain group not found');
+    }
+
+    // 2. Update
+    return this.prisma.domainGroup.update({
+      where: { id },
+      data: {
+        name: data.name,
+        updatedAt: new Date(),
+      },
+      include: {
+        domains: { where: { deletedAt: null } },
+        redirectRules: { where: { deletedAt: null } },
+      },
+    });
+  }
+
+  async deleteDomainGroup(id: string, organizationId: string) {
+    const existing = await this.prisma.domainGroup.findFirst({
+      where: {
+        id,
+        organizationId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Domain group not found');
+    }
+
+    await this.prisma.domainGroup.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+
+    return true;
+  }
+
+  async listRules(organizationId: string, domainGroupId?: string) {
+    const where: any = {
+      deletedAt: null,
+      domainGroup: {
+        organizationId,
+        deletedAt: null,
+      },
+    };
+
+    if (domainGroupId) {
+      where.domainGroupId = domainGroupId;
+    }
+
+    return this.prisma.redirectRule.findMany({
+      where,
+      include: {
+        domainGroup: {
+          select: { id: true, name: true },
+        },
+      },
+      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+    });
+  }
+
+  async getRuleById(id: string, organizationId: string) {
+    const rule = await this.prisma.redirectRule.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        domainGroup: { organizationId, deletedAt: null },
+      },
+      include: { domainGroup: true },
+    });
+
+    if (!rule) {
+      throw new NotFoundException('Redirect rule not found');
+    }
+    return rule;
+  }
+
+  async createRule(organizationId: string, data: CreateRedirectRuleDto) {
+    // 1. Verify domain group
+    const domainGroup = await this.prisma.domainGroup.findFirst({
+      where: {
+        id: data.domainGroupId,
+        organizationId,
+        deletedAt: null,
+      },
+    });
+
+    if (!domainGroup) {
+      throw new NotFoundException('Domain group not found');
+    }
+
+    // 2. Validate logic
+    const validationResult = this.ruleValidator.validate(
+      data.source,
+      data.destination,
+    );
+    if (!validationResult.isValid) {
+      throw new BadRequestException({
+        message: 'Rule validation failed',
+        details: validationResult.errors,
+        warnings: validationResult.warnings,
+      });
+    }
+
+    // 3. Create
+    const rule = await this.prisma.redirectRule.create({
+      data: {
+        source: data.source,
+        destination: data.destination,
+        statusCode: data.statusCode,
+        priority: data.priority,
+        domainGroupId: data.domainGroupId,
+      },
+      include: { domainGroup: true },
+    });
+
+    return { rule, warnings: validationResult.warnings };
+  }
+
+  async updateRule(
+    id: string,
+    organizationId: string,
+    data: UpdateRedirectRuleDto,
+  ) {
+    // 1. Verify existence
+    const existing = await this.prisma.redirectRule.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        domainGroup: { organizationId, deletedAt: null },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Redirect rule not found');
+    }
+
+    // 2. Validate logic if fields changed
+    const sourceToValidate = data.source ?? existing.source;
+    const destinationToValidate = data.destination ?? existing.destination;
+
+    const validationResult = this.ruleValidator.validate(
+      sourceToValidate,
+      destinationToValidate,
+    );
+    if (!validationResult.isValid) {
+      throw new BadRequestException({
+        message: 'Rule validation failed',
+        details: validationResult.errors,
+        warnings: validationResult.warnings,
+      });
+    }
+
+    // 3. Update
+    const rule = await this.prisma.redirectRule.update({
+      where: { id },
+      data: {
+        ...data,
+        updatedAt: new Date(),
+      },
+      include: { domainGroup: true },
+    });
+
+    return { rule, warnings: validationResult.warnings };
+  }
+
+  async deleteRule(id: string, organizationId: string) {
+    const existing = await this.prisma.redirectRule.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        domainGroup: { organizationId, deletedAt: null },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Redirect rule not found');
+    }
+
+    await this.prisma.redirectRule.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+
+    return true;
+  }
 
   // We removed hardcoded rules from here.
   // Now rules are passed directly to the getRedirect method.
@@ -38,16 +473,70 @@ export class RedirectService {
   };
 
   async applyRedirect(req: express.Request, res: express.Response) {
-    const rules: RedirectRule[] = [];
+    const hostname = req.hostname;
 
+    // 1. Query the database for the Domain matching the hostname
+    const domain = await this.prisma.domain.findFirst({
+      where: {
+        name: hostname,
+        deletedAt: null,
+      },
+      include: {
+        domainGroup: {
+          include: {
+            redirectRules: {
+              where: {
+                deletedAt: null,
+              },
+              orderBy: {
+                priority: 'desc', // Higher priority rules evaluated first
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // If no domain found, return 404
+    if (!domain) {
+      res.status(404).json({
+        message: `Domain ${hostname} not found`,
+        error: 'Not Found',
+        statusCode: 404,
+      });
+      return;
+    }
+
+    // 2. Convert database rules to RedirectRule format
+    const rules: RedirectRule[] = domain.domainGroup.redirectRules.map(
+      (rule) => {
+        // Check if source is a regex pattern (starts with / and has closing /)
+        if (rule.source.startsWith('/') && rule.source.lastIndexOf('/') > 0) {
+          const lastSlashIndex = rule.source.lastIndexOf('/');
+          const pattern = rule.source.substring(1, lastSlashIndex);
+          const flags = rule.source.substring(lastSlashIndex + 1);
+          return {
+            source: new RegExp(pattern, flags),
+            destination: rule.destination,
+          };
+        }
+        return {
+          source: rule.source,
+          destination: rule.destination,
+        };
+      },
+    );
+
+    // 3. Pass rules to getRedirect to find a match
     const target = await this.getRedirect(req, rules);
 
+    // 4. Action: redirect or return 404
     if (target) {
       res.redirect(302, target);
       return;
     }
 
-    res.status(404).send({
+    res.status(404).json({
       message: `Target for ${req.method} ${req.url} does not exist.`,
       error: 'Not Found',
       statusCode: 404,
@@ -430,7 +919,7 @@ export class RedirectService {
       const dateStr = dtMatch[2];
       const tz = dtMatch[4];
 
-      let parsed: Dayjs | undefined;
+      let parsed: dayjs.Dayjs | undefined;
       if (tz) {
         parsed = dayjs.tz(dateStr, tz);
       } else {
