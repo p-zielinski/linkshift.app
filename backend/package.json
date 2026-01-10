@@ -5,6 +5,16 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "testRegex": ".*\\.spec\\.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!@paralleldrive/cuid2)"
+  ],
+  "collectCoverageFrom": [
+    "**/*.(t|j)s"
+  ],
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
