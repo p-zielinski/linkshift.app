@@ -1,0 +1,45 @@
+import { init } from '@paralleldrive/cuid2';
+
+/**
+ * Defines all system entities that require unique identification.
+ * This includes both database models and virtual system entities like 'Request'.
+ */
+export enum AppEntity {
+  Organization = 'Organization',
+  User = 'User',
+  DomainGroup = 'DomainGroup',
+  Domain = 'Domain',
+  RedirectRule = 'RedirectRule',
+  Request = 'Request',
+}
+
+/**
+ * Mapping of application entities to their short ID prefixes.
+ * Results in IDs like "usr_..." for Users or "dom_..." for Domains.
+ */
+export const ENTITY_PREFIXES: Record<AppEntity, string> = {
+  [AppEntity.Organization]: 'org',
+  [AppEntity.User]: 'usr',
+  [AppEntity.DomainGroup]: 'dmg',
+  [AppEntity.Domain]: 'dom',
+  [AppEntity.RedirectRule]: 'rule',
+  [AppEntity.Request]: 'req',
+};
+
+/**
+ * Generates a prefixed, collision-resistant ID (Cuid2) for a given entity.
+ *
+ * @param entity - The type of entity to generate the ID for.
+ * @param length - The length of the random portion of the Cuid (default: 40).
+ * @returns A string in the format "prefix_randomString".
+ */
+export const createCustomCuid = (entity: AppEntity, length = 24) => {
+  const generateCuid = init({
+    random: Math.random,
+    length,
+    fingerprint: process.env.HOST_ID,
+  });
+
+  const prefix = ENTITY_PREFIXES[entity];
+  return `${prefix}_${generateCuid()}`;
+};

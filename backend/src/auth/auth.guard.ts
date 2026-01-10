@@ -15,15 +15,8 @@ export class AuthGuard implements CanActivate {
     private readonly configService: ConfigService,
   ) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
-
-    // 1. Bypass authentication if this is NOT an API request
-    // (e.g. redirect traffic handling)
-    const apiHostname = this.configService.get<string>('API_HOSTNAME');
-    if (request.hostname !== apiHostname) {
-      return true; // Allow access, controller will handle the redirect
-    }
 
     // 2. Standard Token Validation for API calls
     const token = this.extractTokenFromHeader(request);

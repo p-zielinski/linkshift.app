@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma.service';
 import { JwtService } from './jwt.service';
 import { RegisterDto, LoginDto } from '../zod-schames/auth.schemas';
+import { AppEntity, createCustomCuid } from '../utils';
 
 @Injectable()
 export class AuthService {
@@ -36,6 +37,7 @@ export class AuthService {
       // Create organization
       const organization = await tx.organization.create({
         data: {
+          id: createCustomCuid(AppEntity.Organization),
           name: data.organizationName,
         },
       });
@@ -43,6 +45,7 @@ export class AuthService {
       // Create user as owner
       const user = await tx.user.create({
         data: {
+          id: createCustomCuid(AppEntity.User),
           email: data.email,
           passwordHash,
           organizationId: organization.id,
@@ -129,9 +132,6 @@ export class AuthService {
     if (!payload) {
       throw new UnauthorizedException('Invalid refresh token');
     }
-
-    // Opcjonalnie: Tutaj powinieneś sprawdzić w bazie, czy user nadal istnieje
-    // albo czy refresh token nie został "unieważniony" (blacklist).
 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.userId },

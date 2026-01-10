@@ -1,120 +1,94 @@
 import {
   Controller,
   Post,
-  Req,
-  Res,
+  Body,
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
-import express from 'express';
-import { ConfigService } from '@nestjs/config';
-import { RedirectService } from '../redirect.service';
 import { AuthService } from '../auth/auth.service';
+import * as authSchemas from '../zod-schames/auth.schemas';
+import { ZodPipe } from '../pipes/zod.pipe';
 import {
-  RegisterSchema,
-  LoginSchema,
-  RefreshTokenSchema,
-} from '../zod-schames/auth.schemas';
+  ConflictError,
+  throwHttpException,
+  UnauthorizedError,
+} from '../models/error.model';
+import { ClsService } from 'nestjs-cls';
 
 @Controller('api/v1/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly redirectService: RedirectService,
-    private readonly configService: ConfigService,
+    private readonly clsService: ClsService,
   ) {}
 
   @Post('refresh')
-  async refresh(@Req() req: express.Request, @Res() res: express.Response) {
-    // Validate request body
-    const validation = RefreshTokenSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: validation.error.issues,
-        statusCode: 400,
-      });
-    }
-
+  async refresh(
+    @Body(new ZodPipe(authSchemas.RefreshTokenSchema))
+    body: authSchemas.RefreshTokenDto,
+  ) {
     try {
-      const tokens = await this.authService.refreshTokens(
-        validation.data.refreshToken,
-      );
-      return res.json({
+      const tokens = await this.authService.refreshTokens(body.refreshToken);
+      return {
         success: true,
         data: tokens,
-      });
-    } catch (error) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid refresh token',
-        statusCode: 401,
-      });
+      };
+    } catch (_) {
+      throwHttpException(
+        new UnauthorizedError({
+          requestId: this.clsService.getId(),
+          details: 'Invalid refresh token',
+        }),
+      );
     }
   }
 
   @Post('register')
-  async register(@Req() req: express.Request, @Res() res: express.Response) {
-    // Validate request body
-    const validation = RegisterSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: validation.error.issues,
-        statusCode: 400,
-      });
-    }
-
+  async register(
+    @Body(new ZodPipe(authSchemas.RegisterSchema))
+    body: authSchemas.RegisterDto,
+  ) {
     try {
-      const result = await this.authService.register(validation.data);
+      const result = await this.authService.register(body);
 
-      return res.status(201).json({
+      return {
         success: true,
         message: 'User registered successfully',
         data: result,
-      });
+      };
     } catch (error) {
       if (error instanceof ConflictException) {
-        return res.status(409).json({
-          success: false,
-          error: error.message,
-          statusCode: 409,
-        });
+        throwHttpException(
+          new ConflictError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+          }),
+        );
       }
       throw error;
     }
   }
 
   @Post('login')
-  async login(@Req() req: express.Request, @Res() res: express.Response) {
-    // Validate request body
-    const validation = LoginSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: validation.error.issues,
-        statusCode: 400,
-      });
-    }
-
+  async login(
+    @Body(new ZodPipe(authSchemas.LoginSchema)) body: authSchemas.LoginDto,
+  ) {
     try {
-      const result = await this.authService.login(validation.data);
+      const result = await this.authService.login(body);
 
-      return res.json({
+      return {
         success: true,
         message: 'Login successful',
         data: result,
-      });
+      };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
-        return res.status(401).json({
-          success: false,
-          error: error.message,
-          statusCode: 401,
-        });
+        throwHttpException(
+          new UnauthorizedError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+          }),
+        );
       }
       throw error;
     }
