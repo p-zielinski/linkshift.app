@@ -5,46 +5,46 @@ import {
   Put,
   Delete,
   Param,
-  Req,
-  Res,
+  Body,
+  Query,
   UseGuards,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import express from 'express';
-import { ConfigService } from '@nestjs/config';
 import { RedirectService } from '../redirect.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
+import * as redirectRuleSchemas from '../zod-schames/redirect-rule.schemas';
+import { ZodPipe } from '../pipes/zod.pipe';
 import {
-  CreateRedirectRuleSchema,
-  UpdateRedirectRuleSchema,
-} from '../zod-schames/redirect-rule.schemas';
+  BadRequestError,
+  NotFoundError,
+  throwHttpException,
+} from '../models/error.model';
+import { ClsService } from 'nestjs-cls';
 
 @Controller('api/v1/redirect-rules')
 export class RedirectRulesController {
   constructor(
     private readonly redirectService: RedirectService,
-    private readonly configService: ConfigService,
+    private readonly clsService: ClsService,
   ) {}
 
   @Get()
   @UseGuards(AuthGuard)
   async list(
     @User('organizationId') organizationId: string,
-    @Req() req: express.Request,
-    @Res() res: express.Response,
+    @Query('domainGroupId') domainGroupId?: string,
   ) {
-    const domainGroupId = req.query.domainGroupId as string;
     const rules = await this.redirectService.listRules(
       organizationId,
       domainGroupId,
     );
 
-    return res.json({
+    return {
       success: true,
       data: rules,
-    });
+    };
   }
 
   @Get(':id')
@@ -52,17 +52,20 @@ export class RedirectRulesController {
   async getById(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
-    @Req() req: express.Request,
-    @Res() res: express.Response,
   ) {
     try {
       const rule = await this.redirectService.getRuleById(id, organizationId);
-      return res.json({ success: true, data: rule });
+      return { success: true, data: rule };
     } catch (error) {
       if (error instanceof NotFoundException) {
-        return res
-          .status(404)
-          .json({ success: false, error: error.message, statusCode: 404 });
+        throwHttpException(
+          new NotFoundError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+            relatedObject: 'RedirectRule',
+            relatedObjectId: id,
+          }),
+        );
       }
       throw error;
     }
@@ -72,45 +75,37 @@ export class RedirectRulesController {
   @UseGuards(AuthGuard)
   async create(
     @User('organizationId') organizationId: string,
-    @Req() req: express.Request,
-    @Res() res: express.Response,
+    @Body(new ZodPipe(redirectRuleSchemas.CreateRedirectRuleSchema))
+    body: redirectRuleSchemas.CreateRedirectRuleDto,
   ) {
-    // Validate request schema
-    const validation = CreateRedirectRuleSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: validation.error.issues,
-        statusCode: 400,
-      });
-    }
-
     try {
       const result = await this.redirectService.createRule(
         organizationId,
-        validation.data,
+        body,
       );
-      return res.status(201).json({
+      return {
         success: true,
         data: result.rule,
         warnings: result.warnings,
-      });
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
-        return res
-          .status(404)
-          .json({ success: false, error: error.message, statusCode: 404 });
+        throwHttpException(
+          new NotFoundError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+            relatedObject: 'DomainGroup',
+          }),
+        );
       }
       if (error instanceof BadRequestException) {
         const response = error.getResponse() as any;
-        return res.status(400).json({
-          success: false,
-          error: response.message || 'Error',
-          details: response.details,
-          warnings: response.warnings,
-          statusCode: 400,
-        });
+        throwHttpException(
+          new BadRequestError({
+            requestId: this.clsService.getId(),
+            details: response.message || 'Validation failed',
+          }),
+        );
       }
       throw error;
     }
@@ -121,45 +116,39 @@ export class RedirectRulesController {
   async update(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
-    @Req() req: express.Request,
-    @Res() res: express.Response,
+    @Body(new ZodPipe(redirectRuleSchemas.UpdateRedirectRuleSchema))
+    body: redirectRuleSchemas.UpdateRedirectRuleDto,
   ) {
-    const validation = UpdateRedirectRuleSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: validation.error.issues,
-        statusCode: 400,
-      });
-    }
-
     try {
       const result = await this.redirectService.updateRule(
         id,
         organizationId,
-        validation.data,
+        body,
       );
-      return res.json({
+      return {
         success: true,
         data: result.rule,
         warnings: result.warnings,
-      });
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
-        return res
-          .status(404)
-          .json({ success: false, error: error.message, statusCode: 404 });
+        throwHttpException(
+          new NotFoundError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+            relatedObject: 'RedirectRule',
+            relatedObjectId: id,
+          }),
+        );
       }
       if (error instanceof BadRequestException) {
         const response = error.getResponse() as any;
-        return res.status(400).json({
-          success: false,
-          error: response.message || 'Error',
-          details: response.details,
-          warnings: response.warnings,
-          statusCode: 400,
-        });
+        throwHttpException(
+          new BadRequestError({
+            requestId: this.clsService.getId(),
+            details: response.message || 'Validation failed',
+          }),
+        );
       }
       throw error;
     }
@@ -170,20 +159,23 @@ export class RedirectRulesController {
   async delete(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
-    @Req() req: express.Request,
-    @Res() res: express.Response,
   ) {
     try {
       await this.redirectService.deleteRule(id, organizationId);
-      return res.json({
+      return {
         success: true,
         message: 'Redirect rule deleted successfully',
-      });
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
-        return res
-          .status(404)
-          .json({ success: false, error: error.message, statusCode: 404 });
+        throwHttpException(
+          new NotFoundError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+            relatedObject: 'RedirectRule',
+            relatedObjectId: id,
+          }),
+        );
       }
       throw error;
     }

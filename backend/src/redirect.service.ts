@@ -20,6 +20,7 @@ import {
   CreateDomainGroupDto,
   UpdateDomainGroupDto,
 } from './zod-schames/domain-group.schemas';
+import { AppEntity, createCustomCuid } from './utils';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -105,6 +106,7 @@ export class RedirectService {
     // 3. Create
     return this.prisma.domain.create({
       data: {
+        id: createCustomCuid(AppEntity.Domain),
         name: data.name,
         domainGroupId: data.domainGroupId,
       },
@@ -238,6 +240,7 @@ export class RedirectService {
   async createDomainGroup(organizationId: string, data: CreateDomainGroupDto) {
     return this.prisma.domainGroup.create({
       data: {
+        id: createCustomCuid(AppEntity.DomainGroup),
         name: data.name,
         organizationId,
       },
@@ -373,6 +376,7 @@ export class RedirectService {
     // 3. Create
     const rule = await this.prisma.redirectRule.create({
       data: {
+        id: createCustomCuid(AppEntity.RedirectRule, 40),
         source: data.source,
         destination: data.destination,
         statusCode: data.statusCode,

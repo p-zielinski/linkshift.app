@@ -5,42 +5,39 @@ import {
   Put,
   Delete,
   Param,
-  Req,
-  Res,
+  Body,
   UseGuards,
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
-import express from 'express';
-import { ConfigService } from '@nestjs/config';
 import { RedirectService } from '../redirect.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
+import * as domainSchemas from '../zod-schames/domain.schemas';
+import { ZodPipe } from '../pipes/zod.pipe';
 import {
-  CreateDomainSchema,
-  UpdateDomainSchema,
-} from '../zod-schames/domain.schemas';
+  ConflictError,
+  NotFoundError,
+  throwHttpException,
+} from '../models/error.model';
+import { ClsService } from 'nestjs-cls';
 
 @Controller('api/v1/domains')
 export class DomainsController {
   constructor(
     private readonly redirectService: RedirectService,
-    private readonly configService: ConfigService,
+    private readonly clsService: ClsService,
   ) {}
 
   @Get()
   @UseGuards(AuthGuard)
-  async list(
-    @User('organizationId') organizationId: string,
-    @Req() req: express.Request,
-    @Res() res: express.Response,
-  ) {
+  async list(@User('organizationId') organizationId: string) {
     const domains = await this.redirectService.listDomains(organizationId);
 
-    return res.json({
+    return {
       success: true,
       data: domains,
-    });
+    };
   }
 
   @Get(':id')
@@ -48,20 +45,23 @@ export class DomainsController {
   async getById(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
-    @Req() req: express.Request,
-    @Res() res: express.Response,
   ) {
     try {
       const domain = await this.redirectService.getDomainById(
         id,
         organizationId,
       );
-      return res.json({ success: true, data: domain });
+      return { success: true, data: domain };
     } catch (error) {
       if (error instanceof NotFoundException) {
-        return res
-          .status(404)
-          .json({ success: false, error: error.message, statusCode: 404 });
+        throwHttpException(
+          new NotFoundError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+            relatedObject: 'Domain',
+            relatedObjectId: id,
+          }),
+        );
       }
       throw error;
     }
@@ -71,36 +71,32 @@ export class DomainsController {
   @UseGuards(AuthGuard)
   async create(
     @User('organizationId') organizationId: string,
-    @Req() req: express.Request,
-    @Res() res: express.Response,
+    @Body(new ZodPipe(domainSchemas.CreateDomainSchema))
+    body: domainSchemas.CreateDomainDto,
   ) {
-    // Validate request body
-    const validation = CreateDomainSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: validation.error.issues,
-        statusCode: 400,
-      });
-    }
-
     try {
       const domain = await this.redirectService.createDomain(
         organizationId,
-        validation.data,
+        body,
       );
-      return res.status(201).json({ success: true, data: domain });
+      return { success: true, data: domain };
     } catch (error) {
       if (error instanceof NotFoundException) {
-        return res
-          .status(404)
-          .json({ success: false, error: error.message, statusCode: 404 });
+        throwHttpException(
+          new NotFoundError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+            relatedObject: 'DomainGroup', // Usually fails due to domain group not found
+          }),
+        );
       }
       if (error instanceof ConflictException) {
-        return res
-          .status(409)
-          .json({ success: false, error: error.message, statusCode: 409 });
+        throwHttpException(
+          new ConflictError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+          }),
+        );
       }
       throw error;
     }
@@ -111,37 +107,34 @@ export class DomainsController {
   async update(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
-    @Req() req: express.Request,
-    @Res() res: express.Response,
+    @Body(new ZodPipe(domainSchemas.UpdateDomainSchema))
+    body: domainSchemas.UpdateDomainDto,
   ) {
-    // Validate request body
-    const validation = UpdateDomainSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: validation.error.issues,
-        statusCode: 400,
-      });
-    }
-
     try {
       const domain = await this.redirectService.updateDomain(
         id,
         organizationId,
-        validation.data,
+        body,
       );
-      return res.json({ success: true, data: domain });
+      return { success: true, data: domain };
     } catch (error) {
       if (error instanceof NotFoundException) {
-        return res
-          .status(404)
-          .json({ success: false, error: error.message, statusCode: 404 });
+        throwHttpException(
+          new NotFoundError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+            relatedObject: 'Domain',
+            relatedObjectId: id,
+          }),
+        );
       }
       if (error instanceof ConflictException) {
-        return res
-          .status(409)
-          .json({ success: false, error: error.message, statusCode: 409 });
+        throwHttpException(
+          new ConflictError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+          }),
+        );
       }
       throw error;
     }
@@ -152,20 +145,23 @@ export class DomainsController {
   async delete(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
-    @Req() req: express.Request,
-    @Res() res: express.Response,
   ) {
     try {
       await this.redirectService.deleteDomain(id, organizationId);
-      return res.json({
+      return {
         success: true,
         message: 'Domain deleted successfully',
-      });
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
-        return res
-          .status(404)
-          .json({ success: false, error: error.message, statusCode: 404 });
+        throwHttpException(
+          new NotFoundError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+            relatedObject: 'Domain',
+            relatedObjectId: id,
+          }),
+        );
       }
       throw error;
     }

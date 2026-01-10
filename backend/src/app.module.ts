@@ -12,9 +12,23 @@ import { RedirectRulesController } from './api/redirect-rules.controller';
 import { AuthController } from './api/auth.controller';
 import { AuthService } from './auth/auth.service';
 import { ApiRedirectionMiddleware } from './middleware/api-redirection.middleware';
+import { ClsModule } from 'nestjs-cls';
+import { AppEntity, createCustomCuid } from './utils';
 
 @Module({
-  imports: [ConfigModule.forRoot()],
+  imports: [
+    ConfigModule.forRoot(),
+    ClsModule.forRoot({
+      global: true,
+      middleware: {
+        mount: true,
+        generateId: true,
+        idGenerator: (req: Request): string =>
+          req.headers['X-Request-Id'] ??
+          createCustomCuid(AppEntity.Request, 10),
+      },
+    }),
+  ],
   controllers: [
     AppController,
     DomainGroupsController,
