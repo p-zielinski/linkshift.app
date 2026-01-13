@@ -1,8 +1,8 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
-import { RedirectService } from './redirect.service';
-import { RuleValidatorService } from './rule-validator.service';
+import { RedirectService } from './redirect/redirect.service';
+import { RuleValidatorService } from './rule-validator/rule-validator.service';
 import { PrismaService } from './prisma.service';
 import { JwtService } from './auth/jwt.service';
 import { AuthGuard } from './auth/auth.guard';

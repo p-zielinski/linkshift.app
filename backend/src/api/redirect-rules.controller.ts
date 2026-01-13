@@ -11,7 +11,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { RedirectService } from '../redirect.service';
+import { RedirectService } from '../redirect/redirect.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
 import * as redirectRuleSchemas from '../zod-schames/redirect-rule.schemas';

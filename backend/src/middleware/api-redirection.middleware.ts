@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { RedirectService } from '../redirect.service';
+import { RedirectService } from '../redirect/redirect.service';
 
 @Injectable()
 export class ApiRedirectionMiddleware implements NestMiddleware {

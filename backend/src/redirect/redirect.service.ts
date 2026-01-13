@@ -2,7 +2,7 @@ import express, { Request } from 'express';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { PrismaService } from './prisma.service';
+import { PrismaService } from '../prisma.service';
 import {
   Injectable,
   Logger,
@@ -10,17 +10,20 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
-import { RuleValidatorService } from './rule-validator.service';
+import { RuleValidatorService } from '../rule-validator/rule-validator.service';
 import {
   CreateRedirectRuleDto,
   UpdateRedirectRuleDto,
-} from './zod-schames/redirect-rule.schemas';
-import { CreateDomainDto, UpdateDomainDto } from './zod-schames/domain.schemas';
+} from '../zod-schames/redirect-rule.schemas';
+import {
+  CreateDomainDto,
+  UpdateDomainDto,
+} from '../zod-schames/domain.schemas';
 import {
   CreateDomainGroupDto,
   UpdateDomainGroupDto,
-} from './zod-schames/domain-group.schemas';
-import { AppEntity, createCustomCuid } from './utils';
+} from '../zod-schames/domain-group.schemas';
+import { AppEntity, createCustomCuid } from '../utils';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

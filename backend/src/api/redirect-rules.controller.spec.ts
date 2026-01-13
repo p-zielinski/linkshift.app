@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RedirectRulesController } from './redirect-rules.controller';
-import { RedirectService } from '../redirect.service';
+import { RedirectService } from '../redirect/redirect.service';
 import { ClsService } from 'nestjs-cls';
 import { AuthGuard } from '../auth/auth.guard';
 import {

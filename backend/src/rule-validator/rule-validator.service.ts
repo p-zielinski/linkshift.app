@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RedirectService } from './redirect.service';
+import { RedirectService } from '../redirect/redirect.service';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';

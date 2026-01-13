@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RedirectRule, RedirectService } from './redirect.service';
-import { PrismaService } from './prisma.service';
-import { RuleValidatorService } from './rule-validator.service';
+import { PrismaService } from '../prisma.service';
+import { RuleValidatorService } from '../rule-validator/rule-validator.service';
 
 const mockPrismaService = {
   domain: {
