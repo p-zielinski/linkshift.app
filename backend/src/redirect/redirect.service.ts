@@ -9,6 +9,7 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  HttpException,
 } from '@nestjs/common';
 import { RuleValidatorService } from '../rule-validator/rule-validator.service';
 import {
@@ -504,6 +505,9 @@ export class RedirectService {
       include: {
         domainGroup: {
           include: {
+            organization: {
+              select: { id: true },
+            },
             redirectRules: {
               where: {
                 deletedAt: null,
@@ -528,7 +532,20 @@ export class RedirectService {
       return;
     }
 
-    // 2. Convert database rules to RedirectRule format
+    // 2. Check Organization Status (Payment/Suspension)
+    try {
+      await this.organizationService.checkRedirectionAccess(
+        domain.domainGroup.organizationId,
+      );
+    } catch (error) {
+      if (error instanceof HttpException) {
+        res.status(error.getStatus()).json(error.getResponse());
+        return;
+      }
+      throw error;
+    }
+
+    // 3. Convert database rules to RedirectRule format
     const rules: RedirectRule[] = domain.domainGroup.redirectRules.map(
       (rule) => {
         // Check if source is a regex pattern (starts with / and has closing /)
@@ -548,10 +565,10 @@ export class RedirectService {
       },
     );
 
-    // 3. Pass rules to getRedirect to find a match
+    // 4. Pass rules to getRedirect to find a match
     const target = await this.getRedirect(req, rules);
 
-    // 4. Action: redirect or return 404
+    // 5. Action: redirect or return 404
     if (target) {
       res.redirect(302, target);
       return;

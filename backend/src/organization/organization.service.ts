@@ -5,7 +5,10 @@ import {
   PaymentRequiredError,
   throwHttpException,
 } from '../models/error.model';
-import { OrganizationConfiguration } from '../models/organization-config.model';
+import {
+  OrganizationConfiguration,
+  OrganizationStatus,
+} from '../models/organization-config.model';
 
 @Injectable()
 export class OrganizationService {
@@ -120,6 +123,23 @@ export class OrganizationService {
     if (groupCount >= config.maxRulesPerGroup) {
       this.throwLimitError(
         `Redirect rule limit for this group reached (${config.maxRulesPerGroup} max). Please upgrade your plan.`,
+      );
+    }
+  }
+
+  /**
+   * Checks if the organization is allowed to process redirects.
+   * Throws PaymentRequiredError if the account is suspended or has payment due.
+   */
+  async checkRedirectionAccess(organizationId: string): Promise<void> {
+    const config = await this.getConfiguration(organizationId);
+
+    if (
+      config.status === OrganizationStatus.SUSPENDED ||
+      config.status === OrganizationStatus.PAYMENT_DUE
+    ) {
+      this.throwLimitError(
+        `Organization status is ${config.status}. Please check your billing settings.`,
       );
     }
   }

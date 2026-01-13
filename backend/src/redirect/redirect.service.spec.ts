@@ -33,6 +33,7 @@ const mockOrganizationService = {
   checkDomainGroupLimit: jest.fn(),
   checkDomainLimit: jest.fn(),
   checkRedirectRuleLimit: jest.fn(),
+  checkRedirectionAccess: jest.fn(), // Added
 };
 
 describe('RedirectService', () => {
@@ -922,6 +923,46 @@ describe('RedirectService', () => {
       // Assert
       expect(mockOrganizationService.checkRedirectRuleLimit).toHaveBeenCalled();
       expect(prisma.redirectRule.create).toHaveBeenCalled();
+    });
+
+    it('should return 402 Payment Required in applyRedirect if organization is suspended', async () => {
+      // Arrange
+      const req = createMockRequest('http://suspended.com');
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      } as any;
+
+      // Mock domain finding
+      (prisma.domain.findFirst as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_suspended',
+          redirectRules: [],
+          organization: { id: 'org_suspended' },
+        },
+      });
+
+      // Mock Organization Service to throw
+      mockOrganizationService.checkRedirectionAccess.mockImplementation(
+        simulateLimitError,
+      );
+
+      // Act
+      await service.applyRedirect(req, res);
+
+      // Assert
+      expect(
+        mockOrganizationService.checkRedirectionAccess,
+      ).toHaveBeenCalledWith('org_suspended');
+      expect(res.status).toHaveBeenCalledWith(402);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          code: 402,
+          message: 'Payment required',
+        }),
+      );
+      expect(res.redirect).not.toHaveBeenCalled();
     });
   });
 });
