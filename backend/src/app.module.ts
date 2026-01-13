@@ -14,6 +14,7 @@ import { AuthService } from './auth/auth.service';
 import { ApiRedirectionMiddleware } from './middleware/api-redirection.middleware';
 import { ClsModule } from 'nestjs-cls';
 import { AppEntity, createCustomCuid } from './utils';
+import { OrganizationService } from './organization/organization.service';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AppEntity, createCustomCuid } from './utils';
   providers: [
     RedirectService,
     RuleValidatorService,
+    OrganizationService,
     PrismaService,
     JwtService,
     AuthService,

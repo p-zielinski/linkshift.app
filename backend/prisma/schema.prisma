@@ -17,6 +17,9 @@ model Organization {
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
 
+  // Configuration for organization limits (JSONB)
+  configuration Json?
+
   users        User[]
   domainGroups DomainGroup[]
 

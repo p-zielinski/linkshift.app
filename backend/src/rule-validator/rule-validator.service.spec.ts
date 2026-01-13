@@ -209,7 +209,6 @@ describe('RuleValidatorService', () => {
         // e.g. "===" is not in our ALLOWED_OPERATORS list (we use "==")
         const result = service.validate('*', '{random} === 5 ? /a : /b');
         expect(result.isValid).toBe(false);
-        console.log(result.errors[0]);
         expect(result.errors[0]).toContain(
           'Condition "{random} === 5" uses unsupported operator "===". Only "==" is supported.',
         );

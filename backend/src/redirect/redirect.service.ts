@@ -24,6 +24,7 @@ import {
   UpdateDomainGroupDto,
 } from '../zod-schames/domain-group.schemas';
 import { AppEntity, createCustomCuid } from '../utils';
+import { OrganizationService } from '../organization/organization.service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -42,6 +43,7 @@ export class RedirectService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly ruleValidator: RuleValidatorService,
+    private readonly organizationService: OrganizationService,
   ) {}
 
   // --- Management Methods (CRUD) ---
@@ -81,6 +83,10 @@ export class RedirectService {
   }
 
   async createDomain(organizationId: string, data: CreateDomainDto) {
+    await this.organizationService.checkDomainLimit(
+      organizationId,
+      data.domainGroupId,
+    );
     // 1. Verify domain group exists and belongs to organization
     const domainGroup = await this.prisma.domainGroup.findFirst({
       where: {
@@ -241,6 +247,8 @@ export class RedirectService {
   }
 
   async createDomainGroup(organizationId: string, data: CreateDomainGroupDto) {
+    await this.organizationService.checkDomainGroupLimit(organizationId);
+
     return this.prisma.domainGroup.create({
       data: {
         id: createCustomCuid(AppEntity.DomainGroup),
@@ -350,7 +358,12 @@ export class RedirectService {
   }
 
   async createRule(organizationId: string, data: CreateRedirectRuleDto) {
-    // 1. Verify domain group
+    // 1. Check limits
+    await this.organizationService.checkRedirectRuleLimit(
+      organizationId,
+      data.domainGroupId,
+    );
+    // 2. Verify domain group
     const domainGroup = await this.prisma.domainGroup.findFirst({
       where: {
         id: data.domainGroupId,
@@ -363,7 +376,7 @@ export class RedirectService {
       throw new NotFoundException('Domain group not found');
     }
 
-    // 2. Validate logic
+    // 3. Validate logic
     const validationResult = this.ruleValidator.validate(
       data.source,
       data.destination,
@@ -376,7 +389,7 @@ export class RedirectService {
       });
     }
 
-    // 3. Create
+    // 4. Create
     const rule = await this.prisma.redirectRule.create({
       data: {
         id: createCustomCuid(AppEntity.RedirectRule, 40),

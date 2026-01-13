@@ -2,33 +2,58 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RedirectRule, RedirectService } from './redirect.service';
 import { PrismaService } from '../prisma.service';
 import { RuleValidatorService } from '../rule-validator/rule-validator.service';
+import { OrganizationService } from '../organization/organization.service';
+import {
+  PaymentRequiredError,
+  throwHttpException,
+} from '../models/error.model';
 
 const mockPrismaService = {
   domain: {
     findFirst: jest.fn(),
     findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
   },
   domainGroup: {
     findFirst: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
   },
   redirectRule: {
     findMany: jest.fn(),
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
   },
+};
+
+const mockOrganizationService = {
+  checkDomainGroupLimit: jest.fn(),
+  checkDomainLimit: jest.fn(),
+  checkRedirectRuleLimit: jest.fn(),
 };
 
 describe('RedirectService', () => {
   let service: RedirectService;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let prisma: PrismaService;
 
   beforeEach(async () => {
+    // Reset all mocks before each test to prevent interference
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RedirectService,
-        RuleValidatorService, // Dodajemy prawdziwy validator (nie ma zależności)
+        RuleValidatorService,
         {
-          provide: PrismaService, // Dostarczamy mocka Prismy
+          provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: OrganizationService,
+          useValue: mockOrganizationService,
         },
       ],
     }).compile();
@@ -40,18 +65,15 @@ describe('RedirectService', () => {
   const createMockRequest = (
     urlStr: string,
     headers: Record<string, string> = {},
-  ): Request => {
+  ): any => {
     const url = new URL(urlStr);
     return {
       protocol: url.protocol.replace(':', ''),
       get: (header: string) => {
         if (header === 'host') return url.host;
-        // Case-insensitive header lookup
         const lowerHeader = header.toLowerCase();
         for (const [key, value] of Object.entries(headers)) {
-          if (key.toLowerCase() === lowerHeader) {
-            return value;
-          }
+          if (key.toLowerCase() === lowerHeader) return value;
         }
         return undefined;
       },
@@ -61,7 +83,7 @@ describe('RedirectService', () => {
       method: 'GET',
       ip: '127.0.0.1',
       socket: { remoteAddress: '127.0.0.1' },
-    } as unknown as Request;
+    };
   };
 
   describe('Standard Rules Scenarios', () => {
@@ -788,6 +810,118 @@ describe('RedirectService', () => {
 
       const req = createMockRequest('http://test.com/my-shop/items');
       expect(await service.getRedirect(req, rules)).toBe('/commerce');
+    });
+  });
+
+  describe('Organization Limits Enforcement', () => {
+    const organizationId = 'org_123';
+
+    // Helper to simulate the error thrown by OrganizationService
+    const simulateLimitError = () => {
+      try {
+        throwHttpException(
+          new PaymentRequiredError({
+            details: 'Limit reached',
+            requestId: 'req_1',
+          }),
+        );
+      } catch (e) {
+        return Promise.reject(e);
+      }
+      return Promise.resolve(); // Should not reach here
+    };
+
+    it('should prevent Domain Group creation when limit is reached', async () => {
+      // Arrange
+      mockOrganizationService.checkDomainGroupLimit.mockImplementation(
+        simulateLimitError,
+      );
+
+      // Act & Assert
+      await expect(
+        service.createDomainGroup(organizationId, { name: 'Test Group' }),
+      ).rejects.toThrow();
+
+      // Ensure Prisma was NOT called
+      expect(prisma.domainGroup.create).not.toHaveBeenCalled();
+      expect(
+        mockOrganizationService.checkDomainGroupLimit,
+      ).toHaveBeenCalledWith(organizationId);
+    });
+
+    it('should prevent Domain creation when limit is reached', async () => {
+      // Arrange
+      const domainGroupId = 'dg_123';
+      mockOrganizationService.checkDomainLimit.mockImplementation(
+        simulateLimitError,
+      );
+
+      // Act & Assert
+      await expect(
+        service.createDomain(organizationId, {
+          name: 'example.com',
+          domainGroupId,
+        }),
+      ).rejects.toThrow();
+
+      // Ensure Prisma was NOT called
+      expect(prisma.domain.create).not.toHaveBeenCalled();
+      expect(mockOrganizationService.checkDomainLimit).toHaveBeenCalledWith(
+        organizationId,
+        domainGroupId,
+      );
+    });
+
+    it('should prevent Redirect Rule creation when limit is reached', async () => {
+      // Arrange
+      const domainGroupId = 'dg_123';
+      mockOrganizationService.checkRedirectRuleLimit.mockImplementation(
+        simulateLimitError,
+      );
+
+      // Act & Assert
+      await expect(
+        service.createRule(organizationId, {
+          source: '/foo',
+          destination: '/bar',
+          statusCode: 301,
+          domainGroupId,
+          priority: 1,
+        }),
+      ).rejects.toThrow();
+
+      // Ensure Prisma was NOT called
+      expect(prisma.redirectRule.create).not.toHaveBeenCalled();
+      expect(
+        mockOrganizationService.checkRedirectRuleLimit,
+      ).toHaveBeenCalledWith(organizationId, domainGroupId);
+    });
+
+    it('should proceed with Rule creation if limits are not reached', async () => {
+      // Arrange
+      const domainGroupId = 'dg_123';
+      mockOrganizationService.checkRedirectRuleLimit.mockResolvedValue(
+        undefined,
+      );
+      (prisma.domainGroup.findFirst as jest.Mock).mockResolvedValue({
+        id: domainGroupId,
+      });
+      (prisma.redirectRule.create as jest.Mock).mockResolvedValue({
+        id: 'rule_1',
+      });
+
+      // Act
+      await service.createRule(organizationId, {
+        source: '/foo',
+        destination: '/bar',
+        statusCode: 301,
+        domainGroupId,
+        priority: 1,
+      });
+
+      // Assert
+      expect(mockOrganizationService.checkRedirectRuleLimit).toHaveBeenCalled();
+      expect(prisma.redirectRule.create).toHaveBeenCalled();
     });
   });
 });
