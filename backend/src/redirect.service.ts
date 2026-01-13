@@ -492,9 +492,10 @@ export class RedirectService {
               where: {
                 deletedAt: null,
               },
-              orderBy: {
-                priority: 'desc', // Higher priority rules evaluated first
-              },
+              orderBy: [
+                { priority: 'desc' }, // Higher priority rules evaluated first
+                { createdAt: 'desc' }, // In case of tie: newer wins
+              ],
             },
           },
         },

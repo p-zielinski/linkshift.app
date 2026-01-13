@@ -1,20 +1,40 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { RedirectService, RedirectRule } from './redirect.service';
-import { Request } from 'express';
-import { Logger } from '@nestjs/common';
-import dayjs from 'dayjs';
+import { RedirectRule, RedirectService } from './redirect.service';
+import { PrismaService } from './prisma.service';
+import { RuleValidatorService } from './rule-validator.service';
+
+const mockPrismaService = {
+  domain: {
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+  },
+  domainGroup: {
+    findFirst: jest.fn(),
+  },
+  redirectRule: {
+    findMany: jest.fn(),
+  },
+};
 
 describe('RedirectService', () => {
   let service: RedirectService;
-  let logger: Logger;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let prisma: PrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RedirectService],
+      providers: [
+        RedirectService,
+        RuleValidatorService, // Dodajemy prawdziwy validator (nie ma zależności)
+        {
+          provide: PrismaService, // Dostarczamy mocka Prismy
+          useValue: mockPrismaService,
+        },
+      ],
     }).compile();
 
     service = module.get<RedirectService>(RedirectService);
-    logger = (service as any).logger;
+    prisma = module.get<PrismaService>(PrismaService);
   });
 
   const createMockRequest = (
@@ -297,7 +317,9 @@ describe('RedirectService', () => {
     });
 
     it('should warn and skip unknown manipulators', async () => {
-      const warnSpy = jest.spyOn(logger, 'warn').mockImplementation();
+      const loggerInstance = (service as any).logger;
+
+      const warnSpy = jest.spyOn(loggerInstance, 'warn').mockImplementation();
       const rules: RedirectRule[] = [
         { source: '*', destination: '{query.val:fake_method}' },
       ];

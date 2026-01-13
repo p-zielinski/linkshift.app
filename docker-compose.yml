@@ -1,0 +1,25 @@
+version: "3.3"
+services:
+  redis:
+    container_name: redis-p5
+    hostname: redis
+    image: redis:8.4.0
+    command: --requirepass WGrOCBxdAqzwMv66719qDoCfPbS4zTwfN3hF --port 6767
+    ports:
+      - 6767:6767
+    expose:
+      - 6767
+    volumes:
+      - ./data/redis/:/data/
+  postgres:
+    container_name: postgres-p5
+    image: postgres:17.7
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=vGoHZjmJHwKasdJIn30CkLvJdGvlF5dR78HC
+    ports:
+      - 5454:5432
+    expose:
+      - 5454
+    volumes:
+      - ./data/postgres/:/var/lib/postgresql/data/:cached
