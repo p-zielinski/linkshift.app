@@ -40,6 +40,7 @@ type Manipulator = (val: string) => string;
 @Injectable()
 export class RedirectService {
   private readonly logger = new Logger(RedirectService.name);
+  private readonly MAX_RECURSION_DEPTH = 32;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -650,28 +651,36 @@ export class RedirectService {
     currentPath: string,
     variables: Record<string, string | undefined>,
   ): string | null {
-    let target = rule.destination;
-    let isMatch = false;
+    try {
+      let target = rule.destination;
+      let isMatch = false;
 
-    if (rule.source instanceof RegExp) {
-      const match = currentPath.match(rule.source);
-      if (match) {
+      if (rule.source instanceof RegExp) {
+        const match = currentPath.match(rule.source);
+        if (match) {
+          isMatch = true;
+          match.forEach((val, index) => {
+            target = target.replace(new RegExp(`\\$${index}`, 'g'), val);
+          });
+        }
+      } else if (rule.source === '*' || currentPath === rule.source) {
         isMatch = true;
-        match.forEach((val, index) => {
-          target = target.replace(new RegExp(`\\$${index}`, 'g'), val);
-        });
       }
-    } else if (rule.source === '*' || currentPath === rule.source) {
-      isMatch = true;
+
+      if (!isMatch) return null;
+
+      // 1. Replace variables first to resolve values for logic
+      const resolvedTarget = this.replacePlaceholders(target, variables);
+
+      // 2. Process conditional logic (Traffic splitting, A/B testing, etc.)
+      return this.processConditionals(resolvedTarget);
+    } catch (error) {
+      this.logger.error(
+        `Error processing rule ${rule.source} -> ${rule.destination}: ${error instanceof Error ? error.message : error}`,
+      );
+      // If a rule is malformed or dangerous, return null (skip it) so the server stays alive
+      return null;
     }
-
-    if (!isMatch) return null;
-
-    // 1. Replace variables first to resolve values for logic
-    const resolvedTarget = this.replacePlaceholders(target, variables);
-
-    // 2. Process conditional logic (Traffic splitting, A/B testing, etc.)
-    return this.processConditionals(resolvedTarget);
   }
 
   /**
@@ -679,7 +688,11 @@ export class RedirectService {
    * Syntax: Condition ? TrueValue : FalseValue
    * Supports nesting: Cond1 ? (Cond2 ? A : B) : C
    */
-  private processConditionals(template: string): string {
+  private processConditionals(template: string, depth = 0): string {
+    if (depth > this.MAX_RECURSION_DEPTH) {
+      throw new Error('Maximum recursion depth exceeded in redirect rule.');
+    }
+
     let trimmed = template.trim();
 
     // Remove outer parentheses if they wrap the entire expression
@@ -701,7 +714,7 @@ export class RedirectService {
     const isTrue = this.evaluateCondition(condition);
 
     // Recursively process the chosen branch
-    return this.processConditionals(isTrue ? truePart : falsePart);
+    return this.processConditionals(isTrue ? truePart : falsePart, depth + 1);
   }
 
   /**
