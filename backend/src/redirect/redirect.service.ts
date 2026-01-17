@@ -26,6 +26,7 @@ import {
 } from '../zod-schames/domain-group.schemas';
 import { AppEntity, createCustomCuid } from '../utils';
 import { OrganizationService } from '../organization/organization.service';
+import { REDIRECT_ENGINE_LIMITS } from '../constants';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -40,7 +41,6 @@ type Manipulator = (val: string) => string;
 @Injectable()
 export class RedirectService {
   private readonly logger = new Logger(RedirectService.name);
-  private readonly MAX_RECURSION_DEPTH = 32;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -689,7 +689,7 @@ export class RedirectService {
    * Supports nesting: Cond1 ? (Cond2 ? A : B) : C
    */
   private processConditionals(template: string, depth = 0): string {
-    if (depth > this.MAX_RECURSION_DEPTH) {
+    if (depth > REDIRECT_ENGINE_LIMITS.MAX_RECURSION_DEPTH) {
       throw new Error('Maximum recursion depth exceeded in redirect rule.');
     }
 

@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RuleValidatorService } from './rule-validator.service';
+import { REDIRECT_ENGINE_LIMITS } from '../constants';
 
 describe('RuleValidatorService', () => {
   let service: RuleValidatorService;
@@ -255,6 +256,22 @@ describe('RuleValidatorService', () => {
           '{a} > 1 ? ({b} > 1 ? /nested-true : /nested-false) : ({c} > 1 ? /c-true : /c-false)',
         );
         expect(result.isValid).toBe(true);
+      });
+
+      it('should fail if logic nesting exceeds MAX_RECURSION_DEPTH', () => {
+        // Create a rule nested - higher than defined limit;
+        let deepRule = '1==1 ? /t : /f';
+        for (
+          let i = 0;
+          i < REDIRECT_ENGINE_LIMITS.MAX_RECURSION_DEPTH + 1;
+          i++
+        ) {
+          deepRule = `1==1 ? (${deepRule}) : /f`;
+        }
+
+        const result = service.validate('*', deepRule);
+        expect(result.isValid).toBe(false);
+        expect(result.errors[0]).toContain('Maximum nesting depth');
       });
     });
   });

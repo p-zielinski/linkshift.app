@@ -3,6 +3,7 @@ import { RedirectService } from '../redirect/redirect.service';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { REDIRECT_ENGINE_LIMITS } from '../constants';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -99,14 +100,22 @@ export class RuleValidatorService {
     }
 
     // Recursive validation of logic structure
-    this.processDestinationLogic(destination, result, maxCaptureGroups);
+    this.processDestinationLogic(destination, result, maxCaptureGroups, 0);
   }
 
   private processDestinationLogic(
     segment: string,
     result: ValidationResult,
     maxCaptureGroups: number,
+    depth: number,
   ): void {
+    if (depth > REDIRECT_ENGINE_LIMITS.MAX_RECURSION_DEPTH) {
+      result.errors.push(
+        `Logic is too complex. Maximum nesting depth of ${REDIRECT_ENGINE_LIMITS.MAX_RECURSION_DEPTH} exceeded.`,
+      );
+      return;
+    }
+
     let trimmed = segment.trim();
 
     // Unwrap outer parentheses carefully
@@ -121,8 +130,18 @@ export class RuleValidatorService {
       if (split) {
         // It's a valid conditional structure
         this.validateCondition(split.condition, result);
-        this.processDestinationLogic(split.truePart, result, maxCaptureGroups);
-        this.processDestinationLogic(split.falsePart, result, maxCaptureGroups);
+        this.processDestinationLogic(
+          split.truePart,
+          result,
+          maxCaptureGroups,
+          depth + 1,
+        );
+        this.processDestinationLogic(
+          split.falsePart,
+          result,
+          maxCaptureGroups,
+          depth + 1,
+        );
         return;
       } else {
         // Contains '?' but failed to split properly.

@@ -150,6 +150,65 @@ describe('RedirectService', () => {
     });
   });
 
+  describe('Security & Stability (Recursion Limits)', () => {
+    it('should protect against Stack Overflow by enforcing MAX_RECURSION_DEPTH', async () => {
+      // Create an extremely nested rule that exceeds the limit of 32
+      // Syntax: (1==1 ? (1==1 ? ... : /f) : /f)
+      let deepRule = '1 == 1 ? /target : /fallback';
+      for (let i = 0; i < 40; i++) {
+        deepRule = `1 == 1 ? (${deepRule}) : /fallback`;
+      }
+
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: deepRule,
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/');
+      const loggerSpy = jest
+        .spyOn((service as any).logger, 'error')
+        .mockImplementation();
+
+      // Act
+      const result = await service.getRedirect(req, rules);
+
+      // Assert
+      // The result should be null because processRule caught the recursion error
+      // and prevented the process from crashing.
+      expect(result).toBeNull();
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Maximum recursion depth exceeded'),
+      );
+
+      loggerSpy.mockRestore();
+    });
+
+    it('should continue processing subsequent rules if one rule fails due to recursion', async () => {
+      // The first rule is "malicious" (exceeds depth limit)
+      let maliciousRule = '1 == 1 ? /t : /f';
+      for (let i = 0; i < 35; i++) {
+        maliciousRule = `1 == 1 ? (${maliciousRule}) : /f`;
+      }
+
+      const rules: RedirectRule[] = [
+        { source: '/path', destination: maliciousRule }, // This one should fail safely
+        { source: '/path', destination: '/safe-fallback' }, // This one should be matched next
+      ];
+
+      const req = createMockRequest('http://test.com/path');
+      jest.spyOn((service as any).logger, 'error').mockImplementation();
+
+      // Act
+      const result = await service.getRedirect(req, rules);
+
+      // Assert
+      // Server stayed alive, skipped the broken rule, and matched the correct fallback rule.
+      expect(result).toBe('/safe-fallback');
+    });
+  });
+
   describe('Manipulators Coverage', () => {
     const testManipulator = async (
       manipulatorChain: string,

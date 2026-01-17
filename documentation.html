@@ -158,13 +158,98 @@
     <li><code>{random}</code> - A random integer.</li>
   </ul>
 
-  <h4>Modifiers (Pipes)</h4>
-  <p>You can transform variables using the modifier syntax: <code>{variable:modifier}</code>.</p>
-  <ul>
-    <li><code>{query.q:url_encode}</code></li>
-    <li><code>{path:to_lower_case}</code></li>
-    <li><code>{path:to_upper_case}</code></li>
-  </ul>
+  <h4>Modifiers (Pipes) & Chaining</h4>
+  <p>The syntax for placeholders follows this pattern: <code>{input:modifier1.modifier2}</code>.</p>
+
+  <div class="example-box">
+    <h3>Colon (:) vs Dot (.)</h3>
+    <ul>
+      <li><strong>Colon (<code>:</code>)</strong>: Used <strong>once</strong> to separate the input (variable or static value) from the modifiers.</li>
+      <li><strong>Dot (<code>.</code>)</strong>: Used to <strong>chain</strong> multiple modifiers together.</li>
+    </ul>
+    <p><strong>Example:</strong> <code>{query.val:multiply_10.divide_10}</code></p>
+    <p>Here, <code>query.val</code> is the input, and <code>multiply_10.divide_10</code> is the chain of actions.</p>
+  </div>
+
+  <table>
+    <thead>
+    <tr>
+      <th>Modifier</th>
+      <th>Description</th>
+      <th>Example</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td><code>to_lower_case</code></td>
+      <td>Converts string to lowercase.</td>
+      <td><code>{path:to_lower_case}</code></td>
+    </tr>
+    <tr>
+      <td><code>to_upper_case</code></td>
+      <td>Converts string to uppercase.</td>
+      <td><code>{domain.root:to_upper_case}</code></td>
+    </tr>
+    <tr>
+      <td><code>url_encode</code></td>
+      <td>Encodes characters for safe URL usage.</td>
+      <td><code>{query.search:url_encode}</code></td>
+    </tr>
+    <tr>
+      <td><code>url_decode</code></td>
+      <td>Decodes URL-encoded strings.</td>
+      <td><code>{path:url_decode}</code></td>
+    </tr>
+    <tr>
+      <td><code>base64_encode</code></td>
+      <td>Encodes the value to Base64 string.</td>
+      <td><code>{id:base64_encode}</code></td>
+    </tr>
+    <tr>
+      <td><code>auto_trailing_slash</code></td>
+      <td>Ensures the value ends with a <code>/</code>.</td>
+      <td><code>{path:auto_trailing_slash}</code></td>
+    </tr>
+    <tr>
+      <td><code>add_10</code></td>
+      <td>Adds 10 to a numeric value.</td>
+      <td><code>{count:add_10}</code></td>
+    </tr>
+    <tr>
+      <td><code>multiply_2</code></td>
+      <td>Multiplies numeric value by 2.</td>
+      <td><code>{price:multiply_2}</code></td>
+    </tr>
+    <tr>
+      <td><code>multiply_10</code></td>
+      <td>Multiplies numeric value by 10.</td>
+      <td><code>{val:multiply_10}</code></td>
+    </tr>
+    <tr>
+      <td><code>divide_10</code></td>
+      <td>Divides numeric value by 10.</td>
+      <td><code>{val:divide_10}</code></td>
+    </tr>
+    <tr>
+      <td><code>round</code></td>
+      <td>Rounds a number to the nearest integer.</td>
+      <td><code>{val:round}</code></td>
+    </tr>
+    <tr>
+      <td><code>random</code></td>
+      <td>Generates a random integer. Note: The range is part of the <strong>input</strong> section.</td>
+      <td><code>{0:100:random}</code></td>
+    </tr>
+    </tbody>
+  </table>
+
+  <div class="example-box">
+    <h3>Example: Advanced Modifier Chaining</h3>
+    <p><strong>Goal:</strong> Generate a random decimal number between 0 and 1 (e.g., 0.45) for custom splitting logic.</p>
+    <p><strong>Logic:</strong> Use <code>random</code> to get a number between 0-100, then divide by 10 twice.</p>
+    <pre><code>{0:100:random:divide_10.divide_10}</code></pre>
+    <p>This will transform <code>"45"</code> into <code>"4.5"</code> and then into <code>"0.45"</code>.</p>
+  </div>
 
   <h3>B. Conditional Logic</h3>
   <p>You can create dynamic destinations using the conditional syntax:</p>
