@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AppEntity, getEntityIdRegex } from '../utils';
 
 const ALLOWED_STATUS_CODES: number[] = [301, 302, 303, 307, 308];
 
@@ -25,7 +26,10 @@ export const CreateRedirectRuleSchema = z.object({
     .min(0, 'Priority cannot be negative')
     .max(1000, 'Priority cannot be greater than 1000')
     .default(0),
-  domainGroupId: z.string(),
+  domainGroupId: z
+    .string()
+    .max(100)
+    .regex(getEntityIdRegex(AppEntity.DomainGroup), 'Invalid ID'),
 });
 
 export const UpdateRedirectRuleSchema = z.object({

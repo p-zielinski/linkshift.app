@@ -27,6 +27,12 @@ export const ENTITY_PREFIXES: Record<AppEntity, string> = {
 };
 
 /**
+ * Zwraca regex sprawdzający czy string zaczyna się od prefiksu danej encji
+ */
+export const getEntityIdRegex = (entity: AppEntity) =>
+  new RegExp(`^${ENTITY_PREFIXES[entity]}_`);
+
+/**
  * Generates a prefixed, collision-resistant ID (Cuid2) for a given entity.
  *
  * @param entity - The type of entity to generate the ID for.

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AppEntity, getEntityIdRegex } from '../utils';
 
 export const CreateDomainSchema = z.object({
   name: z
@@ -8,7 +9,10 @@ export const CreateDomainSchema = z.object({
       /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i,
       'Invalid domain name format',
     ),
-  domainGroupId: z.string().uuid('Invalid domain group ID'),
+  domainGroupId: z
+    .string()
+    .max(100)
+    .regex(getEntityIdRegex(AppEntity.DomainGroup), 'Invalid ID'),
 });
 
 export const UpdateDomainSchema = z.object({
@@ -20,7 +24,10 @@ export const UpdateDomainSchema = z.object({
       'Invalid domain name format',
     )
     .optional(),
-  domainGroupId: z.string().uuid('Invalid domain group ID').optional(),
+  domainGroupId: z
+    .string()
+    .max(100)
+    .regex(getEntityIdRegex(AppEntity.DomainGroup), 'Invalid ID'),
 });
 
 export type CreateDomainDto = z.infer<typeof CreateDomainSchema>;
