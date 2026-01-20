@@ -141,7 +141,7 @@ describe('RedirectService', () => {
       const req = createMockRequest(
         'http://sub.my-domain.com/blog/cool-article',
       );
-      const result = await service.getRedirect(req, rules);
+      const result = service.getRedirect(req, rules);
 
       expect(result).toBe(
         'https://new-blog.com/posts/cool-article?from=MY-DOMAIN',
@@ -160,7 +160,7 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://deep.sub.example.co.uk/path');
-      const result = await service.getRedirect(req, rules);
+      const result = service.getRedirect(req, rules);
 
       expect(result).toContain('fqdn=deep.sub.example.co.uk');
       expect(result).toContain('label=deep.sub.example.co');
@@ -174,7 +174,7 @@ describe('RedirectService', () => {
         { source: '*', destination: 'root={domain.root}' },
       ];
       const req = createMockRequest('http://localhost/test');
-      const result = await service.getRedirect(req, rules);
+      const result = service.getRedirect(req, rules);
       expect(result).toBe('root=localhost');
     });
 
@@ -186,15 +186,13 @@ describe('RedirectService', () => {
         },
       ];
       const req = createMockRequest('http://site.com/user/123?foo=bar');
-      const result = await service.getRedirect(req, rules);
+      const result = service.getRedirect(req, rules);
       expect(result).toBe('s0=user|s1=123|q=bar');
     });
   });
 
   describe('Security & Stability (Recursion Limits)', () => {
     it('should protect against Stack Overflow by enforcing MAX_RECURSION_DEPTH', async () => {
-      // Create an extremely nested rule that exceeds the limit of 32
-      // Syntax: (1==1 ? (1==1 ? ... : /f) : /f)
       let deepRule = '1 == 1 ? /target : /fallback';
       for (let i = 0; i < 40; i++) {
         deepRule = `1 == 1 ? (${deepRule}) : /fallback`;
@@ -212,12 +210,8 @@ describe('RedirectService', () => {
         .spyOn((service as any).logger, 'error')
         .mockImplementation();
 
-      // Act
-      const result = await service.getRedirect(req, rules);
+      const result = service.getRedirect(req, rules);
 
-      // Assert
-      // The result should be null because processRule caught the recursion error
-      // and prevented the process from crashing.
       expect(result).toBeNull();
       expect(loggerSpy).toHaveBeenCalledWith(
         expect.stringContaining('Maximum recursion depth exceeded'),
@@ -227,25 +221,21 @@ describe('RedirectService', () => {
     });
 
     it('should continue processing subsequent rules if one rule fails due to recursion', async () => {
-      // The first rule is "malicious" (exceeds depth limit)
       let maliciousRule = '1 == 1 ? /t : /f';
       for (let i = 0; i < 35; i++) {
         maliciousRule = `1 == 1 ? (${maliciousRule}) : /f`;
       }
 
       const rules: RedirectRule[] = [
-        { source: '/path', destination: maliciousRule }, // This one should fail safely
-        { source: '/path', destination: '/safe-fallback' }, // This one should be matched next
+        { source: '/path', destination: maliciousRule },
+        { source: '/path', destination: '/safe-fallback' },
       ];
 
       const req = createMockRequest('http://test.com/path');
       jest.spyOn((service as any).logger, 'error').mockImplementation();
 
-      // Act
-      const result = await service.getRedirect(req, rules);
+      const result = service.getRedirect(req, rules);
 
-      // Assert
-      // Server stayed alive, skipped the broken rule, and matched the correct fallback rule.
       expect(result).toBe('/safe-fallback');
     });
   });
@@ -261,11 +251,10 @@ describe('RedirectService', () => {
           destination: `{query.var:${manipulatorChain}}`,
         },
       ];
-      // Note: We put value into query param 'var'
       const req = createMockRequest(
         `http://site.com/?var=${encodeURIComponent(inputValue)}`,
       );
-      return await service.getRedirect(req, rules);
+      return service.getRedirect(req, rules);
     };
 
     it('should handle "to_lower_case"', async () => {
@@ -277,13 +266,6 @@ describe('RedirectService', () => {
     });
 
     it('should handle "url_encode" and "url_decode"', async () => {
-      // url_encode: space -> %20
-      expect(await testManipulator('url_encode', 'a b')).toBe('a%20b');
-      // url_decode: %20 -> space (input is already encoded by createMockRequest helper, but logic holds)
-      // If we pass "a%20b" in query, express decodes it to "a b", then we encode/decode.
-      // Let's test explicit logic:
-
-      // Test 1: input "a b" -> encode -> "a%20b"
       expect(await testManipulator('url_encode', 'a b')).toBe('a%20b');
     });
 
@@ -320,7 +302,6 @@ describe('RedirectService', () => {
         });
 
         it('should handle negative numbers correctly', async () => {
-          // JS Math.round behavior: -10.5 rounds to -10 (towards +Infinity), -10.51 rounds to -11
           expect(await testManipulator('round', '-10.6')).toBe('-11');
           expect(await testManipulator('round', '-10.5')).toBe('-10');
           expect(await testManipulator('round', '-10.4')).toBe('-10');
@@ -336,12 +317,10 @@ describe('RedirectService', () => {
       });
 
       it('should handle math on non-numeric strings safely', async () => {
-        // Number("abc") -> NaN -> +10 -> NaN -> String -> "NaN"
         expect(await testManipulator('add_10', 'abc')).toBe('NaN');
       });
 
       it('should handle chained math: add_10 then multiply_2', async () => {
-        // (5 + 10) * 2 = 30
         expect(await testManipulator('add_10.multiply_2', '5')).toBe('30');
       });
 
@@ -349,19 +328,18 @@ describe('RedirectService', () => {
         let randomSpy: jest.SpyInstance;
 
         beforeEach(() => {
-          // Mock Math.random to have deterministic tests
           randomSpy = jest.spyOn(Math, 'random');
         });
 
         afterEach(() => {
-          randomSpy.mockRestore();
+          if (randomSpy) randomSpy.mockRestore();
         });
 
         it('should handle "min:max" format', async () => {
-          randomSpy.mockReturnValue(0); // Returns min
+          randomSpy.mockReturnValue(0);
           expect(await testManipulator('random', '10:20')).toBe('10');
 
-          randomSpy.mockReturnValue(0.9999); // Returns max
+          randomSpy.mockReturnValue(0.9999);
           expect(await testManipulator('random', '10:20')).toBe('20');
         });
 
@@ -375,7 +353,6 @@ describe('RedirectService', () => {
 
         it('should swap min and max if min > max', async () => {
           randomSpy.mockReturnValue(0);
-          // Should treat '50:10' as '10:50' -> min is 10
           expect(await testManipulator('random', '50:10')).toBe('10');
         });
 
@@ -383,7 +360,6 @@ describe('RedirectService', () => {
           randomSpy.mockReturnValue(0);
           expect(await testManipulator('random', '')).toBe('0');
 
-          // Verify it produces a large number for max
           randomSpy.mockReturnValue(0.9999999999);
           const result = await testManipulator('random', '');
           expect(Number(result)).toBeGreaterThan(1000000);
@@ -391,34 +367,27 @@ describe('RedirectService', () => {
 
         it('should fallback to default for invalid formats (parsing error)', async () => {
           randomSpy.mockReturnValue(0);
-          // "abc" parses to NaN -> fallback to 0..MAX
           expect(await testManipulator('random', 'abc')).toBe('0');
         });
 
         it('should handle negative values and ranges', async () => {
           randomSpy.mockReturnValue(0);
-          // Single negative value should be treated as max (0 to -5, then swapped to -5 to 0)
           expect(await testManipulator('random', '-5')).toBe('-5');
 
           randomSpy.mockReturnValue(0.9999);
           expect(await testManipulator('random', '-5')).toBe('0');
 
-          // Negative range
           randomSpy.mockReturnValue(0);
           expect(await testManipulator('random', '-20:-10')).toBe('-20');
 
           randomSpy.mockReturnValue(0.9999);
           expect(await testManipulator('random', '-20:-10')).toBe('-10');
 
-          // Cross-zero range
           randomSpy.mockReturnValue(0.5);
-          // Range -10 to 10 has 21 integers. 0.5 * 21 = 10.5 -> floor is 10. -10 + 10 = 0
           expect(await testManipulator('random', '-10:10')).toBe('0');
         });
 
-        it('should handle numbers larger than safe integer (precision loss expected but safe)', async () => {
-          // Number('90071992547409999') -> 90071992547410000 (approx)
-          // We just check that it doesn't crash and returns a number
+        it('should handle numbers larger than safe integer', async () => {
           randomSpy.mockReturnValue(0.5);
           const largeVal = '99999999999999999';
           const result = await testManipulator('random', largeVal);
@@ -435,20 +404,19 @@ describe('RedirectService', () => {
         { source: /^\/admin/, destination: 'http://admin.com' },
       ];
       const req = createMockRequest('http://site.com/user');
-      const result = await service.getRedirect(req, rules);
+      const result = service.getRedirect(req, rules);
       expect(result).toBeNull();
     });
 
     it('should warn and skip unknown manipulators', async () => {
       const loggerInstance = (service as any).logger;
-
       const warnSpy = jest.spyOn(loggerInstance, 'warn').mockImplementation();
       const rules: RedirectRule[] = [
         { source: '*', destination: '{query.val:fake_method}' },
       ];
       const req = createMockRequest('http://site.com/?val=test');
 
-      const result = await service.getRedirect(req, rules);
+      const result = service.getRedirect(req, rules);
 
       expect(result).toBe('test');
       expect(warnSpy).toHaveBeenCalledWith('Unknown manipulator: fake_method');
@@ -459,7 +427,7 @@ describe('RedirectService', () => {
         { source: '*', destination: 'http://site.com/{missing_var}' },
       ];
       const req = createMockRequest('http://site.com/');
-      const result = await service.getRedirect(req, rules);
+      const result = service.getRedirect(req, rules);
 
       expect(result).toBe('http://site.com/{missing_var}');
     });
@@ -468,15 +436,17 @@ describe('RedirectService', () => {
       const rules: RedirectRule[] = [
         { source: '*', destination: 'Random: {random}' },
       ];
-      jest.spyOn(Math, 'random').mockReturnValue(0.5);
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
       const req = createMockRequest('http://site.com/');
-      const result = await service.getRedirect(req, rules);
-      // 0.5 * 1000000 = 500000
+      const result = service.getRedirect(req, rules);
       expect(result).toBe('Random: 500000');
+      randomSpy.mockRestore();
     });
 
     it('should catch errors inside manipulators and log them', async () => {
-      const loggerSpy = jest.spyOn((service as any).logger, 'error');
+      const loggerSpy = jest
+        .spyOn((service as any).logger, 'error')
+        .mockImplementation();
 
       (RedirectService as any).manipulators.broken = () => {
         throw new Error('Boom');
@@ -487,7 +457,7 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://site.com/?val=safe');
-      const result = await service.getRedirect(req, rules);
+      const result = service.getRedirect(req, rules);
 
       expect(result).toBe('safe');
       expect(loggerSpy).toHaveBeenCalledWith(
@@ -496,6 +466,7 @@ describe('RedirectService', () => {
       );
 
       delete (RedirectService as any).manipulators.broken;
+      loggerSpy.mockRestore();
     });
   });
 
