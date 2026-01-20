@@ -15,6 +15,10 @@ import { ApiRedirectionMiddleware } from './middleware/api-redirection.middlewar
 import { ClsModule } from 'nestjs-cls';
 import { AppEntity, createCustomCuid } from './utils';
 import { OrganizationService } from './organization/organization.service';
+import { CacheManagerService } from './cache/cache-manager.service';
+import { CacheManagerIdsService } from './cache/cache-manager-ids.service';
+import { RedisService } from './redis/redis.service';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -29,6 +33,7 @@ import { OrganizationService } from './organization/organization.service';
           createCustomCuid(AppEntity.Request, 10),
       },
     }),
+    RedisModule,
   ],
   controllers: [
     AppController,
@@ -45,6 +50,9 @@ import { OrganizationService } from './organization/organization.service';
     JwtService,
     AuthService,
     AuthGuard,
+    RedisService,
+    CacheManagerIdsService,
+    CacheManagerService,
   ],
 })
 export class AppModule implements NestModule {

@@ -7,6 +7,7 @@ import {
   PaymentRequiredError,
   throwHttpException,
 } from '../models/error.model';
+import { CacheManagerService } from '../cache/cache-manager.service';
 
 const mockPrismaService = {
   domain: {
@@ -39,9 +40,10 @@ const mockOrganizationService = {
 describe('RedirectService', () => {
   let service: RedirectService;
   let prisma: PrismaService;
+  let organizationService: OrganizationService;
+  let cacheManagerService: CacheManagerService;
 
   beforeEach(async () => {
-    // Reset all mocks before each test to prevent interference
     jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
@@ -50,17 +52,56 @@ describe('RedirectService', () => {
         RuleValidatorService,
         {
           provide: PrismaService,
-          useValue: mockPrismaService,
+          useValue: {
+            domain: {
+              findFirst: jest.fn(),
+              findMany: jest.fn(),
+              create: jest.fn(),
+              update: jest.fn(),
+              delete: jest.fn(),
+              count: jest.fn(),
+            },
+            redirectRule: {
+              findMany: jest.fn(),
+              findFirst: jest.fn(),
+              create: jest.fn(),
+              update: jest.fn(),
+              delete: jest.fn(),
+              count: jest.fn(),
+            },
+            domainGroup: {
+              findUnique: jest.fn(),
+              findFirst: jest.fn(),
+              findMany: jest.fn(),
+              create: jest.fn(),
+              update: jest.fn(),
+              delete: jest.fn(),
+              count: jest.fn(),
+            },
+          },
         },
         {
           provide: OrganizationService,
           useValue: mockOrganizationService,
+        },
+        {
+          provide: CacheManagerService,
+          useValue: {
+            get: jest.fn(),
+            set: jest.fn(),
+            del: jest.fn(),
+            getRedirectContext: jest.fn(),
+            setRedirectContext: jest.fn(),
+            invalidateRedirectContext: jest.fn(),
+          },
         },
       ],
     }).compile();
 
     service = module.get<RedirectService>(RedirectService);
     prisma = module.get<PrismaService>(PrismaService);
+    organizationService = module.get<OrganizationService>(OrganizationService);
+    cacheManagerService = module.get<CacheManagerService>(CacheManagerService);
   });
 
   const createMockRequest = (
@@ -966,8 +1007,10 @@ describe('RedirectService', () => {
       (prisma.domainGroup.findFirst as jest.Mock).mockResolvedValue({
         id: domainGroupId,
       });
+      (prisma.domain.findMany as jest.Mock).mockResolvedValue([]);
       (prisma.redirectRule.create as jest.Mock).mockResolvedValue({
         id: 'rule_1',
+        domainGroupId: domainGroupId,
       });
 
       // Act

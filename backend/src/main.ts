@@ -11,7 +11,7 @@ async function bootstrap() {
   const logFormat = winston.format.combine(
     winston.format.timestamp(),
     winston.format.ms(),
-    nestWinstonModuleUtilities.format.nestLike('V%-CT'),
+    nestWinstonModuleUtilities.format.nestLike('Backend'),
   );
   const logger = WinstonModule.createLogger({
     level: 'debug',

@@ -27,9 +27,55 @@ import {
 import { AppEntity, createCustomCuid } from '../utils';
 import { OrganizationService } from '../organization/organization.service';
 import { REDIRECT_ENGINE_LIMITS } from '../constants';
+import { Prisma } from '@prisma/client/index';
+import { CacheManagerService } from '../cache/cache-manager.service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+/**
+ * Define the structure of the domain context query using Prisma.validator.
+ * This ensures the type stays in sync with the actual 'include' logic.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const domainWithRelations = Prisma.validator<Prisma.DomainDefaultArgs>()({
+  include: {
+    domainGroup: {
+      include: {
+        organization: {
+          select: { id: true },
+        },
+        redirectRules: {
+          where: {
+            deletedAt: null,
+          },
+          orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+        },
+      },
+    },
+  },
+});
+
+/**
+ * Extract the return type of the query.
+ */
+export type DomainWithRelationsContext = Prisma.DomainGetPayload<
+  typeof domainWithRelations
+>;
+
+export enum InvalidationTargetType {
+  HOSTNAME = 'hostname',
+  DOMAIN_ID = 'domainId',
+  DOMAIN_GROUP_ID = 'domainGroupId',
+}
+
+/**
+ * Explicit targets for cache invalidation to avoid ambiguous logic.
+ */
+type CacheInvalidationTarget =
+  | { type: InvalidationTargetType.HOSTNAME; value: string }
+  | { type: InvalidationTargetType.DOMAIN_ID; value: string }
+  | { type: InvalidationTargetType.DOMAIN_GROUP_ID; value: string };
 
 export interface RedirectRule {
   source: string | RegExp;
@@ -46,7 +92,65 @@ export class RedirectService {
     private readonly prisma: PrismaService,
     private readonly ruleValidator: RuleValidatorService,
     private readonly organizationService: OrganizationService,
+    private readonly cacheManagerService: CacheManagerService,
   ) {}
+
+  /**
+   * Invalidates the redirect context cache based on a specific target.
+   */
+  private async invalidateDomainCache(
+    target: CacheInvalidationTarget,
+  ): Promise<void> {
+    try {
+      const hostnamesToInvalidate: string[] = [];
+
+      switch (target.type) {
+        case InvalidationTargetType.HOSTNAME: {
+          hostnamesToInvalidate.push(target.value);
+          break;
+        }
+
+        case InvalidationTargetType.DOMAIN_ID: {
+          const domain = await this.prisma.domain.findUnique({
+            where: { id: target.value },
+            select: { name: true },
+          });
+          if (domain) {
+            hostnamesToInvalidate.push(domain.name);
+          }
+          break;
+        }
+
+        case InvalidationTargetType.DOMAIN_GROUP_ID: {
+          const domains = await this.prisma.domain.findMany({
+            where: { domainGroupId: target.value, deletedAt: null },
+            select: { name: true },
+          });
+          hostnamesToInvalidate.push(...domains.map((d) => d.name));
+          break;
+        }
+      }
+
+      if (hostnamesToInvalidate.length > 0) {
+        const uniqueHostnames = [...new Set(hostnamesToInvalidate)];
+
+        await Promise.all(
+          uniqueHostnames.map((name) =>
+            this.cacheManagerService.invalidateRedirectContext(name),
+          ),
+        );
+
+        this.logger.debug(
+          `Invalidated redirect context for: ${uniqueHostnames.join(', ')}`,
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Cache invalidation failed for ${target.type}:${target.value}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+    }
+  }
 
   // --- Management Methods (CRUD) ---
 
@@ -115,7 +219,7 @@ export class RedirectService {
     }
 
     // 3. Create
-    return this.prisma.domain.create({
+    const domain = await this.prisma.domain.create({
       data: {
         id: createCustomCuid(AppEntity.Domain),
         name: data.name,
@@ -123,6 +227,12 @@ export class RedirectService {
       },
       include: { domainGroup: true },
     });
+
+    await this.invalidateDomainCache({
+      type: InvalidationTargetType.HOSTNAME,
+      value: domain.name,
+    });
+    return domain;
   }
 
   async updateDomain(
@@ -173,14 +283,24 @@ export class RedirectService {
     }
 
     // 4. Update
-    return this.prisma.domain.update({
+    const domain = await this.prisma.domain.update({
       where: { id },
-      data: {
-        ...data,
-        updatedAt: new Date(),
-      },
+      data: { ...data, updatedAt: new Date() },
       include: { domainGroup: true },
     });
+
+    // We invalidate both in case name changed
+    await this.invalidateDomainCache({
+      type: InvalidationTargetType.HOSTNAME,
+      value: domain.name,
+    });
+    if (existing.name !== domain.name) {
+      await this.invalidateDomainCache({
+        type: InvalidationTargetType.HOSTNAME,
+        value: existing.name,
+      });
+    }
+    return domain;
   }
 
   async deleteDomain(id: string, organizationId: string) {
@@ -201,6 +321,10 @@ export class RedirectService {
       data: { deletedAt: new Date() },
     });
 
+    await this.invalidateDomainCache({
+      type: InvalidationTargetType.HOSTNAME,
+      value: existing.name,
+    });
     return true;
   }
 
@@ -404,6 +528,10 @@ export class RedirectService {
       include: { domainGroup: true },
     });
 
+    await this.invalidateDomainCache({
+      type: InvalidationTargetType.DOMAIN_GROUP_ID,
+      value: data.domainGroupId,
+    });
     return { rule, warnings: validationResult.warnings };
   }
 
@@ -444,13 +572,14 @@ export class RedirectService {
     // 3. Update
     const rule = await this.prisma.redirectRule.update({
       where: { id },
-      data: {
-        ...data,
-        updatedAt: new Date(),
-      },
+      data: { ...data, updatedAt: new Date() },
       include: { domainGroup: true },
     });
 
+    await this.invalidateDomainCache({
+      type: InvalidationTargetType.DOMAIN_GROUP_ID,
+      value: rule.domainGroupId,
+    });
     return { rule, warnings: validationResult.warnings };
   }
 
@@ -467,16 +596,17 @@ export class RedirectService {
       throw new NotFoundException('Redirect rule not found');
     }
 
-    await this.prisma.redirectRule.update({
+    const rule = await this.prisma.redirectRule.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
 
+    await this.invalidateDomainCache({
+      type: InvalidationTargetType.DOMAIN_GROUP_ID,
+      value: rule.domainGroupId,
+    });
     return true;
   }
-
-  // We removed hardcoded rules from here.
-  // Now rules are passed directly to the getRedirect method.
 
   static readonly manipulators: Record<string, Manipulator> = {
     to_lower_case: (val) => val.toLowerCase(),
@@ -494,34 +624,52 @@ export class RedirectService {
     round: (val) => String(Math.round(Number(val || 0))),
   };
 
-  async applyRedirect(req: express.Request, res: express.Response) {
-    const hostname = req.hostname;
+  /**
+   * Retrieves the full redirect context (Domain, Group, Rules) for a hostname.
+   * Uses Redis caching to minimize DB hits on the hot path.
+   */
+  private async getDomainRedirectContext(hostname: string) {
+    // 1. Try Cache
+    const cached = await this.cacheManagerService.getRedirectContext(hostname);
+    if (cached) {
+      return cached;
+    }
 
-    // 1. Query the database for the Domain matching the hostname
-    const domain = await this.prisma.domain.findFirst({
-      where: {
-        name: hostname,
-        deletedAt: null,
-      },
-      include: {
-        domainGroup: {
-          include: {
-            organization: {
-              select: { id: true },
-            },
-            redirectRules: {
-              where: {
-                deletedAt: null,
+    // 2. DB Query
+    const domain: DomainWithRelationsContext | null =
+      await this.prisma.domain.findFirst({
+        where: {
+          name: hostname,
+          deletedAt: null,
+        },
+        include: {
+          domainGroup: {
+            include: {
+              organization: {
+                select: { id: true },
               },
-              orderBy: [
-                { priority: 'desc' }, // Higher priority rules evaluated first
-                { createdAt: 'desc' }, // In case of tie: newer wins
-              ],
+              redirectRules: {
+                where: {
+                  deletedAt: null,
+                },
+                orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+              },
             },
           },
         },
-      },
-    });
+      });
+
+    // 3. Set Cache through Manager
+    await this.cacheManagerService.setRedirectContext(hostname, domain);
+
+    return domain;
+  }
+
+  async applyRedirect(req: express.Request, res: express.Response) {
+    const hostname = req.hostname;
+
+    // 1. Get Domain Context (Cached)
+    const domain = await this.getDomainRedirectContext(hostname);
 
     // If no domain found, return 404
     if (!domain) {
@@ -567,7 +715,7 @@ export class RedirectService {
     );
 
     // 4. Pass rules to getRedirect to find a match
-    const target = await this.getRedirect(req, rules);
+    const target = this.getRedirect(req, rules);
 
     // 5. Action: redirect or return 404
     if (target) {
@@ -582,16 +730,15 @@ export class RedirectService {
     });
   }
 
-  async getRedirect(
-    req: Request,
-    rules: RedirectRule[],
-  ): Promise<string | null> {
+  getRedirect(req: Request, rules: RedirectRule[]): string | null {
     const url = this.getRequestUrl(req);
     const variables = this.extractVariables(req, url);
 
     for (const rule of rules) {
       const result = this.processRule(rule, req.path, variables);
-      if (result) return result;
+      if (result) {
+        return result;
+      }
     }
 
     return null;
