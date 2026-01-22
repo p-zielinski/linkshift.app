@@ -8,12 +8,14 @@ import { PrismaService } from '../prisma.service';
 import { JwtService } from './jwt.service';
 import { RegisterDto, LoginDto } from '../zod-schames/auth.schemas';
 import { AppEntity, createCustomCuid } from '../utils';
+import { CacheManagerService } from '../cache/cache-manager.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly cacheManagerService: CacheManagerService,
   ) {}
 
   async register(data: RegisterDto) {
@@ -128,15 +130,38 @@ export class AuthService {
   }
 
   async refreshTokens(refreshToken: string) {
+    // 1. Verify signature
     const payload = this.jwtService.verifyRefreshToken(refreshToken);
     if (!payload) {
       throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    // 2. Check for Token Reuse via CacheManager
+    const jti = (payload as any).jti;
+    if (jti) {
+      const isBlacklisted =
+        await this.cacheManagerService.isTokenBlacklisted(jti);
+      if (isBlacklisted) {
+        // Here you could also invalidate all user tokens if you want strict security
+        throw new UnauthorizedException('Refresh token has already been used');
+      }
     }
 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.userId },
     });
     if (!user) throw new UnauthorizedException('User not found');
+
+    // 3. Blacklist the OLD token via CacheManager
+    if (jti) {
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const exp = (payload as any).exp;
+      const ttl = exp - currentTimestamp;
+
+      if (ttl > 0) {
+        await this.cacheManagerService.blacklistToken(jti, ttl);
+      }
+    }
 
     return this.jwtService.generateTokens({
       userId: payload.userId,

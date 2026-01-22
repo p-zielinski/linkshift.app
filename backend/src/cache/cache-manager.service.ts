@@ -23,12 +23,14 @@ export enum DataType {
   DOMAINS = 'domain',
   REDIRECT_RULES = 'redirectRule',
   DOMAIN_GROUPS = 'domainGroup',
+  BLACKLIST_TOKEN = 'blacklistToken',
 }
 
 export enum CachedByProperty {
   ID = 'id',
   EMAIL = 'email',
   NAME = 'name',
+  JTI = 'jti',
 }
 
 const resourcesWithoutIsDeleted = [DataType.USERS]; // Adjust based on which models lack 'deletedAt' or 'isDeleted'
@@ -42,6 +44,7 @@ const storeByProperties: Record<
   [DataType.DOMAINS]: [CachedByProperty.ID, CachedByProperty.NAME],
   [DataType.DOMAIN_GROUPS]: [CachedByProperty.ID],
   [DataType.REDIRECT_RULES]: [CachedByProperty.ID],
+  [DataType.BLACKLIST_TOKEN]: [CachedByProperty.JTI],
 };
 
 const ttlPerResource: Partial<Record<DataType, number>> = {
@@ -64,6 +67,32 @@ export class CacheManagerService {
     private readonly redisService: RedisService,
     private readonly cacheManagerIdsService: CacheManagerIdsService,
   ) {}
+
+  /**
+   * Checks if a token JTI is in the blacklist
+   */
+  async isTokenBlacklisted(jti: string): Promise<boolean> {
+    const key = this.cacheManagerIdsService.getSimpleCacheManageId({
+      dataType: DataType.BLACKLIST_TOKEN,
+      properties: { [CachedByProperty.JTI]: jti },
+    });
+
+    const result = await this.redisService.get<boolean>(key);
+    return !!result;
+  }
+
+  /**
+   * Adds a token JTI to the blacklist with a specific TTL
+   */
+  async blacklistToken(jti: string, ttlInSeconds: number): Promise<void> {
+    const key = this.cacheManagerIdsService.getSimpleCacheManageId({
+      dataType: DataType.BLACKLIST_TOKEN,
+      properties: { [CachedByProperty.JTI]: jti },
+    });
+
+    // We store 'true' to indicate it's blacklisted
+    await this.redisService.set(key, true, ttlInSeconds);
+  }
 
   /**
    * Retrieves specialized redirect context (Domain + Rules) from cache.
