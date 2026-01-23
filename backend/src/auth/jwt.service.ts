@@ -19,7 +19,7 @@ export class JwtService {
   private getConfig(key: string): string {
     const value = this.configService.get<string>(key);
     if (!value) {
-      // Logic: It is better to crash the app than to run with insecure defaults
+      // Logic: It is better to crash the auth than to run with insecure defaults
       throw new InternalServerErrorException(
         `Configuration error: ${key} is missing`,
       );

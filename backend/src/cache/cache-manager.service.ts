@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
 import { CacheManagerIdsService } from './cache-manager-ids.service';
 import { PrismaService } from '../prisma.service';
@@ -11,6 +11,7 @@ import {
 } from '@prisma/client';
 import * as _ from 'lodash';
 import type { DomainWithRelationsContext } from '../redirect/redirect.service';
+import { LRUCache } from 'lru-cache';
 
 // Helpers
 const ensureArray = <T>(value: T | T[]): T[] =>
@@ -33,7 +34,7 @@ export enum CachedByProperty {
   JTI = 'jti',
 }
 
-const resourcesWithoutIsDeleted = [DataType.USERS]; // Adjust based on which models lack 'deletedAt' or 'isDeleted'
+const resourcesWithoutIsDeleted = [DataType.USERS];
 
 const storeByProperties: Record<
   DataType,
@@ -50,18 +51,66 @@ const storeByProperties: Record<
 const ttlPerResource: Partial<Record<DataType, number>> = {
   [DataType.USERS]: minutesToTtl(30),
   [DataType.ORGANIZATIONS]: minutesToTtl(60),
-  [DataType.DOMAINS]: minutesToTtl(10), // Short TTL for domains to propagate DNS/changes quickly
+  [DataType.DOMAINS]: minutesToTtl(10),
   [DataType.REDIRECT_RULES]: minutesToTtl(10),
   [DataType.DOMAIN_GROUPS]: minutesToTtl(30),
 };
 
-// Forbidden properties to not cache (e.g. sensitive data)
 const forbiddenPropertiesByDataType: Partial<Record<DataType, string[]>> = {
   [DataType.USERS]: ['passwordHash'],
 };
 
+function roughSizeOfObject(object: any): number {
+  try {
+    const objectList: any[] = [];
+    const stack = [object];
+    let bytes = 0;
+
+    while (stack.length) {
+      const value = stack.pop();
+
+      if (typeof value === 'boolean') {
+        bytes += 4;
+      } else if (typeof value === 'string') {
+        bytes += value.length * 2; // JS strings are UTF-16 (2 bytes per char)
+      } else if (typeof value === 'number') {
+        bytes += 8;
+      } else if (
+        typeof value === 'object' &&
+        objectList.indexOf(value) === -1
+      ) {
+        objectList.push(value);
+        for (const i in value) {
+          // eslint-disable-next-line no-prototype-builtins
+          if (value.hasOwnProperty(i)) {
+            stack.push(value[i]);
+            bytes += i.length * 2; // Key size
+          }
+        }
+      }
+    }
+    return bytes;
+  } catch (e) {
+    return 1024;
+  }
+}
+
 @Injectable()
 export class CacheManagerService {
+  private readonly logger = new Logger(CacheManagerService.name);
+
+  private readonly MAX_CACHE_SIZE_BYTES = 350 * 1024 * 1024;
+
+  // L1 Local Cache (In-Memory) configuration
+  private readonly localCache = new LRUCache<string, any>({
+    maxSize: this.MAX_CACHE_SIZE_BYTES,
+    ttl: 15 * 1000, // 15 seconds
+    allowStale: false,
+    sizeCalculation: (value) => {
+      return roughSizeOfObject(value) + 200;
+    },
+  });
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService,
@@ -90,18 +139,31 @@ export class CacheManagerService {
       properties: { [CachedByProperty.JTI]: jti },
     });
 
-    // We store 'true' to indicate it's blacklisted
     await this.redisService.set(key, true, ttlInSeconds);
   }
 
   /**
    * Retrieves specialized redirect context (Domain + Rules) from cache.
+   * Strategy: L1 (LRU Local) -> L2 (Redis) -> DB (handled by caller on miss)
    */
   async getRedirectContext(
     hostname: string,
   ): Promise<DomainWithRelationsContext | null | undefined> {
     const key = `REDIRECT_CONTEXT:${hostname}`;
-    return this.redisService.get<DomainWithRelationsContext>(key);
+
+    // 1. Try L1 Local Cache (LRU)
+    if (this.localCache.has(key)) {
+      this.logger.debug(`L1 Cache HIT for ${hostname}`);
+      return this.localCache.get(key) as DomainWithRelationsContext | null;
+    }
+
+    const cached = await this.redisService.get<DomainWithRelationsContext>(key);
+
+    if (cached !== undefined) {
+      this.localCache.set(key, cached);
+    }
+
+    return cached;
   }
 
   /**
@@ -112,7 +174,11 @@ export class CacheManagerService {
     data: DomainWithRelationsContext | null,
   ): Promise<void> {
     const key = `REDIRECT_CONTEXT:${hostname}`;
-    // We use a fixed TTL of 5 minutes for redirect contexts
+
+    // Update L1
+    this.localCache.set(key, data);
+
+    // Update L2 (Redis) with longer TTL
     await this.redisService.set(key, data, minutesToTtl(5));
   }
 
@@ -121,6 +187,11 @@ export class CacheManagerService {
    */
   async invalidateRedirectContext(hostname: string): Promise<void> {
     const key = `REDIRECT_CONTEXT:${hostname}`;
+
+    // Remove from L1 immediately
+    this.localCache.delete(key);
+
+    // Remove from L2
     await this.redisService.del(key);
   }
 

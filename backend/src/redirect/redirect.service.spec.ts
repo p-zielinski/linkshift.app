@@ -834,13 +834,13 @@ describe('RedirectService', () => {
         {
           source: '*',
           destination:
-            "'{userAgent}' includes 'Mobile' ? /mobile-app : /web-app",
+            "'{userAgent}' includes 'Mobile' ? /mobile-auth : /web-auth",
         },
       ];
       const req = createMockRequest('http://test.com', {
         'user-agent': 'Some Mobile Device v1',
       });
-      expect(await service.getRedirect(req, rules)).toBe('/mobile-app');
+      expect(await service.getRedirect(req, rules)).toBe('/mobile-auth');
     });
 
     it('should execute regex match (~=) with flags (case insensitive)', async () => {

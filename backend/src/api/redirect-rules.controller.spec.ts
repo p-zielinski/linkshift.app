@@ -208,15 +208,27 @@ describe('RedirectRulesController', () => {
     it('should return a list of rules', async () => {
       const organizationId = 'org-1';
       const mockRules = [{ id: 'rule-1', source: '/a' }];
-      mockRedirectService.listRules.mockResolvedValue(mockRules);
 
-      const result = await controller.list(organizationId);
+      const mockResponse = {
+        data: mockRules,
+        meta: { total: 1, page: 1, limit: 10, totalPages: 1 },
+      };
+
+      mockRedirectService.listRules.mockResolvedValue(mockResponse);
+
+      const result = await controller.list(organizationId, {} as any);
 
       expect(mockRedirectService.listRules).toHaveBeenCalledWith(
         organizationId,
         undefined,
+        {},
       );
-      expect(result).toEqual({ success: true, data: mockRules });
+
+      expect(result).toEqual({
+        success: true,
+        data: mockRules,
+        meta: mockResponse.meta,
+      });
     });
   });
 

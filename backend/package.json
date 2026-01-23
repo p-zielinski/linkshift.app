@@ -46,6 +46,7 @@
     "dotenv": "^17.2.3",
     "http-status-codes": "^2.3.0",
     "ioredis": "^5.9.2",
+    "lru-cache": "^11.2.4",
     "nest-winston": "^1.10.2",
     "nestjs-cls": "^6.2.0",
     "passport": "^0.7.0",

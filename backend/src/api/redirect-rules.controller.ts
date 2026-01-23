@@ -34,16 +34,21 @@ export class RedirectRulesController {
   @UseGuards(AuthGuard)
   async list(
     @User('organizationId') organizationId: string,
-    @Query('domainGroupId') domainGroupId?: string,
+    @Query(new ZodPipe(redirectRuleSchemas.ListRedirectRulesQuerySchema))
+    query: redirectRuleSchemas.ListRedirectRulesQueryDto,
   ) {
-    const rules = await this.redirectService.listRules(
+    const { domainGroupId, ...pagination } = query;
+
+    const result = await this.redirectService.listRules(
       organizationId,
       domainGroupId,
+      pagination,
     );
 
     return {
       success: true,
-      data: rules,
+      data: result.data,
+      meta: result.meta,
     };
   }
 

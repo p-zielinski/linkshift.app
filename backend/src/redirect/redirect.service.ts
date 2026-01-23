@@ -443,8 +443,15 @@ export class RedirectService {
     return true;
   }
 
-  async listRules(organizationId: string, domainGroupId?: string) {
-    const where: any = {
+  async listRules(
+    organizationId: string,
+    domainGroupId?: string,
+    params?: { page?: number; limit?: number; search?: string },
+  ) {
+    const { page = 1, limit = 20, search } = params || {};
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.RedirectRuleWhereInput = {
       deletedAt: null,
       domainGroup: {
         organizationId,
@@ -456,15 +463,42 @@ export class RedirectService {
       where.domainGroupId = domainGroupId;
     }
 
-    return this.prisma.redirectRule.findMany({
-      where,
-      include: {
-        domainGroup: {
-          select: { id: true, name: true },
+    if (search) {
+      where.OR = [
+        { source: { contains: search, mode: 'insensitive' } },
+        { destination: { contains: search, mode: 'insensitive' } },
+        {
+          domainGroup: {
+            name: { contains: search, mode: 'insensitive' },
+          },
         },
+      ];
+    }
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.redirectRule.findMany({
+        where,
+        take: Number(limit),
+        skip: Number(skip),
+        include: {
+          domainGroup: {
+            select: { id: true, name: true },
+          },
+        },
+        orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+      }),
+      this.prisma.redirectRule.count({ where }),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
-    });
+    };
   }
 
   async getRuleById(id: string, organizationId: string) {
