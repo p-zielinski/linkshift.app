@@ -29,6 +29,8 @@ export class OrganizationConfiguration {
   maxRulesPerGroup: number = 15;
   maxTotalRules: number = 15;
 
+  redirectionLimitPerMinute: number = 10;
+
   constructor(partial?: Partial<OrganizationConfiguration>) {
     if (partial) {
       Object.assign(this, partial);

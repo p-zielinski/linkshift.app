@@ -28,7 +28,13 @@ import { AppEntity, createCustomCuid } from '../utils';
 import { OrganizationService } from '../organization/organization.service';
 import { REDIRECT_ENGINE_LIMITS } from '../constants';
 import { Prisma } from '@prisma/client/index';
-import { CacheManagerService } from '../cache/cache-manager.service';
+import {
+  CachedByProperty,
+  CacheManagerService,
+  DataType,
+} from '../cache/cache-manager.service';
+import { OrganizationConfiguration } from '../models/organization-config.model';
+import { Organization } from '@prisma/client';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -445,7 +451,7 @@ export class RedirectService {
 
   async listRules(
     organizationId: string,
-    domainGroupId?: string,
+    domainGroupId: string,
     params?: { page?: number; limit?: number; search?: string },
   ) {
     const { page = 1, limit = 20, search } = params || {};
@@ -453,25 +459,17 @@ export class RedirectService {
 
     const where: Prisma.RedirectRuleWhereInput = {
       deletedAt: null,
+      domainGroupId,
       domainGroup: {
         organizationId,
         deletedAt: null,
       },
     };
 
-    if (domainGroupId) {
-      where.domainGroupId = domainGroupId;
-    }
-
     if (search) {
       where.OR = [
         { source: { contains: search, mode: 'insensitive' } },
         { destination: { contains: search, mode: 'insensitive' } },
-        {
-          domainGroup: {
-            name: { contains: search, mode: 'insensitive' },
-          },
-        },
       ];
     }
 
@@ -717,6 +715,30 @@ export class RedirectService {
 
     // 2. Check Organization Status (Payment/Suspension)
     try {
+      const organization = await this.cacheManagerService.getData<Organization>(
+        {
+          dataType: DataType.ORGANIZATIONS,
+          properties: {
+            [CachedByProperty.ID]: domain.domainGroup.organizationId,
+          },
+        },
+      );
+
+      // Default limit if config is missing (safety fallback)
+      let limit = 60;
+
+      if (organization && organization.configuration) {
+        const config = OrganizationConfiguration.fromJson(
+          organization.configuration,
+        );
+        limit = config.redirectionLimitPerMinute;
+      }
+
+      await this.cacheManagerService.checkOrganizationRateLimit(
+        domain.domainGroup.organizationId,
+        limit,
+      );
+
       await this.organizationService.checkRedirectionAccess(
         domain.domainGroup.organizationId,
       );

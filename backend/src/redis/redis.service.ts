@@ -35,6 +35,23 @@ export class RedisService implements OnModuleDestroy {
     await this.redis.flushdb();
   }
 
+  /**
+   * Atomic increment operation.
+   * Increments the number stored at key by one.
+   * If the key does not exist, it is set to 0 before performing the operation.
+   * Returns the value of key after the increment.
+   */
+  async incr(key: string): Promise<number> {
+    return this.redis.incr(key);
+  }
+
+  /**
+   * Sets a timeout on key. After the timeout has expired, the key will automatically be deleted.
+   */
+  async expire(key: string, seconds: number): Promise<void> {
+    await this.redis.expire(key, seconds);
+  }
+
   async onModuleDestroy() {
     await this.redis.quit();
   }

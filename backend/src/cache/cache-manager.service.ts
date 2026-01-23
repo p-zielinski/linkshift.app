@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
 import { CacheManagerIdsService } from './cache-manager-ids.service';
 import { PrismaService } from '../prisma.service';
@@ -12,6 +12,8 @@ import {
 import * as _ from 'lodash';
 import type { DomainWithRelationsContext } from '../redirect/redirect.service';
 import { LRUCache } from 'lru-cache';
+import { TooManyRequestsError } from '../models/error.model';
+import { ClsService } from 'nestjs-cls';
 
 // Helpers
 const ensureArray = <T>(value: T | T[]): T[] =>
@@ -90,7 +92,7 @@ function roughSizeOfObject(object: any): number {
       }
     }
     return bytes;
-  } catch (e) {
+  } catch (_) {
     return 1024;
   }
 }
@@ -115,7 +117,59 @@ export class CacheManagerService {
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService,
     private readonly cacheManagerIdsService: CacheManagerIdsService,
+    private readonly clsService: ClsService,
   ) {}
+
+  /**
+   * Checks if the organization has exceeded its request limit.
+   * Uses L1 (Local) cache to short-circuit blocked organizations to save Redis calls.
+   */
+  async checkOrganizationRateLimit(
+    organizationId: string,
+    limit: number,
+  ): Promise<void> {
+    // 0. Bypass checks if limit is 0 or negative (assuming unlimited or misconfiguration, adjust as needed)
+    if (limit <= 0) return;
+
+    const now = new Date();
+    const currentMinuteKey = `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}:${now.getUTCHours()}:${now.getUTCMinutes()}`;
+
+    // Key used for L1 blocking optimization
+    const blockKey = `RATE_LIMIT_BLOCK:${organizationId}:${currentMinuteKey}`;
+
+    // 1. Check L1 Cache (Optimization)
+    // If we already know this org is blocked for this minute, reject immediately without hitting Redis.
+    if (this.localCache.has(blockKey)) {
+      throw new Error('Rate limit exceeded (L1)');
+    }
+
+    // 2. Redis Atomic Increment
+    const redisKey = `RATE_LIMIT:${organizationId}:${currentMinuteKey}`;
+    const currentCount = await this.redisService.incr(redisKey);
+
+    // If this is the first request in this minute window, set the expiry
+    if (currentCount === 1) {
+      // Expire after 60 seconds (plus small buffer)
+      await this.redisService.expire(redisKey, 65);
+    }
+
+    // 3. Check against limit
+    if (currentCount > limit) {
+      // Optimization: Calculate seconds remaining in this minute
+      const secondsRemaining = 60 - now.getUTCSeconds();
+
+      // Cache the "BLOCKED" state locally for the remainder of the minute.
+      // Next requests hitting this instance won't even touch Redis.
+      this.localCache.set(blockKey, true, { ttl: secondsRemaining * 1000 });
+
+      const error = new TooManyRequestsError({
+        details: 'Organization rate limit exceeded',
+        requestId: this.clsService.getId(),
+      });
+
+      throw new HttpException(error, error.code);
+    }
+  }
 
   /**
    * Checks if a token JTI is in the blacklist
@@ -126,7 +180,16 @@ export class CacheManagerService {
       properties: { [CachedByProperty.JTI]: jti },
     });
 
+    if (this.localCache.has(key)) {
+      return true;
+    }
+
     const result = await this.redisService.get<boolean>(key);
+
+    if (result) {
+      this.localCache.set(key, true);
+    }
+
     return !!result;
   }
 
@@ -139,6 +202,7 @@ export class CacheManagerService {
       properties: { [CachedByProperty.JTI]: jti },
     });
 
+    this.localCache.set(key, true);
     await this.redisService.set(key, true, ttlInSeconds);
   }
 
@@ -209,6 +273,10 @@ export class CacheManagerService {
       dataType,
       properties,
     });
+
+    // Update L1
+    this.localCache.set(key, false);
+
     // Cache "false" for a shorter time (e.g. 5 mins) to allow for quick recovery if data is created
     await this.redisService.set(key, false, minutesToTtl(5));
     return false;
@@ -242,6 +310,11 @@ export class CacheManagerService {
           dataType,
           properties,
         });
+
+        // Update L1
+        this.localCache.set(key, dataWithoutOmitProperties);
+
+        // Update L2 (Redis)
         await this.redisService.set(
           key,
           dataWithoutOmitProperties,
@@ -281,16 +354,40 @@ export class CacheManagerService {
       return undefined;
     }
 
-    // 2. Try Redis
     const cacheId = this.cacheManagerIdsService.getSimpleCacheManageId({
       dataType,
       properties,
     });
+
+    // 2. Try L1 (Local Cache) FIRST
+    if (this.localCache.has(cacheId)) {
+      const localData = this.localCache.get(cacheId) as T | false;
+
+      if (localData === false) {
+        return undefined; // Known non-existence from L1
+      }
+
+      if (
+        options.skipDeleted &&
+        localData &&
+        'deletedAt' in localData &&
+        (localData as any).deletedAt
+      ) {
+        return undefined;
+      }
+
+      return localData;
+    }
+
+    // 3. Try L2 (Redis)
     const cachedData = await this.redisService.get<T | undefined | false>(
       cacheId,
     );
 
     if (cachedData !== undefined && cachedData !== null) {
+      // Populate L1 with what we found in L2
+      this.localCache.set(cacheId, cachedData);
+
       if (cachedData === false) {
         return undefined; // Known non-existence
       }
@@ -306,7 +403,7 @@ export class CacheManagerService {
 
     if (!options.fetch) return undefined;
 
-    // 3. Fallback to DB (Prisma)
+    // 4. Fallback to DB (Prisma)
     // We map DataType enum values to Prisma delegate names directly
     const delegate = this.prisma[dataType as string];
 
@@ -321,10 +418,12 @@ export class CacheManagerService {
     })) as T | null;
 
     if (!result) {
+      // Updates both L1 and L2 with false
       await this.setDataFalse({ dataType, properties });
       return undefined;
     }
 
+    // Updates both L1 and L2 with result
     await this.setDataExist<T>({ data: result, dataType });
 
     if (
