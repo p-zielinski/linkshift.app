@@ -83,7 +83,6 @@ describe('RedirectRulesController', () => {
       );
       expect(result.success).toBe(true);
       expect(result.data).toEqual(expectedRule);
-      expect(result.warnings).toEqual([]);
     });
 
     it('should correctly handle a RegExp rule passed as string', async () => {

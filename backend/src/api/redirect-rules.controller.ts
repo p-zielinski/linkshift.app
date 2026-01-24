@@ -91,7 +91,6 @@ export class RedirectRulesController {
       return {
         success: true,
         data: result.rule,
-        warnings: result.warnings,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -133,7 +132,6 @@ export class RedirectRulesController {
       return {
         success: true,
         data: result.rule,
-        warnings: result.warnings,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
