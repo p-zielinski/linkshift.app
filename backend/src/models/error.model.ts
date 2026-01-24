@@ -91,7 +91,7 @@ export class NotFoundError extends BaseError {
 }
 
 export class UnauthorizedError extends BaseError {
-  constructor({ details, requestId }: { details: string; requestId: string }) {
+  constructor({ details, requestId }: { details?: string; requestId: string }) {
     super({
       details,
       requestId,
@@ -99,7 +99,7 @@ export class UnauthorizedError extends BaseError {
       key: 'unauthorized',
       message: 'Unauthorized',
     });
-    this.details = details;
+    this.details = details ?? 'Missing or invalid authorization header';
     this.requestId = requestId;
   }
 }
@@ -215,6 +215,7 @@ export class BadRequestError extends BaseError {
     relatedObject?: string | undefined;
     relatedObjectId?: string | undefined;
     relatedObjectParameter?: string | undefined;
+    errors?: { details: string[] };
   }) {
     super({
       details,
@@ -256,6 +257,6 @@ export class InternalServerError extends BaseError {
   }
 }
 
-export const throwHttpException = (error: BaseError) => {
+export const throwHttpException = (error: BaseError): never => {
   throw new HttpException(error, error.code);
 };

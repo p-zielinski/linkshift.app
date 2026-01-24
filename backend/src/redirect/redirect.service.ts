@@ -3,14 +3,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { PrismaService } from '../prisma.service';
-import {
-  Injectable,
-  Logger,
-  NotFoundException,
-  BadRequestException,
-  ConflictException,
-  HttpException,
-} from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { RuleValidatorService } from '../rule-validator/rule-validator.service';
 import {
   CreateRedirectRuleDto,
@@ -35,6 +28,13 @@ import {
 } from '../cache/cache-manager.service';
 import { OrganizationConfiguration } from '../models/organization-config.model';
 import { Organization } from '@prisma/client';
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+  throwHttpException,
+} from '../models/error.model';
+import { ClsService } from 'nestjs-cls';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -99,6 +99,7 @@ export class RedirectService {
     private readonly ruleValidator: RuleValidatorService,
     private readonly organizationService: OrganizationService,
     private readonly cacheManagerService: CacheManagerService,
+    private readonly clsService: ClsService,
   ) {}
 
   /**
@@ -189,7 +190,12 @@ export class RedirectService {
     });
 
     if (!domain) {
-      throw new NotFoundException('Domain not found');
+      return throwHttpException(
+        new NotFoundError({
+          details: `Domain with id ${id} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
     return domain;
   }
@@ -209,7 +215,12 @@ export class RedirectService {
     });
 
     if (!domainGroup) {
-      throw new NotFoundException('Domain group not found');
+      return throwHttpException(
+        new NotFoundError({
+          details: `Domain group with id ${data.domainGroupId} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
 
     // 2. Check duplicate name
@@ -221,7 +232,12 @@ export class RedirectService {
     });
 
     if (existing) {
-      throw new ConflictException('Domain name already exists');
+      return throwHttpException(
+        new ConflictError({
+          details: `Domain name ${data.name} already exists`,
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
 
     // 3. Create
@@ -256,7 +272,12 @@ export class RedirectService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Domain not found');
+      return throwHttpException(
+        new NotFoundError({
+          details: `Domain with id ${id} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
 
     // 2. Check duplicates if name changes
@@ -269,7 +290,12 @@ export class RedirectService {
       });
 
       if (duplicate) {
-        throw new ConflictException('Domain name already exists');
+        return throwHttpException(
+          new ConflictError({
+            details: `Domain name ${data.name} already exists`,
+            requestId: this.clsService.getId(),
+          }),
+        );
       }
     }
 
@@ -284,7 +310,12 @@ export class RedirectService {
       });
 
       if (!newDomainGroup) {
-        throw new NotFoundException('Domain group not found');
+        return throwHttpException(
+          new NotFoundError({
+            details: `Domain group with id ${data.domainGroupId} not found`,
+            requestId: this.clsService.getId(),
+          }),
+        );
       }
     }
 
@@ -319,7 +350,12 @@ export class RedirectService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Domain not found');
+      return throwHttpException(
+        new NotFoundError({
+          details: `Domain with id ${id} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
 
     await this.prisma.domain.update({
@@ -373,7 +409,12 @@ export class RedirectService {
     });
 
     if (!domainGroup) {
-      throw new NotFoundException('Domain group not found');
+      return throwHttpException(
+        new NotFoundError({
+          details: `Domain group with id ${id} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
     return domainGroup;
   }
@@ -409,7 +450,12 @@ export class RedirectService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Domain group not found');
+      return throwHttpException(
+        new NotFoundError({
+          details: `Domain group with id ${id} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
 
     // 2. Update
@@ -436,7 +482,12 @@ export class RedirectService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Domain group not found');
+      return throwHttpException(
+        new NotFoundError({
+          details: `Domain group with id ${id} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
 
     await this.prisma.domainGroup.update({
@@ -510,7 +561,12 @@ export class RedirectService {
     });
 
     if (!rule) {
-      throw new NotFoundException('Redirect rule not found');
+      return throwHttpException(
+        new NotFoundError({
+          details: `Redirect rule with id ${id} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
     return rule;
   }
@@ -531,7 +587,12 @@ export class RedirectService {
     });
 
     if (!domainGroup) {
-      throw new NotFoundException('Domain group not found');
+      return throwHttpException(
+        new NotFoundError({
+          details: `Domain group with id ${data.domainGroupId} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
 
     // 3. Validate logic
@@ -540,11 +601,15 @@ export class RedirectService {
       data.destination,
     );
     if (!validationResult.isValid) {
-      throw new BadRequestException({
-        message: 'Rule validation failed',
-        details: validationResult.errors,
-        warnings: validationResult.warnings,
-      });
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Rule validation failed',
+          errors: {
+            details: validationResult.errors,
+          },
+        }),
+      );
     }
 
     // 4. Create
@@ -564,7 +629,7 @@ export class RedirectService {
       type: InvalidationTargetType.DOMAIN_GROUP_ID,
       value: data.domainGroupId,
     });
-    return { rule, warnings: validationResult.warnings };
+    return { rule };
   }
 
   async updateRule(
@@ -582,7 +647,12 @@ export class RedirectService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Redirect rule not found');
+      return throwHttpException(
+        new NotFoundError({
+          details: `Redirect rule with id ${id} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
 
     // 2. Validate logic if fields changed
@@ -594,11 +664,15 @@ export class RedirectService {
       destinationToValidate,
     );
     if (!validationResult.isValid) {
-      throw new BadRequestException({
-        message: 'Rule validation failed',
-        details: validationResult.errors,
-        warnings: validationResult.warnings,
-      });
+      return throwHttpException(
+        new BadRequestError({
+          details: 'Rule validation failed',
+          errors: {
+            details: validationResult.errors,
+          },
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
 
     // 3. Update
@@ -612,7 +686,7 @@ export class RedirectService {
       type: InvalidationTargetType.DOMAIN_GROUP_ID,
       value: rule.domainGroupId,
     });
-    return { rule, warnings: validationResult.warnings };
+    return { rule };
   }
 
   async deleteRule(id: string, organizationId: string) {
@@ -625,7 +699,12 @@ export class RedirectService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Redirect rule not found');
+      return throwHttpException(
+        new NotFoundError({
+          requestId: this.clsService.getId(),
+          details: `Redirect rule with id ${id} not found`,
+        }),
+      );
     }
 
     const rule = await this.prisma.redirectRule.update({

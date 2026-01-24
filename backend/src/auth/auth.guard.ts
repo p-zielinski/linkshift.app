@@ -1,18 +1,14 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from './jwt.service';
+import { throwHttpException, UnauthorizedError } from '../models/error.model';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly clsService: ClsService,
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
@@ -21,18 +17,18 @@ export class AuthGuard implements CanActivate {
     // 2. Standard Token Validation for API calls
     const token = this.extractTokenFromHeader(request);
     if (!token) {
-      throw new UnauthorizedException();
+      return this.throwUnauthorizedError();
     }
 
     try {
       const payload = this.jwtService.verifyToken(token);
       if (!payload) {
-        throw new UnauthorizedException();
+        return this.throwUnauthorizedError();
       }
       // Attach user to request object so controllers can access it via @User()
       request['user'] = payload;
     } catch {
-      throw new UnauthorizedException();
+      return this.throwUnauthorizedError();
     }
     return true;
   }
@@ -40,5 +36,13 @@ export class AuthGuard implements CanActivate {
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
+  }
+
+  private throwUnauthorizedError(): never {
+    return throwHttpException(
+      new UnauthorizedError({
+        requestId: this.clsService.getId(),
+      }),
+    );
   }
 }

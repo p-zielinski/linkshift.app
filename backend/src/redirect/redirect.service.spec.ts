@@ -8,6 +8,7 @@ import {
   throwHttpException,
 } from '../models/error.model';
 import { CacheManagerService } from '../cache/cache-manager.service';
+import { ClsService } from 'nestjs-cls';
 
 const mockPrismaService = {
   domain: {
@@ -51,6 +52,12 @@ describe('RedirectService', () => {
         RedirectService,
         RuleValidatorService,
         {
+          provide: ClsService,
+          useValue: {
+            getId: jest.fn().mockReturnValue('mock-id'),
+          },
+        },
+        {
           provide: PrismaService,
           useValue: {
             domain: {
@@ -93,6 +100,8 @@ describe('RedirectService', () => {
             getRedirectContext: jest.fn(),
             setRedirectContext: jest.fn(),
             invalidateRedirectContext: jest.fn(),
+            getData: jest.fn(),
+            checkOrganizationRateLimit: jest.fn(),
           },
         },
       ],

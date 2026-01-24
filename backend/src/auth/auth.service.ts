@@ -1,14 +1,16 @@
-import {
-  Injectable,
-  ConflictException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma.service';
 import { JwtService } from './jwt.service';
 import { RegisterDto, LoginDto } from '../zod-schames/auth.schemas';
 import { AppEntity, createCustomCuid } from '../utils';
-import { CacheManagerService } from '../cache/cache-manager.service';
+import { CacheManagerService, DataType } from '../cache/cache-manager.service';
+import {
+  ConflictError,
+  throwHttpException,
+  UnauthorizedError,
+} from '../models/error.model';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +18,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly cacheManagerService: CacheManagerService,
+    private readonly clsService: ClsService,
   ) {}
 
   async register(data: RegisterDto) {
@@ -28,7 +31,12 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+      return throwHttpException(
+        new ConflictError({
+          requestId: this.clsService.getId(),
+          details: `User with this email already exists (${existingUser.email})`,
+        }),
+      );
     }
 
     // 2. Hash password
@@ -53,23 +61,21 @@ export class AuthService {
           organizationId: organization.id,
           isOwner: true,
         },
-        select: {
-          id: true,
-          email: true,
-          isOwner: true,
-          organizationId: true,
-          createdAt: true,
-          organization: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
       });
 
       return { user, organization };
     });
+
+    await Promise.all([
+      this.cacheManagerService.setDataExist({
+        dataType: DataType.USERS,
+        data: result.user as any,
+      }),
+      this.cacheManagerService.setDataExist({
+        dataType: DataType.ORGANIZATIONS,
+        data: result.organization,
+      }),
+    ]);
 
     // 4. Generate JWT token
     const tokens = this.jwtService.generateTokens({
@@ -91,17 +97,17 @@ export class AuthService {
         deletedAt: null,
       },
       include: {
-        organization: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        organization: true,
       },
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      return throwHttpException(
+        new UnauthorizedError({
+          requestId: this.clsService.getId(),
+          details: 'Invalid email or password',
+        }),
+      );
     }
 
     // 2. Verify password
@@ -111,7 +117,24 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
+      return throwHttpException(
+        new UnauthorizedError({
+          requestId: this.clsService.getId(),
+          details: 'Invalid email or password',
+        }),
+      );
+    }
+
+    await this.cacheManagerService.setDataExist({
+      dataType: DataType.USERS,
+      data: user,
+    });
+
+    if (user.organization) {
+      await this.cacheManagerService.setDataExist({
+        dataType: DataType.ORGANIZATIONS,
+        data: user.organization as any,
+      });
     }
 
     // 3. Remove passwordHash from response
@@ -125,6 +148,7 @@ export class AuthService {
 
     return {
       user: userWithoutPassword,
+      organization: user.organization,
       ...tokens,
     };
   }
@@ -133,7 +157,12 @@ export class AuthService {
     // 1. Verify signature
     const payload = this.jwtService.verifyRefreshToken(refreshToken);
     if (!payload) {
-      throw new UnauthorizedException('Invalid refresh token');
+      return throwHttpException(
+        new UnauthorizedError({
+          requestId: this.clsService.getId(),
+          details: 'Invalid refresh token',
+        }),
+      );
     }
 
     // 2. Check for Token Reuse via CacheManager
@@ -143,14 +172,26 @@ export class AuthService {
         await this.cacheManagerService.isTokenBlacklisted(jti);
       if (isBlacklisted) {
         // Here you could also invalidate all user tokens if you want strict security
-        throw new UnauthorizedException('Refresh token has already been used');
+        return throwHttpException(
+          new UnauthorizedError({
+            requestId: this.clsService.getId(),
+            details: 'Refresh token has already been used. Please login again.',
+          }),
+        );
       }
     }
 
     const user = await this.prisma.user.findUnique({
-      where: { id: payload.userId },
+      where: { id: payload.userId, deletedAt: null },
     });
-    if (!user) throw new UnauthorizedException('User not found');
+    if (!user) {
+      return throwHttpException(
+        new UnauthorizedError({
+          requestId: this.clsService.getId(),
+          details: 'User not found',
+        }),
+      );
+    }
 
     // 3. Blacklist the OLD token via CacheManager
     if (jti) {

@@ -1,4 +1,4 @@
-import { HttpException, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
 import { CacheManagerIdsService } from './cache-manager-ids.service';
 import { PrismaService } from '../prisma.service';
@@ -12,7 +12,10 @@ import {
 import * as _ from 'lodash';
 import type { DomainWithRelationsContext } from '../redirect/redirect.service';
 import { LRUCache } from 'lru-cache';
-import { TooManyRequestsError } from '../models/error.model';
+import {
+  throwHttpException,
+  TooManyRequestsError,
+} from '../models/error.model';
 import { ClsService } from 'nestjs-cls';
 
 // Helpers
@@ -61,6 +64,12 @@ const ttlPerResource: Partial<Record<DataType, number>> = {
 const forbiddenPropertiesByDataType: Partial<Record<DataType, string[]>> = {
   [DataType.USERS]: ['passwordHash'],
 };
+
+const ENABLED_LOCAL_CACHE_FOR = new Set([
+  DataType.USERS,
+  DataType.ORGANIZATIONS,
+  DataType.BLACKLIST_TOKEN,
+]);
 
 function roughSizeOfObject(object: any): number {
   try {
@@ -140,7 +149,8 @@ export class CacheManagerService {
     // 1. Check L1 Cache (Optimization)
     // If we already know this org is blocked for this minute, reject immediately without hitting Redis.
     if (this.localCache.has(blockKey)) {
-      throw new Error('Rate limit exceeded (L1)');
+      this.logger.debug(`L1 Cache HIT for ${organizationId}`);
+      return this.throwLimitError();
     }
 
     // 2. Redis Atomic Increment
@@ -162,13 +172,17 @@ export class CacheManagerService {
       // Next requests hitting this instance won't even touch Redis.
       this.localCache.set(blockKey, true, { ttl: secondsRemaining * 1000 });
 
-      const error = new TooManyRequestsError({
+      return this.throwLimitError();
+    }
+  }
+
+  private throwLimitError(): never {
+    return throwHttpException(
+      new TooManyRequestsError({
         details: 'Organization rate limit exceeded',
         requestId: this.clsService.getId(),
-      });
-
-      throw new HttpException(error, error.code);
-    }
+      }),
+    );
   }
 
   /**
@@ -311,8 +325,10 @@ export class CacheManagerService {
           properties,
         });
 
-        // Update L1
-        this.localCache.set(key, dataWithoutOmitProperties);
+        // Update L1 - ONLY if enabled for this DataType
+        if (ENABLED_LOCAL_CACHE_FOR.has(dataType)) {
+          this.localCache.set(key, dataWithoutOmitProperties);
+        }
 
         // Update L2 (Redis)
         await this.redisService.set(
@@ -360,7 +376,7 @@ export class CacheManagerService {
     });
 
     // 2. Try L1 (Local Cache) FIRST
-    if (this.localCache.has(cacheId)) {
+    if (ENABLED_LOCAL_CACHE_FOR.has(dataType) && this.localCache.has(cacheId)) {
       const localData = this.localCache.get(cacheId) as T | false;
 
       if (localData === false) {
@@ -386,7 +402,9 @@ export class CacheManagerService {
 
     if (cachedData !== undefined && cachedData !== null) {
       // Populate L1 with what we found in L2
-      this.localCache.set(cacheId, cachedData);
+      if (ENABLED_LOCAL_CACHE_FOR.has(dataType)) {
+        this.localCache.set(cacheId, cachedData);
+      }
 
       if (cachedData === false) {
         return undefined; // Known non-existence

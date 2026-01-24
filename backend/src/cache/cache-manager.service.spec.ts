@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { CacheManagerIdsService } from './cache-manager-ids.service';
+import { ClsService } from 'nestjs-cls';
 
 describe('CacheManagerService', () => {
   let service: CacheManagerService;
@@ -21,11 +22,16 @@ describe('CacheManagerService', () => {
       providers: [
         CacheManagerService,
         {
+          provide: ClsService,
+          useValue: {
+            getId: jest.fn().mockReturnValue('mock-id'),
+          },
+        },
+        {
           provide: PrismaService,
           useValue: {
             user: { findFirst: jest.fn() },
             organization: { findFirst: jest.fn() },
-            // Dodaj inne delegaty jeśli potrzebujesz
           },
         },
         {
@@ -52,7 +58,6 @@ describe('CacheManagerService', () => {
 
   describe('getData', () => {
     it('should return undefined if the query properties are invalid for the data type', async () => {
-      // Próba pobrania organizacji po emailu (a dozwolone jest tylko ID wg storeByProperties)
       const result = await service.getData({
         dataType: DataType.ORGANIZATIONS,
         properties: { [CachedByProperty.EMAIL]: 'test@test.pl' } as any,

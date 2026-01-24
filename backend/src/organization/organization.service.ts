@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { ClsService } from 'nestjs-cls';
 import {
+  NotFoundError,
   PaymentRequiredError,
   throwHttpException,
 } from '../models/error.model';
@@ -9,11 +10,18 @@ import {
   OrganizationConfiguration,
   OrganizationStatus,
 } from '../models/organization-config.model';
+import {
+  CachedByProperty,
+  CacheManagerService,
+  DataType,
+} from '../cache/cache-manager.service';
+import { Organization } from '@prisma/client';
 
 @Injectable()
 export class OrganizationService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly cacheManagerService: CacheManagerService,
     private readonly cls: ClsService,
   ) {}
 
@@ -24,12 +32,23 @@ export class OrganizationService {
   async getConfiguration(
     organizationId: string,
   ): Promise<OrganizationConfiguration> {
-    const org = await this.prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: { configuration: true },
+    const organization = await this.cacheManagerService.getData<Organization>({
+      dataType: DataType.ORGANIZATIONS,
+      properties: {
+        [CachedByProperty.ID]: organizationId,
+      },
     });
 
-    return OrganizationConfiguration.fromJson(org?.configuration);
+    if (!organization) {
+      return throwHttpException(
+        new NotFoundError({
+          requestId: this.cls.getId(),
+          details: `Organization with id ${organizationId} not found`,
+        }),
+      );
+    }
+
+    return OrganizationConfiguration.fromJson(organization?.configuration);
   }
 
   /**
@@ -144,8 +163,8 @@ export class OrganizationService {
     }
   }
 
-  private throwLimitError(details: string) {
-    throwHttpException(
+  private throwLimitError(details: string): never {
+    return throwHttpException(
       new PaymentRequiredError({
         details,
         requestId: this.cls.getId(),

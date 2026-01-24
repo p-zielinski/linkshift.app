@@ -11,7 +11,6 @@ dayjs.extend(timezone);
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];
-  warnings: string[];
 }
 
 @Injectable()
@@ -46,7 +45,6 @@ export class RuleValidatorService {
     const result: ValidationResult = {
       isValid: true,
       errors: [],
-      warnings: [],
     };
 
     const captureGroupCount = this.validateSource(source, result);

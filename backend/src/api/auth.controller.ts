@@ -34,7 +34,7 @@ export class AuthController {
         data: tokens,
       };
     } catch (_) {
-      throwHttpException(
+      return throwHttpException(
         new UnauthorizedError({
           requestId: this.clsService.getId(),
           details: 'Invalid refresh token',
@@ -58,7 +58,7 @@ export class AuthController {
       };
     } catch (error) {
       if (error instanceof ConflictException) {
-        throwHttpException(
+        return throwHttpException(
           new ConflictError({
             requestId: this.clsService.getId(),
             details: error.message,
@@ -83,7 +83,7 @@ export class AuthController {
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
-        throwHttpException(
+        return throwHttpException(
           new UnauthorizedError({
             requestId: this.clsService.getId(),
             details: error.message,
