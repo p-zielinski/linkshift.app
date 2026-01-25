@@ -1,13 +1,13 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
+  NotFoundException,
+  Param,
   Post,
   Put,
-  Delete,
-  Param,
-  Body,
   UseGuards,
-  NotFoundException,
 } from '@nestjs/common';
 import { RedirectService } from '../redirect/redirect.service';
 import { AuthGuard } from '../auth/auth.guard';
@@ -27,27 +27,17 @@ export class DomainGroupsController {
   @Get()
   @UseGuards(AuthGuard)
   async list(@User('organizationId') organizationId: string) {
-    const domainGroups =
-      await this.redirectService.listDomainGroups(organizationId);
-
-    return {
-      success: true,
-      data: domainGroups,
-    };
+    return this.redirectService.listDomainGroups(organizationId);
   }
 
   @Get(':id')
   @UseGuards(AuthGuard)
-  async getById(
+  getById(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
   ) {
     try {
-      const domainGroup = await this.redirectService.getDomainGroupById(
-        id,
-        organizationId,
-      );
-      return { success: true, data: domainGroup };
+      return this.redirectService.getDomainGroupById(id, organizationId);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
@@ -65,37 +55,24 @@ export class DomainGroupsController {
 
   @Post()
   @UseGuards(AuthGuard)
-  async create(
+  create(
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(domainGroupSchemas.CreateDomainGroupSchema))
     body: domainGroupSchemas.CreateDomainGroupDto,
   ) {
-    const domainGroup = await this.redirectService.createDomainGroup(
-      organizationId,
-      body,
-    );
-
-    return {
-      success: true,
-      data: domainGroup,
-    };
+    return this.redirectService.createDomainGroup(organizationId, body);
   }
 
   @Put(':id')
   @UseGuards(AuthGuard)
-  async update(
+  update(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(domainGroupSchemas.UpdateDomainGroupSchema))
     body: domainGroupSchemas.UpdateDomainGroupDto,
   ) {
     try {
-      const domainGroup = await this.redirectService.updateDomainGroup(
-        id,
-        organizationId,
-        body,
-      );
-      return { success: true, data: domainGroup };
+      return this.redirectService.updateDomainGroup(id, organizationId, body);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
@@ -119,10 +96,7 @@ export class DomainGroupsController {
   ) {
     try {
       await this.redirectService.deleteDomainGroup(id, organizationId);
-      return {
-        success: true,
-        message: 'Domain group deleted successfully',
-      };
+      return;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(

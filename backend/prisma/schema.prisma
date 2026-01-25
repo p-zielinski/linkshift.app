@@ -92,6 +92,13 @@ model RedirectRule {
   domainGroup DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
 
   @@index([domainGroupId])
-  @@index([deletedAt])
-  @@index([priority])
+    @@index([deletedAt])
+    @@index([priority])
+
+    // Enables Prisma cursor pagination aligned with ordering:
+    // priority desc, createdAt desc, id desc
+    @@unique([priority, createdAt, id])
+
+    // Optional but recommended for performance of list queries
+    @@index([domainGroupId, deletedAt, priority, createdAt, id])
 }

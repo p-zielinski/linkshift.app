@@ -39,17 +39,11 @@ export class RedirectRulesController {
   ) {
     const { domainGroupId, ...pagination } = query;
 
-    const result = await this.redirectService.listRules(
+    return this.redirectService.listRules(
       organizationId,
       domainGroupId,
       pagination,
     );
-
-    return {
-      success: true,
-      data: result.data,
-      meta: result.meta,
-    };
   }
 
   @Get(':id')
@@ -59,8 +53,7 @@ export class RedirectRulesController {
     @User('organizationId') organizationId: string,
   ) {
     try {
-      const rule = await this.redirectService.getRuleById(id, organizationId);
-      return { success: true, data: rule };
+      return this.redirectService.getRuleById(id, organizationId);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
@@ -84,14 +77,7 @@ export class RedirectRulesController {
     body: redirectRuleSchemas.CreateRedirectRuleDto,
   ) {
     try {
-      const result = await this.redirectService.createRule(
-        organizationId,
-        body,
-      );
-      return {
-        success: true,
-        data: result.rule,
-      };
+      return this.redirectService.createRule(organizationId, body);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
@@ -124,15 +110,7 @@ export class RedirectRulesController {
     body: redirectRuleSchemas.UpdateRedirectRuleDto,
   ) {
     try {
-      const result = await this.redirectService.updateRule(
-        id,
-        organizationId,
-        body,
-      );
-      return {
-        success: true,
-        data: result.rule,
-      };
+      return this.redirectService.updateRule(id, organizationId, body);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
@@ -164,11 +142,7 @@ export class RedirectRulesController {
     @User('organizationId') organizationId: string,
   ) {
     try {
-      await this.redirectService.deleteRule(id, organizationId);
-      return {
-        success: true,
-        message: 'Redirect rule deleted successfully',
-      };
+      return this.redirectService.deleteRule(id, organizationId);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(

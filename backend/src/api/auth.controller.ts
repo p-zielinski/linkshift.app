@@ -28,12 +28,8 @@ export class AuthController {
     body: authSchemas.RefreshTokenDto,
   ) {
     try {
-      const tokens = await this.authService.refreshTokens(body.refreshToken);
-      return {
-        success: true,
-        data: tokens,
-      };
-    } catch (_) {
+      return this.authService.refreshTokens(body.refreshToken);
+    } catch {
       return throwHttpException(
         new UnauthorizedError({
           requestId: this.clsService.getId(),
@@ -49,13 +45,7 @@ export class AuthController {
     body: authSchemas.RegisterDto,
   ) {
     try {
-      const result = await this.authService.register(body);
-
-      return {
-        success: true,
-        message: 'User registered successfully',
-        data: result,
-      };
+      return this.authService.register(body);
     } catch (error) {
       if (error instanceof ConflictException) {
         return throwHttpException(
@@ -74,13 +64,7 @@ export class AuthController {
     @Body(new ZodPipe(authSchemas.LoginSchema)) body: authSchemas.LoginDto,
   ) {
     try {
-      const result = await this.authService.login(body);
-
-      return {
-        success: true,
-        message: 'Login successful',
-        data: result,
-      };
+      return this.authService.login(body);
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         return throwHttpException(

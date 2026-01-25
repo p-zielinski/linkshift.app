@@ -11,6 +11,7 @@ import {
   UnauthorizedError,
 } from '../models/error.model';
 import { ClsService } from 'nestjs-cls';
+import { Organization, User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -85,6 +86,7 @@ export class AuthService {
 
     return {
       user: result.user,
+      organization: result.organization,
       ...tokens,
     };
   }

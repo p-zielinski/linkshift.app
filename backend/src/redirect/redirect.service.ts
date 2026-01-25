@@ -27,7 +27,7 @@ import {
   DataType,
 } from '../cache/cache-manager.service';
 import { OrganizationConfiguration } from '../models/organization-config.model';
-import { Organization } from '@prisma/client';
+import { Domain, DomainGroup, Organization } from '@prisma/client';
 import {
   BadRequestError,
   ConflictError,
@@ -35,6 +35,7 @@ import {
   throwHttpException,
 } from '../models/error.model';
 import { ClsService } from 'nestjs-cls';
+import { QueryResult } from '../models/query-result.model';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -48,9 +49,6 @@ const domainWithRelations = Prisma.validator<Prisma.DomainDefaultArgs>()({
   include: {
     domainGroup: {
       include: {
-        organization: {
-          select: { id: true },
-        },
         redirectRules: {
           where: {
             deletedAt: null,
@@ -161,8 +159,8 @@ export class RedirectService {
 
   // --- Management Methods (CRUD) ---
 
-  async listDomains(organizationId: string) {
-    return this.prisma.domain.findMany({
+  async listDomains(organizationId: string): Promise<QueryResult<Domain>> {
+    const domains = await this.prisma.domain.findMany({
       where: {
         deletedAt: null,
         domainGroup: {
@@ -170,12 +168,12 @@ export class RedirectService {
           deletedAt: null,
         },
       },
-      include: {
-        domainGroup: {
-          select: { id: true, name: true },
-        },
-      },
       orderBy: { createdAt: 'desc' },
+    });
+
+    return new QueryResult<Domain>({
+      data: domains,
+      dataType: DataType.DOMAINS,
     });
   }
 
@@ -247,7 +245,6 @@ export class RedirectService {
         name: data.name,
         domainGroupId: data.domainGroupId,
       },
-      include: { domainGroup: true },
     });
 
     await this.invalidateDomainCache({
@@ -323,7 +320,6 @@ export class RedirectService {
     const domain = await this.prisma.domain.update({
       where: { id },
       data: { ...data, updatedAt: new Date() },
-      include: { domainGroup: true },
     });
 
     // We invalidate both in case name changed
@@ -340,7 +336,7 @@ export class RedirectService {
     return domain;
   }
 
-  async deleteDomain(id: string, organizationId: string) {
+  async deleteDomain(id: string, organizationId: string): Promise<void> {
     const existing = await this.prisma.domain.findFirst({
       where: {
         id,
@@ -367,26 +363,23 @@ export class RedirectService {
       type: InvalidationTargetType.HOSTNAME,
       value: existing.name,
     });
-    return true;
+    return;
   }
 
   async listDomainGroups(organizationId: string) {
-    return this.prisma.domainGroup.findMany({
+    const domainGroups = await this.prisma.domainGroup.findMany({
       where: {
         organizationId,
         deletedAt: null,
       },
-      include: {
-        domains: {
-          where: { deletedAt: null },
-        },
-        redirectRules: {
-          where: { deletedAt: null },
-        },
-      },
       orderBy: {
         createdAt: 'desc',
       },
+    });
+
+    return new QueryResult<DomainGroup>({
+      data: domainGroups,
+      dataType: DataType.DOMAIN_GROUPS,
     });
   }
 
@@ -396,15 +389,6 @@ export class RedirectService {
         id,
         organizationId,
         deletedAt: null,
-      },
-      include: {
-        domains: {
-          where: { deletedAt: null },
-        },
-        redirectRules: {
-          where: { deletedAt: null },
-          orderBy: { priority: 'desc' },
-        },
       },
     });
 
@@ -427,10 +411,6 @@ export class RedirectService {
         id: createCustomCuid(AppEntity.DomainGroup),
         name: data.name,
         organizationId,
-      },
-      include: {
-        domains: true,
-        redirectRules: true,
       },
     });
   }
@@ -465,10 +445,6 @@ export class RedirectService {
         name: data.name,
         updatedAt: new Date(),
       },
-      include: {
-        domains: { where: { deletedAt: null } },
-        redirectRules: { where: { deletedAt: null } },
-      },
     });
   }
 
@@ -497,16 +473,16 @@ export class RedirectService {
       },
     });
 
-    return true;
+    return;
   }
 
   async listRules(
     organizationId: string,
     domainGroupId: string,
-    params?: { page?: number; limit?: number; search?: string },
+    params?: { limit?: number; search?: string; startAfterId?: string },
   ) {
-    const { page = 1, limit = 20, search } = params || {};
-    const skip = (page - 1) * limit;
+    const { limit = 20, search, startAfterId } = params || {};
+    const take = Number(limit);
 
     const where: Prisma.RedirectRuleWhereInput = {
       deletedAt: null,
@@ -524,30 +500,44 @@ export class RedirectService {
       ];
     }
 
-    const [data, total] = await this.prisma.$transaction([
-      this.prisma.redirectRule.findMany({
-        where,
-        take: Number(limit),
-        skip: Number(skip),
-        include: {
-          domainGroup: {
-            select: { id: true, name: true },
+    const startAfter = startAfterId
+      ? await this.prisma.redirectRule.findFirst({
+          where: {
+            ...where,
+            id: startAfterId,
           },
-        },
-        orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
-      }),
-      this.prisma.redirectRule.count({ where }),
-    ]);
+          select: { id: true, priority: true, createdAt: true },
+        })
+      : null;
 
-    return {
+    const rows = await this.prisma.redirectRule.findMany({
+      where,
+      take: take + 1,
+      ...(startAfter
+        ? {
+            cursor: {
+              priority_createdAt_id: {
+                priority: startAfter.priority,
+                createdAt: startAfter.createdAt,
+                id: startAfter.id,
+              },
+            },
+            skip: 1,
+          }
+        : {}),
+      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+    });
+
+    const hasMore = rows.length > take;
+    const data = hasMore ? rows.slice(0, take) : rows;
+
+    const nextAfterId = hasMore ? data[data.length - 1]?.id : undefined;
+
+    return new QueryResult<RedirectRule>({
       data,
-      meta: {
-        total,
-        page: Number(page),
-        limit: Number(limit),
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+      dataType: DataType.REDIRECT_RULES,
+      moreStartingAfterId: nextAfterId,
+    });
   }
 
   async getRuleById(id: string, organizationId: string) {
@@ -557,7 +547,6 @@ export class RedirectService {
         deletedAt: null,
         domainGroup: { organizationId, deletedAt: null },
       },
-      include: { domainGroup: true },
     });
 
     if (!rule) {
@@ -622,14 +611,13 @@ export class RedirectService {
         priority: data.priority,
         domainGroupId: data.domainGroupId,
       },
-      include: { domainGroup: true },
     });
 
     await this.invalidateDomainCache({
       type: InvalidationTargetType.DOMAIN_GROUP_ID,
       value: data.domainGroupId,
     });
-    return { rule };
+    return rule;
   }
 
   async updateRule(
@@ -679,14 +667,13 @@ export class RedirectService {
     const rule = await this.prisma.redirectRule.update({
       where: { id },
       data: { ...data, updatedAt: new Date() },
-      include: { domainGroup: true },
     });
 
     await this.invalidateDomainCache({
       type: InvalidationTargetType.DOMAIN_GROUP_ID,
       value: rule.domainGroupId,
     });
-    return { rule };
+    return rule;
   }
 
   async deleteRule(id: string, organizationId: string) {
@@ -716,7 +703,7 @@ export class RedirectService {
       type: InvalidationTargetType.DOMAIN_GROUP_ID,
       value: rule.domainGroupId,
     });
-    return true;
+    return;
   }
 
   static readonly manipulators: Record<string, Manipulator> = {
@@ -756,9 +743,6 @@ export class RedirectService {
         include: {
           domainGroup: {
             include: {
-              organization: {
-                select: { id: true },
-              },
               redirectRules: {
                 where: {
                   deletedAt: null,

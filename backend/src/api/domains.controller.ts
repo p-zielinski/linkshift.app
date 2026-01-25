@@ -31,27 +31,18 @@ export class DomainsController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async list(@User('organizationId') organizationId: string) {
-    const domains = await this.redirectService.listDomains(organizationId);
-
-    return {
-      success: true,
-      data: domains,
-    };
+  list(@User('organizationId') organizationId: string) {
+    return this.redirectService.listDomains(organizationId);
   }
 
   @Get(':id')
   @UseGuards(AuthGuard)
-  async getById(
+  getById(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
   ) {
     try {
-      const domain = await this.redirectService.getDomainById(
-        id,
-        organizationId,
-      );
-      return { success: true, data: domain };
+      return this.redirectService.getDomainById(id, organizationId);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
@@ -69,17 +60,13 @@ export class DomainsController {
 
   @Post()
   @UseGuards(AuthGuard)
-  async create(
+  create(
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(domainSchemas.CreateDomainSchema))
     body: domainSchemas.CreateDomainDto,
   ) {
     try {
-      const domain = await this.redirectService.createDomain(
-        organizationId,
-        body,
-      );
-      return { success: true, data: domain };
+      return this.redirectService.createDomain(organizationId, body);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
@@ -104,19 +91,14 @@ export class DomainsController {
 
   @Put(':id')
   @UseGuards(AuthGuard)
-  async update(
+  update(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(domainSchemas.UpdateDomainSchema))
     body: domainSchemas.UpdateDomainDto,
   ) {
     try {
-      const domain = await this.redirectService.updateDomain(
-        id,
-        organizationId,
-        body,
-      );
-      return { success: true, data: domain };
+      return this.redirectService.updateDomain(id, organizationId, body);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
@@ -147,11 +129,7 @@ export class DomainsController {
     @User('organizationId') organizationId: string,
   ) {
     try {
-      await this.redirectService.deleteDomain(id, organizationId);
-      return {
-        success: true,
-        message: 'Domain deleted successfully',
-      };
+      return this.redirectService.deleteDomain(id, organizationId);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
