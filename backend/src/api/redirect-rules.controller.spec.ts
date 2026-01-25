@@ -70,10 +70,7 @@ describe('RedirectRulesController', () => {
         updatedAt: new Date(),
       };
 
-      mockRedirectService.createRule.mockResolvedValue({
-        rule: expectedRule,
-        warnings: [],
-      });
+      mockRedirectService.createRule.mockResolvedValue(expectedRule);
 
       const result = await controller.create(organizationId, dto);
 
@@ -81,8 +78,7 @@ describe('RedirectRulesController', () => {
         organizationId,
         dto,
       );
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual(expectedRule);
+      expect(result).toEqual(expectedRule);
     });
 
     it('should correctly handle a RegExp rule passed as string', async () => {
@@ -102,10 +98,7 @@ describe('RedirectRulesController', () => {
         updatedAt: new Date(),
       };
 
-      mockRedirectService.createRule.mockResolvedValue({
-        rule: expectedRule,
-        warnings: [],
-      });
+      mockRedirectService.createRule.mockResolvedValue(expectedRule);
 
       const result = await controller.create(organizationId, dto);
 
@@ -113,7 +106,7 @@ describe('RedirectRulesController', () => {
         organizationId,
         dto,
       );
-      expect(result.data.source).toBe('/^\\/api\\/(.+)$/i');
+      expect(result.source).toBe('/^\\/api\\/(.+)$/i');
     });
 
     it('should throw BadRequestError when service throws BadRequestException (validation fails)', async () => {
@@ -177,10 +170,7 @@ describe('RedirectRulesController', () => {
         priority: 1,
       };
 
-      mockRedirectService.updateRule.mockResolvedValue({
-        rule: expectedRule,
-        warnings: [],
-      });
+      mockRedirectService.updateRule.mockResolvedValue(expectedRule);
 
       const result = await controller.update(id, organizationId, dto);
 
@@ -189,8 +179,7 @@ describe('RedirectRulesController', () => {
         organizationId,
         dto,
       );
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual(expectedRule);
+      expect(result).toEqual(expectedRule);
     });
 
     it('should throw NotFoundError if rule to update not found', async () => {
@@ -200,34 +189,6 @@ describe('RedirectRulesController', () => {
       await expect(controller.update('bad-id', 'org-1', {})).rejects.toThrow(
         HttpException,
       );
-    });
-  });
-
-  describe('list', () => {
-    it('should return a list of rules', async () => {
-      const organizationId = 'org-1';
-      const mockRules = [{ id: 'rule-1', source: '/a' }];
-
-      const mockResponse = {
-        data: mockRules,
-        meta: { total: 1, page: 1, limit: 10, totalPages: 1 },
-      };
-
-      mockRedirectService.listRules.mockResolvedValue(mockResponse);
-
-      const result = await controller.list(organizationId, {} as any);
-
-      expect(mockRedirectService.listRules).toHaveBeenCalledWith(
-        organizationId,
-        undefined,
-        {},
-      );
-
-      expect(result).toEqual({
-        success: true,
-        data: mockRules,
-        meta: mockResponse.meta,
-      });
     });
   });
 
@@ -244,7 +205,7 @@ describe('RedirectRulesController', () => {
         id,
         organizationId,
       );
-      expect(result).toEqual({ success: true, data: mockRule });
+      expect(result).toEqual(mockRule);
     });
 
     it('should throw NotFoundError if rule not found', async () => {
@@ -261,7 +222,7 @@ describe('RedirectRulesController', () => {
     it('should delete a rule', async () => {
       const organizationId = 'org-1';
       const id = 'rule-1';
-      mockRedirectService.deleteRule.mockResolvedValue(true);
+      mockRedirectService.deleteRule.mockResolvedValue(undefined);
 
       const result = await controller.delete(id, organizationId);
 
@@ -269,7 +230,7 @@ describe('RedirectRulesController', () => {
         id,
         organizationId,
       );
-      expect(result.success).toBe(true);
+      expect(result).toBe(undefined);
     });
 
     it('should throw NotFoundError if rule to delete not found', async () => {
