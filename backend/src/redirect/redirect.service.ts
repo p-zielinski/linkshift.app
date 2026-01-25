@@ -27,7 +27,7 @@ import {
   DataType,
 } from '../cache/cache-manager.service';
 import { OrganizationConfiguration } from '@shared/models/organization-config.model';
-import { Domain, DomainGroup, Organization } from '@prisma/client';
+import { Domain, DomainGroup, Organization } from '@shared/prisma-client';
 import {
   BadRequestError,
   ConflictError,

@@ -14,7 +14,7 @@ import {
   CacheManagerService,
   DataType,
 } from '../cache/cache-manager.service';
-import { Organization } from '@prisma/client';
+import { Organization } from '@shared/prisma-client';
 import { throwHttpException } from '../utils';
 
 @Injectable()
