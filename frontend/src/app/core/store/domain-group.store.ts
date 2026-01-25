@@ -13,5 +13,6 @@ export const DomainGroupStore = createEntityStore<
   undefined
 >({
   identifier: 'id',
+  entityLabel: 'Domain group',
   api: DomainGroupsApiService
 });

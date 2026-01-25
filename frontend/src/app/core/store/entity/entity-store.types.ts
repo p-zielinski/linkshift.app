@@ -21,5 +21,6 @@ export type EntityStoreConfig<
 > = {
   identifier: keyof T;
   api: Type<EntityApi<T, TCreate, TUpdate, TFilter>>;
+  entityLabel?: string;
   listTtlMs?: number;
 };

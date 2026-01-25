@@ -1,3 +1,110 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global styles and theme setup */
 
+@import "@angular/material/prebuilt-themes/pink-bluegrey.css";
 @import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  font-family: "Space Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --app-background: #fff6f8;
+  --app-surface: #ffffff;
+  --app-border: rgba(33, 33, 33, 0.12);
+  --app-accent: #d84c77;
+  --app-accent-strong: #b13a5f;
+  --app-accent-soft: rgba(216, 76, 119, 0.12);
+  --app-muted: #6f5f66;
+  --mdc-theme-primary: var(--app-accent);
+  --mdc-theme-secondary: #3b2f36;
+  --mdc-theme-surface: var(--app-surface);
+  --mdc-theme-background: var(--app-background);
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top left, #fff0f5 0%, #f9f3f6 45%, #f4eef2 100%);
+  color: #241f22;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-content {
+  padding: 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.card {
+  background: var(--app-surface);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(25, 18, 22, 0.08);
+}
+
+.table-card {
+  background: var(--app-surface);
+  border-radius: 18px;
+  padding: 16px 16px 8px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+}
+
+.table-scroll {
+  max-height: calc(100vh - 280px);
+  overflow: auto;
+}
+
+.chip-muted {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(59, 47, 54, 0.08);
+  font-size: 12px;
+  color: var(--app-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(33, 33, 33, 0.1);
+  margin: 16px 0;
+}
+
+.form-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.form-grid mat-form-field {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.subtle {
+  color: var(--app-muted);
+  font-size: 13px;
+}

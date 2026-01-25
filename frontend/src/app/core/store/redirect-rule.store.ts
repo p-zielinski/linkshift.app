@@ -14,5 +14,6 @@ export const RedirectRuleStore = createEntityStore<
   RedirectRuleListQuery
 >({
   identifier: 'id',
+  entityLabel: 'Redirect rule',
   api: RedirectRulesApiService
 });

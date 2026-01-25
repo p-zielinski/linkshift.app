@@ -1,4 +1,5 @@
 import { computed, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   patchState,
   signalStore,
@@ -29,6 +30,7 @@ export function createEntityStore<
 >(config: EntityStoreConfig<T, TCreate, TUpdate, TFilter>) {
   const ttlMs = config.listTtlMs ?? DEFAULT_TTL_MS;
   const identifier = config.identifier;
+  const entityLabel = config.entityLabel ?? 'Entry';
 
   return signalStore(
     { providedIn: 'root' },
@@ -74,6 +76,7 @@ export function createEntityStore<
             }
           };
         });
+        clearError();
       };
 
       const setListFailure = (filterKey: string) => {
@@ -91,6 +94,7 @@ export function createEntityStore<
           details: { ...state.details, [id]: { ...(state.details[id] ?? {}), ...item } },
           expirationDates: { ...state.expirationDates, [id]: getExpiration(ttlMs) }
         }));
+        clearError();
       };
 
       const setDetailsFailure = (id: string) => {
@@ -133,7 +137,10 @@ export function createEntityStore<
             return api.list(filter).pipe(
               tapResponse({
                 next: (result) => setListSuccess(filterKey, result),
-                error: () => setListFailure(filterKey),
+                error: (error) => {
+                  setListFailure(filterKey);
+                  setError(error, `${entityLabel} list request failed.`);
+                },
                 finalize: () => setLoading(filterKey, false)
               })
             );
@@ -148,7 +155,10 @@ export function createEntityStore<
             api.get(id).pipe(
               tapResponse({
                 next: (result) => setDetailsSuccess(id, result),
-                error: () => setDetailsFailure(id),
+                error: (error) => {
+                  setDetailsFailure(id);
+                  setError(error, `${entityLabel} details request failed.`);
+                },
                 finalize: () => setLoading(id, false)
               })
             )
@@ -172,7 +182,7 @@ export function createEntityStore<
                   setLoading(entityId, false);
                   markListKeysExpired();
                 },
-                error: () => undefined,
+                error: (error) => setError(error, `${entityLabel} save failed.`),
                 finalize: () => setLoading(id ?? CREATE_ENTITY_ID, false)
               })
             );
@@ -191,7 +201,7 @@ export function createEntityStore<
                   removeFromLists(id);
                   markListKeysExpired();
                 },
-                error: () => undefined,
+                error: (error) => setError(error, `${entityLabel} delete failed.`),
                 finalize: () => setLoading(id, false)
               })
             )
@@ -271,6 +281,15 @@ export function createEntityStore<
         return computed(() => store.list()[filterKey] ?? null);
       };
 
+      const clearError = () => {
+        patchState(store, { lastError: null });
+      };
+
+      const setError = (error: unknown, fallback: string) => {
+        const message = extractErrorMessage(error, fallback);
+        patchState(store, { lastError: message });
+      };
+
       return {
         loadList,
         searchList,
@@ -282,8 +301,21 @@ export function createEntityStore<
         invalidateList,
         selectById,
         selectList,
-        selectListResult
+        selectListResult,
+        clearError
       };
     })
   );
+}
+
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof HttpErrorResponse) {
+    return error.error?.message || error.message || fallback;
+  }
+
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as { message?: string }).message || fallback);
+  }
+
+  return fallback;
 }

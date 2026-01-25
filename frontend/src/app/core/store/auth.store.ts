@@ -7,6 +7,8 @@ import type { LoginDto, RegisterDto } from '../models/auth.dto';
 import type { Organization } from '../models/organization.model';
 import type { User } from '../models/user.model';
 import { AuthApiService } from '../api/auth-api.service';
+import { DomainGroupStore } from './domain-group.store';
+import { DomainStore } from './domain.store';
 import {
   clearStoredSession,
   loadStoredSession,
@@ -35,10 +37,17 @@ const initialState: AuthState = {
 export const AuthStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withComputed((store:any) => ({
+  withComputed((store) => ({
     isAuthenticated: computed(() => !!store.accessToken() && !!store.user())
   })),
-  withMethods((store:any, api = inject(AuthApiService)) => {
+  withMethods((store, api = inject(AuthApiService)) => {
+    const domainStore = inject(DomainStore);
+    const domainGroupStore = inject(DomainGroupStore);
+
+    const prefetchCoreData = () => {
+      domainGroupStore.searchList();
+      domainStore.searchList();
+    };
     const setSession = (payload: AuthResponse) => {
       const nextState: AuthState = {
         accessToken: payload.accessToken,
@@ -77,7 +86,10 @@ export const AuthStore = signalStore(
     const login = (payload: LoginDto): Observable<AuthResponse> => {
       patchState(store, { isLoading: true, error: null });
       return api.login(payload).pipe(
-        tap((response) => setSession(response)),
+        tap((response) => {
+          setSession(response);
+          prefetchCoreData();
+        }),
         catchError((error) => {
           setError(error, 'Login failed');
           return throwError(() => error);
@@ -89,7 +101,10 @@ export const AuthStore = signalStore(
     const register = (payload: RegisterDto): Observable<AuthResponse> => {
       patchState(store, { isLoading: true, error: null });
       return api.register(payload).pipe(
-        tap((response) => setSession(response)),
+        tap((response) => {
+          setSession(response);
+          prefetchCoreData();
+        }),
         catchError((error) => {
           setError(error, 'Registration failed');
           return throwError(() => error);
