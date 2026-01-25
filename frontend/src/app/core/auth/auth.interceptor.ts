@@ -2,7 +2,7 @@
 
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthService } from './auth.service';
+import { AuthStore } from '../store/auth.store';
 import { catchError, switchMap, throwError, BehaviorSubject, filter, take } from 'rxjs';
 
 // Flag to indicate if a refresh operation is currently in progress
@@ -11,8 +11,8 @@ let isRefreshing = false;
 const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const token = authService.getAccessToken();
+  const authStore = inject(AuthStore);
+  const token = authStore.accessToken();
 
   // 1. Skip Auth for Auth endpoints (login/register/refresh) to avoid infinite loops
   if (req.url.includes('/api/v1/auth')) {
@@ -31,7 +31,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error) => {
       if (error instanceof HttpErrorResponse && error.status === 401) {
-        return handle401Error(authReq, next, authService);
+        return handle401Error(authReq, next, authStore);
       }
       return throwError(() => error);
     })
@@ -40,15 +40,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
 // --- Helper function for Refresh Logic ---
 
-function handle401Error(request: any, next: any, authService: AuthService) {
+function handle401Error(request: any, next: any, authStore: AuthStore) {
   if (!isRefreshing) {
     isRefreshing = true;
     refreshTokenSubject.next(null);
 
-    return authService.refreshToken().pipe(
+    return authStore.refreshTokens().pipe(
       switchMap((response) => {
         isRefreshing = false;
-        const newToken = response.data.accessToken;
+        const newToken = response.accessToken;
         refreshTokenSubject.next(newToken);
 
         // Retry the original failed request with the new token
@@ -58,7 +58,7 @@ function handle401Error(request: any, next: any, authService: AuthService) {
       }),
       catchError((err) => {
         isRefreshing = false;
-        // If refresh fails, the AuthService handles logout internally via tap/catchError
+        // If refresh fails, the AuthStore handles logout internally via tap/catchError
         return throwError(() => err);
       })
     );
