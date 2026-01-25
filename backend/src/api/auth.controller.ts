@@ -8,12 +8,9 @@ import {
 import { AuthService } from '../auth/auth.service';
 import * as authSchemas from '../zod-schames/auth.schemas';
 import { ZodPipe } from '../pipes/zod.pipe';
-import {
-  ConflictError,
-  throwHttpException,
-  UnauthorizedError,
-} from '../models/error.model';
+import { ConflictError, UnauthorizedError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
+import { throwHttpException } from '../utils';
 
 @Controller('api/v1/auth')
 export class AuthController {

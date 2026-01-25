@@ -1,4 +1,4 @@
-import { HttpException } from '@nestjs/common';
+
 import { StatusCodes } from 'http-status-codes';
 
 export class BaseError {
@@ -257,6 +257,3 @@ export class InternalServerError extends BaseError {
   }
 }
 
-export const throwHttpException = (error: BaseError): never => {
-  throw new HttpException(error, error.code);
-};

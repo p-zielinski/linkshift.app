@@ -14,8 +14,9 @@ import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
 import * as domainGroupSchemas from '../zod-schames/domain-group.schemas';
 import { ZodPipe } from '../pipes/zod.pipe';
-import { NotFoundError, throwHttpException } from '../models/error.model';
+import { NotFoundError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
+import { throwHttpException } from '../utils';
 
 @Controller('api/v1/domain-groups')
 export class DomainGroupsController {

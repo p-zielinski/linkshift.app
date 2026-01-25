@@ -1,4 +1,4 @@
-import { DataType } from '../cache/cache-manager.service';
+import { DataType } from '../../backend/src/cache/cache-manager.service';
 
 export class QueryResult<T> {
   dataType: DataType;

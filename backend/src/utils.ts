@@ -1,4 +1,6 @@
 import { init } from '@paralleldrive/cuid2';
+import { HttpException } from '@nestjs/common';
+import { BaseError } from '@shared/models/error.model';
 
 /**
  * Defines all system entities that require unique identification.
@@ -48,4 +50,8 @@ export const createCustomCuid = (entity: AppEntity, length = 24) => {
 
   const prefix = ENTITY_PREFIXES[entity];
   return `${prefix}_${generateCuid()}`;
+};
+
+export const throwHttpException = (error: BaseError): never => {
+  throw new HttpException(error, error.code);
 };

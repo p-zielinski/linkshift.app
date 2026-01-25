@@ -1,0 +1,103 @@
+// Prisma Schema for Redirect Management API
+// PostgreSQL Database
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Organization entity - top-level tenant
+model Organization {
+  id        String    @id
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Configuration for organization limits (JSONB)
+  configuration Json?
+
+  users        User[]
+  domainGroups DomainGroup[]
+
+  @@index([deletedAt])
+}
+
+// User entity - belongs to one organization (1:1 relation)
+model User {
+  id             String    @id
+  email          String    @unique
+  passwordHash   String
+  organizationId String
+  isOwner        Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([deletedAt])
+  @@index([email])
+}
+
+// DomainGroup entity - groups multiple domains with shared redirect rules
+model DomainGroup {
+  id             String    @id
+  name           String
+  organizationId String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  domains       Domain[]
+  redirectRules RedirectRule[]
+
+  @@index([organizationId])
+  @@index([deletedAt])
+}
+
+// Domain entity - individual hostname (e.g., google.com, www.google.com)
+model Domain {
+  id            String    @id
+  name          String    @unique // Hostname must be unique globally
+  domainGroupId String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  domainGroup DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
+
+  @@index([name]) // Critical for high-speed lookups
+  @@index([domainGroupId])
+  @@index([deletedAt])
+}
+
+// RedirectRule entity - defines redirection logic
+model RedirectRule {
+  id            String    @id
+  source        String // Source path or regex pattern
+  destination   String // Target URL with variable support
+  statusCode    Int       @default(302) // HTTP status code (301 or 302)
+  priority      Int       @default(0) // For rule ordering (higher priority = evaluated first)
+  domainGroupId String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  domainGroup DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
+
+  // Enables Prisma cursor pagination aligned with ordering:
+  // priority desc, createdAt desc, id desc
+  @@unique([priority, createdAt, id])
+  @@index([domainGroupId])
+  @@index([deletedAt])
+  @@index([priority])
+  // Optional but recommended for performance of list queries
+  @@index([domainGroupId, deletedAt, priority, createdAt, id])
+}

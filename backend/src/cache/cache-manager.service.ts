@@ -12,11 +12,9 @@ import {
 import * as _ from 'lodash';
 import type { DomainWithRelationsContext } from '../redirect/redirect.service';
 import { LRUCache } from 'lru-cache';
-import {
-  throwHttpException,
-  TooManyRequestsError,
-} from '../models/error.model';
+import { TooManyRequestsError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
+import { throwHttpException } from '../utils';
 
 // Helpers
 const ensureArray = <T>(value: T | T[]): T[] =>

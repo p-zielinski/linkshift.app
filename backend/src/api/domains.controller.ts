@@ -15,12 +15,9 @@ import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
 import * as domainSchemas from '../zod-schames/domain.schemas';
 import { ZodPipe } from '../pipes/zod.pipe';
-import {
-  ConflictError,
-  NotFoundError,
-  throwHttpException,
-} from '../models/error.model';
+import { ConflictError, NotFoundError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
+import { throwHttpException } from '../utils';
 
 @Controller('api/v1/domains')
 export class DomainsController {

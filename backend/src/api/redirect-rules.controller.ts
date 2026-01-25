@@ -16,12 +16,9 @@ import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
 import * as redirectRuleSchemas from '../zod-schames/redirect-rule.schemas';
 import { ZodPipe } from '../pipes/zod.pipe';
-import {
-  BadRequestError,
-  NotFoundError,
-  throwHttpException,
-} from '../models/error.model';
+import { BadRequestError, NotFoundError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
+import { throwHttpException } from '../utils';
 
 @Controller('api/v1/redirect-rules')
 export class RedirectRulesController {

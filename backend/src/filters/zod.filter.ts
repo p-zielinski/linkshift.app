@@ -3,7 +3,7 @@ import _ from 'lodash';
 import qs from 'qs';
 import { ZodError } from 'zod';
 import { fromError } from 'zod-validation-error';
-import { InvalidPayloadError } from '../models/error.model';
+import { InvalidPayloadError } from '@shared/models/error.model';
 
 @common.Catch(ZodError)
 export class ZodFilter<T extends ZodError> implements common.ExceptionFilter {

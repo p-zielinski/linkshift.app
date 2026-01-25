@@ -3,15 +3,10 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma.service';
 import { JwtService } from './jwt.service';
 import { RegisterDto, LoginDto } from '../zod-schames/auth.schemas';
-import { AppEntity, createCustomCuid } from '../utils';
+import { AppEntity, createCustomCuid, throwHttpException } from '../utils';
 import { CacheManagerService, DataType } from '../cache/cache-manager.service';
-import {
-  ConflictError,
-  throwHttpException,
-  UnauthorizedError,
-} from '../models/error.model';
+import { ConflictError, UnauthorizedError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
-import { Organization, User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {

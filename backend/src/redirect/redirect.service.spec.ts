@@ -3,12 +3,10 @@ import { RedirectRule, RedirectService } from './redirect.service';
 import { PrismaService } from '../prisma.service';
 import { RuleValidatorService } from '../rule-validator/rule-validator.service';
 import { OrganizationService } from '../organization/organization.service';
-import {
-  PaymentRequiredError,
-  throwHttpException,
-} from '../models/error.model';
+import { PaymentRequiredError } from '@shared/models/error.model';
 import { CacheManagerService } from '../cache/cache-manager.service';
 import { ClsService } from 'nestjs-cls';
+import { throwHttpException } from '../utils';
 
 const mockPrismaService = {
   domain: {

@@ -4,18 +4,18 @@ import { ClsService } from 'nestjs-cls';
 import {
   NotFoundError,
   PaymentRequiredError,
-  throwHttpException,
-} from '../models/error.model';
+} from '@shared/models/error.model';
 import {
   OrganizationConfiguration,
   OrganizationStatus,
-} from '../models/organization-config.model';
+} from '@shared/models/organization-config.model';
 import {
   CachedByProperty,
   CacheManagerService,
   DataType,
 } from '../cache/cache-manager.service';
 import { Organization } from '@prisma/client';
+import { throwHttpException } from '../utils';
 
 @Injectable()
 export class OrganizationService {

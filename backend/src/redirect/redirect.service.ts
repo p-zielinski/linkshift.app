@@ -17,7 +17,7 @@ import {
   CreateDomainGroupDto,
   UpdateDomainGroupDto,
 } from '../zod-schames/domain-group.schemas';
-import { AppEntity, createCustomCuid } from '../utils';
+import { AppEntity, createCustomCuid, throwHttpException } from '../utils';
 import { OrganizationService } from '../organization/organization.service';
 import { REDIRECT_ENGINE_LIMITS } from '../constants';
 import { Prisma } from '@prisma/client/index';
@@ -26,16 +26,15 @@ import {
   CacheManagerService,
   DataType,
 } from '../cache/cache-manager.service';
-import { OrganizationConfiguration } from '../models/organization-config.model';
+import { OrganizationConfiguration } from '@shared/models/organization-config.model';
 import { Domain, DomainGroup, Organization } from '@prisma/client';
 import {
   BadRequestError,
   ConflictError,
   NotFoundError,
-  throwHttpException,
-} from '../models/error.model';
+} from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
-import { QueryResult } from '../models/query-result.model';
+import { QueryResult } from '@shared/models/query-result.model';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
