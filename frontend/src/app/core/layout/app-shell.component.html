@@ -12,9 +12,16 @@
         @for (item of navItems; track item.route) {
           <a
             mat-list-item
+            [matTooltip]="isDisabled(item) ? 'Create a domain group to access this section.' : ''"
+            [matTooltipDisabled]="!isDisabled(item)"
+            [attr.aria-disabled]="isDisabled(item)"
+            [attr.tabindex]="isDisabled(item) ? -1 : null"
+            [class.opacity-50]="isDisabled(item)"
+            [class.cursor-not-allowed]="isDisabled(item)"
             [routerLink]="item.route"
             routerLinkActive="rounded-xl bg-app-accent-soft"
             [routerLinkActiveOptions]="{ exact: true }"
+            (click)="onNavClick($event, item)"
           >
             <mat-icon class="mr-3 text-[20px]">{{ item.icon }}</mat-icon>
             <span>{{ item.label }}</span>

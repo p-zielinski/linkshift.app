@@ -6,6 +6,7 @@ import { DashboardPageComponent } from './features/dashboard/dashboard-page.comp
 import { DomainsPageComponent } from './features/domains/domains-page.component';
 import { DomainGroupsPageComponent } from './features/domain-groups/domain-groups-page.component';
 import { RedirectRulesPageComponent } from './features/redirect-rules/redirect-rules-page.component';
+import { domainGroupsRequiredGuard } from './core/domain-groups/domain-group.guard';
 import { MarketingShellComponent } from './features/marketing/components/marketing-shell/marketing-shell.component';
 import { HomePageComponent } from './features/marketing/pages/home/home-page.component';
 import { AlternativePageComponent } from './features/marketing/pages/alternative/alternative-page.component';
@@ -41,9 +42,17 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: DashboardPageComponent },
-      { path: 'domains', component: DomainsPageComponent },
+      {
+        path: 'domains',
+        component: DomainsPageComponent,
+        canActivate: [domainGroupsRequiredGuard]
+      },
       { path: 'domain-groups', component: DomainGroupsPageComponent },
-      { path: 'redirect-rules', component: RedirectRulesPageComponent }
+      {
+        path: 'redirect-rules',
+        component: RedirectRulesPageComponent,
+        canActivate: [domainGroupsRequiredGuard]
+      }
     ]
   },
   { path: '**', redirectTo: 'home' }
