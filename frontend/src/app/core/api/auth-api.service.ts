@@ -3,13 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
 import type { AuthResponse, AuthTokens } from '../models/auth.model';
 import type { LoginDto, RegisterDto, RefreshTokenDto } from '../models/auth.dto';
+import { API_CONFIG } from '../config/api-config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthApiService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api/v1/auth';
+  private readonly apiConfig = inject(API_CONFIG);
+  private readonly apiUrl = `${this.apiConfig.baseUrl}/api/v1/auth`;
 
   login(payload: LoginDto): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, payload);

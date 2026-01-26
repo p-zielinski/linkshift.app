@@ -7,13 +7,15 @@ import type {
   UpdateDomainGroupDto
 } from '../models/domain-group.model';
 import type { QueryResult } from '../models/query-result.model';
+import { API_CONFIG } from '../config/api-config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DomainGroupsApiService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api/v1/domain-groups';
+  private readonly apiConfig = inject(API_CONFIG);
+  private readonly apiUrl = `${this.apiConfig.baseUrl}/api/v1/domain-groups`;
 
   list(): Observable<QueryResult<DomainGroup>> {
     return this.http.get<QueryResult<DomainGroup>>(this.apiUrl);

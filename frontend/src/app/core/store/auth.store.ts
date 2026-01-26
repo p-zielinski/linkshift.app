@@ -77,7 +77,7 @@ export const AuthStore = signalStore(
 
     const setError = (error: unknown, fallback: string) => {
       const message = error instanceof HttpErrorResponse
-        ? error.error?.message || error.message
+        ? error.error?.details || error.error?.message || error.message
         : fallback;
 
       patchState(store, { error: message, isLoading: false });
@@ -146,7 +146,8 @@ export const AuthStore = signalStore(
       login,
       register,
       refreshTokens,
-      logout
+      logout,
+      clearError: () => patchState(store, { error: null })
     };
   })
 );

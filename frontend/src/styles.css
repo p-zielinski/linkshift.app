@@ -253,3 +253,9 @@ body {
   color: var(--app-muted);
   font-size: 13px;
 }
+
+.error-snackbar {
+  --mdc-snackbar-container-color: #b3261e;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mat-mdc-snack-bar-button-color: #ffffff;
+}

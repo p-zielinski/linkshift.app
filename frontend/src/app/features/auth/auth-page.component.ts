@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   form,
@@ -13,6 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../core/store/auth.store';
@@ -30,6 +31,7 @@ import { loginSchema, registerSchema } from './auth.schemas';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
+    MatSnackBarModule,
     FormField
   ],
   template: `
@@ -48,7 +50,7 @@ import { loginSchema, registerSchema } from './auth.schemas';
 
         <mat-tab-group animationDuration="0ms">
           <mat-tab label="Login">
-            <form class="form-grid" (ngSubmit)="onLogin()">
+            <form class="form-grid" (submit)="onLogin($event); $event.preventDefault()">
               <mat-form-field appearance="outline">
                 <mat-label>Email</mat-label>
                 <input matInput type="email" [formField]="loginForm.email" />
@@ -76,15 +78,11 @@ import { loginSchema, registerSchema } from './auth.schemas';
                   <span>Sign in</span>
                 </button>
               </div>
-
-              @if (authStore.error()) {
-                <div class="subtle">{{ authStore.error() }}</div>
-              }
             </form>
           </mat-tab>
 
           <mat-tab label="Register">
-            <form class="form-grid" (ngSubmit)="onRegister()">
+            <form class="form-grid" (submit)="onRegister($event); $event.preventDefault()">
               <mat-form-field appearance="outline">
                 <mat-label>Organization name</mat-label>
                 <input matInput type="text" [formField]="registerForm.organizationName" />
@@ -128,10 +126,6 @@ import { loginSchema, registerSchema } from './auth.schemas';
                   <span>Create account</span>
                 </button>
               </div>
-
-              @if (authStore.error()) {
-                <div class="subtle">{{ authStore.error() }}</div>
-              }
             </form>
           </mat-tab>
         </mat-tab-group>
@@ -248,6 +242,7 @@ import { loginSchema, registerSchema } from './auth.schemas';
 })
 export class AuthPageComponent {
   readonly authStore = inject(AuthStore);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
 
   loginModel = signal({
@@ -296,7 +291,25 @@ export class AuthPageComponent {
   registerPasswordError = computed(() => this.getFieldError(this.registerForm.password()));
   registerConfirmError = computed(() => this.getFieldError(this.registerForm.confirmPassword()));
 
-  async onLogin(): Promise<void> {
+  constructor() {
+    effect(() => {
+      const error = this.authStore.error();
+      if (!error) {
+        return;
+      }
+      const message = error.trim() || 'Something went wrong. Please try again.';
+      this.snackBar.open(message, 'Dismiss', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['error-snackbar']
+      });
+      this.authStore.clearError();
+    });
+  }
+
+  async onLogin(event?: Event): Promise<void> {
+    event?.preventDefault();
     await submit(this.loginForm, async (formValue) => {
       try {
         await firstValueFrom(this.authStore.login(formValue().value()));
@@ -308,7 +321,8 @@ export class AuthPageComponent {
     });
   }
 
-  async onRegister(): Promise<void> {
+  async onRegister(event?: Event): Promise<void> {
+    event?.preventDefault();
     await submit(this.registerForm, async (formValue) => {
       try {
         const { confirmPassword: _confirmPassword, ...payload } = formValue().value();

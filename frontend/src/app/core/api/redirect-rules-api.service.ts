@@ -9,13 +9,15 @@ import type {
 } from '../models/redirect-rule.model';
 import type { QueryResult } from '../models/query-result.model';
 import { buildHttpParams } from './api.utils';
+import { API_CONFIG } from '../config/api-config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RedirectRulesApiService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api/v1/redirect-rules';
+  private readonly apiConfig = inject(API_CONFIG);
+  private readonly apiUrl = `${this.apiConfig.baseUrl}/api/v1/redirect-rules`;
 
   list(query?: RedirectRuleListQuery): Observable<QueryResult<RedirectRule>> {
     if (!query) {
