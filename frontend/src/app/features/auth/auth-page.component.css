@@ -1,0 +1,68 @@
+:host ::ng-deep .auth-card .mat-mdc-tab-group {
+  margin-top: 16px;
+}
+
+:host ::ng-deep .auth-card .mat-mdc-tab-header {
+  margin-bottom: 28px;
+}
+
+:host ::ng-deep .auth-card .mat-mdc-tab-group .mdc-tab__text-label {
+  color: var(--color-app-ink-strong);
+}
+
+:host ::ng-deep .auth-card .mat-mdc-tab-group .mdc-tab--active .mdc-tab__text-label {
+  color: var(--color-app-accent-strong);
+}
+
+:host ::ng-deep .auth-card .mat-mdc-tab-group .mdc-tab-indicator__content--underline {
+  border-color: var(--color-app-accent-strong);
+}
+
+:host ::ng-deep .auth-card .mat-mdc-tab-group .mdc-tab__ripple::before {
+  background-color: var(--color-app-accent-soft-weak);
+}
+
+:host ::ng-deep .auth-card .mat-mdc-tab-group .mdc-tab__ripple::after {
+  background-color: var(--color-app-accent-soft);
+}
+
+:host ::ng-deep .auth-card .mat-mdc-tab-body-wrapper,
+:host ::ng-deep .auth-card .mat-mdc-tab-body,
+:host ::ng-deep .auth-card .mat-mdc-tab-body-content {
+  height: auto;
+  overflow: visible;
+}
+
+:host ::ng-deep .auth-card .mdc-text-field--outlined,
+:host ::ng-deep .auth-card .mdc-text-field--outlined:hover,
+:host ::ng-deep .auth-card .mdc-text-field--outlined:focus-within,
+:host ::ng-deep .auth-card .mdc-text-field--outlined.mdc-text-field--hovered,
+:host ::ng-deep .auth-card .mdc-text-field--outlined.mdc-text-field--focused {
+  background: var(--color-app-surface);
+}
+
+:host ::ng-deep .auth-card .mat-mdc-form-field:hover .mdc-text-field--outlined {
+  background: var(--color-app-surface);
+}
+
+:host ::ng-deep .auth-card .mdc-notched-outline__leading,
+:host ::ng-deep .auth-card .mdc-notched-outline__notch,
+:host ::ng-deep .auth-card .mdc-notched-outline__trailing {
+  border-color: var(--color-app-outline);
+}
+
+:host ::ng-deep .auth-card .mdc-floating-label {
+  color: var(--color-app-ink-strong);
+  opacity: 1;
+}
+
+:host ::ng-deep .auth-card .mat-mdc-input-element,
+:host ::ng-deep .auth-card .mdc-text-field__input {
+  color: var(--color-app-text);
+  -webkit-text-fill-color: var(--color-app-text);
+}
+
+:host ::ng-deep .auth-card .mdc-text-field__input::placeholder {
+  color: var(--color-app-ink-muted);
+  opacity: 1;
+}

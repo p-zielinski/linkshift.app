@@ -1,0 +1,64 @@
+<div class="grid gap-4">
+  <h3 class="m-0 text-lg font-semibold">Create redirect rule</h3>
+  <form class="grid gap-4" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Domain group</mat-label>
+      <mat-select [formField]="ruleForm.domainGroupId">
+        @for (group of domainGroups(); track group.id) {
+          <mat-option [value]="group.id">{{ group.name }}</mat-option>
+        }
+      </mat-select>
+      @if (groupError(); as error) {
+        <mat-error>{{ error }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Source</mat-label>
+      <input matInput type="text" [formField]="ruleForm.source" />
+      @if (sourceError(); as error) {
+        <mat-error>{{ error }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Destination</mat-label>
+      <input matInput type="text" [formField]="ruleForm.destination" />
+      @if (destinationError(); as error) {
+        <mat-error>{{ error }}</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Status code</mat-label>
+        <mat-select [formField]="ruleForm.statusCode">
+          @for (code of statusCodes; track code) {
+            <mat-option [value]="code.toString()">{{ code }}</mat-option>
+          }
+        </mat-select>
+        @if (statusError(); as error) {
+          <mat-error>{{ error }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Priority</mat-label>
+        <input matInput type="number" [formField]="ruleForm.priority" />
+        @if (priorityError(); as error) {
+          <mat-error>{{ error }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="mt-4 flex justify-end gap-3">
+      <button mat-stroked-button type="button" (click)="onCancel()">
+        Cancel
+      </button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="ruleForm().submitting()">
+        <mat-icon>add</mat-icon>
+        <span>Create</span>
+      </button>
+    </div>
+  </form>
+</div>

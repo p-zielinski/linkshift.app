@@ -1,0 +1,44 @@
+<mat-sidenav-container class="min-h-screen">
+  <mat-sidenav mode="side" opened>
+    <div
+      class="flex h-full w-[280px] flex-col bg-[linear-gradient(160deg,var(--color-app-shell-start)_0%,var(--color-app-shell-mid)_60%,var(--color-app-shell-end)_100%)] px-4 py-6"
+    >
+      <div class="mb-6">
+        <div class="text-[20px] font-bold tracking-[0.6px] text-app-text">Redirect Control</div>
+        <div class="text-[13px] text-app-muted">Environment-ready routing</div>
+      </div>
+
+      <mat-nav-list>
+        @for (item of navItems; track item.route) {
+          <a
+            mat-list-item
+            [routerLink]="item.route"
+            routerLinkActive="rounded-xl bg-app-accent-soft"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            <mat-icon class="mr-3 text-[20px]">{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+          </a>
+        }
+      </mat-nav-list>
+
+      @if (authStore.user(); as user) {
+        <div class="mt-auto flex flex-col gap-3">
+          <div
+            class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[12px] text-app-muted"
+          >
+            <mat-icon class="h-4 w-4 text-[16px]">account_circle</mat-icon>
+            <span class="truncate">{{ user.email }}</span>
+          </div>
+          <button mat-stroked-button color="primary" (click)="onLogout()">
+            Log out
+          </button>
+        </div>
+      }
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="p-6">
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

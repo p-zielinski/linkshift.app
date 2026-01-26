@@ -22,30 +22,7 @@ import { DomainGroupStore } from '../../core/store/domain-group.store';
     MatIconModule,
     FormField
   ],
-  template: `
-    <div class="dialog">
-      <h3>Create domain group</h3>
-      <form class="form-grid" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline">
-          <mat-label>Name</mat-label>
-          <input matInput type="text" [formField]="groupForm.name" />
-          @if (nameError(); as error) {
-            <mat-error>{{ error }}</mat-error>
-          }
-        </mat-form-field>
-
-        <div class="form-actions">
-          <button mat-stroked-button type="button" (click)="onCancel()">
-            Cancel
-          </button>
-          <button mat-flat-button color="primary" type="submit" [disabled]="groupForm().submitting()">
-            <mat-icon>add</mat-icon>
-            <span>Create</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  `
+  templateUrl: './domain-group-form-dialog.component.html'
 })
 export class DomainGroupFormDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<DomainGroupFormDialogComponent>);

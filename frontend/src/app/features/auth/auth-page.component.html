@@ -1,0 +1,108 @@
+<div class="flex min-h-screen items-center justify-center p-8">
+  <mat-card
+    class="auth-card h-[700px] w-[min(520px,96vw)] overflow-hidden rounded-[24px] bg-app-surface p-7 shadow-[0_30px_60px_rgba(32,24,28,0.18)]"
+  >
+    <div class="mb-4 flex flex-col gap-2">
+      <div class="flex items-center justify-between gap-3">
+        <h1 class="m-0 text-[28px] font-semibold">Access Control</h1>
+        <button mat-stroked-button class="h-9" type="button" routerLink="/">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Home</span>
+        </button>
+      </div>
+      <div class="flex items-center justify-between gap-3">
+        <p class="m-0 text-[13px] text-app-muted">
+          Authenticate to manage domains and redirect rules.
+        </p>
+        <div
+          class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[11px] text-app-muted"
+        >
+          <mat-icon class="h-4 w-4 text-[16px]">security</mat-icon>
+          <span>Secure session</span>
+        </div>
+      </div>
+    </div>
+
+    <mat-tab-group animationDuration="0ms">
+      <mat-tab label="Login">
+        <form class="grid gap-4" (submit)="onLogin($event); $event.preventDefault()">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" [formField]="loginForm.email" />
+            @if (loginEmailError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Password</mat-label>
+            <input matInput type="password" [formField]="loginForm.password" />
+            @if (loginPasswordError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="mt-4 flex justify-end">
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="loginForm().submitting()"
+            >
+              <mat-icon>login</mat-icon>
+              <span>Sign in</span>
+            </button>
+          </div>
+        </form>
+      </mat-tab>
+
+      <mat-tab label="Register">
+        <form class="grid gap-4" (submit)="onRegister($event); $event.preventDefault()">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Organization name</mat-label>
+            <input matInput type="text" [formField]="registerForm.organizationName" />
+            @if (registerOrgError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" [formField]="registerForm.email" />
+            @if (registerEmailError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Password</mat-label>
+            <input matInput type="password" [formField]="registerForm.password" />
+            @if (registerPasswordError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Confirm password</mat-label>
+            <input matInput type="password" [formField]="registerForm.confirmPassword" />
+            @if (registerConfirmError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="mt-4 flex justify-end">
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="registerForm().submitting()"
+            >
+              <mat-icon>person_add</mat-icon>
+              <span>Create account</span>
+            </button>
+          </div>
+        </form>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card>
+</div>

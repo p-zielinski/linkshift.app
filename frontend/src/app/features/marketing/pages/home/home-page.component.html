@@ -10,7 +10,9 @@
 >
   <mat-card class="hero-card">
     <div class="hero-card-header">
-      <div class="chip-muted">Domain group blueprint</div>
+      <div class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[12px] text-app-muted">
+        Domain group blueprint
+      </div>
       <span class="hero-card-badge">Operationally consistent</span>
     </div>
     <div class="hero-flow">
@@ -19,7 +21,7 @@
           <mat-icon>{{ step.icon }}</mat-icon>
           <div>
             <div class="flow-title">{{ step.title }}</div>
-            <div class="subtle">{{ step.description }}</div>
+            <div class="text-[13px] text-app-muted">{{ step.description }}</div>
           </div>
         </div>
       }
@@ -38,7 +40,7 @@
       <mat-card class="model-card">
         <mat-icon>{{ card.icon }}</mat-icon>
         <h3>{{ card.title }}</h3>
-        <p class="subtle">{{ card.description }}</p>
+        <p class="text-[13px] text-app-muted">{{ card.description }}</p>
       </mat-card>
     }
   </div>
@@ -62,7 +64,7 @@
       <app-marketing-example-card [example]="example"></app-marketing-example-card>
     }
   </div>
-  <p class="subtle examples-note">
+  <p class="mt-4 text-[13px] text-app-muted">
     Variables are resolved from request context including path, query parameters, segments, and domain metadata.
   </p>
 </app-marketing-section>
@@ -76,14 +78,14 @@
     <mat-card class="assurance-card">
       <mat-icon>verified_user</mat-icon>
       <h3>Predictable governance</h3>
-      <p class="subtle">
+      <p class="text-[13px] text-app-muted">
         Centralize rules at the group level and avoid divergent redirects across brands, regions, or environments.
       </p>
     </mat-card>
     <mat-card class="assurance-card">
       <mat-icon>refresh</mat-icon>
       <h3>30-day satisfaction guarantee</h3>
-      <p class="subtle">
+      <p class="text-[13px] text-app-muted">
         If the platform is not the right fit, request a refund within 30 days with no explanation required.
       </p>
     </mat-card>

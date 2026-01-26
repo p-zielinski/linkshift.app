@@ -1,0 +1,84 @@
+<app-page-header
+  title="Dashboard"
+  subtitle="Operational overview for the active organization."
+></app-page-header>
+
+<div class="mb-5 grid gap-5 sm:grid-cols-2">
+  <mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
+    <h3 class="m-0 text-lg font-semibold">Session details</h3>
+    <div class="my-4 h-px bg-app-divider"></div>
+    @if (user(); as user) {
+      <mat-list>
+        <mat-list-item>
+          <mat-icon matListItemIcon>person</mat-icon>
+          <div matListItemTitle>{{ user.email }}</div>
+          <div matListItemLine>Role: {{ user.isOwner ? 'Owner' : 'Member' }}</div>
+        </mat-list-item>
+        <mat-list-item>
+          <mat-icon matListItemIcon>badge</mat-icon>
+          <div matListItemTitle>User ID</div>
+          <div matListItemLine>{{ user.id }}</div>
+        </mat-list-item>
+      </mat-list>
+    } @else {
+      <div class="text-[13px] text-app-muted">No user loaded.</div>
+    }
+  </mat-card>
+
+  <mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
+    <h3 class="m-0 text-lg font-semibold">Organization profile</h3>
+    <div class="my-4 h-px bg-app-divider"></div>
+    @if (organization(); as organization) {
+      <mat-list>
+        <mat-list-item>
+          <mat-icon matListItemIcon>apartment</mat-icon>
+          <div matListItemTitle>{{ organization.name }}</div>
+          <div matListItemLine>Organization ID: {{ organization.id }}</div>
+        </mat-list-item>
+        <mat-list-item>
+          <mat-icon matListItemIcon>verified_user</mat-icon>
+          <div matListItemTitle>Plan</div>
+          <div matListItemLine>{{ config().plan }}</div>
+        </mat-list-item>
+        <mat-list-item>
+          <mat-icon matListItemIcon>shield</mat-icon>
+          <div matListItemTitle>Status</div>
+          <div matListItemLine>{{ config().status }}</div>
+        </mat-list-item>
+      </mat-list>
+    } @else {
+      <div class="text-[13px] text-app-muted">No organization loaded.</div>
+    }
+  </mat-card>
+</div>
+
+<mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
+  <h3 class="m-0 text-lg font-semibold">Organization limits</h3>
+  <div class="my-4 h-px bg-app-divider"></div>
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="rounded-2xl bg-app-accent-soft p-4">
+      <div class="text-[22px] font-semibold">{{ config().maxDomainGroups }}</div>
+      <div class="text-[13px] text-app-muted">Max domain groups</div>
+    </div>
+    <div class="rounded-2xl bg-app-accent-soft p-4">
+      <div class="text-[22px] font-semibold">{{ config().maxDomainsPerGroup }}</div>
+      <div class="text-[13px] text-app-muted">Domains per group</div>
+    </div>
+    <div class="rounded-2xl bg-app-accent-soft p-4">
+      <div class="text-[22px] font-semibold">{{ config().maxTotalDomains }}</div>
+      <div class="text-[13px] text-app-muted">Total domains</div>
+    </div>
+    <div class="rounded-2xl bg-app-accent-soft p-4">
+      <div class="text-[22px] font-semibold">{{ config().maxRulesPerGroup }}</div>
+      <div class="text-[13px] text-app-muted">Rules per group</div>
+    </div>
+    <div class="rounded-2xl bg-app-accent-soft p-4">
+      <div class="text-[22px] font-semibold">{{ config().maxTotalRules }}</div>
+      <div class="text-[13px] text-app-muted">Total rules</div>
+    </div>
+    <div class="rounded-2xl bg-app-accent-soft p-4">
+      <div class="text-[22px] font-semibold">{{ config().redirectionLimitPerMinute }}</div>
+      <div class="text-[13px] text-app-muted">Redirections per minute</div>
+    </div>
+  </div>
+</mat-card>

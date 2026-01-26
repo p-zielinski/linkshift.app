@@ -27,59 +27,7 @@ import { DomainFormDialogComponent } from './domain-form-dialog.component';
     PageHeaderComponent,
     ResourcePillComponent
   ],
-  template: `
-    <app-page-header
-      title="Domains"
-      subtitle="Registered hostnames available for redirect routing."
-    >
-      <button mat-flat-button color="primary" (click)="openCreateDialog()">
-        <mat-icon>add</mat-icon>
-        <span>Add domain</span>
-      </button>
-    </app-page-header>
-
-    <div class="table-card">
-      <div class="table-scroll">
-        <table mat-table [dataSource]="domains()" class="mat-elevation-z0">
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Domain</th>
-            <td mat-cell *matCellDef="let domain">{{ domain.name }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="group">
-            <th mat-header-cell *matHeaderCellDef>Domain group</th>
-            <td mat-cell *matCellDef="let domain">
-              <app-resource-pill
-                [label]="groupLabel(domain.domainGroupId)"
-                [tooltip]="groupTooltip(domain.domainGroupId)"
-              ></app-resource-pill>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let domain">
-              <button
-                mat-icon-button
-                color="warn"
-                matTooltip="Delete domain"
-                (click)="confirmDelete(domain.id)"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="columns"></tr>
-          <tr mat-row *matRowDef="let row; columns: columns"></tr>
-        </table>
-      </div>
-
-      @if (domains().length === 0) {
-        <div class="subtle">No domains registered yet.</div>
-      }
-    </div>
-  `
+  templateUrl: './domains-page.component.html'
 })
 export class DomainsPageComponent {
   private readonly dialog = inject(MatDialog);
