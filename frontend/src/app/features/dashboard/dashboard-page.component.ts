@@ -98,7 +98,7 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
         </div>
         <div class="limit-item">
           <div class="limit-value">{{ config().redirectionLimitPerMinute }}</div>
-          <div class="subtle">Requests per minute</div>
+          <div class="subtle">Redirections per minute</div>
         </div>
       </div>
     </mat-card>
