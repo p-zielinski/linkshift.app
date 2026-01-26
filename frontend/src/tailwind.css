@@ -1,2 +1,3 @@
 /* Tailwind entrypoint kept in CSS to avoid Sass @import deprecation warnings. */
 @import "tailwindcss";
+@source "./src/**/*.{html,ts}";

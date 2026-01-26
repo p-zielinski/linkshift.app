@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   form,
   required,
@@ -32,19 +32,26 @@ import { loginSchema, registerSchema } from './auth.schemas';
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
-    FormField
+    FormField,
+    RouterLink
   ],
   template: `
     <div class="auth-shell">
       <mat-card class="auth-card">
         <div class="auth-title">
-          <div>
+          <div class="title-row">
             <h1>Access Control</h1>
-            <p class="subtle">Authenticate to manage domains and redirect rules.</p>
+            <button mat-stroked-button class="back-button" type="button" routerLink="/">
+              <mat-icon>arrow_back</mat-icon>
+              <span>Home</span>
+            </button>
           </div>
-          <div class="chip-muted">
-            <mat-icon>security</mat-icon>
-            <span>Secure session</span>
+          <div class="subtitle-row">
+            <p class="subtle">Authenticate to manage domains and redirect rules.</p>
+            <div class="chip-muted">
+              <mat-icon>security</mat-icon>
+              <span>Secure session</span>
+            </div>
           </div>
         </div>
 
@@ -154,15 +161,42 @@ import { loginSchema, registerSchema } from './auth.schemas';
 
       .auth-title {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
+        flex-direction: column;
+        gap: 8px;
         margin-bottom: 16px;
       }
 
+      .title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
       h1 {
-        margin: 0 0 6px;
+        margin: 0;
         font-size: 28px;
+      }
+
+      .back-button {
+        height: 36px;
+      }
+
+      .subtitle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .subtitle-row .subtle {
+        margin: 0;
+      }
+
+      .chip-muted {
+        padding: 4px 8px;
+        font-size: 11px;
+        white-space: nowrap;
       }
 
       :host ::ng-deep .auth-card .mat-mdc-tab-group {
