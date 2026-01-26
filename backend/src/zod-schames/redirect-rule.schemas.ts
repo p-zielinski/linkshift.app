@@ -55,12 +55,12 @@ export const UpdateRedirectRuleSchema = z.object({
 });
 
 export const ListRedirectRulesQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().trim().optional(),
   domainGroupId: z
     .string()
     .regex(getEntityIdRegex(AppEntity.DomainGroup), 'Invalid Domain Group ID'),
+  startAfterId: z.string().regex(getEntityIdRegex(AppEntity.RedirectRule), 'Invalid Redirect rule ID'),.optional(),
 });
 
 export type CreateRedirectRuleDto = z.infer<typeof CreateRedirectRuleSchema>;
