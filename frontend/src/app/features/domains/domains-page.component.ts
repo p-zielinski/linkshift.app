@@ -75,9 +75,9 @@ import { DomainFormDialogComponent } from './domain-form-dialog.component';
         </table>
       </div>
 
-      <div class="subtle" *ngIf="domains().length === 0">
-        No domains registered yet.
-      </div>
+      @if (domains().length === 0) {
+        <div class="subtle">No domains registered yet.</div>
+      }
     </div>
   `
 })

@@ -1,0 +1,65 @@
+<mat-toolbar class="marketing-toolbar">
+  <a class="brand" routerLink="/home">
+    <mat-icon>alt_route</mat-icon>
+    <span>{{ siteConfig.name }}</span>
+  </a>
+
+  <span class="spacer"></span>
+
+  <nav class="nav-links">
+    <a mat-button routerLink="/home" routerLinkActive="active">Home</a>
+    <a
+      mat-button
+      routerLink="/alternatives/redirect-pizza"
+      routerLinkActive="active"
+    >
+      Redirect.pizza alternative
+    </a>
+    <a
+      mat-button
+      routerLink="/alternatives/redirect-proxy"
+      routerLinkActive="active"
+    >
+      Redirect proxy alternative
+    </a>
+    <a
+      mat-button
+      routerLink="/alternatives/managed-redirects"
+      routerLinkActive="active"
+    >
+      Managed redirects
+    </a>
+  </nav>
+
+  <div class="nav-actions">
+    <a mat-button routerLink="/auth">Sign in</a>
+    <a mat-flat-button color="primary" routerLink="/auth">Start now</a>
+  </div>
+</mat-toolbar>
+
+<main class="marketing-content">
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="marketing-footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">{{ siteConfig.name }}</div>
+      <div class="subtle">{{ siteConfig.tagline }}</div>
+    </div>
+    <div>
+      <div class="footer-title">Product</div>
+      <div class="footer-links">
+        <a routerLink="/home">Capabilities</a>
+        <a routerLink="/alternatives/redirect-pizza">Redirect.pizza alternative</a>
+        <a routerLink="/alternatives/managed-redirects">Managed redirects</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-title">Assurance</div>
+      <p class="subtle">
+        30-day satisfaction guarantee. Cancel within 30 days and request a refund with no explanation needed.
+      </p>
+    </div>
+  </div>
+</footer>

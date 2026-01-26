@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
-import { form, required, submit } from '@angular/forms/signals';
+import { form, required, submit, FormField } from '@angular/forms/signals';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { applyZodField } from '../../core/forms/zod-validators';
@@ -26,7 +26,8 @@ export type RedirectRuleDialogData = {
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatSelectModule
+    MatSelectModule,
+    FormField
   ],
   template: `
     <div class="dialog">
@@ -34,41 +35,51 @@ export type RedirectRuleDialogData = {
       <form class="form-grid" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline">
           <mat-label>Domain group</mat-label>
-          <mat-select [field]="ruleForm.domainGroupId">
+          <mat-select [formField]="ruleForm.domainGroupId">
             @for (group of domainGroups(); track group.id) {
               <mat-option [value]="group.id">{{ group.name }}</mat-option>
             }
           </mat-select>
-          <mat-error *ngIf="groupError() as error">{{ error }}</mat-error>
+          @if (groupError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Source</mat-label>
-          <input matInput type="text" [field]="ruleForm.source" />
-          <mat-error *ngIf="sourceError() as error">{{ error }}</mat-error>
+          <input matInput type="text" [formField]="ruleForm.source" />
+          @if (sourceError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Destination</mat-label>
-          <input matInput type="text" [field]="ruleForm.destination" />
-          <mat-error *ngIf="destinationError() as error">{{ error }}</mat-error>
+          <input matInput type="text" [formField]="ruleForm.destination" />
+          @if (destinationError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
         </mat-form-field>
 
         <div class="rule-grid">
           <mat-form-field appearance="outline">
             <mat-label>Status code</mat-label>
-            <mat-select [field]="ruleForm.statusCode">
+            <mat-select [formField]="ruleForm.statusCode">
               @for (code of statusCodes; track code) {
-                <mat-option [value]="String(code)">{{ code }}</mat-option>
+                <mat-option [value]="code.toString()">{{ code }}</mat-option>
               }
             </mat-select>
-            <mat-error *ngIf="statusError() as error">{{ error }}</mat-error>
+            @if (statusError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Priority</mat-label>
-            <input matInput type="number" [field]="ruleForm.priority" />
-            <mat-error *ngIf="priorityError() as error">{{ error }}</mat-error>
+            <input matInput type="number" [formField]="ruleForm.priority" />
+            @if (priorityError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
           </mat-form-field>
         </div>
 
@@ -136,7 +147,7 @@ export class RedirectRuleFormDialogComponent {
 
   async onSubmit(): Promise<void> {
     await submit(this.ruleForm, async (formValue) => {
-      const value = formValue.value();
+      const value = formValue().value();
       this.redirectRuleStore.upsert({
         entity: {
           ...value,

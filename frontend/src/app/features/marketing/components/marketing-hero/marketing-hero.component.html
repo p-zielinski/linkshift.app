@@ -1,0 +1,47 @@
+<section class="marketing-hero">
+  <div class="hero-grid grid gap-10 lg:grid-cols-2 items-center">
+    <div class="hero-content">
+      @if (eyebrow()) {
+        <div class="hero-eyebrow">{{ eyebrow() }}</div>
+      }
+      <h1 class="hero-title">{{ title() }}</h1>
+      <p class="hero-subtitle">{{ subtitle() }}</p>
+
+      <div class="hero-actions">
+        <a mat-flat-button color="primary" [routerLink]="primaryCtaLink()">
+          <mat-icon>bolt</mat-icon>
+          <span>{{ primaryCtaLabel() }}</span>
+        </a>
+        @if (secondaryCtaLabel() && secondaryCtaLink()) {
+          <a mat-stroked-button [routerLink]="secondaryCtaLink()">
+            <mat-icon>info</mat-icon>
+            <span>{{ secondaryCtaLabel() }}</span>
+          </a>
+        }
+      </div>
+
+      @if (highlights().length) {
+        <div class="hero-highlights">
+          @for (item of highlights(); track item) {
+            <span class="highlight-chip">{{ item }}</span>
+          }
+        </div>
+      }
+
+      @if (metrics().length) {
+        <div class="hero-metrics">
+          @for (metric of metrics(); track metric.label) {
+            <div class="metric">
+              <div class="metric-value">{{ metric.value }}</div>
+              <div class="subtle">{{ metric.label }}</div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="hero-panel">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</section>

@@ -50,15 +50,17 @@ const NAV_ITEMS = [
             }
           </mat-nav-list>
 
-          <div class="sidebar-footer" *ngIf="authStore.user() as user">
-            <div class="chip-muted">
-              <mat-icon>account_circle</mat-icon>
-              <span>{{ user.email }}</span>
+          @if (authStore.user(); as user) {
+            <div class="sidebar-footer">
+              <div class="chip-muted">
+                <mat-icon>account_circle</mat-icon>
+                <span>{{ user.email }}</span>
+              </div>
+              <button mat-stroked-button color="primary" (click)="onLogout()">
+                Log out
+              </button>
             </div>
-            <button mat-stroked-button color="primary" (click)="onLogout()">
-              Log out
-            </button>
-          </div>
+          }
         </div>
       </mat-sidenav>
 

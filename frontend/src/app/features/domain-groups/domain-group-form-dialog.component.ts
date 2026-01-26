@@ -5,7 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
-import { form, required, submit } from '@angular/forms/signals';
+import { form, required, submit, FormField } from '@angular/forms/signals';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { domainGroupSchema } from './domain-group.schemas';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
@@ -19,7 +19,8 @@ import { DomainGroupStore } from '../../core/store/domain-group.store';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    FormField
   ],
   template: `
     <div class="dialog">
@@ -27,8 +28,10 @@ import { DomainGroupStore } from '../../core/store/domain-group.store';
       <form class="form-grid" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline">
           <mat-label>Name</mat-label>
-          <input matInput type="text" [field]="groupForm.name" />
-          <mat-error *ngIf="nameError() as error">{{ error }}</mat-error>
+          <input matInput type="text" [formField]="groupForm.name" />
+          @if (nameError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
         </mat-form-field>
 
         <div class="form-actions">
@@ -61,7 +64,7 @@ export class DomainGroupFormDialogComponent {
 
   async onSubmit(): Promise<void> {
     await submit(this.groupForm, async (formValue) => {
-      this.store.upsert({ entity: formValue.value() });
+      this.store.upsert({ entity: formValue().value() });
       this.dialogRef.close(true);
       return undefined;
     });

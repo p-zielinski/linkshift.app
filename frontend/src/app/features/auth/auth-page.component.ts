@@ -1,11 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
-  customError,
   form,
   required,
   submit,
-  validate
+  validate,
+  FormField
 } from '@angular/forms/signals';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatCardModule } from '@angular/material/card';
@@ -29,7 +29,8 @@ import { loginSchema, registerSchema } from './auth.schemas';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    FormField
   ],
   template: `
     <div class="auth-shell">
@@ -45,19 +46,23 @@ import { loginSchema, registerSchema } from './auth.schemas';
           </div>
         </div>
 
-        <mat-tab-group>
+        <mat-tab-group animationDuration="0ms">
           <mat-tab label="Login">
             <form class="form-grid" (ngSubmit)="onLogin()">
               <mat-form-field appearance="outline">
                 <mat-label>Email</mat-label>
-                <input matInput type="email" [field]="loginForm.email" />
-                <mat-error *ngIf="loginEmailError() as error">{{ error }}</mat-error>
+                <input matInput type="email" [formField]="loginForm.email" />
+                @if (loginEmailError(); as error) {
+                  <mat-error>{{ error }}</mat-error>
+                }
               </mat-form-field>
 
               <mat-form-field appearance="outline">
                 <mat-label>Password</mat-label>
-                <input matInput type="password" [field]="loginForm.password" />
-                <mat-error *ngIf="loginPasswordError() as error">{{ error }}</mat-error>
+                <input matInput type="password" [formField]="loginForm.password" />
+                @if (loginPasswordError(); as error) {
+                  <mat-error>{{ error }}</mat-error>
+                }
               </mat-form-field>
 
               <div class="form-actions">
@@ -72,9 +77,9 @@ import { loginSchema, registerSchema } from './auth.schemas';
                 </button>
               </div>
 
-              <div class="subtle" *ngIf="authStore.error()">
-                {{ authStore.error() }}
-              </div>
+              @if (authStore.error()) {
+                <div class="subtle">{{ authStore.error() }}</div>
+              }
             </form>
           </mat-tab>
 
@@ -82,26 +87,34 @@ import { loginSchema, registerSchema } from './auth.schemas';
             <form class="form-grid" (ngSubmit)="onRegister()">
               <mat-form-field appearance="outline">
                 <mat-label>Organization name</mat-label>
-                <input matInput type="text" [field]="registerForm.organizationName" />
-                <mat-error *ngIf="registerOrgError() as error">{{ error }}</mat-error>
+                <input matInput type="text" [formField]="registerForm.organizationName" />
+                @if (registerOrgError(); as error) {
+                  <mat-error>{{ error }}</mat-error>
+                }
               </mat-form-field>
 
               <mat-form-field appearance="outline">
                 <mat-label>Email</mat-label>
-                <input matInput type="email" [field]="registerForm.email" />
-                <mat-error *ngIf="registerEmailError() as error">{{ error }}</mat-error>
+                <input matInput type="email" [formField]="registerForm.email" />
+                @if (registerEmailError(); as error) {
+                  <mat-error>{{ error }}</mat-error>
+                }
               </mat-form-field>
 
               <mat-form-field appearance="outline">
                 <mat-label>Password</mat-label>
-                <input matInput type="password" [field]="registerForm.password" />
-                <mat-error *ngIf="registerPasswordError() as error">{{ error }}</mat-error>
+                <input matInput type="password" [formField]="registerForm.password" />
+                @if (registerPasswordError(); as error) {
+                  <mat-error>{{ error }}</mat-error>
+                }
               </mat-form-field>
 
               <mat-form-field appearance="outline">
                 <mat-label>Confirm password</mat-label>
-                <input matInput type="password" [field]="registerForm.confirmPassword" />
-                <mat-error *ngIf="registerConfirmError() as error">{{ error }}</mat-error>
+                <input matInput type="password" [formField]="registerForm.confirmPassword" />
+                @if (registerConfirmError(); as error) {
+                  <mat-error>{{ error }}</mat-error>
+                }
               </mat-form-field>
 
               <div class="form-actions">
@@ -116,9 +129,9 @@ import { loginSchema, registerSchema } from './auth.schemas';
                 </button>
               </div>
 
-              <div class="subtle" *ngIf="authStore.error()">
-                {{ authStore.error() }}
-              </div>
+              @if (authStore.error()) {
+                <div class="subtle">{{ authStore.error() }}</div>
+              }
             </form>
           </mat-tab>
         </mat-tab-group>
@@ -141,6 +154,8 @@ import { loginSchema, registerSchema } from './auth.schemas';
         border-radius: 24px;
         background: var(--app-surface);
         box-shadow: 0 30px 60px rgba(32, 24, 28, 0.18);
+        height: 700px;
+        overflow: hidden;
       }
 
       .auth-title {
@@ -154,6 +169,79 @@ import { loginSchema, registerSchema } from './auth.schemas';
       h1 {
         margin: 0 0 6px;
         font-size: 28px;
+      }
+
+      :host ::ng-deep .auth-card .mat-mdc-tab-group {
+        margin-top: 16px;
+      }
+
+      :host ::ng-deep .auth-card .mat-mdc-tab-header {
+        margin-bottom: 28px;
+      }
+
+      :host ::ng-deep .auth-card .mat-mdc-tab-group .mdc-tab__text-label {
+        color: #3a2a31;
+      }
+
+      :host ::ng-deep .auth-card .mat-mdc-tab-group .mdc-tab--active .mdc-tab__text-label {
+        color: var(--app-accent-strong);
+      }
+
+      :host ::ng-deep .auth-card .mat-mdc-tab-group .mdc-tab-indicator__content--underline {
+        border-color: var(--app-accent-strong);
+      }
+
+      :host ::ng-deep .auth-card .mat-mdc-tab-group .mdc-tab__ripple::before {
+        background-color: rgba(192, 55, 98, 0.12);
+      }
+
+      :host ::ng-deep .auth-card .mat-mdc-tab-group .mdc-tab__ripple::after {
+        background-color: rgba(192, 55, 98, 0.16);
+      }
+
+      :host ::ng-deep .auth-card .mat-mdc-tab-body-wrapper,
+      :host ::ng-deep .auth-card .mat-mdc-tab-body,
+      :host ::ng-deep .auth-card .mat-mdc-tab-body-content {
+        height: auto;
+        overflow: visible;
+      }
+
+      :host ::ng-deep .auth-card .mat-mdc-form-field {
+        width: 100%;
+      }
+
+      :host ::ng-deep .auth-card .mdc-text-field--outlined,
+      :host ::ng-deep .auth-card .mdc-text-field--outlined:hover,
+      :host ::ng-deep .auth-card .mdc-text-field--outlined:focus-within,
+      :host ::ng-deep .auth-card .mdc-text-field--outlined.mdc-text-field--hovered,
+      :host ::ng-deep .auth-card .mdc-text-field--outlined.mdc-text-field--focused {
+        background: #ffffff;
+      }
+
+      :host ::ng-deep .auth-card .mat-mdc-form-field:hover .mdc-text-field--outlined {
+        background: #ffffff;
+      }
+
+      :host ::ng-deep .auth-card .mdc-notched-outline__leading,
+      :host ::ng-deep .auth-card .mdc-notched-outline__notch,
+      :host ::ng-deep .auth-card .mdc-notched-outline__trailing {
+        border-color: #b7a3ad;
+      }
+
+      :host ::ng-deep .auth-card .mdc-floating-label {
+        color: #3a2a31;
+        opacity: 1;
+      }
+
+      :host ::ng-deep .auth-card .mat-mdc-input-element,
+      :host ::ng-deep .auth-card .mdc-text-field__input {
+        color: #1f181c;
+        -webkit-text-fill-color: #1f181c;
+      }
+
+      :host ::ng-deep .auth-card .mdc-text-field__input::placeholder {
+        color: #6c5a62;
+        opacity: 1;
       }
     `
   ]
@@ -192,10 +280,10 @@ export class AuthPageComponent {
 
     validate(f.confirmPassword, ({ value, valueOf }) => {
       if (!value()) {
-        return customError({ kind: 'required', message: 'Confirm password is required' });
+        return { kind: 'required', message: 'Confirm password is required' };
       }
       if (value() !== valueOf(f.password)) {
-        return customError({ kind: 'password-mismatch', message: 'Passwords must match' });
+        return { kind: 'password-mismatch', message: 'Passwords must match' };
       }
       return undefined;
     });
@@ -211,7 +299,7 @@ export class AuthPageComponent {
   async onLogin(): Promise<void> {
     await submit(this.loginForm, async (formValue) => {
       try {
-        await firstValueFrom(this.authStore.login(formValue.value()));
+        await firstValueFrom(this.authStore.login(formValue().value()));
         await this.router.navigateByUrl('/dashboard');
       } catch {
         return undefined;
@@ -223,7 +311,7 @@ export class AuthPageComponent {
   async onRegister(): Promise<void> {
     await submit(this.registerForm, async (formValue) => {
       try {
-        const { confirmPassword: _confirmPassword, ...payload } = formValue.value();
+        const { confirmPassword: _confirmPassword, ...payload } = formValue().value();
         await firstValueFrom(this.authStore.register(payload));
         await this.router.navigateByUrl('/dashboard');
       } catch {

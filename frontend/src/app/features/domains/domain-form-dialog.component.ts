@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
-import { form, required, submit } from '@angular/forms/signals';
+import { form, required, submit, FormField } from '@angular/forms/signals';
 import { DomainStore } from '../../core/store/domain.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { applyZodField } from '../../core/forms/zod-validators';
@@ -26,7 +26,8 @@ export type DomainDialogData = {
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatSelectModule
+    MatSelectModule,
+    FormField
   ],
   template: `
     <div class="dialog">
@@ -34,18 +35,22 @@ export type DomainDialogData = {
       <form class="form-grid" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline">
           <mat-label>Domain name</mat-label>
-          <input matInput type="text" [field]="domainForm.name" />
-          <mat-error *ngIf="nameError() as error">{{ error }}</mat-error>
+          <input matInput type="text" [formField]="domainForm.name" />
+          @if (nameError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Domain group</mat-label>
-          <mat-select [field]="domainForm.domainGroupId">
+          <mat-select [formField]="domainForm.domainGroupId">
             @for (group of domainGroups(); track group.id) {
               <mat-option [value]="group.id">{{ group.name }}</mat-option>
             }
           </mat-select>
-          <mat-error *ngIf="groupError() as error">{{ error }}</mat-error>
+          @if (groupError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
         </mat-form-field>
 
         <div class="form-actions">
@@ -90,7 +95,7 @@ export class DomainFormDialogComponent {
 
   async onSubmit(): Promise<void> {
     await submit(this.domainForm, async (formValue) => {
-      this.domainStore.upsert({ entity: formValue.value() });
+      this.domainStore.upsert({ entity: formValue().value() });
       this.dialogRef.close(true);
       return undefined;
     });

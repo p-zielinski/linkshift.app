@@ -9,7 +9,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { debounce, form, required } from '@angular/forms/signals';
+import { debounce, form, required, FormField } from '@angular/forms/signals';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { ResourcePillComponent } from '../../shared/components/resource-pill/resource-pill.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -31,6 +31,7 @@ import { RedirectRuleFormDialogComponent } from './redirect-rule-form-dialog.com
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    FormField,
     PageHeaderComponent,
     ResourcePillComponent
   ],
@@ -53,7 +54,7 @@ import { RedirectRuleFormDialogComponent } from './redirect-rule-form-dialog.com
     <div class="table-card filter-bar">
       <mat-form-field appearance="outline">
         <mat-label>Domain group</mat-label>
-        <mat-select [field]="filterForm.domainGroupId">
+        <mat-select [formField]="filterForm.domainGroupId">
           @for (group of domainGroups(); track group.id) {
             <mat-option [value]="group.id">{{ group.name }}</mat-option>
           }
@@ -62,7 +63,7 @@ import { RedirectRuleFormDialogComponent } from './redirect-rule-form-dialog.com
 
       <mat-form-field appearance="outline">
         <mat-label>Search source or destination</mat-label>
-        <input matInput type="text" [field]="filterForm.search" />
+        <input matInput type="text" [formField]="filterForm.search" />
       </mat-form-field>
     </div>
 
@@ -122,13 +123,12 @@ import { RedirectRuleFormDialogComponent } from './redirect-rule-form-dialog.com
         </table>
       </div>
 
-      <div class="subtle" *ngIf="!activeGroupId()">
-        Select a domain group to load rules.
-      </div>
-
-      <div class="subtle" *ngIf="activeGroupId() && rules().length === 0">
-        No redirect rules for this domain group.
-      </div>
+      @if (!activeGroupId()) {
+        <div class="subtle">Select a domain group to load rules.</div>
+      }
+      @if (activeGroupId() && rules().length === 0) {
+        <div class="subtle">No redirect rules for this domain group.</div>
+      }
     </div>
   `,
   styles: [

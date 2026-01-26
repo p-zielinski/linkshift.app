@@ -1,4 +1,4 @@
-import { customError, validate } from '@angular/forms/signals';
+import { validate } from '@angular/forms/signals';
 import type { ZodTypeAny } from 'zod';
 
 export function applyZodField(field: any, schema: ZodTypeAny): void {
@@ -9,9 +9,9 @@ export function applyZodField(field: any, schema: ZodTypeAny): void {
     }
 
     const issue = result.error.issues[0];
-    return customError({
+    return {
       kind: 'zod',
       message: issue?.message ?? 'Invalid value'
-    });
+    };
   });
 }

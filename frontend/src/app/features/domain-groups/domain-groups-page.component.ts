@@ -88,9 +88,9 @@ import { DomainGroupFormDialogComponent } from './domain-group-form-dialog.compo
         </table>
       </div>
 
-      <div class="subtle" *ngIf="domainGroups().length === 0">
-        No domain groups available yet.
-      </div>
+      @if (domainGroups().length === 0) {
+        <div class="subtle">No domain groups available yet.</div>
+      }
     </div>
   `,
   styles: [

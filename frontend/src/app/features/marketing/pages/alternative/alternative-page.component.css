@@ -1,0 +1,70 @@
+.hero-card {
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  background: #ffffff;
+}
+
+.hero-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.hero-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--app-accent-strong);
+}
+
+.hero-card-items {
+  display: grid;
+  gap: 12px;
+}
+
+.hero-card-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(216, 76, 119, 0.08);
+}
+
+.hero-card-item mat-icon {
+  color: var(--app-accent);
+}
+
+.hero-item-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.hero-card-note {
+  margin-top: 16px;
+  color: var(--app-muted);
+  font-size: 13px;
+}
+
+.comparison-card {
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+.comparison-card ul {
+  padding-left: 18px;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 6px;
+  color: #3b2f36;
+}
+
+.examples-note {
+  margin-top: 16px;
+}

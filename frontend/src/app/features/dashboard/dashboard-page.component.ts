@@ -27,7 +27,7 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
       <mat-card class="card">
         <h3>Session details</h3>
         <div class="divider"></div>
-        <ng-container *ngIf="user() as user; else noUser">
+        @if (user(); as user) {
           <mat-list>
             <mat-list-item>
               <mat-icon matListItemIcon>person</mat-icon>
@@ -40,16 +40,15 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
               <div matListItemLine>{{ user.id }}</div>
             </mat-list-item>
           </mat-list>
-        </ng-container>
-        <ng-template #noUser>
+        } @else {
           <div class="subtle">No user loaded.</div>
-        </ng-template>
+        }
       </mat-card>
 
       <mat-card class="card">
         <h3>Organization profile</h3>
         <div class="divider"></div>
-        <ng-container *ngIf="organization() as organization; else noOrg">
+        @if (organization(); as organization) {
           <mat-list>
             <mat-list-item>
               <mat-icon matListItemIcon>apartment</mat-icon>
@@ -67,10 +66,9 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
               <div matListItemLine>{{ config().status }}</div>
             </mat-list-item>
           </mat-list>
-        </ng-container>
-        <ng-template #noOrg>
+        } @else {
           <div class="subtle">No organization loaded.</div>
-        </ng-template>
+        }
       </mat-card>
     </div>
 

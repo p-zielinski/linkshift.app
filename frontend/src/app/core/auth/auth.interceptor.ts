@@ -1,9 +1,10 @@
 // src/app/core/auth/auth.interceptor.ts
 
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthStore } from '../store/auth.store';
-import { catchError, switchMap, throwError, BehaviorSubject, filter, take } from 'rxjs';
+import { catchError, switchMap, throwError, BehaviorSubject, filter, take, type Observable } from 'rxjs';
+import type { AuthTokens } from '../models/auth.model';
 
 // Flag to indicate if a refresh operation is currently in progress
 let isRefreshing = false;
@@ -40,13 +41,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
 // --- Helper function for Refresh Logic ---
 
-function handle401Error(request: any, next: any, authStore: AuthStore) {
+type AuthStoreLike = {
+  accessToken: () => string | null;
+  refreshTokens: () => Observable<AuthTokens>;
+};
+
+function handle401Error(request: HttpRequest<unknown>, next: HttpHandlerFn, authStore: AuthStoreLike) {
   if (!isRefreshing) {
     isRefreshing = true;
     refreshTokenSubject.next(null);
 
     return authStore.refreshTokens().pipe(
-      switchMap((response) => {
+      switchMap((response: AuthTokens) => {
         isRefreshing = false;
         const newToken = response.accessToken;
         refreshTokenSubject.next(newToken);
@@ -65,7 +71,7 @@ function handle401Error(request: any, next: any, authStore: AuthStore) {
   } else {
     // If refresh is already in progress, wait for it to complete
     return refreshTokenSubject.pipe(
-      filter((token) => token !== null),
+      filter((token): token is string => token !== null),
       take(1),
       switchMap((token) => {
         return next(request.clone({

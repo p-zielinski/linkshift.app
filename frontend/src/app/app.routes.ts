@@ -6,10 +6,35 @@ import { DashboardPageComponent } from './features/dashboard/dashboard-page.comp
 import { DomainsPageComponent } from './features/domains/domains-page.component';
 import { DomainGroupsPageComponent } from './features/domain-groups/domain-groups-page.component';
 import { RedirectRulesPageComponent } from './features/redirect-rules/redirect-rules-page.component';
+import { MarketingShellComponent } from './features/marketing/components/marketing-shell/marketing-shell.component';
+import { HomePageComponent } from './features/marketing/pages/home/home-page.component';
+import { AlternativePageComponent } from './features/marketing/pages/alternative/alternative-page.component';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+  { path: '', pathMatch: 'full', redirectTo: 'home' },
   { path: 'auth', component: AuthPageComponent, canMatch: [guestGuard] },
+  {
+    path: '',
+    component: MarketingShellComponent,
+    children: [
+      { path: 'home', component: HomePageComponent },
+      {
+        path: 'alternatives/redirect-pizza',
+        component: AlternativePageComponent,
+        data: { alternative: 'redirect-pizza' }
+      },
+      {
+        path: 'alternatives/redirect-proxy',
+        component: AlternativePageComponent,
+        data: { alternative: 'redirect-proxy' }
+      },
+      {
+        path: 'alternatives/managed-redirects',
+        component: AlternativePageComponent,
+        data: { alternative: 'managed-redirects' }
+      }
+    ]
+  },
   {
     path: '',
     component: AppShellComponent,
@@ -21,5 +46,5 @@ export const routes: Routes = [
       { path: 'redirect-rules', component: RedirectRulesPageComponent }
     ]
   },
-  { path: '**', redirectTo: 'dashboard' }
+  { path: '**', redirectTo: 'home' }
 ];
