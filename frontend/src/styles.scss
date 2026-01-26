@@ -1,7 +1,58 @@
 /* Global styles and theme setup */
 
-@import "@angular/material/prebuilt-themes/indigo-pink.css";
-@import "tailwindcss";
+@use "@angular/material" as mat;
+
+@include mat.core();
+
+$dark-text: rgba(0, 0, 0, 0.87);
+$light-text: #ffffff;
+
+$raspberry-palette: (
+  50: #fbe9f0,
+  100: #f6c7d8,
+  200: #ef9ab8,
+  300: #e76e99,
+  400: #e15484,
+  500: #c03762,
+  600: #ae3258,
+  700: #8f2045,
+  800: #7a1b3c,
+  900: #5a132c,
+  A100: #ffd6e4,
+  A200: #ff9bbd,
+  A400: #f05a8b,
+  A700: #d83f73,
+  contrast: (
+    50: $dark-text,
+    100: $dark-text,
+    200: $dark-text,
+    300: $dark-text,
+    400: $light-text,
+    500: $light-text,
+    600: $light-text,
+    700: $light-text,
+    800: $light-text,
+    900: $light-text,
+    A100: $dark-text,
+    A200: $dark-text,
+    A400: $light-text,
+    A700: $light-text,
+  )
+);
+
+$primary: mat.m2-define-palette($raspberry-palette, 500, 300, 700);
+$accent: mat.m2-define-palette($raspberry-palette, 400, 200, 600);
+$warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+$theme: mat.m2-define-light-theme((
+  color: (
+    primary: $primary,
+    accent: $accent,
+    warn: $warn,
+  )
+));
+
+@include mat.all-component-themes($theme);
 
 :root {
   color-scheme: light;
