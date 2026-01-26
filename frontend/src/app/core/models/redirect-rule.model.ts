@@ -28,6 +28,6 @@ export type UpdateRedirectRuleDto = {
 export type RedirectRuleListQuery = {
   domainGroupId: string;
   limit?: number;
-  page?: number;
+  startAfterId?: string;
   search?: string;
 };

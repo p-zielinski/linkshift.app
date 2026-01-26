@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,6 +9,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { ResourcePillComponent } from '../../shared/components/resource-pill/resource-pill.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { DomainStore } from '../../core/store/domain.store';
 import { DEFAULT_LIST_KEY } from '../../core/store/entity/entity-store.utils';
@@ -26,7 +27,8 @@ import { DomainGroupFormDialogComponent } from './domain-group-form-dialog.compo
     MatDialogModule,
     MatSnackBarModule,
     PageHeaderComponent,
-    ResourcePillComponent
+    ResourcePillComponent,
+    TablePaginatorComponent
   ],
   templateUrl: './domain-groups-page.component.html'
 })
@@ -40,6 +42,21 @@ export class DomainGroupsPageComponent {
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly domains = this.domainStore.selectList();
   readonly domainsLoaded = computed(() => !!this.domainStore.list()[DEFAULT_LIST_KEY]);
+  readonly pageLimitOptions = [10, 20, 50];
+  readonly pageLimit = signal(20);
+  readonly page = signal(1);
+
+  readonly totalGroups = computed(() => this.domainGroups().length);
+  readonly pageCount = computed(() =>
+    Math.max(1, Math.ceil(this.totalGroups() / this.pageLimit()))
+  );
+  readonly pagedGroups = computed(() => {
+    const limit = this.pageLimit();
+    const page = this.page();
+    const start = (page - 1) * limit;
+    return this.domainGroups().slice(start, start + limit);
+  });
+  readonly hasNextPage = computed(() => this.page() < this.pageCount());
 
   readonly domainCounts = computed(() => {
     const counts: Record<string, number> = {};
@@ -58,6 +75,13 @@ export class DomainGroupsPageComponent {
       if (error) {
         this.snackBar.open(error, 'Dismiss', { duration: 4000 });
         this.domainGroupStore.clearError();
+      }
+    });
+
+    effect(() => {
+      const maxPage = this.pageCount();
+      if (this.page() > maxPage) {
+        this.page.set(maxPage);
       }
     });
   }
@@ -123,5 +147,14 @@ export class DomainGroupsPageComponent {
       return id;
     }
     return `${id.slice(0, 6)}...${id.slice(-4)}`;
+  }
+
+  onPageChange(page: number): void {
+    this.page.set(page);
+  }
+
+  onPageLimitChange(limit: number): void {
+    this.pageLimit.set(limit);
+    this.page.set(1);
   }
 }

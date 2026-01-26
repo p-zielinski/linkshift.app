@@ -71,11 +71,4 @@ export class AppShellComponent {
     return !!item.requiresDomainGroups && !this.hasDomainGroups();
   }
 
-  onNavClick(event: Event, item: NavItem): void {
-    if (!this.isDisabled(item)) {
-      return;
-    }
-    event.preventDefault();
-    event.stopPropagation();
-  }
 }

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -9,6 +9,6 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './resource-pill.component.html'
 })
 export class ResourcePillComponent {
-  @Input() label = '';
-  @Input() tooltip = '';
+  readonly label = input('');
+  readonly tooltip = input('');
 }

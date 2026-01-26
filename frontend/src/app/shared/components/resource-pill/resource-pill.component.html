@@ -1,7 +1,7 @@
 <span
   class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[12px] text-app-ink"
-  [matTooltip]="tooltip"
+  [matTooltip]="tooltip()"
 >
   <mat-icon class="h-[14px] w-[14px] text-[14px]">link</mat-icon>
-  <span>{{ label }}</span>
+  <span>{{ label() }}</span>
 </span>

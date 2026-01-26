@@ -13,6 +13,7 @@ import { debounce, form, required, FormField } from '@angular/forms/signals';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { ResourcePillComponent } from '../../shared/components/resource-pill/resource-pill.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { RedirectRuleFormDialogComponent } from './redirect-rule-form-dialog.component';
@@ -33,7 +34,8 @@ import { RedirectRuleFormDialogComponent } from './redirect-rule-form-dialog.com
     MatSelectModule,
     FormField,
     PageHeaderComponent,
-    ResourcePillComponent
+    ResourcePillComponent,
+    TablePaginatorComponent
   ],
   templateUrl: './redirect-rules-page.component.html'
 })
@@ -45,6 +47,10 @@ export class RedirectRulesPageComponent {
 
   readonly columns = ['source', 'destination', 'statusCode', 'priority', 'group', 'actions'];
   readonly domainGroups = this.domainGroupStore.selectList();
+  readonly pageLimitOptions = [20];
+  readonly pageLimit = signal(20);
+  readonly page = signal(1);
+  readonly pageCursors = signal<Record<number, string | null>>({ 1: null });
 
   filterModel = signal({
     domainGroupId: '',
@@ -58,7 +64,7 @@ export class RedirectRulesPageComponent {
 
   readonly activeGroupId = computed(() => this.filterModel().domainGroupId || '');
 
-  readonly filterParams = computed(() => {
+  readonly baseFilter = computed(() => {
     const { domainGroupId, search } = this.filterModel();
     if (!domainGroupId) {
       return null;
@@ -67,9 +73,21 @@ export class RedirectRulesPageComponent {
     const trimmedSearch = search.trim();
     return {
       domainGroupId,
-      limit: 50,
-      page: 1,
       ...(trimmedSearch ? { search: trimmedSearch } : {})
+    };
+  });
+
+  readonly filterParams = computed(() => {
+    const baseFilter = this.baseFilter();
+    if (!baseFilter) {
+      return null;
+    }
+
+    const cursor = this.pageCursors()[this.page()];
+    return {
+      ...baseFilter,
+      limit: this.pageLimit(),
+      ...(cursor ? { startAfterId: cursor } : {})
     };
   });
 
@@ -80,6 +98,16 @@ export class RedirectRulesPageComponent {
     }
     return this.redirectRuleStore.selectList(filter)();
   });
+
+  readonly listResult = computed(() => {
+    const filter = this.filterParams();
+    if (!filter) {
+      return null;
+    }
+    return this.redirectRuleStore.selectListResult(filter)();
+  });
+
+  readonly hasNextPage = computed(() => this.listResult()?.hasMore ?? false);
 
   readonly groupMap = computed(() => {
     const map: Record<string, { name: string } | undefined> = {};
@@ -93,10 +121,33 @@ export class RedirectRulesPageComponent {
     this.domainGroupStore.searchList();
 
     effect(() => {
+      this.baseFilter();
+      this.page.set(1);
+      this.pageCursors.set({ 1: null });
+    });
+
+    effect(() => {
       const filter = this.filterParams();
       if (filter) {
-        this.redirectRuleStore.searchList(filter, true);
+        this.redirectRuleStore.searchList(filter);
       }
+    });
+
+    effect(() => {
+      const result = this.listResult();
+      const currentPage = this.page();
+      if (!result?.hasMore || !result.moreStartingAfterId) {
+        return;
+      }
+
+      const nextCursor = result.moreStartingAfterId;
+      this.pageCursors.update((cursors) => {
+        const nextPage = currentPage + 1;
+        if (cursors[nextPage] === nextCursor) {
+          return cursors;
+        }
+        return { ...cursors, [nextPage]: nextCursor };
+      });
     });
 
     effect(() => {
@@ -158,6 +209,16 @@ export class RedirectRulesPageComponent {
     return name
       ? `Domain group: ${name} (${groupId})`
       : `Domain group ID: ${groupId}`;
+  }
+
+  onPageChange(page: number): void {
+    this.page.set(page);
+  }
+
+  onPageLimitChange(limit: number): void {
+    this.pageLimit.set(limit);
+    this.page.set(1);
+    this.pageCursors.set({ 1: null });
   }
 }
 
