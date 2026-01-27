@@ -64,6 +64,21 @@
             }
           </mat-form-field>
 
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Request method</mat-label>
+            <mat-select [formField]="ruleForm.matchMethod">
+              @for (method of matchMethodOptions; track method) {
+                <mat-option [value]="method">
+                  {{ method === '*' ? 'Any method (*)' : method }}
+                </mat-option>
+              }
+            </mat-select>
+            <mat-hint>Use any to match all HTTP methods.</mat-hint>
+            @if (matchMethodError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+
           <div
             class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted"
           >
@@ -262,16 +277,16 @@
           <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
             <div class="font-semibold text-app-text">What this means</div>
             <div class="mt-2 grid gap-2">
-              <span>302 is the default and safest for most cases.</span>
-              <span>301/308 tell browsers and search engines to cache the redirect.</span>
+              <span>301/308 are permanent; 302/307 are temporary.</span>
               <span>307/308 preserve the HTTP method (POST stays POST).</span>
+              <span>301/302 may be converted to GET by some clients.</span>
             </div>
           </div>
 
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Status code</mat-label>
             <mat-select [formField]="ruleForm.statusCode">
-              @for (code of statusCodes; track code) {
+              @for (code of statusCodeOptions(); track code) {
                 <mat-option [value]="code.toString()">{{ code }}</mat-option>
               }
             </mat-select>
@@ -318,6 +333,10 @@
                 <span class="font-mono">{{ ruleModel().destination || '—' }}</span>
               </div>
               <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-app-muted">Request method</span>
+                <span>{{ ruleModel().matchMethod }}</span>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-2">
                 <span class="text-app-muted">Status</span>
                 <span>{{ ruleModel().statusCode }}</span>
               </div>
@@ -362,6 +381,20 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Request method</mat-label>
+          <mat-select [formField]="ruleForm.matchMethod">
+            @for (method of matchMethodOptions; track method) {
+              <mat-option [value]="method">
+                {{ method === '*' ? 'Any method (*)' : method }}
+              </mat-option>
+            }
+          </mat-select>
+          @if (matchMethodError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
           <mat-label>Destination</mat-label>
           <input matInput type="text" [formField]="ruleForm.destination" />
           <mat-hint>Must start with <code>http://</code> or <code>https://</code>.</mat-hint>
@@ -373,7 +406,7 @@
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Status code</mat-label>
           <mat-select [formField]="ruleForm.statusCode">
-            @for (code of statusCodes; track code) {
+            @for (code of statusCodeOptions(); track code) {
               <mat-option [value]="code.toString()">{{ code }}</mat-option>
             }
           </mat-select>

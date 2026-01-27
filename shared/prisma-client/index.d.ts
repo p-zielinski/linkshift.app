@@ -5736,6 +5736,7 @@ export namespace Prisma {
     source: string | null
     destination: string | null
     statusCode: number | null
+    matchMethod: string | null
     priority: number | null
     domainGroupId: string | null
     createdAt: Date | null
@@ -5748,6 +5749,7 @@ export namespace Prisma {
     source: string | null
     destination: string | null
     statusCode: number | null
+    matchMethod: string | null
     priority: number | null
     domainGroupId: string | null
     createdAt: Date | null
@@ -5760,6 +5762,7 @@ export namespace Prisma {
     source: number
     destination: number
     statusCode: number
+    matchMethod: number
     priority: number
     domainGroupId: number
     createdAt: number
@@ -5784,6 +5787,7 @@ export namespace Prisma {
     source?: true
     destination?: true
     statusCode?: true
+    matchMethod?: true
     priority?: true
     domainGroupId?: true
     createdAt?: true
@@ -5796,6 +5800,7 @@ export namespace Prisma {
     source?: true
     destination?: true
     statusCode?: true
+    matchMethod?: true
     priority?: true
     domainGroupId?: true
     createdAt?: true
@@ -5808,6 +5813,7 @@ export namespace Prisma {
     source?: true
     destination?: true
     statusCode?: true
+    matchMethod?: true
     priority?: true
     domainGroupId?: true
     createdAt?: true
@@ -5907,6 +5913,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode: number
+    matchMethod: string
     priority: number
     domainGroupId: string
     createdAt: Date
@@ -5938,6 +5945,7 @@ export namespace Prisma {
     source?: boolean
     destination?: boolean
     statusCode?: boolean
+    matchMethod?: boolean
     priority?: boolean
     domainGroupId?: boolean
     createdAt?: boolean
@@ -5951,6 +5959,7 @@ export namespace Prisma {
     source?: boolean
     destination?: boolean
     statusCode?: boolean
+    matchMethod?: boolean
     priority?: boolean
     domainGroupId?: boolean
     createdAt?: boolean
@@ -5964,6 +5973,7 @@ export namespace Prisma {
     source?: boolean
     destination?: boolean
     statusCode?: boolean
+    matchMethod?: boolean
     priority?: boolean
     domainGroupId?: boolean
     createdAt?: boolean
@@ -5977,6 +5987,7 @@ export namespace Prisma {
     source?: boolean
     destination?: boolean
     statusCode?: boolean
+    matchMethod?: boolean
     priority?: boolean
     domainGroupId?: boolean
     createdAt?: boolean
@@ -5984,7 +5995,7 @@ export namespace Prisma {
     deletedAt?: boolean
   }
 
-  export type RedirectRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "source" | "destination" | "statusCode" | "priority" | "domainGroupId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["redirectRule"]>
+  export type RedirectRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "source" | "destination" | "statusCode" | "matchMethod" | "priority" | "domainGroupId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["redirectRule"]>
   export type RedirectRuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
   }
@@ -6005,6 +6016,7 @@ export namespace Prisma {
       source: string
       destination: string
       statusCode: number
+      matchMethod: string
       priority: number
       domainGroupId: string
       createdAt: Date
@@ -6438,6 +6450,7 @@ export namespace Prisma {
     readonly source: FieldRef<"RedirectRule", 'String'>
     readonly destination: FieldRef<"RedirectRule", 'String'>
     readonly statusCode: FieldRef<"RedirectRule", 'Int'>
+    readonly matchMethod: FieldRef<"RedirectRule", 'String'>
     readonly priority: FieldRef<"RedirectRule", 'Int'>
     readonly domainGroupId: FieldRef<"RedirectRule", 'String'>
     readonly createdAt: FieldRef<"RedirectRule", 'DateTime'>
@@ -6926,6 +6939,7 @@ export namespace Prisma {
     source: 'source',
     destination: 'destination',
     statusCode: 'statusCode',
+    matchMethod: 'matchMethod',
     priority: 'priority',
     domainGroupId: 'domainGroupId',
     createdAt: 'createdAt',
@@ -7329,6 +7343,7 @@ export namespace Prisma {
     source?: StringFilter<"RedirectRule"> | string
     destination?: StringFilter<"RedirectRule"> | string
     statusCode?: IntFilter<"RedirectRule"> | number
+    matchMethod?: StringFilter<"RedirectRule"> | string
     priority?: IntFilter<"RedirectRule"> | number
     domainGroupId?: StringFilter<"RedirectRule"> | string
     createdAt?: DateTimeFilter<"RedirectRule"> | Date | string
@@ -7342,6 +7357,7 @@ export namespace Prisma {
     source?: SortOrder
     destination?: SortOrder
     statusCode?: SortOrder
+    matchMethod?: SortOrder
     priority?: SortOrder
     domainGroupId?: SortOrder
     createdAt?: SortOrder
@@ -7359,6 +7375,7 @@ export namespace Prisma {
     source?: StringFilter<"RedirectRule"> | string
     destination?: StringFilter<"RedirectRule"> | string
     statusCode?: IntFilter<"RedirectRule"> | number
+    matchMethod?: StringFilter<"RedirectRule"> | string
     priority?: IntFilter<"RedirectRule"> | number
     domainGroupId?: StringFilter<"RedirectRule"> | string
     createdAt?: DateTimeFilter<"RedirectRule"> | Date | string
@@ -7372,6 +7389,7 @@ export namespace Prisma {
     source?: SortOrder
     destination?: SortOrder
     statusCode?: SortOrder
+    matchMethod?: SortOrder
     priority?: SortOrder
     domainGroupId?: SortOrder
     createdAt?: SortOrder
@@ -7392,6 +7410,7 @@ export namespace Prisma {
     source?: StringWithAggregatesFilter<"RedirectRule"> | string
     destination?: StringWithAggregatesFilter<"RedirectRule"> | string
     statusCode?: IntWithAggregatesFilter<"RedirectRule"> | number
+    matchMethod?: StringWithAggregatesFilter<"RedirectRule"> | string
     priority?: IntWithAggregatesFilter<"RedirectRule"> | number
     domainGroupId?: StringWithAggregatesFilter<"RedirectRule"> | string
     createdAt?: DateTimeWithAggregatesFilter<"RedirectRule"> | Date | string
@@ -7683,6 +7702,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode?: number
+    matchMethod?: string
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -7695,6 +7715,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode?: number
+    matchMethod?: string
     priority?: number
     domainGroupId: string
     createdAt?: Date | string
@@ -7707,6 +7728,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
+    matchMethod?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7719,6 +7741,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
+    matchMethod?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     domainGroupId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7731,6 +7754,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode?: number
+    matchMethod?: string
     priority?: number
     domainGroupId: string
     createdAt?: Date | string
@@ -7743,6 +7767,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
+    matchMethod?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7754,6 +7779,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
+    matchMethod?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     domainGroupId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -8095,6 +8121,7 @@ export namespace Prisma {
     source?: SortOrder
     destination?: SortOrder
     statusCode?: SortOrder
+    matchMethod?: SortOrder
     priority?: SortOrder
     domainGroupId?: SortOrder
     createdAt?: SortOrder
@@ -8112,6 +8139,7 @@ export namespace Prisma {
     source?: SortOrder
     destination?: SortOrder
     statusCode?: SortOrder
+    matchMethod?: SortOrder
     priority?: SortOrder
     domainGroupId?: SortOrder
     createdAt?: SortOrder
@@ -8124,6 +8152,7 @@ export namespace Prisma {
     source?: SortOrder
     destination?: SortOrder
     statusCode?: SortOrder
+    matchMethod?: SortOrder
     priority?: SortOrder
     domainGroupId?: SortOrder
     createdAt?: SortOrder
@@ -8796,6 +8825,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode?: number
+    matchMethod?: string
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -8807,6 +8837,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode?: number
+    matchMethod?: string
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -8906,6 +8937,7 @@ export namespace Prisma {
     source?: StringFilter<"RedirectRule"> | string
     destination?: StringFilter<"RedirectRule"> | string
     statusCode?: IntFilter<"RedirectRule"> | number
+    matchMethod?: StringFilter<"RedirectRule"> | string
     priority?: IntFilter<"RedirectRule"> | number
     domainGroupId?: StringFilter<"RedirectRule"> | string
     createdAt?: DateTimeFilter<"RedirectRule"> | Date | string
@@ -9114,6 +9146,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode?: number
+    matchMethod?: string
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -9149,6 +9182,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
+    matchMethod?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9160,6 +9194,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
+    matchMethod?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9171,6 +9206,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
+    matchMethod?: StringFieldUpdateOperationsInput | string
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

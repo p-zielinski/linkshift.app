@@ -83,6 +83,8 @@ type CacheInvalidationTarget =
 export interface RedirectRule {
   source: string | RegExp;
   destination: string;
+  statusCode?: number;
+  matchMethod?: string;
 }
 
 type Manipulator = (val: string) => string;
@@ -634,6 +636,7 @@ export class RedirectService {
         source: data.source,
         destination: data.destination,
         statusCode: data.statusCode,
+        matchMethod: data.matchMethod,
         priority: data.priority,
         domainGroupId: data.domainGroupId,
       },
@@ -912,21 +915,26 @@ export class RedirectService {
           return {
             source: new RegExp(pattern, flags),
             destination: rule.destination,
+            statusCode: rule.statusCode,
+            matchMethod: rule.matchMethod,
           };
         }
         return {
           source: rule.source,
           destination: rule.destination,
+          statusCode: rule.statusCode,
+          matchMethod: rule.matchMethod,
         };
       },
     );
 
     // 4. Pass rules to getRedirect to find a match
-    const target = this.getRedirect(req, rules);
+    const match = this.getRedirectMatch(req, rules);
 
     // 5. Action: redirect or return 404
-    if (target) {
-      res.redirect(302, target);
+    if (match) {
+      const statusCode = match.rule.statusCode ?? 302;
+      res.redirect(statusCode, match.target);
       return;
     }
 
@@ -938,13 +946,21 @@ export class RedirectService {
   }
 
   getRedirect(req: Request, rules: RedirectRule[]): string | null {
+    const match = this.getRedirectMatch(req, rules);
+    return match ? match.target : null;
+  }
+
+  private getRedirectMatch(
+    req: Request,
+    rules: RedirectRule[],
+  ): { target: string; rule: RedirectRule } | null {
     const url = this.getRequestUrl(req);
     const variables = this.extractVariables(req, url);
 
     for (const rule of rules) {
-      const result = this.processRule(rule, req.path, variables);
+      const result = this.processRule(rule, req.path, req.method, variables);
       if (result) {
-        return result;
+        return { target: result, rule };
       }
     }
 
@@ -1000,14 +1016,29 @@ export class RedirectService {
     return 'US';
   }
 
+  private isMethodMatch(
+    matchMethod: string | undefined,
+    requestMethod: string,
+  ): boolean {
+    if (!matchMethod || matchMethod === '*') {
+      return true;
+    }
+    return matchMethod.toUpperCase() === requestMethod.toUpperCase();
+  }
+
   private processRule(
     rule: RedirectRule,
     currentPath: string,
+    currentMethod: string,
     variables: Record<string, string | undefined>,
   ): string | null {
     try {
       let target = rule.destination;
       let isMatch = false;
+
+      if (!this.isMethodMatch(rule.matchMethod, currentMethod)) {
+        return null;
+      }
 
       if (rule.source instanceof RegExp) {
         const match = currentPath.match(rule.source);

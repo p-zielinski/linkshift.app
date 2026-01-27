@@ -114,6 +114,7 @@ describe('RedirectService', () => {
   const createMockRequest = (
     urlStr: string,
     headers: Record<string, string> = {},
+    method = 'GET',
   ): any => {
     const url = new URL(urlStr);
     return {
@@ -129,7 +130,7 @@ describe('RedirectService', () => {
       originalUrl: url.pathname + url.search,
       path: url.pathname,
       hostname: url.hostname,
-      method: 'GET',
+      method,
       ip: '127.0.0.1',
       socket: { remoteAddress: '127.0.0.1' },
     };
@@ -167,6 +168,42 @@ describe('RedirectService', () => {
       const result = service.getRedirect(req, rules);
 
       expect(result).toBe('https://example.com/docs/api/v1');
+    });
+  });
+
+  describe('Method Matching', () => {
+    it('should match only when request method aligns with matchMethod', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: '/get-only',
+          matchMethod: 'GET',
+        },
+        {
+          source: '*',
+          destination: '/any',
+          matchMethod: '*',
+        },
+      ];
+
+      const reqGet = createMockRequest('http://test.com/', {}, 'GET');
+      const reqPost = createMockRequest('http://test.com/', {}, 'POST');
+
+      expect(service.getRedirect(reqGet, rules)).toBe('/get-only');
+      expect(service.getRedirect(reqPost, rules)).toBe('/any');
+    });
+
+    it('should skip rule when matchMethod does not match', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: '/post-only',
+          matchMethod: 'POST',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/', {}, 'GET');
+      expect(service.getRedirect(req, rules)).toBeNull();
     });
   });
 
@@ -1064,6 +1101,7 @@ describe('RedirectService', () => {
           source: '/foo',
           destination: 'https://example.com/bar',
           statusCode: 301,
+          matchMethod: '*',
           domainGroupId,
           priority: 1,
         }),
@@ -1096,6 +1134,7 @@ describe('RedirectService', () => {
         source: '/foo',
         destination: 'https://example.com/bar',
         statusCode: 301,
+        matchMethod: '*',
         domainGroupId,
         priority: 1,
       });
@@ -1143,6 +1182,43 @@ describe('RedirectService', () => {
         }),
       );
       expect(res.redirect).not.toHaveBeenCalled();
+    });
+
+    it('should redirect using rule status code', async () => {
+      const req = createMockRequest('http://example.com/old', {}, 'POST');
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      } as any;
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_1',
+          redirectRules: [
+            {
+              source: '*',
+              destination: 'https://example.com/new',
+              statusCode: 301,
+              matchMethod: '*',
+            },
+          ],
+        },
+      });
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue({
+        configuration: null,
+      });
+      (cacheManagerService.checkOrganizationRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(undefined);
+
+      await service.applyRedirect(req, res);
+
+      expect(res.redirect).toHaveBeenCalledWith(
+        301,
+        'https://example.com/new',
+      );
     });
   });
 });

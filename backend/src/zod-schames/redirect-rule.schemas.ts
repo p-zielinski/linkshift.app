@@ -2,6 +2,21 @@ import { z } from 'zod';
 import { AppEntity, getEntityIdRegex } from '../utils';
 
 const ALLOWED_STATUS_CODES: number[] = [301, 302, 307, 308];
+const MATCH_METHODS = [
+  '*',
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+  'OPTIONS',
+  'HEAD',
+] as const;
+
+const MatchMethodSchema = z.preprocess(
+  (value) => (typeof value === 'string' ? value.toUpperCase() : value),
+  z.enum(MATCH_METHODS),
+);
 
 export const CreateRedirectRuleSchema = z.object({
   source: z
@@ -20,6 +35,7 @@ export const CreateRedirectRuleSchema = z.object({
       `Status code must be one of: ${ALLOWED_STATUS_CODES.join(', ')}`,
     )
     .default(302),
+  matchMethod: MatchMethodSchema.default('*'),
   priority: z
     .number()
     .int()
@@ -51,6 +67,7 @@ export const UpdateRedirectRuleSchema = z.object({
       `Status code must be one of: ${ALLOWED_STATUS_CODES.join(', ')}`,
     )
     .optional(),
+  matchMethod: MatchMethodSchema.optional(),
   priority: z.number().int().min(0).max(1000).optional(),
 });
 

@@ -3,6 +3,10 @@
 
 generator client {
   provider = "prisma-client-js"
+}
+
+generator shared {
+  provider = "prisma-client-js"
   output   = "../../shared/prisma-client"
 }
 
@@ -84,6 +88,7 @@ model RedirectRule {
   source        String // Source path or regex pattern
   destination   String // Target URL with variable support
   statusCode    Int       @default(302) // HTTP status code (301 or 302)
+  matchMethod   String    @default("*") // Request method filter ("*", GET, POST, etc.)
   priority      Int       @default(0) // For rule ordering (higher priority = evaluated first)
   domainGroupId String
   createdAt     DateTime  @default(now())

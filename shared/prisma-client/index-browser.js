@@ -163,6 +163,7 @@ exports.Prisma.RedirectRuleScalarFieldEnum = {
   source: 'source',
   destination: 'destination',
   statusCode: 'statusCode',
+  matchMethod: 'matchMethod',
   priority: 'priority',
   domainGroupId: 'domainGroupId',
   createdAt: 'createdAt',

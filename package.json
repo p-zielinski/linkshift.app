@@ -2,7 +2,6 @@
   "name": "project-4",
   "scripts": {
     "dev": "concurrently \"cd backend;npm run start:dev\" \"cd frontend;npm run dev\"",
-    "migrations": "cd backend && npm run migrations && cd ..",
     "build": "cd backend && npm run build && cd ../frontend && npm run build",
     "prepare": "husky",
     "precommit-check": "npm run build && echo 'Build passed!' || (echo 'Build failed! Commit aborted.' && exit 1)"

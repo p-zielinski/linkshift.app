@@ -5,6 +5,7 @@ CREATE TABLE "Organization" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
+    "configuration" JSONB,
 
     CONSTRAINT "Organization_pkey" PRIMARY KEY ("id")
 );
@@ -53,6 +54,7 @@ CREATE TABLE "RedirectRule" (
     "source" TEXT NOT NULL,
     "destination" TEXT NOT NULL,
     "statusCode" INTEGER NOT NULL DEFAULT 302,
+    "matchMethod" TEXT NOT NULL DEFAULT '*',
     "priority" INTEGER NOT NULL DEFAULT 0,
     "domainGroupId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -84,9 +86,6 @@ CREATE INDEX "DomainGroup_organizationId_idx" ON "DomainGroup"("organizationId")
 CREATE INDEX "DomainGroup_deletedAt_idx" ON "DomainGroup"("deletedAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Domain_name_key" ON "Domain"("name");
-
--- CreateIndex
 CREATE INDEX "Domain_name_idx" ON "Domain"("name");
 
 -- CreateIndex
@@ -103,6 +102,12 @@ CREATE INDEX "RedirectRule_deletedAt_idx" ON "RedirectRule"("deletedAt");
 
 -- CreateIndex
 CREATE INDEX "RedirectRule_priority_idx" ON "RedirectRule"("priority");
+
+-- CreateIndex
+CREATE INDEX "RedirectRule_domainGroupId_deletedAt_priority_createdAt_id_idx" ON "RedirectRule"("domainGroupId", "deletedAt", "priority", "createdAt", "id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RedirectRule_priority_createdAt_id_key" ON "RedirectRule"("priority", "createdAt", "id");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;

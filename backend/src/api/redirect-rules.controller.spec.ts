@@ -60,6 +60,7 @@ describe('RedirectRulesController', () => {
         destination: 'https://example.com',
         domainGroupId: 'group-1',
         statusCode: 301,
+        matchMethod: '*',
         priority: 1,
       };
 
@@ -88,6 +89,7 @@ describe('RedirectRulesController', () => {
         destination: 'https://api.new.com/$1',
         domainGroupId: 'group-1',
         statusCode: 301,
+        matchMethod: '*',
         priority: 1,
       };
 
@@ -116,6 +118,7 @@ describe('RedirectRulesController', () => {
         destination: 'https://example.com',
         domainGroupId: 'group-1',
         statusCode: 301,
+        matchMethod: '*',
         priority: 1,
       };
 
@@ -141,6 +144,7 @@ describe('RedirectRulesController', () => {
         destination: 'https://example.com',
         domainGroupId: 'non-existent',
         statusCode: 301,
+        matchMethod: '*',
         priority: 1,
       };
 

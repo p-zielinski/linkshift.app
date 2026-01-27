@@ -13,7 +13,11 @@ import { form, required, submit, FormField } from '@angular/forms/signals';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { applyZodField } from '../../core/forms/zod-validators';
-import { redirectRuleSchema, redirectRuleStatusCodes } from './redirect-rule.schemas';
+import {
+  redirectRuleSchema,
+  redirectRuleMatchMethods,
+  redirectRuleStatusCodes
+} from './redirect-rule.schemas';
 import type { RedirectRule } from '../../core/models/redirect-rule.model';
 import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
 
@@ -116,7 +120,7 @@ export class RedirectRuleFormDialogComponent {
   private readonly domainGroupStore = inject(DomainGroupStore);
 
   readonly domainGroups = this.domainGroupStore.selectList();
-  readonly statusCodes = redirectRuleStatusCodes;
+  readonly matchMethodOptions = redirectRuleMatchMethods;
   readonly rule = this.data?.rule ?? null;
   readonly isEdit = !!this.rule;
   readonly dialogTitle = computed(() => {
@@ -139,11 +143,14 @@ export class RedirectRuleFormDialogComponent {
     return this.groupMap()[groupId]?.name ?? groupId;
   });
 
+  private readonly initialStatusCode = this.rule?.statusCode ?? 302;
+
   ruleModel = signal({
     domainGroupId: this.rule?.domainGroupId ?? this.data?.domainGroupId ?? '',
     source: this.rule?.source ?? '',
     destination: this.rule?.destination ?? 'https://',
-    statusCode: String(this.rule?.statusCode ?? 302),
+    statusCode: String(this.initialStatusCode),
+    matchMethod: this.rule?.matchMethod ?? '*',
     priority: String(this.rule?.priority ?? 0)
   });
 
@@ -158,17 +165,20 @@ export class RedirectRuleFormDialogComponent {
     required(f.source);
     required(f.destination);
     required(f.statusCode);
+    required(f.matchMethod);
     required(f.priority);
     applyZodField(f.domainGroupId, redirectRuleSchema.shape.domainGroupId);
     applyZodField(f.source, redirectRuleSchema.shape.source);
     applyZodField(f.destination, redirectRuleSchema.shape.destination);
     applyZodField(f.statusCode, redirectRuleSchema.shape.statusCode);
+    applyZodField(f.matchMethod, redirectRuleSchema.shape.matchMethod);
     applyZodField(f.priority, redirectRuleSchema.shape.priority);
   });
 
   sourceError = computed(() => this.getFieldError(this.ruleForm.source()));
   destinationError = computed(() => this.getFieldError(this.ruleForm.destination()));
   statusError = computed(() => this.getFieldError(this.ruleForm.statusCode()));
+  matchMethodError = computed(() => this.getFieldError(this.ruleForm.matchMethod()));
   priorityError = computed(() => this.getFieldError(this.ruleForm.priority()));
   scopeValid = computed(
     () => this.ruleForm.domainGroupId().valid() && this.ruleForm.priority().valid()
@@ -178,6 +188,7 @@ export class RedirectRuleFormDialogComponent {
   private readonly destinationHasProtocol = computed(() =>
     /^https?:\/\//i.test(this.destinationValue())
   );
+  readonly statusCodeOptions = computed(() => redirectRuleStatusCodes);
 
   matchValid = computed(() => this.ruleForm.source().valid() && this.sourceValue().length > 0);
   destinationValid = computed(
@@ -193,6 +204,7 @@ export class RedirectRuleFormDialogComponent {
       this.matchValid() &&
       this.destinationValid() &&
       this.ruleForm.statusCode().valid() &&
+      this.ruleForm.matchMethod().valid() &&
       this.sourceValue().length > 0 &&
       this.destinationValue().length > 0
     );
@@ -231,6 +243,11 @@ export class RedirectRuleFormDialogComponent {
     if (!this.ruleForm.statusCode().valid()) {
       const message = this.getFieldErrorMessage(this.ruleForm.statusCode());
       errors.add(message ?? 'Status code is invalid.');
+    }
+
+    if (!this.ruleForm.matchMethod().valid()) {
+      const message = this.getFieldErrorMessage(this.ruleForm.matchMethod());
+      errors.add(message ?? 'Request method is invalid.');
     }
 
     if (!this.ruleForm.priority().valid()) {
@@ -512,6 +529,7 @@ export class RedirectRuleFormDialogComponent {
         source: value.source,
         destination: value.destination,
         statusCode: Number(value.statusCode),
+        matchMethod: value.matchMethod,
         priority: Number(value.priority)
       };
 
