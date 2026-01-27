@@ -1,8 +1,26 @@
-import { HttpParams } from '@angular/common/http';
+import { HttpParams, type HttpParameterCodec } from '@angular/common/http';
 import type { QueryParams } from '../models/query-params.model';
 
+class StrictHttpUrlEncodingCodec implements HttpParameterCodec {
+  encodeKey(key: string): string {
+    return encodeURIComponent(key);
+  }
+
+  encodeValue(value: string): string {
+    return encodeURIComponent(value);
+  }
+
+  decodeKey(key: string): string {
+    return decodeURIComponent(key);
+  }
+
+  decodeValue(value: string): string {
+    return decodeURIComponent(value);
+  }
+}
+
 export function buildHttpParams(params?: QueryParams): HttpParams {
-  let httpParams = new HttpParams();
+  let httpParams = new HttpParams({ encoder: new StrictHttpUrlEncodingCodec() });
 
   if (!params) {
     return httpParams;
