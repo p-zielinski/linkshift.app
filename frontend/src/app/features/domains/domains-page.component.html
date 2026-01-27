@@ -10,7 +10,7 @@
   </app-page-header>
 
   <div class="mb-4 grid gap-4 rounded-[18px] border border-app-border-soft bg-app-surface p-4">
-    <mat-form-field appearance="outline" class="w-full">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
       <mat-label>Domain group</mat-label>
       <mat-select [formField]="filterForm.domainGroupId">
         @if (domainGroups().length > 1) {

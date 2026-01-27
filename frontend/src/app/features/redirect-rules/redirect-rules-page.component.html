@@ -17,7 +17,7 @@
   <div
     class="mb-4 grid gap-4 rounded-[18px] border border-app-border-soft bg-app-surface p-4 md:grid-cols-[minmax(220px,1fr)_2fr]"
   >
-    <mat-form-field appearance="outline" class="w-full">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
       <mat-label>Domain group</mat-label>
       <mat-select [formField]="filterForm.domainGroupId">
         @for (group of domainGroups(); track group.id) {
@@ -26,7 +26,7 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="w-full">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
       <mat-label>Search source or destination</mat-label>
       <input matInput type="text" [formField]="filterForm.search" />
     </mat-form-field>
@@ -43,11 +43,11 @@
         </ng-container>
 
         <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold">ID</th>
+          <th mat-header-cell *matHeaderCellDef class="font-semibold">Id</th>
           <td mat-cell *matCellDef="let rule" class="py-3">
             <app-resource-pill
               [label]="rule.id"
-              [tooltip]="'Redirect rule ID: ' + rule.id"
+              [tooltip]="'Redirect rule Id: ' + rule.id"
             ></app-resource-pill>
           </td>
         </ng-container>

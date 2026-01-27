@@ -253,7 +253,7 @@ export class RedirectRulesPageComponent {
     const name = this.groupMap()[groupId]?.name;
     return name
       ? `Domain group: ${name} (${groupId})`
-      : `Domain group ID: ${groupId}`;
+      : `Domain group Id: ${groupId}`;
   }
 
   onPageChange(page: number): void {
