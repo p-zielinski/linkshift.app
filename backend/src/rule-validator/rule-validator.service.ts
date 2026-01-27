@@ -26,7 +26,6 @@ export class RuleValidatorService {
     'scheme',
     'ip',
     'userAgent',
-    'random',
     'geo.country',
   ];
 
@@ -119,6 +118,15 @@ export class RuleValidatorService {
     // Unwrap outer parentheses carefully
     while (this.hasOuterParentheses(trimmed)) {
       trimmed = trimmed.substring(1, trimmed.length - 1).trim();
+    }
+
+    const isUrlLike =
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('/');
+    if (isUrlLike) {
+      this.validateLeaf(trimmed, result, maxCaptureGroups);
+      return;
     }
 
     // Check for conditional logic (Top-level ternary split)
@@ -217,14 +225,14 @@ export class RuleValidatorService {
 
     if (!mock) return;
 
-    // Rule: Destination must parse to an address.
-    // We enforce starting with http://, https://, /, mailto:, or tel:
-    const allowedPrefixes = ['http://', 'https://', '/', 'mailto:', 'tel:'];
+    // Rule: Destination must parse to an external URL.
+    // We enforce starting with http:// or https:// only.
+    const allowedPrefixes = ['http://', 'https://'];
     const hasValidPrefix = allowedPrefixes.some((p) => mock.startsWith(p));
 
     if (!hasValidPrefix) {
       result.errors.push(
-        `Destination must start with 'http://', 'https://' or '/'. Found: "${destination}"`,
+        `Destination must start with 'http://' or 'https://'. Found: "${destination}"`,
       );
       return;
     }
@@ -303,6 +311,12 @@ export class RuleValidatorService {
         }
       }
     }
+
+    const randomRegex = /random\s*\(\s*([^)]+?)?\s*\)/g;
+    while ((match = randomRegex.exec(trimmed)) !== null) {
+      const args = (match[1] ?? '').trim();
+      this.validateRandomArguments(args, result);
+    }
   }
 
   /**
@@ -355,6 +369,11 @@ export class RuleValidatorService {
   private validateVariable(key: string, result: ValidationResult): void {
     if (!key) return;
 
+    if (this.isFunctionKey(key)) {
+      this.validateFunctionKey(key, result);
+      return;
+    }
+
     if (
       key.startsWith('query.') ||
       key.startsWith('segments.') ||
@@ -368,6 +387,59 @@ export class RuleValidatorService {
       const msg = `Unknown variable: "${key}".`;
       result.errors.push(
         suggestion ? `${msg} Did you mean "${suggestion}"?` : msg,
+      );
+    }
+  }
+
+  private isFunctionKey(key: string): boolean {
+    const trimmed = key.trim();
+    return (
+      /^time\s*\(\s*\)$/.test(trimmed) ||
+      /^random\s*\(\s*.*\s*\)$/.test(trimmed)
+    );
+  }
+
+  private validateFunctionKey(key: string, result: ValidationResult): void {
+    const trimmed = key.trim();
+    if (/^time\s*\(\s*\)$/.test(trimmed)) {
+      return;
+    }
+
+    const randomMatch = trimmed.match(/^random\s*\(\s*(.*?)\s*\)$/);
+    if (randomMatch) {
+      const args = (randomMatch[1] ?? '').trim();
+      this.validateRandomArguments(args, result);
+      return;
+    }
+
+    result.errors.push(`Unknown function: "${key}".`);
+  }
+
+  private validateRandomArguments(args: string, result: ValidationResult): void {
+    if (!args) {
+      return;
+    }
+
+    const parts = args.split(',').map((part) => part.trim()).filter(Boolean);
+    if (parts.length === 0 || parts.length > 2) {
+      result.errors.push(
+        `random() accepts 0, 1, or 2 numeric arguments. Received: "${args}".`,
+      );
+      return;
+    }
+
+    const hasInvalid = parts.some((part) => Number.isNaN(Number(part)));
+    if (hasInvalid) {
+      result.errors.push(
+        `random() arguments must be numbers. Received: "${args}".`,
+      );
+      return;
+    }
+
+    const hasUnsafe = parts.some((part) => !Number.isSafeInteger(Number(part)));
+    if (hasUnsafe) {
+      result.errors.push(
+        `random() arguments must be safe integers between ${Number.MIN_SAFE_INTEGER} and ${Number.MAX_SAFE_INTEGER}.`,
       );
     }
   }

@@ -154,6 +154,20 @@ describe('RedirectService', () => {
         'https://new-blog.com/posts/cool-article?from=MY-DOMAIN',
       );
     });
+
+    it('should replace multiple regex capture groups ($1, $2, $3)', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: /^\/go\/([^/]+)\/([^/]+)\/([^/]+)$/,
+          destination: 'https://example.com/$1/$2/$3',
+        },
+      ];
+
+      const req = createMockRequest('http://site.com/go/docs/api/v1');
+      const result = service.getRedirect(req, rules);
+
+      expect(result).toBe('https://example.com/docs/api/v1');
+    });
   });
 
   describe('Variable Extraction Logic', () => {
@@ -195,6 +209,113 @@ describe('RedirectService', () => {
       const req = createMockRequest('http://site.com/user/123?foo=bar');
       const result = service.getRedirect(req, rules);
       expect(result).toBe('s0=user|s1=123|q=bar');
+    });
+  });
+
+  describe('Function Placeholders', () => {
+    it('should resolve time() placeholder in destination', async () => {
+      const rules: RedirectRule[] = [
+        { source: '*', destination: 'https://site.com?ts={time()}' },
+      ];
+      const req = createMockRequest('http://test.com/');
+      const dateSpy = jest.spyOn(Date, 'now').mockReturnValue(1700000000000);
+
+      const result = service.getRedirect(req, rules);
+
+      expect(result).toBe('https://site.com?ts=1700000000000');
+      dateSpy.mockRestore();
+    });
+
+    it('should resolve time() placeholder with to_iso_string manipulator', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: 'https://site.com?ts={time():to_iso_string}',
+        },
+      ];
+      const req = createMockRequest('http://test.com/');
+      const dateSpy = jest.spyOn(Date, 'now').mockReturnValue(1700000000000);
+
+      const result = service.getRedirect(req, rules);
+
+      expect(result).toBe(
+        `https://site.com?ts=${new Date(1700000000000).toISOString()}`,
+      );
+      dateSpy.mockRestore();
+    });
+
+    it('should resolve random() placeholder in destination', async () => {
+      const rules: RedirectRule[] = [
+        { source: '*', destination: 'https://site.com?bucket={random(0,100)}' },
+      ];
+      const req = createMockRequest('http://test.com/');
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
+
+      const result = service.getRedirect(req, rules);
+
+      expect(result).toBe('https://site.com?bucket=50');
+      randomSpy.mockRestore();
+    });
+
+    it('should resolve random() placeholder with to_iso_string manipulator', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: 'https://site.com?ts={random():to_iso_string}',
+        },
+      ];
+      const req = createMockRequest('http://test.com/');
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
+
+      const result = service.getRedirect(req, rules);
+
+      expect(result).toBe(
+        `https://site.com?ts=${new Date(0).toISOString()}`,
+      );
+      randomSpy.mockRestore();
+    });
+
+    it('should use default random() range when no args are provided', async () => {
+      const rules: RedirectRule[] = [
+        { source: '*', destination: 'https://site.com?bucket={random()}' },
+      ];
+      const req = createMockRequest('http://test.com/');
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
+
+      const result = service.getRedirect(req, rules);
+
+      expect(result).toBe('https://site.com?bucket=0');
+      randomSpy.mockRestore();
+    });
+
+    it('should allow negative minimum values in random()', async () => {
+      const rules: RedirectRule[] = [
+        { source: '*', destination: 'https://site.com?bucket={random(-5,5)}' },
+      ];
+      const req = createMockRequest('http://test.com/');
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
+
+      const result = service.getRedirect(req, rules);
+
+      expect(result).toBe('https://site.com?bucket=-5');
+      randomSpy.mockRestore();
+    });
+
+    it('should apply modifiers to random() placeholder', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+            'https://site.com?bucket={random(0,9):divide_10.divide_10}',
+        },
+      ];
+      const req = createMockRequest('http://test.com/');
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.7);
+
+      const result = service.getRedirect(req, rules);
+
+      expect(result).toBe('https://site.com?bucket=0.07');
+      randomSpy.mockRestore();
     });
   });
 
@@ -291,6 +412,25 @@ describe('RedirectService', () => {
       );
     });
 
+    describe('manipulator: to_iso_string', () => {
+      it('should convert epoch milliseconds to ISO string', async () => {
+        expect(await testManipulator('to_iso_string', '0')).toBe(
+          '1970-01-01T00:00:00.000Z',
+        );
+      });
+
+      it('should fall back to now for invalid input', async () => {
+        jest.useFakeTimers().setSystemTime(new Date('2024-01-02T03:04:05Z'));
+        try {
+          expect(await testManipulator('to_iso_string', 'not-a-date')).toBe(
+            '2024-01-02T03:04:05.000Z',
+          );
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+    });
+
     describe('Math Manipulators', () => {
       it('should handle "add_10"', async () => {
         expect(await testManipulator('add_10', '5')).toBe('15');
@@ -330,78 +470,6 @@ describe('RedirectService', () => {
       it('should handle chained math: add_10 then multiply_2', async () => {
         expect(await testManipulator('add_10.multiply_2', '5')).toBe('30');
       });
-
-      describe('manipulator: random', () => {
-        let randomSpy: jest.SpyInstance;
-
-        beforeEach(() => {
-          randomSpy = jest.spyOn(Math, 'random');
-        });
-
-        afterEach(() => {
-          if (randomSpy) randomSpy.mockRestore();
-        });
-
-        it('should handle "min:max" format', async () => {
-          randomSpy.mockReturnValue(0);
-          expect(await testManipulator('random', '10:20')).toBe('10');
-
-          randomSpy.mockReturnValue(0.9999);
-          expect(await testManipulator('random', '10:20')).toBe('20');
-        });
-
-        it('should handle "max" only format (0 to max)', async () => {
-          randomSpy.mockReturnValue(0);
-          expect(await testManipulator('random', '100')).toBe('0');
-
-          randomSpy.mockReturnValue(0.9999);
-          expect(await testManipulator('random', '100')).toBe('100');
-        });
-
-        it('should swap min and max if min > max', async () => {
-          randomSpy.mockReturnValue(0);
-          expect(await testManipulator('random', '50:10')).toBe('10');
-        });
-
-        it('should handle empty input (default 0 to MAX_SAFE_INTEGER)', async () => {
-          randomSpy.mockReturnValue(0);
-          expect(await testManipulator('random', '')).toBe('0');
-
-          randomSpy.mockReturnValue(0.9999999999);
-          const result = await testManipulator('random', '');
-          expect(Number(result)).toBeGreaterThan(1000000);
-        });
-
-        it('should fallback to default for invalid formats (parsing error)', async () => {
-          randomSpy.mockReturnValue(0);
-          expect(await testManipulator('random', 'abc')).toBe('0');
-        });
-
-        it('should handle negative values and ranges', async () => {
-          randomSpy.mockReturnValue(0);
-          expect(await testManipulator('random', '-5')).toBe('-5');
-
-          randomSpy.mockReturnValue(0.9999);
-          expect(await testManipulator('random', '-5')).toBe('0');
-
-          randomSpy.mockReturnValue(0);
-          expect(await testManipulator('random', '-20:-10')).toBe('-20');
-
-          randomSpy.mockReturnValue(0.9999);
-          expect(await testManipulator('random', '-20:-10')).toBe('-10');
-
-          randomSpy.mockReturnValue(0.5);
-          expect(await testManipulator('random', '-10:10')).toBe('0');
-        });
-
-        it('should handle numbers larger than safe integer', async () => {
-          randomSpy.mockReturnValue(0.5);
-          const largeVal = '99999999999999999';
-          const result = await testManipulator('random', largeVal);
-          expect(result).not.toBe('NaN');
-          expect(Number(result)).not.toBeNaN();
-        });
-      });
     });
   });
 
@@ -439,9 +507,9 @@ describe('RedirectService', () => {
       expect(result).toBe('http://site.com/{missing_var}');
     });
 
-    it('should handle variable random correctly', async () => {
+    it('should handle random() placeholder correctly', async () => {
       const rules: RedirectRule[] = [
-        { source: '*', destination: 'Random: {random}' },
+        { source: '*', destination: 'Random: {random(0,1000000)}' },
       ];
       const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
       const req = createMockRequest('http://site.com/');
@@ -494,25 +562,57 @@ describe('RedirectService', () => {
         {
           source: '*',
           destination:
-            '{0:100:random} < 30 ? https://google.com : https://bing.com',
+            'random(0,100) < 30 ? https://google.com : https://bing.com',
         },
       ];
 
       // Case 1: Random < 30 (e.g., 29)
-      // Math.random is called TWICE: once for extractVariables (variables.random),
-      // and once for the {0:100:random} manipulator
-      randomSpy.mockReturnValueOnce(0.1); // First call (for variables.random) - ignored
-      randomSpy.mockReturnValueOnce(0.29); // Second call: 0.29 * 101 = 29.29 -> floor = 29
+      // Math.random is called twice: once for extractVariables and once for random().
+      randomSpy.mockReturnValueOnce(0.1); // extractVariables call
+      randomSpy.mockReturnValueOnce(0.29); // random(0,100) -> 29
       const req1 = createMockRequest('http://test.com');
       const result1 = await service.getRedirect(req1, rules);
       expect(result1).toBe('https://google.com');
 
       // Case 2: Random >= 30 (e.g., 50)
-      randomSpy.mockReturnValueOnce(0.1); // First call (for variables.random) - ignored
-      randomSpy.mockReturnValueOnce(0.5); // Second call: 0.5 * 101 = 50.5 -> floor = 50
+      randomSpy.mockReturnValueOnce(0.1); // extractVariables call
+      randomSpy.mockReturnValueOnce(0.5); // random(0,100) -> 50
       const req2 = createMockRequest('http://test.com');
       const result2 = await service.getRedirect(req2, rules);
       expect(result2).toBe('https://bing.com');
+    });
+
+    it('should handle nested random() conditions', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+            'random(0,9) < 5 ? (random(0,9) < 5 ? (random(0,9) < 5 ? /very-low : /low) : /mid) : /high',
+        },
+      ];
+      const req = createMockRequest('http://test.com');
+      const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.4);
+      const result = await service.getRedirect(req, rules);
+      randomSpy.mockRestore();
+      expect(result).toBe('/very-low');
+    });
+
+    it('should evaluate conditions after applying modifiers to random() placeholders', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+            '{random(0,100):divide_10} < 3 ? https://a.com : https://b.com',
+        },
+      ];
+
+      // Math.random is called twice: once for extractVariables and once for random().
+      randomSpy.mockReturnValueOnce(0.1); // extractVariables call
+      randomSpy.mockReturnValueOnce(0.2); // random(0,100) -> 20, divide_10 -> 2
+
+      const req = createMockRequest('http://test.com');
+      const result = await service.getRedirect(req, rules);
+      expect(result).toBe('https://a.com');
     });
 
     it('should route based on UserAgent regex match (~=)', async () => {
@@ -608,7 +708,7 @@ describe('RedirectService', () => {
         {
           source: '*',
           destination:
-            '(({random} >= 0) ? (({random} < 10000000) ? /in-range : /too-high) : /negative)',
+            '(random(0,1000000) >= 0) ? (random(0,1000000) < 10000000 ? /in-range : /too-high) : /negative',
         },
       ];
       const req = createMockRequest('http://test.com');
@@ -876,7 +976,7 @@ describe('RedirectService', () => {
     });
 
     it('should handle complex mixed conditions', async () => {
-      // If (path includes 'shop') AND (random < 1000001) -> /commerce
+      // If (path includes 'shop') AND (true) -> /commerce
       // Since our parser doesn't support logical AND/OR yet (&&, ||),
       // we simulate AND using nested ternaries: ConditionA ? (ConditionB ? True : False) : False
       const rules: RedirectRule[] = [
@@ -962,7 +1062,7 @@ describe('RedirectService', () => {
       await expect(
         service.createRule(organizationId, {
           source: '/foo',
-          destination: '/bar',
+          destination: 'https://example.com/bar',
           statusCode: 301,
           domainGroupId,
           priority: 1,
@@ -994,7 +1094,7 @@ describe('RedirectService', () => {
       // Act
       await service.createRule(organizationId, {
         source: '/foo',
-        destination: '/bar',
+        destination: 'https://example.com/bar',
         statusCode: 301,
         domainGroupId,
         priority: 1,

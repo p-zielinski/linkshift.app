@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { AppEntity, getEntityIdRegex } from '../utils';
 
-const ALLOWED_STATUS_CODES: number[] = [301, 302, 303, 307, 308];
+const ALLOWED_STATUS_CODES: number[] = [301, 302, 307, 308];
 
 export const CreateRedirectRuleSchema = z.object({
   source: z

@@ -38,7 +38,7 @@ export const getEntityIdRegex = (entity: AppEntity) =>
  * Generates a prefixed, collision-resistant ID (Cuid2) for a given entity.
  *
  * @param entity - The type of entity to generate the ID for.
- * @param length - The length of the random portion of the Cuid (default: 40).
+ * @param length - The length of the random portion of the Cuid (default: 24; max 32).
  * @returns A string in the format "prefix_randomString".
  */
 export const createCustomCuid = (entity: AppEntity, length = 24) => {

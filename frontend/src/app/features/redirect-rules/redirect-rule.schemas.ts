@@ -1,13 +1,17 @@
 import { z } from 'zod';
 
-const statusCodes = [301, 302, 303, 307, 308];
+const statusCodes = [301, 302, 307, 308];
 
 export const redirectRuleSchema = z.object({
   source: z.string().min(1, 'Source is required').max(16384, 'Source is too long'),
   destination: z
     .string()
     .min(1, 'Destination is required')
-    .max(16384, 'Destination is too long'),
+    .max(16384, 'Destination is too long')
+    .refine(
+      (value) => /^https?:\/\/.+/i.test(value.trim()),
+      'Destination must be a full URL starting with http:// or https://'
+    ),
   statusCode: z
     .coerce
     .number({ invalid_type_error: 'Status code must be a number' })

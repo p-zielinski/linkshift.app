@@ -1,46 +1,33 @@
 <div class="wizard-shell flex h-full flex-col gap-4 p-6">
   <div class="flex items-start justify-between gap-4">
     <div class="grid gap-1">
-      <h3 class="m-0 text-lg font-semibold">{{ dialogTitle }}</h3>
+      <h3 class="m-0 text-lg font-semibold">{{ dialogTitle() }}</h3>
       <p class="m-0 text-sm text-app-muted">{{ subtitle }}</p>
     </div>
-    <button mat-icon-button type="button" aria-label="Close" (click)="onCancel()">
-      <mat-icon>close</mat-icon>
-    </button>
+    <div class="flex items-center gap-2">
+      <button mat-stroked-button type="button" (click)="toggleWizardMode()">
+        {{ wizardMode() === 'guided' ? 'Switch to fast' : 'Switch to guided' }}
+      </button>
+      <button mat-icon-button type="button" aria-label="Close" (click)="onCancel()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
   </div>
 
   <form class="min-h-0 flex-1" (submit)="onSubmit($event)">
-    <mat-stepper #stepper class="wizard-stepper h-full" indicatorType="number">
-      <ng-template matStepperIcon="done" let-index="index">
-        {{ index + 1 }}
-      </ng-template>
-      <ng-template matStepperIcon="edit" let-index="index">
-        {{ index + 1 }}
-      </ng-template>
+    @if (wizardMode() === 'guided') {
+      <mat-stepper #stepper class="wizard-stepper h-full" indicatorType="number">
+        <ng-template matStepperIcon="done" let-index="index">
+          {{ index + 1 }}
+        </ng-template>
+        <ng-template matStepperIcon="edit" let-index="index">
+          {{ index + 1 }}
+        </ng-template>
 
       <mat-step [completed]="scopeValid()">
         <ng-template matStepLabel>Scope</ng-template>
         <div class="mt-4 grid gap-4">
-          @if (isEdit) {
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Domain group</mat-label>
-              <input matInput type="text" [value]="selectedGroupLabel()" readonly />
-              <mat-hint>Domain group cannot be changed after creation.</mat-hint>
-            </mat-form-field>
-          } @else {
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Domain group</mat-label>
-              <mat-select [formField]="ruleForm.domainGroupId">
-                @for (group of domainGroups(); track group.id) {
-                  <mat-option [value]="group.id">{{ group.name }}</mat-option>
-                }
-              </mat-select>
-              <mat-hint>Rules only apply to domains in this group.</mat-hint>
-              @if (groupError(); as error) {
-                <mat-error>{{ error }}</mat-error>
-              }
-            </mat-form-field>
-          }
+          <input type="hidden" [formField]="ruleForm.domainGroupId" />
 
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Priority</mat-label>
@@ -52,8 +39,7 @@
           </mat-form-field>
         </div>
 
-        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <button mat-stroked-button type="button" (click)="onCancel()">Cancel</button>
+        <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
           <button
             mat-flat-button
             color="primary"
@@ -92,21 +78,30 @@
                 <span class="font-mono">*</span>
               </div>
               <div class="grid gap-1">
-                <span class="font-semibold text-app-text">Regex capture (keep part of the path)</span>
-                <span class="font-mono">Source: /^\/blog\/(.+)$/</span>
-                <span class="font-mono">Request: /blog/hello-world</span>
-                <span class="font-mono">Destination: /posts/$1 → /posts/hello-world</span>
+                <span class="font-semibold text-app-text">Regex capture groups ($1, $2, ...)</span>
+                <span class="font-mono">Source: /^\/go\/([^/]+)\/([^/]+)$/</span>
+                <span class="font-mono">Request: /go/docs/api</span>
+                <span class="font-mono">
+                  Destination: https://docs.example.com/target/$1/$2 → https://docs.example.com/target/docs/api
+                </span>
+                <span class="text-app-muted">
+                  Works only when Source is a regex. $1 is the first capture group, $2 is the second.
+                </span>
               </div>
               <div class="grid gap-1">
-                <span class="font-semibold text-app-text">Forward the rest of the path</span>
-                <span class="font-mono">Source: /^\/go\/(.+)$/</span>
+                <span class="font-semibold text-app-text">Segments indexing (no regex)</span>
+                <span class="font-mono">Source: /go/docs</span>
                 <span class="font-mono">Request: /go/docs</span>
-                <span class="font-mono">Destination: /target/$1 → /target/docs</span>
+                <span class="font-mono">
+                  Destination: https://docs.example.com/target/{{ '{' }}segments.1{{ '}' }} →
+                  https://docs.example.com/target/docs
+                </span>
               </div>
               <div class="grid gap-1">
                 <span class="font-semibold text-app-text">Query forwarding</span>
+                <span class="font-mono">Source: /go</span>
                 <span class="font-mono">
-                  /go → https://target.com?ref={{ '{' }}query.ref{{ '}' }}
+                  Destination: https://target.com?ref={{ '{' }}query.ref{{ '}' }}
                 </span>
               </div>
             </div>
@@ -134,8 +129,7 @@
             <mat-label>Destination</mat-label>
             <input matInput type="text" [formField]="ruleForm.destination" />
             <mat-hint>
-              Must start with <code>http://</code>, <code>https://</code>, <code>/</code>, <code>mailto:</code>,
-              or <code>tel:</code>.
+              Must start with <code>http://</code> or <code>https://</code>.
             </mat-hint>
             @if (destinationError(); as error) {
               <mat-error>{{ error }}</mat-error>
@@ -146,7 +140,7 @@
             <mat-expansion-panel>
               <mat-expansion-panel-header>
                 <mat-panel-title>Variables</mat-panel-title>
-                <mat-panel-description>Use <code>{{ '{' }}variable{{ '}' }}</code> to insert values.</mat-panel-description>
+                <mat-panel-description>Use &nbsp;<code>{{ '{' }}variable{{ '}' }}</code>&nbsp; to insert values.</mat-panel-description>
               </mat-expansion-panel-header>
               <div class="grid gap-3 text-xs">
                 @for (item of variableReferences; track item.token) {
@@ -170,9 +164,8 @@
               </mat-expansion-panel-header>
               <div class="grid gap-3 text-xs">
                 <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-app-muted">
-                  Random can be used without a variable:
-                  <span class="font-mono">{{ '{' }}0:100:random{{ '}' }}</span>.
-                  It picks a number between 0 and 100.
+                  Modifiers can also be used on functions, e.g.
+                  <span class="font-mono">{{ '{' }}time():to_iso_string{{ '}' }}</span>.
                 </div>
                 @for (item of manipulatorReferences; track item.token) {
                   <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
@@ -203,23 +196,32 @@
                     </div>
                   }
                 </div>
-                <div class="grid gap-3 text-xs">
-                  @for (item of functionReferences; track item.token) {
-                    <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
-                      <div class="flex flex-wrap items-center gap-2">
-                        <span class="font-mono font-semibold">{{ item.token }}</span>
-                        <span class="text-app-muted">{{ item.description }}</span>
-                      </div>
-                      <div class="mt-1 font-mono text-app-muted">Example: {{ item.example }}</div>
-                    </div>
-                  }
-                </div>
                 <div
                   class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted"
                 >
                   Example:
-                  <span class="ml-2 font-mono">{{ '{' }}geo.country{{ '}' }} == 'PL' ? /pl : /en</span>
+                  <span class="ml-2 font-mono">
+                    {{ '{' }}geo.country{{ '}' }} == 'PL' ? https://example.com/pl : https://example.com/en
+                  </span>
                 </div>
+              </div>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel>
+              <mat-expansion-panel-header>
+                <mat-panel-title>Functions</mat-panel-title>
+                <mat-panel-description>Use functions in placeholders or conditions.</mat-panel-description>
+              </mat-expansion-panel-header>
+              <div class="grid gap-3 text-xs">
+                @for (item of functionReferences; track item.token) {
+                  <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="font-mono font-semibold">{{ item.token }}</span>
+                      <span class="text-app-muted">{{ item.description }}</span>
+                    </div>
+                    <div class="mt-1 font-mono text-app-muted">Example: {{ item.example }}</div>
+                  </div>
+                }
               </div>
             </mat-expansion-panel>
           </mat-accordion>
@@ -228,12 +230,13 @@
             <div class="font-semibold text-app-text">Destination examples</div>
             <div class="mt-2 grid gap-2 font-mono">
               <span>https://example.com/{{ '{' }}path{{ '}' }}</span>
-              <span>/promo/{{ '{' }}segments.0{{ '}' }}</span>
+              <span>https://example.com/promo/{{ '{' }}segments.0{{ '}' }}</span>
               <span>
                 https://site.com?utm={{ '{' }}query.utm{{ '}' }}&amp;src={{ '{' }}domain.root{{ '}' }}
               </span>
+              <span>https://site.com?ts={{ '{' }}time():to_iso_string{{ '}' }}</span>
               <span>
-                {{ '{' }}0:100:random{{ '}' }} &lt; 30 ? https://a.com : https://b.com
+                random(0,100) &lt; 30 ? https://a.com : https://b.com
               </span>
             </div>
           </div>
@@ -253,9 +256,18 @@
         </div>
       </mat-step>
 
-      <mat-step>
-        <ng-template matStepLabel>Summary</ng-template>
+      <mat-step [completed]="statusValid()">
+        <ng-template matStepLabel>Status code</ng-template>
         <div class="mt-4 grid gap-4">
+          <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+            <div class="font-semibold text-app-text">What this means</div>
+            <div class="mt-2 grid gap-2">
+              <span>302 is the default and safest for most cases.</span>
+              <span>301/308 tell browsers and search engines to cache the redirect.</span>
+              <span>307/308 preserve the HTTP method (POST stays POST).</span>
+            </div>
+          </div>
+
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Status code</mat-label>
             <mat-select [formField]="ruleForm.statusCode">
@@ -263,12 +275,29 @@
                 <mat-option [value]="code.toString()">{{ code }}</mat-option>
               }
             </mat-select>
-            <mat-hint>Note: backend redirects with 302 today.</mat-hint>
             @if (statusError(); as error) {
               <mat-error>{{ error }}</mat-error>
             }
           </mat-form-field>
+        </div>
 
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <button mat-stroked-button type="button" (click)="stepper.previous()">Back</button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="!statusValid()"
+            (click)="stepper.next()"
+          >
+            Next
+          </button>
+        </div>
+      </mat-step>
+
+      <mat-step>
+        <ng-template matStepLabel>Summary</ng-template>
+        <div class="mt-4 grid gap-4">
           <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4 text-sm">
             <div class="mb-3 text-sm font-semibold">Summary</div>
             <div class="grid gap-2">
@@ -298,17 +327,91 @@
 
         <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
           <button mat-stroked-button type="button" (click)="stepper.previous()">Back</button>
-          <button
-            mat-flat-button
-            color="primary"
-            type="submit"
-            [disabled]="!canSubmit() || ruleForm().submitting()"
+          <span
+            class="inline-flex"
+            [matTooltip]="submitTooltip()"
+            [matTooltipDisabled]="!submitDisabled() || !submitTooltip()"
+            matTooltipClass="wizard-tooltip"
           >
-            <mat-icon>{{ isEdit ? 'save' : 'add' }}</mat-icon>
-            <span>{{ submitLabel }}</span>
-          </button>
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="submitDisabled()"
+              [class.opacity-60]="submitDisabled()"
+              [class.cursor-not-allowed]="submitDisabled()"
+            >
+              <mat-icon>{{ isEdit ? 'save' : 'add' }}</mat-icon>
+              <span>{{ submitLabel }}</span>
+            </button>
+          </span>
         </div>
       </mat-step>
-    </mat-stepper>
+      </mat-stepper>
+    } @else {
+      <div class="grid gap-4">
+        <input type="hidden" [formField]="ruleForm.domainGroupId" />
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Source</mat-label>
+          <input matInput type="text" [formField]="ruleForm.source" />
+          <mat-hint>Use an exact path, <code>/pattern/flags</code> regex, or <code>*</code>.</mat-hint>
+          @if (sourceError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Destination</mat-label>
+          <input matInput type="text" [formField]="ruleForm.destination" />
+          <mat-hint>Must start with <code>http://</code> or <code>https://</code>.</mat-hint>
+          @if (destinationError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Status code</mat-label>
+          <mat-select [formField]="ruleForm.statusCode">
+            @for (code of statusCodes; track code) {
+              <mat-option [value]="code.toString()">{{ code }}</mat-option>
+            }
+          </mat-select>
+          @if (statusError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Priority</mat-label>
+          <input matInput type="number" [formField]="ruleForm.priority" />
+          <mat-hint>Higher priority rules are evaluated first (0-1000).</mat-hint>
+          @if (priorityError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
+          <span
+            class="inline-flex"
+            [matTooltip]="submitTooltip()"
+            [matTooltipDisabled]="!submitDisabled() || !submitTooltip()"
+            matTooltipClass="wizard-tooltip"
+          >
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="submitDisabled()"
+              [class.opacity-60]="submitDisabled()"
+              [class.cursor-not-allowed]="submitDisabled()"
+            >
+              <mat-icon>{{ isEdit ? 'save' : 'add' }}</mat-icon>
+              <span>{{ submitLabel }}</span>
+            </button>
+          </span>
+        </div>
+      </div>
+    }
   </form>
 </div>

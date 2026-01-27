@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { form, required, submit, FormField } from '@angular/forms/signals';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
@@ -14,6 +15,11 @@ import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { redirectRuleSchema, redirectRuleStatusCodes } from './redirect-rule.schemas';
 import type { RedirectRule } from '../../core/models/redirect-rule.model';
+import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
+
+type WizardMode = 'guided' | 'fast';
+
+const WIZARD_MODE_KEY = 'redirectRulesWizardMode';
 
 export type RedirectRuleDialogData = {
   domainGroupId?: string;
@@ -33,6 +39,7 @@ export type RedirectRuleDialogData = {
     MatSelectModule,
     MatStepperModule,
     MatExpansionModule,
+    MatTooltipModule,
     FormField
   ],
   templateUrl: './redirect-rule-form-dialog.component.html',
@@ -95,6 +102,10 @@ export type RedirectRuleDialogData = {
       :host ::ng-deep .wizard-stepper .mat-stepper-horizontal-line {
         display: none;
       }
+
+      :host ::ng-deep .wizard-tooltip {
+        white-space: pre-line;
+      }
     `
   ]
 })
@@ -108,7 +119,10 @@ export class RedirectRuleFormDialogComponent {
   readonly statusCodes = redirectRuleStatusCodes;
   readonly rule = this.data?.rule ?? null;
   readonly isEdit = !!this.rule;
-  readonly dialogTitle = this.isEdit ? 'Edit redirect rule' : 'Create redirect rule';
+  readonly dialogTitle = computed(() => {
+    const title = this.isEdit ? 'Edit redirect rule' : 'Create redirect rule';
+    return `${title} for domain group ${this.selectedGroupLabel()}`;
+  });
   readonly submitLabel = this.isEdit ? 'Save' : 'Create';
   readonly subtitle = this.isEdit
     ? 'Update how this rule matches requests and routes traffic.'
@@ -128,10 +142,16 @@ export class RedirectRuleFormDialogComponent {
   ruleModel = signal({
     domainGroupId: this.rule?.domainGroupId ?? this.data?.domainGroupId ?? '',
     source: this.rule?.source ?? '',
-    destination: this.rule?.destination ?? '',
+    destination: this.rule?.destination ?? 'https://',
     statusCode: String(this.rule?.statusCode ?? 302),
     priority: String(this.rule?.priority ?? 0)
   });
+
+  readonly wizardMode = signal<WizardMode>('guided');
+  readonly pendingSubmit = signal(false);
+  private readonly submitKey = signal(CREATE_ENTITY_ID);
+  private readonly submitErrorSequence = signal(0);
+  private readonly submitLoadingSeen = signal(false);
 
   ruleForm = form(this.ruleModel, (f) => {
     required(f.domainGroupId);
@@ -146,7 +166,6 @@ export class RedirectRuleFormDialogComponent {
     applyZodField(f.priority, redirectRuleSchema.shape.priority);
   });
 
-  groupError = computed(() => this.getFieldError(this.ruleForm.domainGroupId()));
   sourceError = computed(() => this.getFieldError(this.ruleForm.source()));
   destinationError = computed(() => this.getFieldError(this.ruleForm.destination()));
   statusError = computed(() => this.getFieldError(this.ruleForm.statusCode()));
@@ -154,19 +173,72 @@ export class RedirectRuleFormDialogComponent {
   scopeValid = computed(
     () => this.ruleForm.domainGroupId().valid() && this.ruleForm.priority().valid()
   );
-  matchValid = computed(() => this.ruleForm.source().valid());
-  destinationValid = computed(() => this.ruleForm.destination().valid());
-  behaviorValid = computed(() => this.ruleForm.statusCode().valid());
+  private readonly sourceValue = computed(() => this.ruleModel().source.trim());
+  private readonly destinationValue = computed(() => this.ruleModel().destination.trim());
+  private readonly destinationHasProtocol = computed(() =>
+    /^https?:\/\//i.test(this.destinationValue())
+  );
+
+  matchValid = computed(() => this.ruleForm.source().valid() && this.sourceValue().length > 0);
+  destinationValid = computed(
+    () =>
+      this.ruleForm.destination().valid() &&
+      this.destinationValue().length > 0 &&
+      this.destinationHasProtocol()
+  );
+  statusValid = computed(() => this.ruleForm.statusCode().valid());
   canSubmit = computed(() => {
-    const { source, destination } = this.ruleModel();
     return (
       this.scopeValid() &&
       this.matchValid() &&
       this.destinationValid() &&
-      this.behaviorValid() &&
-      source.trim().length > 0 &&
-      destination.trim().length > 0
+      this.ruleForm.statusCode().valid() &&
+      this.sourceValue().length > 0 &&
+      this.destinationValue().length > 0
     );
+  });
+  readonly submitDisabled = computed(
+    () => !this.canSubmit() || this.ruleForm().submitting() || this.pendingSubmit()
+  );
+  readonly submitTooltip = computed(() => {
+    const errors = new Set<string>();
+
+    if (this.pendingSubmit() || this.ruleForm().submitting()) {
+      errors.add('Saving in progress...');
+    }
+    if (!this.ruleForm.domainGroupId().valid()) {
+      errors.add('Domain group is missing.');
+    }
+
+    const sourceValue = this.sourceValue();
+    if (!sourceValue) {
+      errors.add('Source is required.');
+    } else if (!this.ruleForm.source().valid()) {
+      const message = this.getFieldErrorMessage(this.ruleForm.source());
+      errors.add(message ?? 'Source is invalid.');
+    }
+
+    const destinationValue = this.destinationValue();
+    if (!destinationValue) {
+      errors.add('Destination is required.');
+    } else if (!this.destinationHasProtocol()) {
+      errors.add('Destination must be a full URL starting with http:// or https://.');
+    } else if (!this.ruleForm.destination().valid()) {
+      const message = this.getFieldErrorMessage(this.ruleForm.destination());
+      errors.add(message ?? 'Destination is invalid.');
+    }
+
+    if (!this.ruleForm.statusCode().valid()) {
+      const message = this.getFieldErrorMessage(this.ruleForm.statusCode());
+      errors.add(message ?? 'Status code is invalid.');
+    }
+
+    if (!this.ruleForm.priority().valid()) {
+      const message = this.getFieldErrorMessage(this.ruleForm.priority());
+      errors.add(message ?? 'Priority is invalid.');
+    }
+
+    return Array.from(errors).join('\n');
   });
 
   readonly variableReferences = [
@@ -183,17 +255,17 @@ export class RedirectRuleFormDialogComponent {
     {
       token: 'domain.root',
       description: 'Root label only.',
-      example: '?brand={domain.root}'
+      example: 'https://store.example.com?brand={domain.root}'
     },
     {
       token: 'domain.extension',
       description: 'TLD like com/pl.',
-      example: '?tld={domain.extension}'
+      example: 'https://example.com?tld={domain.extension}'
     },
     {
       token: 'domain.subdomain',
       description: 'Subdomain portion only.',
-      example: '/tenant/{domain.subdomain}'
+      example: 'https://example.com/tenant/{domain.subdomain}'
     },
     {
       token: 'path',
@@ -203,7 +275,7 @@ export class RedirectRuleFormDialogComponent {
     {
       token: 'segments.0',
       description: 'Path segment by index.',
-      example: '/category/{segments.0}'
+      example: 'https://example.com/category/{segments.0}'
     },
     {
       token: 'query.ref',
@@ -213,37 +285,32 @@ export class RedirectRuleFormDialogComponent {
     {
       token: 'domain.subdomains.0',
       description: 'Subdomain by index.',
-      example: '/region/{domain.subdomains.0}'
+      example: 'https://example.com/region/{domain.subdomains.0}'
     },
     {
       token: 'method',
       description: 'HTTP method.',
-      example: '/route/{method}'
+      example: 'https://example.com/route/{method}'
     },
     {
       token: 'scheme',
       description: 'Protocol (http/https).',
-      example: '{scheme}://example.com'
+      example: 'https://example.com?proto={scheme}'
     },
     {
       token: 'ip',
       description: 'Client IP address.',
-      example: '/audit?ip={ip}'
+      example: 'https://example.com/audit?ip={ip}'
     },
     {
       token: 'userAgent',
       description: 'User-Agent header.',
-      example: '/ua/{userAgent}'
-    },
-    {
-      token: 'random',
-      description: 'Random 0-1,000,000.',
-      example: '?bucket={random}'
+      example: 'https://example.com/ua/{userAgent}'
     },
     {
       token: 'geo.country',
       description: 'Country code (PL/US).',
-      example: '/{geo.country}/pricing'
+      example: 'https://example.com/{geo.country}/pricing'
     }
   ];
 
@@ -274,6 +341,11 @@ export class RedirectRuleFormDialogComponent {
       example: '{path:base64_encode}'
     },
     {
+      token: 'to_iso_string',
+      description: 'Convert a timestamp to ISO string.',
+      example: '{time():to_iso_string}'
+    },
+    {
       token: 'auto_trailing_slash',
       description: 'Ensure trailing slash.',
       example: '{path:auto_trailing_slash}'
@@ -302,11 +374,6 @@ export class RedirectRuleFormDialogComponent {
       token: 'round',
       description: 'Round number.',
       example: '{query.amount:round}'
-    },
-    {
-      token: 'random',
-      description: 'Random based on input.',
-      example: '{0:100:random}'
     }
   ];
 
@@ -324,12 +391,12 @@ export class RedirectRuleFormDialogComponent {
     {
       token: '<',
       description: 'Less than',
-      example: '{0:100:random} < 30'
+      example: 'random(0,100) < 30'
     },
     {
       token: '>',
       description: 'Greater than',
-      example: '{random} > 500000'
+      example: 'random(0,100) > 70'
     },
     {
       token: '<=',
@@ -356,8 +423,13 @@ export class RedirectRuleFormDialogComponent {
   readonly functionReferences = [
     {
       token: 'time()',
-      description: 'Current time in milliseconds.',
+      description: 'Current time in milliseconds (use :to_iso_string for ISO).',
       example: 'time() > datetime("2024-01-01")'
+    },
+    {
+      token: 'random(0,100)',
+      description: 'Random number in range (0-100).',
+      example: 'random(0,100) < 30'
     },
     {
       token: "datetime('2024-01-01', 'Europe/Warsaw')",
@@ -368,6 +440,68 @@ export class RedirectRuleFormDialogComponent {
 
   constructor() {
     this.domainGroupStore.searchList();
+    this.restoreWizardMode();
+
+    effect(
+      () => {
+        if (!this.pendingSubmit()) {
+          return;
+        }
+
+        const key = this.submitKey();
+        const loading = this.redirectRuleStore.isLoading()[key] ?? false;
+        if (loading) {
+          if (!this.submitLoadingSeen()) {
+            this.submitLoadingSeen.set(true);
+          }
+          return;
+        }
+
+        if (!this.submitLoadingSeen()) {
+          return;
+        }
+
+        const hadError = this.redirectRuleStore.errorSequence() !== this.submitErrorSequence();
+        this.pendingSubmit.set(false);
+        this.submitLoadingSeen.set(false);
+        this.submitKey.set(CREATE_ENTITY_ID);
+
+        if (!hadError) {
+          this.dialogRef.close(true);
+        }
+      },
+      { allowSignalWrites: true }
+    );
+  }
+
+  toggleWizardMode(): void {
+    const next: WizardMode = this.wizardMode() === 'guided' ? 'fast' : 'guided';
+    this.wizardMode.set(next);
+    this.persistWizardMode(next);
+  }
+
+  private restoreWizardMode(): void {
+    try {
+      const stored =
+        typeof window !== 'undefined'
+          ? window.localStorage.getItem(WIZARD_MODE_KEY)
+          : null;
+      if (stored === 'fast' || stored === 'guided') {
+        this.wizardMode.set(stored);
+      }
+    } catch {
+      // Ignore storage errors and keep default.
+    }
+  }
+
+  private persistWizardMode(mode: WizardMode): void {
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(WIZARD_MODE_KEY, mode);
+      }
+    } catch {
+      // Ignore storage errors.
+    }
   }
 
   async onSubmit(event?: Event): Promise<void> {
@@ -380,6 +514,12 @@ export class RedirectRuleFormDialogComponent {
         statusCode: Number(value.statusCode),
         priority: Number(value.priority)
       };
+
+      const key = this.isEdit && this.rule ? this.rule.id : CREATE_ENTITY_ID;
+      this.submitKey.set(key);
+      this.submitErrorSequence.set(this.redirectRuleStore.errorSequence());
+      this.submitLoadingSeen.set(false);
+      this.pendingSubmit.set(true);
 
       if (this.isEdit && this.rule) {
         this.redirectRuleStore.upsert({
@@ -394,7 +534,6 @@ export class RedirectRuleFormDialogComponent {
           }
         });
       }
-      this.dialogRef.close(true);
       return undefined;
     });
   }
@@ -414,5 +553,15 @@ export class RedirectRuleFormDialogComponent {
     }
 
     return errors[0].message ?? 'Invalid value';
+  }
+
+  private getFieldErrorMessage(field: any): string | null {
+    const errors = field.errors?.();
+    if (!errors || errors.length === 0) {
+      return null;
+    }
+
+    const message = errors[0].message ?? 'Invalid value';
+    return message === 'Invalid value' ? null : message;
   }
 }

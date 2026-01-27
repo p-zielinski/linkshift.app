@@ -630,7 +630,7 @@ export class RedirectService {
     // 4. Create
     const rule = await this.prisma.redirectRule.create({
       data: {
-        id: createCustomCuid(AppEntity.RedirectRule, 40),
+        id: createCustomCuid(AppEntity.RedirectRule, 32),
         source: data.source,
         destination: data.destination,
         statusCode: data.statusCode,
@@ -738,15 +738,77 @@ export class RedirectService {
     url_encode: (val) => encodeURIComponent(val),
     url_decode: (val) => decodeURIComponent(val),
     base64_encode: (val) => Buffer.from(val).toString('base64'),
+    to_iso_string: (val) => RedirectService.toIsoString(val),
     auto_trailing_slash: (val) => (val && !val.endsWith('/') ? `${val}/` : val),
     // Math manipulators
     multiply_10: (val) => String(Number(val || 0) * 10),
-    divide_10: (val) => String(Number(val || 0) / 10),
+    divide_10: (val) => RedirectService.divideByTen(val),
     add_10: (val) => String(Number(val || 0) + 10),
     multiply_2: (val) => String(Number(val || 0) * 2),
-    random: RedirectService.processRandom,
     round: (val) => String(Math.round(Number(val || 0))),
   };
+
+  private static divideByTen(value: string): string {
+    const normalized = String(value ?? '').trim();
+    if (!normalized) {
+      return '0';
+    }
+
+    const sign = normalized.startsWith('-') ? '-' : '';
+    const unsigned = sign ? normalized.slice(1) : normalized;
+
+    if (!/^\d+(\.\d+)?$/.test(unsigned)) {
+      return String(Number(value || 0) / 10);
+    }
+
+    const [intPart, fracPart = ''] = unsigned.split('.');
+    const digits = `${intPart}${fracPart}`;
+    if (!digits) {
+      return '0';
+    }
+
+    const newIndex = intPart.length - 1;
+    let result: string;
+    if (newIndex <= 0) {
+      const zeros = '0'.repeat(Math.abs(newIndex));
+      result = `0.${zeros}${digits}`;
+    } else {
+      result = `${digits.slice(0, newIndex)}.${digits.slice(newIndex)}`;
+    }
+
+    const [resInt, resFrac = ''] = result.split('.');
+    const trimmedFrac = resFrac.replace(/0+$/, '');
+    const normalizedResult = trimmedFrac ? `${resInt}.${trimmedFrac}` : resInt;
+    if (!normalizedResult || normalizedResult === '0') {
+      return '0';
+    }
+
+    return sign ? `${sign}${normalizedResult}` : normalizedResult;
+  }
+
+  private static toIsoString(value: string): string {
+    const trimmed = String(value ?? '').trim();
+    const nowIso = new Date().toISOString();
+
+    if (!trimmed) {
+      return nowIso;
+    }
+
+    const numeric = Number(trimmed);
+    if (Number.isFinite(numeric)) {
+      const date = new Date(numeric);
+      if (!Number.isNaN(date.getTime())) {
+        return date.toISOString();
+      }
+    }
+
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+
+    return nowIso;
+  }
 
   /**
    * Retrieves the full redirect context (Domain, Group, Rules) for a hostname.
@@ -990,6 +1052,14 @@ export class RedirectService {
     // Remove outer parentheses if they wrap the entire expression
     while (this.hasOuterParentheses(trimmed)) {
       trimmed = trimmed.substring(1, trimmed.length - 1).trim();
+    }
+
+    const isUrlLike =
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('/');
+    if (isUrlLike) {
+      return trimmed;
     }
 
     // Simple check if it might be a conditional
@@ -1253,7 +1323,17 @@ export class RedirectService {
       return Date.now();
     }
 
-    // 2. Check for datetime('date', 'timezone'?)
+    // 2. Check for random()
+    const randomMatch = trimmed.match(/^random\s*\(\s*(.*?)\s*\)$/);
+    if (randomMatch) {
+      const randomInput = this.buildRandomInput(randomMatch[1]?.trim() ?? '');
+      if (randomInput === null) {
+        return NaN;
+      }
+      return Number(RedirectService.processRandom(randomInput));
+    }
+
+    // 3. Check for datetime('date', 'timezone'?)
     const dtMatch = trimmed.match(
       /^datetime\s*\(\s*(['"])(.*?)\1\s*(?:,\s*(['"])(.*?)\3)?\s*\)$/,
     );
@@ -1279,7 +1359,7 @@ export class RedirectService {
       return parsed.valueOf();
     }
 
-    // 3. Remove surrounding quotes for strings
+    // 4. Remove surrounding quotes for strings
     if (
       (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
       (trimmed.startsWith("'") && trimmed.endsWith("'"))
@@ -1287,13 +1367,13 @@ export class RedirectService {
       return trimmed.substring(1, trimmed.length - 1);
     }
 
-    // 4. Try parsing as number - MUST be before returning trimmed
+    // 5. Try parsing as number - MUST be before returning trimmed
     const num = Number(trimmed);
     if (!isNaN(num)) {
       return num; // Return number, not trimmed string!
     }
 
-    // 5. Return as string if not a number
+    // 6. Return as string if not a number
     return trimmed;
   }
 
@@ -1315,6 +1395,13 @@ export class RedirectService {
             : content.substring(lastColonIndex + 1);
 
         let value = key ? variables[key] : '';
+
+        if (value === undefined && key) {
+          const functionValue = this.resolveFunctionValue(key);
+          if (functionValue !== undefined) {
+            value = functionValue;
+          }
+        }
 
         if (value === undefined && modifierChain) {
           value = key;
@@ -1348,6 +1435,52 @@ export class RedirectService {
       this.logger.warn(`Unknown manipulator: ${mod}`);
       return acc;
     }, initialValue);
+  }
+
+  private resolveFunctionValue(key: string): string | undefined {
+    const trimmed = key.trim();
+
+    if (/^time\s*\(\s*\)$/.test(trimmed)) {
+      return String(Date.now());
+    }
+
+    const randomMatch = trimmed.match(/^random\s*\(\s*(.*?)\s*\)$/);
+    if (randomMatch) {
+      const randomInput = this.buildRandomInput(randomMatch[1]?.trim() ?? '');
+      if (randomInput === null) {
+        return undefined;
+      }
+      return RedirectService.processRandom(randomInput);
+    }
+
+    return undefined;
+  }
+
+  private buildRandomInput(args: string): string | null {
+    if (!args) {
+      return '';
+    }
+
+    const parts = args
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean);
+    if (parts.length === 0 || parts.length > 2) {
+      return null;
+    }
+
+    const parsedParts: number[] = [];
+    for (const part of parts) {
+      const parsed = Number(part);
+      if (!Number.isSafeInteger(parsed)) {
+        return null;
+      }
+      parsedParts.push(parsed);
+    }
+
+    return parsedParts.length === 1
+      ? String(parsedParts[0])
+      : `${parsedParts[0]}:${parsedParts[1]}`;
   }
 
   /**
