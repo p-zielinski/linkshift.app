@@ -238,13 +238,26 @@ export class RedirectService {
     }
 
     // 3. Create
-    const domain = await this.prisma.domain.create({
-      data: {
-        id: createCustomCuid(AppEntity.Domain),
-        name: data.name,
-        domainGroupId: data.domainGroupId,
-      },
-    });
+    let domain: Domain;
+    try {
+      domain = await this.prisma.domain.create({
+        data: {
+          id: createCustomCuid(AppEntity.Domain),
+          name: data.name,
+          domainGroupId: data.domainGroupId,
+        },
+      });
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        return throwHttpException(
+          new ConflictError({
+            details: `Domain name ${data.name} already exists`,
+            requestId: this.clsService.getId(),
+          }),
+        );
+      }
+      throw error;
+    }
 
     await this.invalidateDomainCache({
       type: InvalidationTargetType.HOSTNAME,
@@ -316,10 +329,24 @@ export class RedirectService {
     }
 
     // 4. Update
-    const domain = await this.prisma.domain.update({
-      where: { id },
-      data: { ...data, updatedAt: new Date() },
-    });
+    let domain: Domain;
+    try {
+      domain = await this.prisma.domain.update({
+        where: { id },
+        data: { ...data, updatedAt: new Date() },
+      });
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        const attemptedName = data.name ?? existing.name;
+        return throwHttpException(
+          new ConflictError({
+            details: `Domain name ${attemptedName} already exists`,
+            requestId: this.clsService.getId(),
+          }),
+        );
+      }
+      throw error;
+    }
 
     // We invalidate both in case name changed
     await this.invalidateDomainCache({
@@ -1355,4 +1382,11 @@ export class RedirectService {
 
     return String(Math.floor(Math.random() * (max - min + 1)) + min);
   }
+}
+
+function isUniqueConstraintError(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2002'
+  );
 }

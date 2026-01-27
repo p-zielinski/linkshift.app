@@ -65,7 +65,7 @@ model DomainGroup {
 // Domain entity - individual hostname (e.g., google.com, www.google.com)
 model Domain {
   id            String   @id
-  name          String   @unique // Hostname must be unique globally
+  name          String   // Hostname must be unique among active domains
   domainGroupId String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

@@ -17,6 +17,7 @@ import { TablePaginatorComponent } from '../../shared/components/table-paginator
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { RedirectRuleFormDialogComponent } from './redirect-rule-form-dialog.component';
+import type { RedirectRule } from '../../core/models/redirect-rule.model';
 
 @Component({
   selector: 'app-redirect-rules-page',
@@ -198,32 +199,37 @@ export class RedirectRulesPageComponent {
     }
 
     const dialogRef = this.dialog.open(RedirectRuleFormDialogComponent, {
-      width: '520px',
+      width: 'calc(100vw - 60px)',
+      maxWidth: 'calc(100vw - 60px)',
+      height: 'calc(100vh - 60px)',
+      maxHeight: 'calc(100vh - 60px)',
       data: {
         domainGroupId: this.activeGroupId()
       }
     });
 
     dialogRef.afterClosed().subscribe((created) => {
-      if (!created) {
-        return;
+      if (created) {
+        this.refreshListAfterSave();
       }
+    });
+  }
 
-      const baseFilter = this.baseFilter();
-      if (!baseFilter) {
-        return;
+  openEditDialog(rule: RedirectRule): void {
+    const dialogRef = this.dialog.open(RedirectRuleFormDialogComponent, {
+      width: 'calc(100vw - 60px)',
+      maxWidth: 'calc(100vw - 60px)',
+      height: 'calc(100vh - 60px)',
+      maxHeight: 'calc(100vh - 60px)',
+      data: {
+        rule
       }
+    });
 
-      this.redirectRuleStore.invalidateList();
-      this.page.set(1);
-      this.pageCursors.set({ 1: null });
-      this.redirectRuleStore.searchList(
-        {
-          ...baseFilter,
-          limit: this.pageLimit()
-        },
-        true
-      );
+    dialogRef.afterClosed().subscribe((saved) => {
+      if (saved) {
+        this.refreshListAfterSave();
+      }
     });
   }
 
@@ -264,5 +270,23 @@ export class RedirectRulesPageComponent {
     this.pageLimit.set(limit);
     this.page.set(1);
     this.pageCursors.set({ 1: null });
+  }
+
+  private refreshListAfterSave(): void {
+    const baseFilter = this.baseFilter();
+    if (!baseFilter) {
+      return;
+    }
+
+    this.redirectRuleStore.invalidateList();
+    this.page.set(1);
+    this.pageCursors.set({ 1: null });
+    this.redirectRuleStore.searchList(
+      {
+        ...baseFilter,
+        limit: this.pageLimit()
+      },
+      true
+    );
   }
 }

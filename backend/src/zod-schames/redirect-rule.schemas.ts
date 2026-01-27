@@ -60,7 +60,10 @@ export const ListRedirectRulesQuerySchema = z.object({
   domainGroupId: z
     .string()
     .regex(getEntityIdRegex(AppEntity.DomainGroup), 'Invalid Domain Group ID'),
-  startAfterId: z.string().regex(getEntityIdRegex(AppEntity.RedirectRule), 'Invalid Redirect rule ID'),.optional(),
+  startAfterId: z
+    .string()
+    .regex(getEntityIdRegex(AppEntity.RedirectRule), 'Invalid Redirect rule ID')
+    .optional(),
 });
 
 export type CreateRedirectRuleDto = z.infer<typeof CreateRedirectRuleSchema>;

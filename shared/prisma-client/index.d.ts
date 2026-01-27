@@ -7286,16 +7286,16 @@ export namespace Prisma {
 
   export type DomainWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    name?: string
     AND?: DomainWhereInput | DomainWhereInput[]
     OR?: DomainWhereInput[]
     NOT?: DomainWhereInput | DomainWhereInput[]
+    name?: StringFilter<"Domain"> | string
     domainGroupId?: StringFilter<"Domain"> | string
     createdAt?: DateTimeFilter<"Domain"> | Date | string
     updatedAt?: DateTimeFilter<"Domain"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Domain"> | Date | string | null
     domainGroup?: XOR<DomainGroupScalarRelationFilter, DomainGroupWhereInput>
-  }, "id" | "name">
+  }, "id">
 
   export type DomainOrderByWithAggregationInput = {
     id?: SortOrder

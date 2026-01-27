@@ -96,14 +96,23 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let rule" class="py-3">
-            <button
-              mat-icon-button
-              color="warn"
-              matTooltip="Delete rule"
-              (click)="confirmDelete(rule.id)"
-            >
-              <mat-icon>delete</mat-icon>
-            </button>
+            <div class="flex items-center gap-1">
+              <button
+                mat-icon-button
+                matTooltip="Edit rule"
+                (click)="openEditDialog(rule)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                color="warn"
+                matTooltip="Delete rule"
+                (click)="confirmDelete(rule.id)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
           </td>
         </ng-container>
 
