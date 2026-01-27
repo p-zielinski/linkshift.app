@@ -45,7 +45,16 @@ export class RedirectRulesPageComponent {
   private readonly redirectRuleStore = inject(RedirectRuleStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
 
-  readonly columns = ['source', 'destination', 'statusCode', 'priority', 'group', 'actions'];
+  readonly columns = [
+    'priority',
+    'id',
+    'source',
+    'destination',
+    'statusCode',
+    'group',
+    'createdAt',
+    'actions'
+  ];
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly pageLimitOptions = [20];
   readonly pageLimit = signal(20);
@@ -107,7 +116,7 @@ export class RedirectRulesPageComponent {
     return this.redirectRuleStore.selectListResult(filter)();
   });
 
-  readonly hasNextPage = computed(() => this.listResult()?.hasMore ?? false);
+  readonly hasNextPage = computed(() => !!this.listResult()?.moreStartingAfterId);
 
   readonly groupMap = computed(() => {
     const map: Record<string, { name: string } | undefined> = {};
@@ -136,7 +145,7 @@ export class RedirectRulesPageComponent {
     effect(() => {
       const result = this.listResult();
       const currentPage = this.page();
-      if (!result?.hasMore || !result.moreStartingAfterId) {
+      if (!result?.moreStartingAfterId) {
         return;
       }
 
@@ -148,6 +157,27 @@ export class RedirectRulesPageComponent {
         }
         return { ...cursors, [nextPage]: nextCursor };
       });
+    });
+
+    effect(() => {
+      const groups = this.domainGroups();
+      const current = this.activeGroupId();
+      const hasCurrent = groups.some((group) => group.id === current);
+
+      if (!current && groups.length === 1) {
+        this.filterModel.update((model) => ({
+          ...model,
+          domainGroupId: groups[0].id
+        }));
+        return;
+      }
+
+      if (current && !hasCurrent) {
+        this.filterModel.update((model) => ({
+          ...model,
+          domainGroupId: groups.length === 1 ? groups[0].id : ''
+        }));
+      }
     });
 
     effect(() => {
@@ -175,10 +205,25 @@ export class RedirectRulesPageComponent {
     });
 
     dialogRef.afterClosed().subscribe((created) => {
-      const filter = this.filterParams();
-      if (created && filter) {
-        this.redirectRuleStore.searchList(filter, true);
+      if (!created) {
+        return;
       }
+
+      const baseFilter = this.baseFilter();
+      if (!baseFilter) {
+        return;
+      }
+
+      this.redirectRuleStore.invalidateList();
+      this.page.set(1);
+      this.pageCursors.set({ 1: null });
+      this.redirectRuleStore.searchList(
+        {
+          ...baseFilter,
+          limit: this.pageLimit()
+        },
+        true
+      );
     });
   }
 
@@ -201,7 +246,7 @@ export class RedirectRulesPageComponent {
   }
 
   groupLabel(groupId: string): string {
-    return this.groupMap()[groupId]?.name ?? shortId(groupId);
+    return this.groupMap()[groupId]?.name ?? groupId;
   }
 
   groupTooltip(groupId: string): string {
@@ -220,11 +265,4 @@ export class RedirectRulesPageComponent {
     this.page.set(1);
     this.pageCursors.set({ 1: null });
   }
-}
-
-function shortId(id: string): string {
-  if (id.length <= 12) {
-    return id;
-  }
-  return `${id.slice(0, 6)}...${id.slice(-4)}`;
 }

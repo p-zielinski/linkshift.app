@@ -8,6 +8,6 @@ export class QueryResult<T> {
 
   constructor(params: Omit<QueryResult<T>, 'hasMore'>) {
     Object.assign(this, params);
-    this.hasMore = !params.moreStartingAfterId;
+    this.hasMore = !!params.moreStartingAfterId;
   }
 }

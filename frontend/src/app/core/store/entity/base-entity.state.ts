@@ -7,6 +7,7 @@ export class BaseEntityState<T extends Record<string, unknown>> {
   isLoading: Record<string, boolean> = {};
   expirationDates: Record<string, number | null> = {};
   lastError: string | null = null;
+  errorSequence = 0;
 
   constructor(identifier: keyof T) {
     this.identifier = identifier;

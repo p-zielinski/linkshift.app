@@ -18,8 +18,8 @@
               [attr.tabindex]="-1"
               class="cursor-not-allowed opacity-50"
             >
-              <mat-icon class="mr-3 text-[20px]">{{ item.icon }}</mat-icon>
-              <span>{{ item.label }}</span>
+            <mat-icon class="relative top-[-1px] mr-3 align-middle text-[20px]">{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
             </a>
           } @else {
             <a
@@ -28,7 +28,7 @@
               routerLinkActive="rounded-xl bg-app-accent-soft"
               [routerLinkActiveOptions]="{ exact: true }"
             >
-              <mat-icon class="mr-3 text-[20px]">{{ item.icon }}</mat-icon>
+              <mat-icon class="relative top-[-2px] mr-3 align-middle text-[20px]">{{ item.icon }}</mat-icon>
               <span>{{ item.label }}</span>
             </a>
           }

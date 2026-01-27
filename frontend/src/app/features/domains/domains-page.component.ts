@@ -6,6 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { form, FormField } from '@angular/forms/signals';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { ResourcePillComponent } from '../../shared/components/resource-pill/resource-pill.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -13,6 +16,7 @@ import { TablePaginatorComponent } from '../../shared/components/table-paginator
 import { DomainStore } from '../../core/store/domain.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { DomainFormDialogComponent } from './domain-form-dialog.component';
+import type { Domain } from '../../core/models/domain.model';
 
 @Component({
   selector: 'app-domains-page',
@@ -25,6 +29,9 @@ import { DomainFormDialogComponent } from './domain-form-dialog.component';
     MatTooltipModule,
     MatDialogModule,
     MatSnackBarModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    FormField,
     PageHeaderComponent,
     ResourcePillComponent,
     TablePaginatorComponent
@@ -37,14 +44,29 @@ export class DomainsPageComponent {
   private readonly domainStore = inject(DomainStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
 
-  readonly columns = ['name', 'group', 'actions'];
+  readonly columns = ['name', 'id', 'group', 'createdAt', 'actions'];
   readonly domains = this.domainStore.selectList();
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly pageLimitOptions = [10, 20, 50];
   readonly pageLimit = signal(20);
   readonly page = signal(1);
 
-  readonly totalDomains = computed(() => this.domains().length);
+  filterModel = signal({
+    domainGroupId: ''
+  });
+
+  filterForm = form(this.filterModel, () => {});
+
+  readonly activeGroupId = computed(() => this.filterModel().domainGroupId);
+  readonly filteredDomains = computed(() => {
+    const groupId = this.activeGroupId();
+    if (!groupId) {
+      return this.domains();
+    }
+    return this.domains().filter((domain) => domain.domainGroupId === groupId);
+  });
+
+  readonly totalDomains = computed(() => this.filteredDomains().length);
   readonly pageCount = computed(() =>
     Math.max(1, Math.ceil(this.totalDomains() / this.pageLimit()))
   );
@@ -52,7 +74,7 @@ export class DomainsPageComponent {
     const limit = this.pageLimit();
     const page = this.page();
     const start = (page - 1) * limit;
-    return this.domains().slice(start, start + limit);
+    return this.filteredDomains().slice(start, start + limit);
   });
   readonly hasNextPage = computed(() => this.page() < this.pageCount());
 
@@ -82,16 +104,48 @@ export class DomainsPageComponent {
         this.page.set(maxPage);
       }
     });
+
+    effect(() => {
+      this.activeGroupId();
+      this.page.set(1);
+    });
+
+    effect(() => {
+      const groups = this.domainGroups();
+      const current = this.activeGroupId();
+      const hasCurrent = groups.some((group) => group.id === current);
+
+      if (!current && groups.length === 1) {
+        this.filterModel.update((model) => ({
+          ...model,
+          domainGroupId: groups[0].id
+        }));
+        return;
+      }
+
+      if (current && !hasCurrent) {
+        this.filterModel.update((model) => ({
+          ...model,
+          domainGroupId: groups.length === 1 ? groups[0].id : ''
+        }));
+      }
+    });
   }
 
   openCreateDialog(): void {
-    const dialogRef = this.dialog.open(DomainFormDialogComponent, {
-      width: '480px'
+    this.dialog.open(DomainFormDialogComponent, {
+      width: '480px',
+      data: {
+        domainGroupId: this.activeGroupId() || undefined
+      }
     });
+  }
 
-    dialogRef.afterClosed().subscribe((created) => {
-      if (created) {
-        this.domainStore.searchList(undefined, true);
+  openEditDialog(domain: Domain): void {
+    this.dialog.open(DomainFormDialogComponent, {
+      width: '480px',
+      data: {
+        domain
       }
     });
   }
@@ -115,7 +169,7 @@ export class DomainsPageComponent {
   }
 
   groupLabel(groupId: string): string {
-    return this.groupMap()[groupId]?.name ?? shortId(groupId);
+    return this.groupMap()[groupId]?.name ?? groupId;
   }
 
   groupTooltip(groupId: string): string {
@@ -133,11 +187,4 @@ export class DomainsPageComponent {
     this.pageLimit.set(limit);
     this.page.set(1);
   }
-}
-
-function shortId(id: string): string {
-  if (id.length <= 12) {
-    return id;
-  }
-  return `${id.slice(0, 6)}...${id.slice(-4)}`;
 }

@@ -14,6 +14,7 @@ import { BaseEntityState } from './base-entity.state';
 import type { EntityListFilter, EntityStoreConfig } from './entity-store.types';
 import {
   CREATE_ENTITY_ID,
+  DEFAULT_LIST_KEY,
   getExpiration,
   getFilterKey,
   isExpired
@@ -104,14 +105,38 @@ export function createEntityStore<
         }));
       };
 
-      const markListKeysExpired = () => {
+      const markListKeysExpired = (exclude: string[] = []) => {
         patchState(store, (state) => {
           const nextExpirations = { ...state.expirationDates };
           Object.keys(state.list).forEach((key) => {
-            nextExpirations[key] = null;
+            if (!exclude.includes(key)) {
+              nextExpirations[key] = null;
+            }
           });
           return { expirationDates: nextExpirations };
         });
+      };
+
+      const addToDefaultList = (id: string) => {
+        let updated = false;
+        patchState(store, (state) => {
+          const list = state.list[DEFAULT_LIST_KEY];
+          if (!list || list.data.includes(id)) {
+            return {};
+          }
+          updated = true;
+          return {
+            list: {
+              ...state.list,
+              [DEFAULT_LIST_KEY]: { ...list, data: [...list.data, id] }
+            },
+            expirationDates: {
+              ...state.expirationDates,
+              [DEFAULT_LIST_KEY]: getExpiration(ttlMs)
+            }
+          };
+        });
+        return updated;
       };
 
       const removeFromLists = (id: string) => {
@@ -180,7 +205,12 @@ export function createEntityStore<
                   const entityId = getEntityId(result);
                   setDetailsSuccess(entityId, result);
                   setLoading(entityId, false);
-                  markListKeysExpired();
+                  if (!id) {
+                    const updatedDefault = addToDefaultList(entityId);
+                    markListKeysExpired(updatedDefault ? [DEFAULT_LIST_KEY] : []);
+                  } else {
+                    markListKeysExpired();
+                  }
                 },
                 error: (error) => setError(error, `${entityLabel} save failed.`),
                 finalize: () => setLoading(id ?? CREATE_ENTITY_ID, false)
@@ -287,7 +317,10 @@ export function createEntityStore<
 
       const setError = (error: unknown, fallback: string) => {
         const message = extractErrorMessage(error, fallback);
-        patchState(store, { lastError: message });
+        patchState(store, (state) => ({
+          lastError: message,
+          errorSequence: state.errorSequence + 1
+        }));
       };
 
       return {
@@ -309,12 +342,32 @@ export function createEntityStore<
 }
 
 function extractErrorMessage(error: unknown, fallback: string): string {
+  const normalize = (value: unknown): string | null => {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed ? trimmed : null;
+    }
+    if (Array.isArray(value)) {
+      const items = value
+        .map((item) => (typeof item === 'string' ? item.trim() : ''))
+        .filter((item) => item.length > 0);
+      return items.length > 0 ? items.join(', ') : null;
+    }
+    return null;
+  };
+
   if (error instanceof HttpErrorResponse) {
-    return error.error?.message || error.message || fallback;
+    return (
+      normalize(error.error?.details) ||
+      normalize(error.error?.message) ||
+      normalize(error.message) ||
+      fallback
+    );
   }
 
-  if (error && typeof error === 'object' && 'message' in error) {
-    return String((error as { message?: string }).message || fallback);
+  if (error && typeof error === 'object') {
+    const anyError = error as { details?: unknown; message?: unknown };
+    return normalize(anyError.details) || normalize(anyError.message) || fallback;
   }
 
   return fallback;

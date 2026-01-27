@@ -71,7 +71,8 @@ export class RedirectRuleFormDialogComponent {
     this.domainGroupStore.searchList();
   }
 
-  async onSubmit(): Promise<void> {
+  async onSubmit(event?: Event): Promise<void> {
+    event?.preventDefault();
     await submit(this.ruleForm, async (formValue) => {
       const value = formValue().value();
       this.redirectRuleStore.upsert({

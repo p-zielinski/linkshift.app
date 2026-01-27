@@ -14,6 +14,7 @@ import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { DomainStore } from '../../core/store/domain.store';
 import { DEFAULT_LIST_KEY } from '../../core/store/entity/entity-store.utils';
 import { DomainGroupFormDialogComponent } from './domain-group-form-dialog.component';
+import type { DomainGroup } from '../../core/models/domain-group.model';
 
 @Component({
   selector: 'app-domain-groups-page',
@@ -38,7 +39,7 @@ export class DomainGroupsPageComponent {
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly domainStore = inject(DomainStore);
 
-  readonly columns = ['name', 'id', 'domains', 'actions'];
+  readonly columns = ['name', 'id', 'domains', 'createdAt', 'actions'];
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly domains = this.domainStore.selectList();
   readonly domainsLoaded = computed(() => !!this.domainStore.list()[DEFAULT_LIST_KEY]);
@@ -87,13 +88,16 @@ export class DomainGroupsPageComponent {
   }
 
   openCreateDialog(): void {
-    const dialogRef = this.dialog.open(DomainGroupFormDialogComponent, {
+    this.dialog.open(DomainGroupFormDialogComponent, {
       width: '480px'
     });
+  }
 
-    dialogRef.afterClosed().subscribe((created) => {
-      if (created) {
-        this.domainGroupStore.searchList(undefined, true);
+  openEditDialog(group: DomainGroup): void {
+    this.dialog.open(DomainGroupFormDialogComponent, {
+      width: '480px',
+      data: {
+        group
       }
     });
   }
@@ -137,16 +141,19 @@ export class DomainGroupsPageComponent {
   }
 
   deleteTooltip(groupId: string): string {
+    if (!this.domainsLoaded()) {
+      return 'Domain data is still loading. Try again in a moment.';
+    }
     return this.domainCount(groupId) > 0
       ? 'Remove linked domains before deleting this group.'
       : 'Delete domain group and its redirect rules.';
   }
 
-  shortId(id: string): string {
-    if (id.length <= 12) {
-      return id;
+  canDelete(groupId: string): boolean {
+    if (!this.domainsLoaded()) {
+      return false;
     }
-    return `${id.slice(0, 6)}...${id.slice(-4)}`;
+    return this.domainCount(groupId) === 0;
   }
 
   onPageChange(page: number): void {

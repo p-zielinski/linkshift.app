@@ -1,6 +1,6 @@
-<div class="grid gap-4">
-  <h3 class="m-0 text-lg font-semibold">Create domain</h3>
-  <form class="grid gap-4" (ngSubmit)="onSubmit()">
+<div class="grid gap-4 p-6">
+  <h3 class="m-0 text-lg font-semibold">{{ dialogTitle }}</h3>
+  <form class="grid gap-4" (submit)="onSubmit($event)">
     <mat-form-field appearance="outline" class="w-full">
       <mat-label>Domain name</mat-label>
       <input matInput type="text" [formField]="domainForm.name" />
@@ -26,8 +26,12 @@
         Cancel
       </button>
       <button mat-flat-button color="primary" type="submit" [disabled]="domainForm().submitting()">
-        <mat-icon>add</mat-icon>
-        <span>Create</span>
+        @if (isEdit) {
+          <mat-icon>save</mat-icon>
+        } @else {
+          <mat-icon>add</mat-icon>
+        }
+        <span>{{ submitLabel }}</span>
       </button>
     </div>
   </form>
