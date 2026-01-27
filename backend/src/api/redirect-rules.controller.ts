@@ -34,16 +34,12 @@ export class RedirectRulesController {
     @Query(new ZodPipe(redirectRuleSchemas.ListRedirectRulesQuerySchema))
     query: redirectRuleSchemas.ListRedirectRulesQueryDto,
   ) {
-    const { domainGroupId, search, ...pagination } = query;
-    const decodedSearch = decodeSearch(search);
+    const { domainGroupId, ...pagination } = query;
 
     return this.redirectService.listRules(
       organizationId,
       domainGroupId,
-      {
-        ...pagination,
-        ...(decodedSearch ? { search: decodedSearch } : {}),
-      },
+      pagination,
     );
   }
 
@@ -157,19 +153,5 @@ export class RedirectRulesController {
       }
       throw error;
     }
-  }
-}
-
-function decodeSearch(value?: string): string | undefined {
-  if (!value) {
-    return undefined;
-  }
-  if (!/%[0-9A-Fa-f]{2}/.test(value)) {
-    return value.trim();
-  }
-  try {
-    return decodeURIComponent(value).trim();
-  } catch {
-    return value.trim();
   }
 }
