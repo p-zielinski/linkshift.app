@@ -14,6 +14,7 @@ import {
 } from './billing.config';
 import { LemonSqueezyService } from './lemon-squeezy.service';
 import { AppEntity, createCustomCuid } from '../utils';
+import { ConfigService } from '@nestjs/config';
 
 type LemonWebhookPayload = {
   meta?: {
@@ -29,12 +30,30 @@ type LemonWebhookPayload = {
 @Injectable()
 export class BillingService {
   private readonly logger = new Logger(BillingService.name);
+  private readonly variantIds: {
+    starter?: string | null;
+    pro?: string | null;
+  };
+  private readonly defaultSuccessUrl: string;
+  private readonly defaultCancelUrl: string;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly cacheManagerService: CacheManagerService,
     private readonly lemon: LemonSqueezyService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.variantIds = {
+      starter: this.configService.get<string>(
+        'LEMON_SQUEEZY_VARIANT_STARTER_ID',
+      ),
+      pro: this.configService.get<string>('LEMON_SQUEEZY_VARIANT_PRO_ID'),
+    };
+    this.defaultSuccessUrl =
+      this.configService.get<string>('LEMON_SQUEEZY_SUCCESS_URL') ?? '';
+    this.defaultCancelUrl =
+      this.configService.get<string>('LEMON_SQUEEZY_CANCEL_URL') ?? '';
+  }
 
   async createCheckout(params: {
     organizationId: string;
@@ -47,7 +66,7 @@ export class BillingService {
       throw new Error(`Plan ${params.plan} is not purchasable via checkout.`);
     }
 
-    const variantId = getVariantIdForPlan(params.plan);
+    const variantId = getVariantIdForPlan(params.plan, this.variantIds);
     if (!variantId) {
       throw new Error(`Missing Lemon Squeezy variant for ${params.plan}.`);
     }
@@ -66,10 +85,8 @@ export class BillingService {
     }
 
     const checkoutSessionId = createCustomCuid(AppEntity.CheckoutSession, 20);
-    const baseSuccessUrl =
-      params.successUrl ?? process.env.LEMON_SQUEEZY_SUCCESS_URL ?? '';
-    const baseCancelUrl =
-      params.cancelUrl ?? process.env.LEMON_SQUEEZY_CANCEL_URL ?? '';
+    const baseSuccessUrl = params.successUrl ?? this.defaultSuccessUrl;
+    const baseCancelUrl = params.cancelUrl ?? this.defaultCancelUrl;
 
     const successUrl = this.appendCheckoutSessionId(
       baseSuccessUrl,
@@ -444,16 +461,10 @@ export class BillingService {
     }
 
     const variantIdStr = variantId ? String(variantId) : null;
-    if (
-      variantIdStr &&
-      variantIdStr === process.env.LEMON_SQUEEZY_VARIANT_STARTER_ID
-    ) {
+    if (variantIdStr && variantIdStr === this.variantIds.starter) {
       return OrganizationPlan.STARTER;
     }
-    if (
-      variantIdStr &&
-      variantIdStr === process.env.LEMON_SQUEEZY_VARIANT_PRO_ID
-    ) {
+    if (variantIdStr && variantIdStr === this.variantIds.pro) {
       return OrganizationPlan.PRO;
     }
 

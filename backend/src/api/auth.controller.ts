@@ -14,13 +14,24 @@ import { ConflictError, UnauthorizedError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { throwHttpException } from '../utils';
 import type { Request, Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('api/v1/auth')
 export class AuthController {
+  private readonly isProduction: boolean;
+  private readonly refreshCookieMaxAgeMs: number;
+
   constructor(
     private readonly authService: AuthService,
     private readonly clsService: ClsService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    const nodeEnv = this.configService.get<string>('NODE_ENV') ?? 'development';
+    this.isProduction = nodeEnv === 'production';
+    this.refreshCookieMaxAgeMs = this.getRefreshCookieMaxAgeMs(
+      this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
+    );
+  }
 
   @Post('refresh')
   async refresh(
@@ -120,30 +131,27 @@ export class AuthController {
       return;
     }
 
-    const isProduction = process.env.NODE_ENV === 'production';
     response.setHeader('Cache-Control', 'no-store');
     response.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      secure: isProduction,
+      secure: this.isProduction,
       sameSite: 'strict',
       path: '/api/v1/auth/refresh',
-      maxAge: this.getRefreshCookieMaxAgeMs(),
+      maxAge: this.refreshCookieMaxAgeMs,
     });
   }
 
   private clearRefreshCookie(response: Response) {
-    const isProduction = process.env.NODE_ENV === 'production';
     response.setHeader('Cache-Control', 'no-store');
     response.clearCookie('refresh_token', {
       httpOnly: true,
-      secure: isProduction,
+      secure: this.isProduction,
       sameSite: 'strict',
       path: '/api/v1/auth/refresh',
     });
   }
 
-  private getRefreshCookieMaxAgeMs(): number {
-    const raw = process.env.JWT_REFRESH_EXPIRES_IN;
+  private getRefreshCookieMaxAgeMs(raw: string | undefined | null): number {
     if (!raw) {
       return 7 * 24 * 60 * 60 * 1000;
     }

@@ -41,12 +41,20 @@ export function getPlanLimits(plan: OrganizationPlan): PlanLimits {
   return PLAN_LIMITS[plan] ?? PLAN_LIMITS[OrganizationPlan.FREE];
 }
 
-export function getVariantIdForPlan(plan: OrganizationPlan): string | null {
+export type VariantIdMap = {
+  starter?: string | null;
+  pro?: string | null;
+};
+
+export function getVariantIdForPlan(
+  plan: OrganizationPlan,
+  variants: VariantIdMap,
+): string | null {
   if (plan === OrganizationPlan.STARTER) {
-    return process.env.LEMON_SQUEEZY_VARIANT_STARTER_ID ?? null;
+    return variants.starter ?? null;
   }
   if (plan === OrganizationPlan.PRO) {
-    return process.env.LEMON_SQUEEZY_VARIANT_PRO_ID ?? null;
+    return variants.pro ?? null;
   }
   return null;
 }

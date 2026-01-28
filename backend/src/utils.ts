@@ -2,6 +2,12 @@ import { init } from '@paralleldrive/cuid2';
 import { HttpException } from '@nestjs/common';
 import { BaseError } from '@shared/models/error.model';
 
+let cuidFingerprint: string | undefined;
+
+export const setCuidFingerprint = (fingerprint?: string) => {
+  cuidFingerprint = fingerprint;
+};
+
 /**
  * Defines all system entities that require unique identification.
  * This includes both database models and virtual system entities like 'Request'.
@@ -47,7 +53,7 @@ export const createCustomCuid = (entity: AppEntity, length = 24) => {
   const generateCuid = init({
     random: Math.random,
     length,
-    fingerprint: process.env.HOST_ID,
+    fingerprint: cuidFingerprint,
   });
 
   const prefix = ENTITY_PREFIXES[entity];

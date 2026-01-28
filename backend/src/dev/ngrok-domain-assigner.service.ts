@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma.service';
 import { CacheManagerService, DataType } from '../cache/cache-manager.service';
 import { AppEntity, createCustomCuid } from '../utils';
 import type { Domain, DomainGroup, Organization } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class NgrokDomainAssignerService implements OnApplicationBootstrap {
@@ -11,6 +12,7 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cacheManager: CacheManagerService,
+    private readonly configService: ConfigService,
   ) {}
 
   async onApplicationBootstrap() {
@@ -22,7 +24,9 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
       return;
     }
 
-    const hostname = this.extractHostname(process.env.NGROK_URL);
+    const hostname = this.extractHostname(
+      this.configService.get<string>('NGROK_URL'),
+    );
     if (!hostname) {
       this.logger.warn(
         'NGROK_URL is invalid. Provide a full URL like https://xxxx.ngrok.app.',
@@ -98,9 +102,10 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
   }
 
   private isEnabled(): boolean {
+    const nodeEnv = this.configService.get<string>('NODE_ENV') ?? 'development';
     return (
-      process.env.NODE_ENV !== 'production' &&
-      !!process.env.NGROK_URL
+      nodeEnv !== 'production' &&
+      !!this.configService.get<string>('NGROK_URL')
     );
   }
 
@@ -116,12 +121,12 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
   }
 
   private async resolveOrganization(): Promise<Organization | null> {
-    const orgId = process.env.DEV_NGROK_ORG_ID;
+    const orgId = this.configService.get<string>('DEV_NGROK_ORG_ID');
     if (orgId) {
       return this.prisma.organization.findUnique({ where: { id: orgId } });
     }
 
-    const email = process.env.DEV_NGROK_ORG_EMAIL;
+    const email = this.configService.get<string>('DEV_NGROK_ORG_EMAIL');
     if (!email) {
       return null;
     }
@@ -136,7 +141,9 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
   private async resolveDomainGroup(
     organizationId: string,
   ): Promise<DomainGroup | null> {
-    const groupId = process.env.DEV_NGROK_DOMAIN_GROUP_ID;
+    const groupId = this.configService.get<string>(
+      'DEV_NGROK_DOMAIN_GROUP_ID',
+    );
     if (groupId) {
       return this.prisma.domainGroup.findFirst({
         where: { id: groupId, organizationId, deletedAt: null },

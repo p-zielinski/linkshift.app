@@ -7,11 +7,12 @@ import { InvalidPayloadError } from '@shared/models/error.model';
 
 @common.Catch(ZodError)
 export class ZodFilter<T extends ZodError> implements common.ExceptionFilter {
-  #isProduction = process.env.NODE_ENV !== 'development';
+  #isProduction: boolean;
   #logger: common.LoggerService;
 
-  constructor(logger: common.LoggerService) {
+  constructor(logger: common.LoggerService, isProduction: boolean) {
     this.#logger = logger;
+    this.#isProduction = isProduction;
   }
 
   catch(exception: T, host: common.ArgumentsHost) {

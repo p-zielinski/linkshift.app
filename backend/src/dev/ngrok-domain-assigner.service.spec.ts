@@ -2,12 +2,14 @@ import { NgrokDomainAssignerService } from './ngrok-domain-assigner.service';
 import { PrismaService } from '../prisma.service';
 import { CacheManagerService, DataType } from '../cache/cache-manager.service';
 import type { Domain, DomainGroup, Organization } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
 
 describe('NgrokDomainAssignerService', () => {
-  const originalEnv = process.env;
   let prisma: PrismaService;
   let cacheManager: CacheManagerService;
   let service: NgrokDomainAssignerService;
+  let configService: ConfigService;
+  let configValues: Record<string, string | undefined>;
 
   const organization = {
     id: 'org_1',
@@ -50,8 +52,7 @@ describe('NgrokDomainAssignerService', () => {
     }) as unknown as PrismaService;
 
   beforeEach(() => {
-    process.env = {
-      ...originalEnv,
+    configValues = {
       NODE_ENV: 'development',
       NGROK_URL: 'https://dev.ngrok.app',
       DEV_NGROK_ORG_ID: organization.id,
@@ -63,17 +64,23 @@ describe('NgrokDomainAssignerService', () => {
       invalidateRedirectContext: jest.fn(),
       setDataExist: jest.fn(),
     } as unknown as CacheManagerService;
+    configService = {
+      get: jest.fn((key: string) => configValues[key]),
+    } as unknown as ConfigService;
 
-    service = new NgrokDomainAssignerService(prisma, cacheManager);
+    service = new NgrokDomainAssignerService(
+      prisma,
+      cacheManager,
+      configService,
+    );
   });
 
   afterEach(() => {
-    process.env = originalEnv;
     jest.restoreAllMocks();
   });
 
   it('skips when ngrok assignment is disabled', async () => {
-    process.env.NGROK_URL = '';
+    configValues.NGROK_URL = '';
 
     await service.assignNgrokDomain();
 
@@ -81,7 +88,7 @@ describe('NgrokDomainAssignerService', () => {
   });
 
   it('warns when ngrok URL is invalid', async () => {
-    process.env.NGROK_URL = 'not-a-url';
+    configValues.NGROK_URL = 'not-a-url';
     const warnSpy = jest
       .spyOn((service as any).logger, 'warn')
       .mockImplementation(() => undefined);

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import crypto from 'crypto';
+import { ConfigService } from '@nestjs/config';
 
 const API_BASE_URL = 'https://api.lemonsqueezy.com/v1';
 
@@ -21,13 +22,23 @@ type LemonSqueezySubscriptionResponse = {
 
 @Injectable()
 export class LemonSqueezyService {
-  private readonly apiKey = process.env.LEMON_SQUEEZY_API_KEY ?? '';
-  private readonly storeId = process.env.LEMON_SQUEEZY_STORE_ID ?? '';
-  private readonly webhookSecret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET ?? '';
-  private readonly defaultSuccessUrl =
-    process.env.LEMON_SQUEEZY_SUCCESS_URL ?? '';
-  private readonly defaultCancelUrl =
-    process.env.LEMON_SQUEEZY_CANCEL_URL ?? '';
+  private readonly apiKey: string;
+  private readonly storeId: string;
+  private readonly webhookSecret: string;
+  private readonly defaultSuccessUrl: string;
+  private readonly defaultCancelUrl: string;
+
+  constructor(private readonly configService: ConfigService) {
+    this.apiKey = this.configService.get<string>('LEMON_SQUEEZY_API_KEY') ?? '';
+    this.storeId =
+      this.configService.get<string>('LEMON_SQUEEZY_STORE_ID') ?? '';
+    this.webhookSecret =
+      this.configService.get<string>('LEMON_SQUEEZY_WEBHOOK_SECRET') ?? '';
+    this.defaultSuccessUrl =
+      this.configService.get<string>('LEMON_SQUEEZY_SUCCESS_URL') ?? '';
+    this.defaultCancelUrl =
+      this.configService.get<string>('LEMON_SQUEEZY_CANCEL_URL') ?? '';
+  }
 
   async createCheckout(params: {
     variantId: string;

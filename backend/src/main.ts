@@ -7,6 +7,8 @@ import {
 import * as winston from 'winston';
 import { ZodFilter } from './filters/zod.filter';
 import express from 'express';
+import { ConfigService } from '@nestjs/config';
+import { setCuidFingerprint } from './utils';
 
 async function bootstrap() {
   const logFormat = winston.format.combine(
@@ -24,8 +26,13 @@ async function bootstrap() {
   });
 
   const app = await NestFactory.create(AppModule, { logger });
+  const configService = app.get(ConfigService);
+  const nodeEnv = configService.get<string>('NODE_ENV') ?? 'development';
+  const isProduction = nodeEnv === 'production';
+  setCuidFingerprint(configService.get<string>('HOST_ID') ?? undefined);
+
   const expressApp = app.getHttpAdapter().getInstance();
-  if (process.env.TRUST_PROXY === 'true') {
+  if (configService.get<string>('TRUST_PROXY') === 'true') {
     expressApp.set('trust proxy', 1);
   }
   expressApp.disable('x-powered-by');
@@ -38,7 +45,7 @@ async function bootstrap() {
     }),
   );
 
-  const corsOrigins = (process.env.CORS_ORIGINS ?? '')
+  const corsOrigins = (configService.get<string>('CORS_ORIGINS') ?? '')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
@@ -62,7 +69,7 @@ async function bootstrap() {
       'Permissions-Policy',
       'geolocation=(), microphone=(), camera=()',
     );
-    if (process.env.NODE_ENV === 'production') {
+    if (isProduction) {
       res.setHeader(
         'Strict-Transport-Security',
         'max-age=15552000; includeSubDomains',
@@ -71,14 +78,15 @@ async function bootstrap() {
     res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none';");
     next();
   });
-  app.useGlobalFilters(new ZodFilter(logger));
+  app.useGlobalFilters(new ZodFilter(logger, isProduction));
 
-  const port = process.env.PORT ?? 3000;
+  const port = Number(configService.get<string>('PORT') ?? 3000);
   await app.listen(port);
 
   logger.log(`Application port - ${port}`);
-  if (process.env.NGROK_URL) {
-    logger.log(`Ngrok tunnel available at: ${process.env.NGROK_URL}`);
+  const ngrokUrl = configService.get<string>('NGROK_URL');
+  if (ngrokUrl) {
+    logger.log(`Ngrok tunnel available at: ${ngrokUrl}`);
   }
 }
 
