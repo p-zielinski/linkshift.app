@@ -48,7 +48,7 @@ const FEATURES: MarketingFeature[] = [
   {
     icon: 'alt_route',
     title: 'Conditional destinations',
-    description: 'Route by country, method, or time with inline condition expressions.'
+    description: 'Route by method or time with inline condition expressions.'
   },
   {
     icon: 'shield',
@@ -96,10 +96,10 @@ const EXAMPLES: MarketingRuleExample[] = [
     note: 'Use modifiers like {query.utm:url_encode} when values can include spaces.'
   },
   {
-    title: 'Geo-aware routing',
-    description: 'Route by region without duplicating rules for each domain.',
+    title: 'Method-aware routing',
+    description: 'Route by method without duplicating rules for each domain.',
     source: '/^\\/support\\/(.*)$/',
-    destination: 'geo.country == "US" ? https://support.example.com/$1 : https://global.example.com/$1',
+    destination: 'method == "POST" ? https://api.example.com/write/$1 : https://api.example.com/read/$1',
     note: 'Conditions support operators like ==, !=, <=, >=, ~=, and includes.'
   }
 ];
@@ -115,7 +115,7 @@ const FAQ_ITEMS: MarketingFaqItem[] = [
   },
   {
     question: 'What kind of variables are available in destinations?',
-    answer: 'You can use {path}, {query.*}, {segments.*}, {domain.*}, and geo variables like {geo.country}, plus modifiers.'
+    answer: 'You can use {path}, {query.*}, {segments.*}, and {domain.*}, plus modifiers.'
   },
   {
     question: 'What does the 30-day guarantee include?',

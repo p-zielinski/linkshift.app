@@ -109,6 +109,8 @@ describe('RedirectService', () => {
     prisma = module.get<PrismaService>(PrismaService);
     organizationService = module.get<OrganizationService>(OrganizationService);
     cacheManagerService = module.get<CacheManagerService>(CacheManagerService);
+
+    (prisma.domain.findMany as jest.Mock).mockResolvedValue([]);
   });
 
   const createMockRequest = (
@@ -306,9 +308,7 @@ describe('RedirectService', () => {
 
       const result = service.getRedirect(req, rules);
 
-      expect(result).toBe(
-        `https://site.com?ts=${new Date(0).toISOString()}`,
-      );
+      expect(result).toBe(`https://site.com?ts=${new Date(0).toISOString()}`);
       randomSpy.mockRestore();
     });
 
@@ -657,7 +657,7 @@ describe('RedirectService', () => {
         {
           source: '*',
           destination:
-            "'{userAgent}' ~= 'iPhone' ? /mobile-site : /desktop-site",
+            "'{user-agent}' ~= 'iPhone' ? /mobile-site : /desktop-site",
         },
       ];
 
@@ -679,7 +679,7 @@ describe('RedirectService', () => {
         {
           source: '*',
           destination:
-            "'{userAgent:to_lower_case}' includes 'chrome' ? /chrome-browser : /other-browser",
+            "'{user-agent:to_lower_case}' includes 'chrome' ? /chrome-browser : /other-browser",
         },
       ];
 
@@ -759,7 +759,7 @@ describe('RedirectService', () => {
         {
           source: '*',
           destination:
-            "'{userAgent}' includes 'MSIE > 6' ? /legacy-browser : /modern-browser",
+            "'{user-agent}' includes 'MSIE > 6' ? /legacy-browser : /modern-browser",
         },
       ];
       const req = createMockRequest('http://test.com', {
@@ -978,7 +978,7 @@ describe('RedirectService', () => {
         {
           source: '*',
           destination:
-            "'{userAgent}' includes 'Mobile' ? /mobile-auth : /web-auth",
+            "'{user-agent}' includes 'Mobile' ? /mobile-auth : /web-auth",
         },
       ];
       const req = createMockRequest('http://test.com', {
@@ -1255,17 +1255,16 @@ describe('RedirectService', () => {
       (cacheManagerService.getData as jest.Mock).mockResolvedValue({
         configuration: null,
       });
-      (cacheManagerService.checkOrganizationRateLimit as jest.Mock).mockResolvedValue(
+      (
+        cacheManagerService.checkOrganizationRateLimit as jest.Mock
+      ).mockResolvedValue(undefined);
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
       );
-      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(undefined);
 
       await service.applyRedirect(req, res);
 
-      expect(res.redirect).toHaveBeenCalledWith(
-        301,
-        'https://example.com/new',
-      );
+      expect(res.redirect).toHaveBeenCalledWith(301, 'https://example.com/new');
     });
   });
 });

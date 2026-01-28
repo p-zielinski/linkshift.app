@@ -290,7 +290,7 @@ describe('RuleValidatorService', () => {
         // Checks if syntax like '{var} ~= /pattern/flags' passes
         const result = service.validate(
           '*',
-          "'{userAgent}' ~= /mobile/i ? https://example.com/mobile : https://example.com/desktop",
+          "'{user-agent}' ~= /mobile/i ? https://example.com/mobile : https://example.com/desktop",
         );
         expect(result.isValid).toBe(true);
       });
@@ -345,7 +345,7 @@ describe('RuleValidatorService', () => {
         // Here '>' is inside the string, the real operator is 'includes'
         const result = service.validate(
           '*',
-          "'{userAgent}' includes 'MSIE > 6' ? https://example.com/legacy : https://example.com/modern",
+          "'{user-agent}' includes 'MSIE > 6' ? https://example.com/legacy : https://example.com/modern",
         );
         expect(result.isValid).toBe(true);
       });

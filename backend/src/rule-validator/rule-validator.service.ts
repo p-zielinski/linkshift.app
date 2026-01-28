@@ -25,7 +25,7 @@ export class RuleValidatorService {
     'method',
     'scheme',
     'ip',
-    'userAgent',
+    'user-agent',
     'geo.country',
   ];
 
@@ -415,12 +415,18 @@ export class RuleValidatorService {
     result.errors.push(`Unknown function: "${key}".`);
   }
 
-  private validateRandomArguments(args: string, result: ValidationResult): void {
+  private validateRandomArguments(
+    args: string,
+    result: ValidationResult,
+  ): void {
     if (!args) {
       return;
     }
 
-    const parts = args.split(',').map((part) => part.trim()).filter(Boolean);
+    const parts = args
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean);
     if (parts.length === 0 || parts.length > 2) {
       result.errors.push(
         `random() accepts 0, 1, or 2 numeric arguments. Received: "${args}".`,

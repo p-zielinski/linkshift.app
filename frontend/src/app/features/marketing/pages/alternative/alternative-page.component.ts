@@ -75,7 +75,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         title: 'Operational safety',
         description: 'Handle edge cases with conditions and automated validation.',
         bullets: [
-          'Conditions based on geo, method, or time',
+          'Conditions based on method or time',
           'Validation of variables and regex groups',
           'Consistent domain-level context'
         ]
@@ -123,11 +123,11 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         note: 'Modifiers ensure values are safe inside URLs.'
       },
       {
-        title: 'Geo-aware support routing',
-        description: 'Route users to regional support automatically.',
+        title: 'Time-based support routing',
+        description: 'Route users based on time windows without extra rule sets.',
         source: '/^\\/support\\/(.*)$/',
         destination:
-          'geo.country == "US" ? https://support.us.example.com/$1 : https://support.example.com/$1',
+          'time() < datetime("2024-12-01") ? https://support.example.com/$1 : https://support.global.example.com/$1',
         note: 'Conditions use operators like ==, !=, <=, >=, ~=, and includes.'
       }
     ],
@@ -147,7 +147,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
     highlights: [
       'No edge scripts to maintain',
       'Domain groups keep rules aligned',
-      'Conditional routing by method or geo',
+      'Conditional routing by method or time',
       'Placeholders and modifiers for precision'
     ],
     heroPanelTitle: 'Operational advantages',
@@ -181,7 +181,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         title: 'Context-aware routing',
         description: 'Use request context directly in destinations and conditions.',
-        bullets: ['{path} and {segments.*}', '{query.*} placeholders', 'method and geo checks']
+        bullets: ['{path} and {segments.*}', '{query.*} placeholders', 'method and scheme checks']
       },
       {
         title: 'Simplified changes',
@@ -282,7 +282,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         title: 'Context-driven logic',
         description: 'Use request context to handle complex routing needs.',
-        bullets: ['geo-aware routing', 'query and path placeholders', 'method and scheme checks']
+        bullets: ['method-aware routing', 'query and path placeholders', 'method and scheme checks']
       },
       {
         title: 'Ready for scale',

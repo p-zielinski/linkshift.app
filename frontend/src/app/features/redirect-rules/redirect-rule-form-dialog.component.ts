@@ -340,15 +340,10 @@ export class RedirectRuleFormDialogComponent {
       example: 'https://example.com/audit?ip={ip}'
     },
     {
-      token: 'userAgent',
+      token: 'user-agent',
       description: 'User-Agent header.',
-      example: 'https://example.com/ua/{userAgent}'
+      example: 'https://example.com/ua/{user-agent}'
     },
-    {
-      token: 'geo.country',
-      description: 'Country code (PL/US).',
-      example: 'https://example.com/{geo.country}/pricing'
-    }
   ];
 
   readonly manipulatorReferences = [
@@ -418,7 +413,7 @@ export class RedirectRuleFormDialogComponent {
     {
       token: '==',
       description: 'Equals',
-      example: "{geo.country} == 'PL'"
+      example: "{method} == 'POST'"
     },
     {
       token: '!=',
@@ -448,7 +443,7 @@ export class RedirectRuleFormDialogComponent {
     {
       token: '~=',
       description: 'Regex match',
-      example: "{userAgent} ~= /mobile/i"
+      example: "{user-agent} ~= /mobile/i"
     },
     {
       token: 'includes',

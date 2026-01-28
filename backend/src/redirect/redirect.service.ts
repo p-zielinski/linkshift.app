@@ -1016,7 +1016,7 @@ export class RedirectService {
       method: req.method,
       scheme: req.protocol,
       ip: req.ip || req.socket.remoteAddress,
-      userAgent: req.get('User-Agent') || '',
+      'user-agent': req.get('User-Agent') || '',
       // Special static variables
       random: String(Math.floor(Math.random() * 1000000)),
       // Geo placeholder (Mock)
