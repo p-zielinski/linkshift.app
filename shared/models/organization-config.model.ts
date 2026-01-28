@@ -17,6 +17,11 @@ export enum OrganizationStatus {
 export class OrganizationSubscription {
   plan: OrganizationPlan = OrganizationPlan.FREE;
   status: OrganizationStatus = OrganizationStatus.ACTIVE;
+  provider: 'LEMON_SQUEEZY' | 'MANUAL' | null = null;
+  providerCustomerId: string | null = null;
+  providerSubscriptionId: string | null = null;
+  providerOrderId: string | null = null;
+  providerVariantId: string | null = null;
 
   // Validity
   activeFrom: Date = new Date();

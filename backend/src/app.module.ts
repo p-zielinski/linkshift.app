@@ -10,6 +10,7 @@ import { DomainGroupsController } from './api/domain-groups.controller';
 import { DomainsController } from './api/domains.controller';
 import { RedirectRulesController } from './api/redirect-rules.controller';
 import { AuthController } from './api/auth.controller';
+import { BillingController } from './api/billing.controller';
 import { AuthService } from './auth/auth.service';
 import { ApiRedirectionMiddleware } from './middleware/api-redirection.middleware';
 import { ClsModule } from 'nestjs-cls';
@@ -19,6 +20,8 @@ import { CacheManagerService } from './cache/cache-manager.service';
 import { CacheManagerIdsService } from './cache/cache-manager-ids.service';
 import { RedisService } from './redis/redis.service';
 import { RedisModule } from './redis/redis.module';
+import { BillingService } from './billing/billing.service';
+import { LemonSqueezyService } from './billing/lemon-squeezy.service';
 
 @Module({
   imports: [
@@ -41,6 +44,7 @@ import { RedisModule } from './redis/redis.module';
     DomainsController,
     RedirectRulesController,
     AuthController,
+    BillingController,
   ],
   providers: [
     RedirectService,
@@ -49,6 +53,8 @@ import { RedisModule } from './redis/redis.module';
     PrismaService,
     JwtService,
     AuthService,
+    BillingService,
+    LemonSqueezyService,
     AuthGuard,
     RedisService,
     CacheManagerIdsService,

@@ -9,4 +9,5 @@ export type AuthTokens = {
 export type AuthResponse = AuthTokens & {
   user: User;
   organization: Organization;
+  checkoutUrl?: string | null;
 };

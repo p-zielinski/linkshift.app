@@ -17,5 +17,6 @@ export const registerSchema = z.object({
   organizationName: z
     .string()
     .min(1, 'Organization name is required')
-    .max(128, 'Organization name is too long')
+    .max(128, 'Organization name is too long'),
+  plan: z.enum(['FREE', 'STARTER', 'PRO']).default('FREE')
 });

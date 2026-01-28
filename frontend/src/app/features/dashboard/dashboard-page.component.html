@@ -94,10 +94,45 @@
           </div>
         </div>
         <div class="mt-5 flex flex-wrap items-center gap-3">
-          <a mat-flat-button color="primary" routerLink="/pricing">
-            Upgrade subscription
-          </a>
-          <a mat-stroked-button routerLink="/pricing">Compare plans</a>
+          @if (canUpgradeToStarter()) {
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              [disabled]="billingBusy()"
+              (click)="startCheckout(OrganizationPlan.STARTER)"
+            >
+              Upgrade to Starter
+            </button>
+          }
+          @if (canUpgradeToPro()) {
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="billingBusy()"
+              (click)="startCheckout(OrganizationPlan.PRO)"
+            >
+              Upgrade to Pro
+            </button>
+          }
+          @if (activeSubscription().plan !== OrganizationPlan.FREE) {
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="billingBusy()"
+              (click)="openCustomerPortal()"
+            >
+              Manage subscription
+            </button>
+            <button
+              mat-button
+              type="button"
+              [disabled]="billingBusy()"
+              (click)="openCustomerPortal()"
+            >
+              Cancel subscription
+            </button>
+          }
         </div>
       }
     } @else {

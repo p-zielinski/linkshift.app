@@ -90,6 +90,25 @@
             }
           </mat-form-field>
 
+          <div class="plan-picker">
+            <div class="text-[13px] font-semibold text-app-ink-strong">
+              Choose your plan
+            </div>
+            <mat-radio-group class="plan-grid" [formField]="registerForm.plan">
+              @for (plan of plans; track plan.id) {
+                <mat-radio-button class="plan-option" [value]="plan.id">
+                  <div class="plan-meta">
+                    <div class="plan-title">{{ plan.title }}</div>
+                    <div class="plan-price">{{ plan.price }}</div>
+                    <div class="plan-note text-[12px] text-app-muted">
+                      {{ plan.note }}
+                    </div>
+                  </div>
+                </mat-radio-button>
+              }
+            </mat-radio-group>
+          </div>
+
           <div class="mt-4 flex justify-end">
             <button
               mat-flat-button

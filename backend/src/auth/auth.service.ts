@@ -7,6 +7,8 @@ import { AppEntity, createCustomCuid, throwHttpException } from '../utils';
 import { CacheManagerService, DataType } from '../cache/cache-manager.service';
 import { ConflictError, UnauthorizedError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
+import { BillingService } from '../billing/billing.service';
+import { OrganizationPlan } from '@shared/models/organization-config.model';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +17,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly cacheManagerService: CacheManagerService,
     private readonly clsService: ClsService,
+    private readonly billingService: BillingService,
   ) {}
 
   async register(data: RegisterDto) {
@@ -73,6 +76,20 @@ export class AuthService {
       }),
     ]);
 
+    const selectedPlan = (data.plan ??
+      OrganizationPlan.FREE) as OrganizationPlan;
+    const shouldCreateCheckout =
+      selectedPlan === OrganizationPlan.STARTER ||
+      selectedPlan === OrganizationPlan.PRO;
+
+    const checkout = shouldCreateCheckout
+      ? await this.billingService.createCheckout({
+          organizationId: result.organization.id,
+          userId: result.user.id,
+          plan: selectedPlan,
+        })
+      : null;
+
     // 4. Generate JWT token
     const tokens = this.jwtService.generateTokens({
       userId: result.user.id,
@@ -82,6 +99,7 @@ export class AuthService {
     return {
       user: result.user,
       organization: result.organization,
+      checkoutUrl: checkout?.checkoutUrl ?? null,
       ...tokens,
     };
   }

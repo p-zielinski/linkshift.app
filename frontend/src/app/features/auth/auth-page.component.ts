@@ -14,11 +14,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatRadioModule } from '@angular/material/radio';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../core/store/auth.store';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { loginSchema, registerSchema } from './auth.schemas';
+import { OrganizationPlan } from '@shared/models/organization-config.model';
 
 @Component({
   selector: 'app-auth-page',
@@ -32,6 +34,7 @@ import { loginSchema, registerSchema } from './auth.schemas';
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
+    MatRadioModule,
     FormField,
     RouterLink
   ],
@@ -52,7 +55,8 @@ export class AuthPageComponent {
     organizationName: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    plan: OrganizationPlan.FREE
   });
 
   loginForm = form(this.loginModel, (f) => {
@@ -67,9 +71,11 @@ export class AuthPageComponent {
     required(f.email);
     required(f.password);
     required(f.confirmPassword);
+    required(f.plan);
     applyZodField(f.organizationName, registerSchema.shape.organizationName);
     applyZodField(f.email, registerSchema.shape.email);
     applyZodField(f.password, registerSchema.shape.password);
+    applyZodField(f.plan, registerSchema.shape.plan);
 
     validate(f.confirmPassword, ({ value, valueOf }) => {
       if (!value()) {
@@ -88,6 +94,27 @@ export class AuthPageComponent {
   registerEmailError = computed(() => this.getFieldError(this.registerForm.email()));
   registerPasswordError = computed(() => this.getFieldError(this.registerForm.password()));
   registerConfirmError = computed(() => this.getFieldError(this.registerForm.confirmPassword()));
+
+  readonly plans = [
+    {
+      id: OrganizationPlan.FREE,
+      title: 'Free',
+      price: '0 EUR',
+      note: '1 domain group • 1 domain • 15 rules • 10 redirects/min'
+    },
+    {
+      id: OrganizationPlan.STARTER,
+      title: 'Starter',
+      price: '10 EUR',
+      note: '1 domain group • 10 domains • 250 rules • 50 redirects/min'
+    },
+    {
+      id: OrganizationPlan.PRO,
+      title: 'Pro',
+      price: '29 EUR',
+      note: '2 domain groups • 15 domains • 500 rules • 100 redirects/min'
+    }
+  ];
 
   constructor() {
     effect(() => {
@@ -124,7 +151,11 @@ export class AuthPageComponent {
     await submit(this.registerForm, async (formValue) => {
       try {
         const { confirmPassword: _confirmPassword, ...payload } = formValue().value();
-        await firstValueFrom(this.authStore.register(payload));
+        const response = await firstValueFrom(this.authStore.register(payload));
+        if (response.checkoutUrl) {
+          window.location.href = response.checkoutUrl;
+          return undefined;
+        }
         await this.router.navigateByUrl('/dashboard');
       } catch {
         return undefined;

@@ -6,6 +6,7 @@ import {
 } from 'nest-winston';
 import * as winston from 'winston';
 import { ZodFilter } from './filters/zod.filter';
+import express from 'express';
 
 async function bootstrap() {
   const logFormat = winston.format.combine(
@@ -23,6 +24,13 @@ async function bootstrap() {
   });
 
   const app = await NestFactory.create(AppModule, { logger });
+  app.use(
+    express.json({
+      verify: (req, _res, buf) => {
+        (req as any).rawBody = buf;
+      },
+    }),
+  );
   app.useGlobalFilters(new ZodFilter(logger));
 
   const port = process.env.PORT ?? 3000;
