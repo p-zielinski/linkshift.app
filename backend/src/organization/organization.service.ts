@@ -188,12 +188,12 @@ export class OrganizationService {
       return subscription;
     }
 
-    const hasActiveUntil = subscription.activeUntil instanceof Date;
+    const activeUntil = subscription.activeUntil;
     const hasEnded =
-      hasActiveUntil && subscription.activeUntil.getTime() <= Date.now();
+      activeUntil instanceof Date && activeUntil.getTime() <= Date.now();
 
     if (subscription.status === OrganizationStatus.CANCELED) {
-      if (hasActiveUntil && !hasEnded) {
+      if (activeUntil instanceof Date && !hasEnded) {
         return subscription;
       }
       return new OrganizationSubscription({

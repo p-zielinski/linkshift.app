@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -10,6 +10,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { form, required, submit, FormField } from '@angular/forms/signals';
+import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { applyZodField } from '../../core/forms/zod-validators';
@@ -54,86 +56,19 @@ export type RedirectRuleDialogData = {
     MatStepperModule,
     MatExpansionModule,
     MatTooltipModule,
+    LayoutModule,
     FormField
   ],
   templateUrl: './redirect-rule-form-dialog.component.html',
-  styles: [
-    `
-      :host {
-        display: block;
-        height: 100%;
-      }
-
-      :host ::ng-deep .wizard-stepper {
-        height: 100%;
-        --mat-stepper-header-height: 44px;
-      }
-
-      :host ::ng-deep .wizard-stepper .mat-horizontal-stepper-wrapper {
-        display: grid;
-        grid-template-columns: max-content minmax(0, 1fr);
-        column-gap: 12px;
-        grid-template-rows: minmax(0, 1fr);
-        height: 100%;
-      }
-
-      :host ::ng-deep .wizard-stepper .mat-horizontal-stepper-header-wrapper {
-        grid-column: 1;
-        grid-row: 1;
-      }
-
-      :host ::ng-deep .wizard-stepper .mat-horizontal-stepper-header-container {
-        grid-column: 1;
-        grid-row: 1;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-        padding: 8px 16px 12px 0;
-        border-right: 1px solid var(--app-border-soft, rgba(0, 0, 0, 0.08));
-        overflow: visible;
-        white-space: normal;
-        box-sizing: border-box;
-        width: max-content;
-        align-self: flex-start;
-      }
-
-      :host ::ng-deep .wizard-stepper .mat-horizontal-stepper-header {
-        justify-content: flex-start;
-        width: auto;
-        max-width: 100%;
-        padding: 10px 16px;
-        border-radius: 12px;
-        box-sizing: border-box;
-      }
-
-      :host ::ng-deep .wizard-stepper .mat-horizontal-stepper-header .mat-step-icon {
-        margin-right: 12px;
-      }
-
-      :host ::ng-deep .wizard-stepper .mat-horizontal-content-container {
-        grid-column: 2;
-        grid-row: 1;
-        padding: 20px 24px 32px 24px;
-        overflow: auto;
-        min-height: 0;
-        width: 100%;
-      }
-
-      :host ::ng-deep .wizard-stepper .mat-stepper-horizontal-line {
-        display: none;
-      }
-
-      :host ::ng-deep .wizard-tooltip {
-        white-space: pre-line;
-      }
-    `
-  ]
+  styleUrl: './redirect-rule-form-dialog.component.css'
 })
 export class RedirectRuleFormDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<RedirectRuleFormDialogComponent>);
   private readonly data = inject<RedirectRuleDialogData | null>(MAT_DIALOG_DATA, { optional: true });
   private readonly redirectRuleStore = inject(RedirectRuleStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly matchMethodOptions = redirectRuleMatchMethods;
@@ -171,6 +106,10 @@ export class RedirectRuleFormDialogComponent {
   });
 
   readonly wizardMode = signal<WizardMode>('guided');
+  readonly isCompact = signal(false);
+  readonly effectiveWizardMode = computed(() =>
+    this.isCompact() ? 'fast' : this.wizardMode()
+  );
   readonly pendingSubmit = signal(false);
   private readonly submitKey = signal(CREATE_ENTITY_ID);
   private readonly submitErrorSequence = signal(0);
@@ -479,6 +418,7 @@ export class RedirectRuleFormDialogComponent {
   constructor() {
     this.domainGroupStore.searchList();
     this.restoreWizardMode();
+    this.observeViewport();
 
     effect(
       () => {
@@ -513,9 +453,21 @@ export class RedirectRuleFormDialogComponent {
   }
 
   toggleWizardMode(): void {
+    if (this.isCompact()) {
+      return;
+    }
     const next: WizardMode = this.wizardMode() === 'guided' ? 'fast' : 'guided';
     this.wizardMode.set(next);
     this.persistWizardMode(next);
+  }
+
+  private observeViewport(): void {
+    this.breakpointObserver
+      .observe('(max-width: 768px)')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((state) => {
+        this.isCompact.set(state.matches);
+      });
   }
 
   private restoreWizardMode(): void {

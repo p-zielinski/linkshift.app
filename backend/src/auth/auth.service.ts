@@ -9,6 +9,7 @@ import { ConflictError, UnauthorizedError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { BillingService } from '../billing/billing.service';
 import { OrganizationPlan } from '@shared/models/organization-config.model';
+import { LoginRateLimitService } from './login-rate-limit.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private readonly cacheManagerService: CacheManagerService,
     private readonly clsService: ClsService,
     private readonly billingService: BillingService,
+    private readonly loginRateLimitService: LoginRateLimitService,
   ) {}
 
   async register(data: RegisterDto) {
@@ -104,7 +106,9 @@ export class AuthService {
     };
   }
 
-  async login(data: LoginDto) {
+  async login(data: LoginDto, ip: string | null) {
+    await this.loginRateLimitService.assertNotBlocked(ip);
+
     // 1. Find user
     const user = await this.prisma.user.findFirst({
       where: {
@@ -117,6 +121,7 @@ export class AuthService {
     });
 
     if (!user) {
+      await this.loginRateLimitService.registerFailure(ip);
       return throwHttpException(
         new UnauthorizedError({
           requestId: this.clsService.getId(),
@@ -132,6 +137,7 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
+      await this.loginRateLimitService.registerFailure(ip);
       return throwHttpException(
         new UnauthorizedError({
           requestId: this.clsService.getId(),
@@ -139,6 +145,8 @@ export class AuthService {
         }),
       );
     }
+
+    await this.loginRateLimitService.reset(ip);
 
     await this.cacheManagerService.setDataExist({
       dataType: DataType.USERS,
@@ -181,20 +189,7 @@ export class AuthService {
     }
 
     // 2. Check for Token Reuse via CacheManager
-    const jti = (payload as any).jti;
-    if (jti) {
-      const isBlacklisted =
-        await this.cacheManagerService.isTokenBlacklisted(jti);
-      if (isBlacklisted) {
-        // Here you could also invalidate all user tokens if you want strict security
-        return throwHttpException(
-          new UnauthorizedError({
-            requestId: this.clsService.getId(),
-            details: 'Refresh token has already been used. Please login again.',
-          }),
-        );
-      }
-    }
+    await this.ensureRefreshTokenNotReused(payload as RefreshTokenPayload);
 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.userId, deletedAt: null },
@@ -209,19 +204,68 @@ export class AuthService {
     }
 
     // 3. Blacklist the OLD token via CacheManager
-    if (jti) {
-      const currentTimestamp = Math.floor(Date.now() / 1000);
-      const exp = (payload as any).exp;
-      const ttl = exp - currentTimestamp;
-
-      if (ttl > 0) {
-        await this.cacheManagerService.blacklistToken(jti, ttl);
-      }
-    }
+    await this.blacklistRefreshToken(payload as RefreshTokenPayload);
 
     return this.jwtService.generateTokens({
       userId: payload.userId,
       organizationId: payload.organizationId,
     });
   }
+
+  async logout(refreshToken: string | null) {
+    if (!refreshToken) {
+      return;
+    }
+
+    const payload = this.jwtService.verifyRefreshToken(refreshToken);
+    if (!payload) {
+      return;
+    }
+
+    await this.blacklistRefreshToken(payload as RefreshTokenPayload);
+  }
+
+  private async ensureRefreshTokenNotReused(
+    payload: RefreshTokenPayload,
+  ): Promise<void> {
+    const jti = payload.jti;
+    if (!jti) {
+      return;
+    }
+
+    const isBlacklisted =
+      await this.cacheManagerService.isTokenBlacklisted(jti);
+    if (isBlacklisted) {
+      return throwHttpException(
+        new UnauthorizedError({
+          requestId: this.clsService.getId(),
+          details: 'Refresh token has already been used. Please login again.',
+        }),
+      );
+    }
+  }
+
+  private async blacklistRefreshToken(
+    payload: RefreshTokenPayload,
+  ): Promise<void> {
+    const jti = payload.jti;
+    const exp = payload.exp;
+    if (!jti || !exp) {
+      return;
+    }
+
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const ttl = exp - currentTimestamp;
+
+    if (ttl > 0) {
+      await this.cacheManagerService.blacklistToken(jti, ttl);
+    }
+  }
 }
+
+type RefreshTokenPayload = {
+  jti?: string;
+  exp?: number;
+  userId: string;
+  organizationId: string;
+};

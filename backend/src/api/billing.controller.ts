@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Param,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -39,6 +40,15 @@ export class BillingController {
   async getPortalUrl(@User('organizationId') organizationId: string) {
     const url = await this.billingService.getCustomerPortalUrl(organizationId);
     return { url };
+  }
+
+  @Get('checkout-sessions/:id')
+  @UseGuards(AuthGuard)
+  async getCheckoutSession(
+    @User('organizationId') organizationId: string,
+    @Param('id') id: string,
+  ) {
+    return this.billingService.getCheckoutSessionStatus(organizationId, id);
   }
 
   @Post('webhooks/lemon-squeezy')

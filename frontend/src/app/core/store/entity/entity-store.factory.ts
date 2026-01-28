@@ -1,5 +1,4 @@
 import { computed, inject } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   patchState,
   signalStore,
@@ -20,6 +19,7 @@ import {
   isExpired
 } from './entity-store.utils';
 import type { QueryResult } from '../../models/query-result.model';
+import { extractErrorMessage } from '../store-error.utils';
 
 const DEFAULT_TTL_MS = 60 * 60 * 1000;
 
@@ -316,11 +316,11 @@ export function createEntityStore<
       };
 
       const setError = (error: unknown, fallback: string) => {
-        const message = extractErrorMessage(error, fallback);
-        patchState(store, (state) => ({
-          lastError: message,
-          errorSequence: state.errorSequence + 1
-        }));
+      const message = extractErrorMessage(error, fallback);
+      patchState(store, (state) => ({
+        lastError: message,
+        errorSequence: state.errorSequence + 1
+      }));
       };
 
       return {
@@ -339,36 +339,4 @@ export function createEntityStore<
       };
     })
   );
-}
-
-function extractErrorMessage(error: unknown, fallback: string): string {
-  const normalize = (value: unknown): string | null => {
-    if (typeof value === 'string') {
-      const trimmed = value.trim();
-      return trimmed ? trimmed : null;
-    }
-    if (Array.isArray(value)) {
-      const items = value
-        .map((item) => (typeof item === 'string' ? item.trim() : ''))
-        .filter((item) => item.length > 0);
-      return items.length > 0 ? items.join(', ') : null;
-    }
-    return null;
-  };
-
-  if (error instanceof HttpErrorResponse) {
-    return (
-      normalize(error.error?.details) ||
-      normalize(error.error?.message) ||
-      normalize(error.message) ||
-      fallback
-    );
-  }
-
-  if (error && typeof error === 'object') {
-    const anyError = error as { details?: unknown; message?: unknown };
-    return normalize(anyError.details) || normalize(anyError.message) || fallback;
-  }
-
-  return fallback;
 }

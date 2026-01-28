@@ -1,5 +1,4 @@
 import { computed, inject } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { catchError, finalize, tap, throwError, type Observable } from 'rxjs';
 import type { AuthResponse, AuthTokens } from '../models/auth.model';
@@ -9,6 +8,7 @@ import type { User } from '../models/user.model';
 import { AuthApiService } from '../api/auth-api.service';
 import { DomainGroupStore } from './domain-group.store';
 import { DomainStore } from './domain.store';
+import { extractErrorMessage } from './store-error.utils';
 import {
   clearStoredSession,
   loadStoredSession,
@@ -17,7 +17,6 @@ import {
 
 export type AuthState = {
   accessToken: string | null;
-  refreshToken: string | null;
   user: User | null;
   organization: Organization | null;
   isLoading: boolean;
@@ -26,8 +25,7 @@ export type AuthState = {
 
 const initialStored = loadStoredSession();
 const initialState: AuthState = {
-  accessToken: initialStored.accessToken,
-  refreshToken: initialStored.refreshToken,
+  accessToken: null,
   user: initialStored.user,
   organization: initialStored.organization,
   isLoading: false,
@@ -38,7 +36,7 @@ export const AuthStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
   withComputed((store) => ({
-    isAuthenticated: computed(() => !!store.accessToken() && !!store.user())
+    isAuthenticated: computed(() => !!store.accessToken())
   })),
   withMethods((store, api = inject(AuthApiService)) => {
     const domainStore = inject(DomainStore);
@@ -51,7 +49,6 @@ export const AuthStore = signalStore(
     const setSession = (payload: AuthResponse) => {
       const nextState: AuthState = {
         accessToken: payload.accessToken,
-        refreshToken: payload.refreshToken,
         user: payload.user,
         organization: payload.organization,
         isLoading: false,
@@ -64,22 +61,16 @@ export const AuthStore = signalStore(
 
     const setTokens = (tokens: AuthTokens) => {
       patchState(store, {
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken
+        accessToken: tokens.accessToken
       });
       storeSession({
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
         user: store.user(),
         organization: store.organization()
       });
     };
 
     const setError = (error: unknown, fallback: string) => {
-      const message = error instanceof HttpErrorResponse
-        ? error.error?.details || error.error?.message || error.message
-        : fallback;
-
+      const message = extractErrorMessage(error, fallback);
       patchState(store, { error: message, isLoading: false });
     };
 
@@ -116,14 +107,7 @@ export const AuthStore = signalStore(
     };
 
     const refreshTokens = (): Observable<AuthTokens> => {
-      const refreshToken = store.refreshToken();
-
-      if (!refreshToken) {
-        logout();
-        return throwError(() => new Error('Missing refresh token'));
-      }
-
-      return api.refresh({ refreshToken }).pipe(
+      return api.refresh().pipe(
         tap((tokens) => setTokens(tokens)),
         catchError((error) => {
           logout();
@@ -133,10 +117,12 @@ export const AuthStore = signalStore(
     };
 
     const logout = () => {
+      api.logout().subscribe({
+        error: () => undefined,
+      });
       clearStoredSession();
       patchState(store, {
         accessToken: null,
-        refreshToken: null,
         user: null,
         organization: null,
         isLoading: false,

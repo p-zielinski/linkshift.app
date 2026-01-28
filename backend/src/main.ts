@@ -24,13 +24,53 @@ async function bootstrap() {
   });
 
   const app = await NestFactory.create(AppModule, { logger });
+  const expressApp = app.getHttpAdapter().getInstance();
+  if (process.env.TRUST_PROXY === 'true') {
+    expressApp.set('trust proxy', 1);
+  }
+  expressApp.disable('x-powered-by');
   app.use(
     express.json({
+      limit: '1mb',
       verify: (req, _res, buf) => {
         (req as any).rawBody = buf;
       },
     }),
   );
+
+  const corsOrigins = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  const allowedOrigins =
+    corsOrigins.length > 0
+      ? corsOrigins
+      : ['http://localhost:4200', 'http://localhost:4000'];
+
+  app.enableCors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+  });
+
+  app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader(
+      'Permissions-Policy',
+      'geolocation=(), microphone=(), camera=()',
+    );
+    if (process.env.NODE_ENV === 'production') {
+      res.setHeader(
+        'Strict-Transport-Security',
+        'max-age=15552000; includeSubDomains',
+      );
+    }
+    res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none';");
+    next();
+  });
   app.useGlobalFilters(new ZodFilter(logger));
 
   const port = process.env.PORT ?? 3000;

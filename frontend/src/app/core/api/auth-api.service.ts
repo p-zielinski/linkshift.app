@@ -14,14 +14,28 @@ export class AuthApiService {
   private readonly apiUrl = `${this.apiConfig.baseUrl}/api/v1/auth`;
 
   login(payload: LoginDto): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, payload);
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, payload, {
+      withCredentials: true,
+    });
   }
 
   register(payload: RegisterDto): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, payload);
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, payload, {
+      withCredentials: true,
+    });
   }
 
-  refresh(payload: RefreshTokenDto): Observable<AuthTokens> {
-    return this.http.post<AuthTokens>(`${this.apiUrl}/refresh`, payload);
+  refresh(payload: RefreshTokenDto = {}): Observable<AuthTokens> {
+    return this.http.post<AuthTokens>(`${this.apiUrl}/refresh`, payload, {
+      withCredentials: true,
+    });
+  }
+
+  logout(): Observable<{ success: true }> {
+    return this.http.post<{ success: true }>(
+      `${this.apiUrl}/logout`,
+      {},
+      { withCredentials: true },
+    );
   }
 }

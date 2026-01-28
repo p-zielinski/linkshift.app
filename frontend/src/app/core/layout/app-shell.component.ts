@@ -1,13 +1,17 @@
-import { Component, computed, effect, inject } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AuthStore } from '../store/auth.store';
 import { DomainStore } from '../store/domain.store';
 import { DomainGroupStore } from '../store/domain-group.store';
+import { CheckoutStatusDialogComponent } from '../../features/billing/checkout-status-dialog/checkout-status-dialog.component';
 
 type NavItem = {
   label: string;
@@ -39,19 +43,28 @@ const NAV_ITEMS: NavItem[] = [
     MatIconModule,
     MatButtonModule,
     MatListModule,
-    MatTooltipModule
+    MatTooltipModule,
+    LayoutModule,
+    MatDialogModule
   ],
   templateUrl: './app-shell.component.html'
 })
 export class AppShellComponent {
   readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly domainStore = inject(DomainStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly dialog = inject(MatDialog);
 
   readonly navItems = NAV_ITEMS;
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly hasDomainGroups = computed(() => this.domainGroups().length > 0);
+  readonly isMobile = signal(false);
+  readonly mobileNavOpen = signal(false);
+  private readonly lastCheckoutSessionId = signal<string | null>(null);
 
   constructor() {
     effect(() => {
@@ -60,6 +73,16 @@ export class AppShellComponent {
         this.domainGroupStore.searchList();
       }
     });
+    this.observeViewport();
+    this.observeCheckoutSessions();
+    effect(
+      () => {
+        if (!this.isMobile()) {
+          this.mobileNavOpen.set(false);
+        }
+      },
+      { allowSignalWrites: true }
+    );
   }
 
   onLogout(): void {
@@ -71,4 +94,50 @@ export class AppShellComponent {
     return !!item.requiresDomainGroups && !this.hasDomainGroups();
   }
 
+  toggleMobileNav(): void {
+    this.mobileNavOpen.set(!this.mobileNavOpen());
+  }
+
+  closeMobileNav(): void {
+    this.mobileNavOpen.set(false);
+  }
+
+  onNavigate(): void {
+    if (this.isMobile()) {
+      this.closeMobileNav();
+    }
+  }
+
+  private observeViewport(): void {
+    this.breakpointObserver
+      .observe('(max-width: 1023px)')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((state) => {
+        this.isMobile.set(state.matches);
+      });
+  }
+
+  private observeCheckoutSessions(): void {
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const sessionId = params.get('checkout_session');
+        if (!sessionId || this.lastCheckoutSessionId() === sessionId) {
+          return;
+        }
+
+        this.lastCheckoutSessionId.set(sessionId);
+        this.dialog.open(CheckoutStatusDialogComponent, {
+          data: { sessionId },
+          width: 'min(520px, 92vw)',
+          maxWidth: '92vw',
+        });
+
+        this.router.navigate([], {
+          queryParams: { checkout_session: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      });
+  }
 }

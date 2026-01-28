@@ -36,7 +36,7 @@
     class="flex min-h-0 flex-1 flex-col rounded-[18px] border border-app-border-soft bg-app-surface p-4"
   >
     <div class="min-h-0 flex-1 overflow-auto">
-      <table mat-table [dataSource]="rules()" class="w-full mat-elevation-z0">
+      <table mat-table [dataSource]="rules()" class="min-w-[960px] w-full mat-elevation-z0">
         <ng-container matColumnDef="priority">
           <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[80px] max-w-[250px] truncate">
             Priority

@@ -1,11 +1,11 @@
 import { computed, inject } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { tapResponse } from '@ngrx/operators';
 import { mergeMap, pipe, tap } from 'rxjs';
 import type { OrganizationUsage } from '../models/organization-usage.model';
 import { OrganizationApiService } from '../api/organization-api.service';
+import { extractErrorMessage } from './store-error.utils';
 
 type OrganizationUsageState = {
   usage: OrganizationUsage | null;
@@ -27,10 +27,7 @@ export const OrganizationUsageStore = signalStore(
   })),
   withMethods((store, api = inject(OrganizationApiService)) => {
     const setError = (error: unknown, fallback: string) => {
-      const message =
-        error instanceof HttpErrorResponse
-          ? error.error?.details || error.error?.message || error.message
-          : fallback;
+      const message = extractErrorMessage(error, fallback);
       patchState(store, { error: message });
     };
 

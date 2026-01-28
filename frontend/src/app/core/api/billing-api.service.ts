@@ -6,10 +6,26 @@ import { OrganizationPlan } from '@shared/models/organization-config.model';
 
 type CheckoutResponse = {
   checkoutUrl: string;
+  checkoutSessionId?: string;
 };
 
 type PortalResponse = {
   url: string;
+};
+
+export type CheckoutSessionStatus =
+  | 'PENDING'
+  | 'PAID'
+  | 'CANCELED'
+  | 'FAILED'
+  | 'EXPIRED';
+
+export type CheckoutSessionResponse = {
+  id: string;
+  plan: string;
+  status: CheckoutSessionStatus;
+  updatedAt: string;
+  completedAt?: string | null;
 };
 
 @Injectable({
@@ -28,5 +44,11 @@ export class BillingApiService {
 
   getCustomerPortal(): Observable<PortalResponse> {
     return this.http.get<PortalResponse>(`${this.apiUrl}/portal`);
+  }
+
+  getCheckoutSession(sessionId: string): Observable<CheckoutSessionResponse> {
+    return this.http.get<CheckoutSessionResponse>(
+      `${this.apiUrl}/checkout-sessions/${sessionId}`,
+    );
   }
 }

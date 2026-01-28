@@ -23,6 +23,8 @@ import { RedisService } from './redis/redis.service';
 import { RedisModule } from './redis/redis.module';
 import { BillingService } from './billing/billing.service';
 import { LemonSqueezyService } from './billing/lemon-squeezy.service';
+import { LoginRateLimitService } from './auth/login-rate-limit.service';
+import { NgrokDomainAssignerService } from './dev/ngrok-domain-assigner.service';
 
 @Module({
   imports: [
@@ -57,6 +59,8 @@ import { LemonSqueezyService } from './billing/lemon-squeezy.service';
     AuthService,
     BillingService,
     LemonSqueezyService,
+    LoginRateLimitService,
+    NgrokDomainAssignerService,
     AuthGuard,
     RedisService,
     CacheManagerIdsService,

@@ -10,6 +10,36 @@ import { join } from 'node:path';
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
+app.disable('x-powered-by');
+
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader(
+    'Permissions-Policy',
+    'geolocation=(), microphone=(), camera=()',
+  );
+
+  const apiBase = process.env['APP_API_BASE_URL'] ?? 'http://localhost:3000';
+  const apiOrigin = safeOrigin(apiBase);
+  const connectSrc = apiOrigin ? `'self' ${apiOrigin}` : "'self'";
+
+  res.setHeader(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data:",
+      `connect-src ${connectSrc}`,
+      "frame-ancestors 'none'",
+    ].join('; '),
+  );
+
+  next();
+});
 const angularApp = new AngularNodeAppEngine();
 
 /**
@@ -66,3 +96,11 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
  * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
  */
 export const reqHandler = createNodeRequestHandler(app);
+
+function safeOrigin(value: string): string | null {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}

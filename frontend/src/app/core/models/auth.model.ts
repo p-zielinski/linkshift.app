@@ -3,10 +3,11 @@ import type { User } from './user.model';
 
 export type AuthTokens = {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string | null;
 };
 
-export type AuthResponse = AuthTokens & {
+export type AuthResponse = {
+  accessToken: string;
   user: User;
   organization: Organization;
   checkoutUrl?: string | null;

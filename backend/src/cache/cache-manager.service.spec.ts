@@ -39,6 +39,8 @@ describe('CacheManagerService', () => {
           useValue: {
             get: jest.fn(),
             set: jest.fn(),
+            incr: jest.fn(),
+            expire: jest.fn(),
           },
         },
         {
@@ -162,6 +164,51 @@ describe('CacheManagerService', () => {
 
       expect(result).toBeUndefined();
       expect(prisma.user.findFirst).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('checkOrganizationRateLimit', () => {
+    it('skips checks when limit is non-positive', async () => {
+      const incrSpy = jest.spyOn(redis, 'incr');
+
+      await service.checkOrganizationRateLimit('org-1', 0);
+
+      expect(incrSpy).not.toHaveBeenCalled();
+    });
+
+    it('throws when the limit is exceeded', async () => {
+      jest.spyOn(redis, 'incr').mockResolvedValue(2);
+
+      await expect(
+        service.checkOrganizationRateLimit('org-1', 1),
+      ).rejects.toThrow();
+    });
+
+    it('short-circuits when L1 block is present', async () => {
+      const now = new Date();
+      const minuteKey = `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}:${now.getUTCHours()}:${now.getUTCMinutes()}`;
+      const blockKey = `RATE_LIMIT_BLOCK:org-1:${minuteKey}`;
+
+      (service as any).localCache.set(blockKey, true);
+
+      const incrSpy = jest.spyOn(redis, 'incr');
+
+      await expect(
+        service.checkOrganizationRateLimit('org-1', 1),
+      ).rejects.toThrow();
+      expect(incrSpy).not.toHaveBeenCalled();
+    });
+
+    it('sets a Redis expiry on the first request in a window', async () => {
+      jest.spyOn(redis, 'incr').mockResolvedValue(1);
+      const expireSpy = jest.spyOn(redis, 'expire').mockResolvedValue(undefined);
+
+      await service.checkOrganizationRateLimit('org-1', 5);
+
+      expect(expireSpy).toHaveBeenCalledWith(
+        expect.stringContaining('RATE_LIMIT:org-1:'),
+        65,
+      );
     });
   });
 });

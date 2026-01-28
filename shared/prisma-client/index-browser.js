@@ -171,6 +171,21 @@ exports.Prisma.RedirectRuleScalarFieldEnum = {
   deletedAt: 'deletedAt'
 };
 
+exports.Prisma.BillingCheckoutSessionScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  userId: 'userId',
+  plan: 'plan',
+  status: 'status',
+  providerCheckoutId: 'providerCheckoutId',
+  providerOrderId: 'providerOrderId',
+  providerSubscriptionId: 'providerSubscriptionId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  completedAt: 'completedAt',
+  metadata: 'metadata'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -206,12 +221,21 @@ exports.HttpMethod = exports.$Enums.HttpMethod = {
   HEAD: 'HEAD'
 };
 
+exports.BillingCheckoutStatus = exports.$Enums.BillingCheckoutStatus = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  CANCELED: 'CANCELED',
+  FAILED: 'FAILED',
+  EXPIRED: 'EXPIRED'
+};
+
 exports.Prisma.ModelName = {
   Organization: 'Organization',
   User: 'User',
   DomainGroup: 'DomainGroup',
   Domain: 'Domain',
-  RedirectRule: 'RedirectRule'
+  RedirectRule: 'RedirectRule',
+  BillingCheckoutSession: 'BillingCheckoutSession'
 };
 
 /**

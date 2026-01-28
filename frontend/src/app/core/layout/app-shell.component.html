@@ -1,5 +1,10 @@
 <mat-sidenav-container class="min-h-screen">
-  <mat-sidenav mode="side" opened>
+  <mat-sidenav
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="!isMobile() || mobileNavOpen()"
+    [fixedInViewport]="isMobile()"
+    (backdropClick)="closeMobileNav()"
+  >
     <div
       class="flex h-full w-[280px] flex-col bg-[linear-gradient(160deg,var(--color-app-shell-start)_0%,var(--color-app-shell-mid)_60%,var(--color-app-shell-end)_100%)] px-4 py-6"
     >
@@ -27,6 +32,7 @@
               [routerLink]="item.route"
               routerLinkActive="rounded-xl bg-app-accent-soft"
               [routerLinkActiveOptions]="{ exact: true }"
+              (click)="onNavigate()"
             >
               <mat-icon class="relative top-[-2px] mr-3 align-middle text-[20px]">{{ item.icon }}</mat-icon>
               <span>{{ item.label }}</span>
@@ -51,7 +57,14 @@
     </div>
   </mat-sidenav>
 
-  <mat-sidenav-content class="p-6">
+  <mat-sidenav-content class="p-4 sm:p-6">
+    <div class="mb-4 flex items-center justify-between gap-3 lg:hidden">
+      <button mat-icon-button type="button" (click)="toggleMobileNav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <div class="text-[14px] font-semibold text-app-text">Redirect Control</div>
+      <span class="w-10" aria-hidden="true"></span>
+    </div>
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>

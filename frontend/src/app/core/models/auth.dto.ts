@@ -13,5 +13,5 @@ export type RegisterDto = {
 };
 
 export type RefreshTokenDto = {
-  refreshToken: string;
+  refreshToken?: string;
 };

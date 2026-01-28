@@ -24,6 +24,14 @@ enum HttpMethod {
   HEAD
 }
 
+enum BillingCheckoutStatus {
+  PENDING
+  PAID
+  CANCELED
+  FAILED
+  EXPIRED
+}
+
 // Organization entity - top-level tenant
 model Organization {
   id        String   @id
@@ -37,6 +45,7 @@ model Organization {
 
   users        User[]
   domainGroups DomainGroup[]
+  checkoutSessions BillingCheckoutSession[]
 
   @@index([deletedAt])
 }
@@ -53,6 +62,7 @@ model User {
   deletedAt      DateTime?
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  checkoutSessions BillingCheckoutSession[]
 
   @@index([organizationId])
   @@index([deletedAt])
@@ -117,4 +127,28 @@ model RedirectRule {
 
     // Optional but recommended for performance of list queries
   @@index([domainGroupId, deletedAt, priority, createdAt, id])
+}
+
+model BillingCheckoutSession {
+  id                     String                @id
+  organizationId         String
+  userId                 String
+  plan                   String
+  status                 BillingCheckoutStatus @default(PENDING)
+  providerCheckoutId     String?
+  providerOrderId        String?
+  providerSubscriptionId String?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  completedAt            DateTime?
+  metadata               Json?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([status])
+  @@index([providerCheckoutId])
+  @@index([providerSubscriptionId])
 }

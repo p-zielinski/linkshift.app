@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import {
   OrganizationConfiguration,
@@ -13,6 +13,7 @@ import {
   getVariantIdForPlan,
 } from './billing.config';
 import { LemonSqueezyService } from './lemon-squeezy.service';
+import { AppEntity, createCustomCuid } from '../utils';
 
 type LemonWebhookPayload = {
   meta?: {
@@ -64,22 +65,73 @@ export class BillingService {
       throw new Error('Organization or user not found for checkout.');
     }
 
-    const checkout = await this.lemon.createCheckout({
-      variantId,
-      customerEmail: user.email,
-      organizationName: organization.name,
-      customData: {
+    const checkoutSessionId = createCustomCuid(AppEntity.CheckoutSession, 20);
+    const baseSuccessUrl =
+      params.successUrl ?? process.env.LEMON_SQUEEZY_SUCCESS_URL ?? '';
+    const baseCancelUrl =
+      params.cancelUrl ?? process.env.LEMON_SQUEEZY_CANCEL_URL ?? '';
+
+    const successUrl = this.appendCheckoutSessionId(
+      baseSuccessUrl,
+      checkoutSessionId,
+    );
+    const cancelUrl = this.appendCheckoutSessionId(
+      baseCancelUrl,
+      checkoutSessionId,
+    );
+
+    await this.prisma.billingCheckoutSession.create({
+      data: {
+        id: checkoutSessionId,
         organizationId: organization.id,
         userId: user.id,
         plan: params.plan,
-        organizationName: organization.name,
-        email: user.email,
+        status: 'PENDING',
+        metadata: {
+          organizationName: organization.name,
+          email: user.email,
+        },
       },
-      successUrl: params.successUrl,
-      cancelUrl: params.cancelUrl,
     });
 
-    return checkout;
+    try {
+      const checkout = await this.lemon.createCheckout({
+        variantId,
+        customerEmail: user.email,
+        organizationName: organization.name,
+        customData: {
+          organizationId: organization.id,
+          userId: user.id,
+          plan: params.plan,
+          organizationName: organization.name,
+          email: user.email,
+          checkoutSessionId,
+        },
+        successUrl: successUrl || undefined,
+        cancelUrl: cancelUrl || undefined,
+      });
+
+      if (checkout.checkoutId) {
+        await this.prisma.billingCheckoutSession.update({
+          where: { id: checkoutSessionId },
+          data: { providerCheckoutId: checkout.checkoutId },
+        });
+      }
+
+      return {
+        ...checkout,
+        checkoutSessionId,
+      };
+    } catch (error) {
+      await this.prisma.billingCheckoutSession.update({
+        where: { id: checkoutSessionId },
+        data: {
+          status: 'FAILED',
+          completedAt: new Date(),
+        },
+      });
+      throw error;
+    }
   }
 
   async getCustomerPortalUrl(organizationId: string): Promise<string> {
@@ -172,6 +224,40 @@ export class BillingService {
         attributes.billing_interval ?? attributes.interval,
       ),
     });
+
+    const checkoutSessionId =
+      customData.checkoutSessionId ??
+      customData.checkout_session_id ??
+      null;
+
+    if (checkoutSessionId) {
+      await this.updateCheckoutSessionFromWebhook({
+        checkoutSessionId,
+        eventName,
+        rawStatus: attributes.status,
+        resolvedStatus: status,
+        providerSubscriptionId: subscriptionId,
+        providerOrderId: attributes.order_id ?? null,
+      });
+    }
+  }
+
+  async getCheckoutSessionStatus(organizationId: string, sessionId: string) {
+    const session = await this.prisma.billingCheckoutSession.findUnique({
+      where: { id: sessionId },
+    });
+
+    if (!session || session.organizationId !== organizationId) {
+      throw new NotFoundException('Checkout session not found.');
+    }
+
+    return {
+      id: session.id,
+      plan: session.plan,
+      status: session.status,
+      updatedAt: session.updatedAt,
+      completedAt: session.completedAt,
+    };
   }
 
   private async updateOrganizationSubscription(
@@ -393,6 +479,101 @@ export class BillingService {
       return OrganizationStatus.SUSPENDED;
     }
     return OrganizationStatus.ACTIVE;
+  }
+
+  private async updateCheckoutSessionFromWebhook(params: {
+    checkoutSessionId: string;
+    eventName: string;
+    rawStatus: string | null | undefined;
+    resolvedStatus: OrganizationStatus;
+    providerSubscriptionId: string | null;
+    providerOrderId: string | null;
+  }): Promise<void> {
+    const session = await this.prisma.billingCheckoutSession.findUnique({
+      where: { id: params.checkoutSessionId },
+    });
+
+    if (!session) {
+      this.logger.warn(
+        `Checkout session ${params.checkoutSessionId} not found.`,
+      );
+      return;
+    }
+
+    const data: Record<string, any> = {};
+    if (params.providerSubscriptionId) {
+      data.providerSubscriptionId = params.providerSubscriptionId;
+    }
+    if (params.providerOrderId) {
+      data.providerOrderId = params.providerOrderId;
+    }
+
+    if (session.status === 'PENDING') {
+      const nextStatus = this.resolveCheckoutStatus(
+        params.resolvedStatus,
+        params.rawStatus,
+        params.eventName,
+      );
+      data.status = nextStatus;
+      if (nextStatus !== 'PENDING') {
+        data.completedAt = new Date();
+      }
+    }
+
+    if (Object.keys(data).length === 0) {
+      return;
+    }
+
+    await this.prisma.billingCheckoutSession.update({
+      where: { id: params.checkoutSessionId },
+      data,
+    });
+  }
+
+  private resolveCheckoutStatus(
+    resolvedStatus: OrganizationStatus,
+    rawStatus: string | null | undefined,
+    eventName: string,
+  ): 'PENDING' | 'PAID' | 'CANCELED' | 'FAILED' | 'EXPIRED' {
+    if (resolvedStatus === OrganizationStatus.ACTIVE) {
+      return 'PAID';
+    }
+
+    const normalized = (rawStatus ?? '').toString().toLowerCase();
+    if (normalized === 'expired') {
+      return 'EXPIRED';
+    }
+    if (
+      eventName.includes('payment_failed') ||
+      normalized === 'unpaid' ||
+      normalized === 'past_due'
+    ) {
+      return 'FAILED';
+    }
+    if (resolvedStatus === OrganizationStatus.CANCELED) {
+      return 'CANCELED';
+    }
+    if (resolvedStatus === OrganizationStatus.SUSPENDED) {
+      return 'FAILED';
+    }
+
+    return 'FAILED';
+  }
+
+  private appendCheckoutSessionId(
+    baseUrl: string,
+    checkoutSessionId: string,
+  ): string {
+    if (!baseUrl) {
+      return '';
+    }
+    try {
+      const url = new URL(baseUrl);
+      url.searchParams.set('checkout_session', checkoutSessionId);
+      return url.toString();
+    } catch {
+      return baseUrl;
+    }
   }
 
   private parseDate(value: string | null | undefined): Date | null {

@@ -38,6 +38,11 @@ export type Domain = $Result.DefaultSelection<Prisma.$DomainPayload>
  * 
  */
 export type RedirectRule = $Result.DefaultSelection<Prisma.$RedirectRulePayload>
+/**
+ * Model BillingCheckoutSession
+ * 
+ */
+export type BillingCheckoutSession = $Result.DefaultSelection<Prisma.$BillingCheckoutSessionPayload>
 
 /**
  * Enums
@@ -55,11 +60,26 @@ export namespace $Enums {
 
 export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod]
 
+
+export const BillingCheckoutStatus: {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  CANCELED: 'CANCELED',
+  FAILED: 'FAILED',
+  EXPIRED: 'EXPIRED'
+};
+
+export type BillingCheckoutStatus = (typeof BillingCheckoutStatus)[keyof typeof BillingCheckoutStatus]
+
 }
 
 export type HttpMethod = $Enums.HttpMethod
 
 export const HttpMethod: typeof $Enums.HttpMethod
+
+export type BillingCheckoutStatus = $Enums.BillingCheckoutStatus
+
+export const BillingCheckoutStatus: typeof $Enums.BillingCheckoutStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -227,6 +247,16 @@ export class PrismaClient<
     * ```
     */
   get redirectRule(): Prisma.RedirectRuleDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.billingCheckoutSession`: Exposes CRUD operations for the **BillingCheckoutSession** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BillingCheckoutSessions
+    * const billingCheckoutSessions = await prisma.billingCheckoutSession.findMany()
+    * ```
+    */
+  get billingCheckoutSession(): Prisma.BillingCheckoutSessionDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -665,7 +695,8 @@ export namespace Prisma {
     User: 'User',
     DomainGroup: 'DomainGroup',
     Domain: 'Domain',
-    RedirectRule: 'RedirectRule'
+    RedirectRule: 'RedirectRule',
+    BillingCheckoutSession: 'BillingCheckoutSession'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -681,7 +712,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "organization" | "user" | "domainGroup" | "domain" | "redirectRule"
+      modelProps: "organization" | "user" | "domainGroup" | "domain" | "redirectRule" | "billingCheckoutSession"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1055,6 +1086,80 @@ export namespace Prisma {
           }
         }
       }
+      BillingCheckoutSession: {
+        payload: Prisma.$BillingCheckoutSessionPayload<ExtArgs>
+        fields: Prisma.BillingCheckoutSessionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BillingCheckoutSessionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillingCheckoutSessionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BillingCheckoutSessionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillingCheckoutSessionPayload>
+          }
+          findFirst: {
+            args: Prisma.BillingCheckoutSessionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillingCheckoutSessionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BillingCheckoutSessionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillingCheckoutSessionPayload>
+          }
+          findMany: {
+            args: Prisma.BillingCheckoutSessionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillingCheckoutSessionPayload>[]
+          }
+          create: {
+            args: Prisma.BillingCheckoutSessionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillingCheckoutSessionPayload>
+          }
+          createMany: {
+            args: Prisma.BillingCheckoutSessionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BillingCheckoutSessionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillingCheckoutSessionPayload>[]
+          }
+          delete: {
+            args: Prisma.BillingCheckoutSessionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillingCheckoutSessionPayload>
+          }
+          update: {
+            args: Prisma.BillingCheckoutSessionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillingCheckoutSessionPayload>
+          }
+          deleteMany: {
+            args: Prisma.BillingCheckoutSessionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BillingCheckoutSessionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.BillingCheckoutSessionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillingCheckoutSessionPayload>[]
+          }
+          upsert: {
+            args: Prisma.BillingCheckoutSessionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BillingCheckoutSessionPayload>
+          }
+          aggregate: {
+            args: Prisma.BillingCheckoutSessionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBillingCheckoutSession>
+          }
+          groupBy: {
+            args: Prisma.BillingCheckoutSessionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BillingCheckoutSessionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BillingCheckoutSessionCountArgs<ExtArgs>
+            result: $Utils.Optional<BillingCheckoutSessionCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1168,6 +1273,7 @@ export namespace Prisma {
     domainGroup?: DomainGroupOmit
     domain?: DomainOmit
     redirectRule?: RedirectRuleOmit
+    billingCheckoutSession?: BillingCheckoutSessionOmit
   }
 
   /* Types for Logging */
@@ -1250,11 +1356,13 @@ export namespace Prisma {
   export type OrganizationCountOutputType = {
     users: number
     domainGroups: number
+    checkoutSessions: number
   }
 
   export type OrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     users?: boolean | OrganizationCountOutputTypeCountUsersArgs
     domainGroups?: boolean | OrganizationCountOutputTypeCountDomainGroupsArgs
+    checkoutSessions?: boolean | OrganizationCountOutputTypeCountCheckoutSessionsArgs
   }
 
   // Custom InputTypes
@@ -1280,6 +1388,44 @@ export namespace Prisma {
    */
   export type OrganizationCountOutputTypeCountDomainGroupsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: DomainGroupWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountCheckoutSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BillingCheckoutSessionWhereInput
+  }
+
+
+  /**
+   * Count Type UserCountOutputType
+   */
+
+  export type UserCountOutputType = {
+    checkoutSessions: number
+  }
+
+  export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    checkoutSessions?: boolean | UserCountOutputTypeCountCheckoutSessionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserCountOutputType
+     */
+    select?: UserCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountCheckoutSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BillingCheckoutSessionWhereInput
   }
 
 
@@ -1497,6 +1643,7 @@ export namespace Prisma {
     configuration?: boolean
     users?: boolean | Organization$usersArgs<ExtArgs>
     domainGroups?: boolean | Organization$domainGroupsArgs<ExtArgs>
+    checkoutSessions?: boolean | Organization$checkoutSessionsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organization"]>
 
@@ -1531,6 +1678,7 @@ export namespace Prisma {
   export type OrganizationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     users?: boolean | Organization$usersArgs<ExtArgs>
     domainGroups?: boolean | Organization$domainGroupsArgs<ExtArgs>
+    checkoutSessions?: boolean | Organization$checkoutSessionsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1541,6 +1689,7 @@ export namespace Prisma {
     objects: {
       users: Prisma.$UserPayload<ExtArgs>[]
       domainGroups: Prisma.$DomainGroupPayload<ExtArgs>[]
+      checkoutSessions: Prisma.$BillingCheckoutSessionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -1945,6 +2094,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     users<T extends Organization$usersArgs<ExtArgs> = {}>(args?: Subset<T, Organization$usersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     domainGroups<T extends Organization$domainGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$domainGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DomainGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    checkoutSessions<T extends Organization$checkoutSessionsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$checkoutSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2416,6 +2566,30 @@ export namespace Prisma {
   }
 
   /**
+   * Organization.checkoutSessions
+   */
+  export type Organization$checkoutSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionInclude<ExtArgs> | null
+    where?: BillingCheckoutSessionWhereInput
+    orderBy?: BillingCheckoutSessionOrderByWithRelationInput | BillingCheckoutSessionOrderByWithRelationInput[]
+    cursor?: BillingCheckoutSessionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BillingCheckoutSessionScalarFieldEnum | BillingCheckoutSessionScalarFieldEnum[]
+  }
+
+  /**
    * Organization without action
    */
   export type OrganizationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2623,6 +2797,8 @@ export namespace Prisma {
     updatedAt?: boolean
     deletedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    checkoutSessions?: boolean | User$checkoutSessionsArgs<ExtArgs>
+    _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -2663,6 +2839,8 @@ export namespace Prisma {
   export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "passwordHash" | "organizationId" | "isOwner" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    checkoutSessions?: boolean | User$checkoutSessionsArgs<ExtArgs>
+    _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
@@ -2675,6 +2853,7 @@ export namespace Prisma {
     name: "User"
     objects: {
       organization: Prisma.$OrganizationPayload<ExtArgs>
+      checkoutSessions: Prisma.$BillingCheckoutSessionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3080,6 +3259,7 @@ export namespace Prisma {
   export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    checkoutSessions<T extends User$checkoutSessionsArgs<ExtArgs> = {}>(args?: Subset<T, User$checkoutSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3510,6 +3690,30 @@ export namespace Prisma {
      * Limit how many Users to delete.
      */
     limit?: number
+  }
+
+  /**
+   * User.checkoutSessions
+   */
+  export type User$checkoutSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionInclude<ExtArgs> | null
+    where?: BillingCheckoutSessionWhereInput
+    orderBy?: BillingCheckoutSessionOrderByWithRelationInput | BillingCheckoutSessionOrderByWithRelationInput[]
+    cursor?: BillingCheckoutSessionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BillingCheckoutSessionScalarFieldEnum | BillingCheckoutSessionScalarFieldEnum[]
   }
 
   /**
@@ -6889,6 +7093,1159 @@ export namespace Prisma {
 
 
   /**
+   * Model BillingCheckoutSession
+   */
+
+  export type AggregateBillingCheckoutSession = {
+    _count: BillingCheckoutSessionCountAggregateOutputType | null
+    _min: BillingCheckoutSessionMinAggregateOutputType | null
+    _max: BillingCheckoutSessionMaxAggregateOutputType | null
+  }
+
+  export type BillingCheckoutSessionMinAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    userId: string | null
+    plan: string | null
+    status: $Enums.BillingCheckoutStatus | null
+    providerCheckoutId: string | null
+    providerOrderId: string | null
+    providerSubscriptionId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    completedAt: Date | null
+  }
+
+  export type BillingCheckoutSessionMaxAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    userId: string | null
+    plan: string | null
+    status: $Enums.BillingCheckoutStatus | null
+    providerCheckoutId: string | null
+    providerOrderId: string | null
+    providerSubscriptionId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    completedAt: Date | null
+  }
+
+  export type BillingCheckoutSessionCountAggregateOutputType = {
+    id: number
+    organizationId: number
+    userId: number
+    plan: number
+    status: number
+    providerCheckoutId: number
+    providerOrderId: number
+    providerSubscriptionId: number
+    createdAt: number
+    updatedAt: number
+    completedAt: number
+    metadata: number
+    _all: number
+  }
+
+
+  export type BillingCheckoutSessionMinAggregateInputType = {
+    id?: true
+    organizationId?: true
+    userId?: true
+    plan?: true
+    status?: true
+    providerCheckoutId?: true
+    providerOrderId?: true
+    providerSubscriptionId?: true
+    createdAt?: true
+    updatedAt?: true
+    completedAt?: true
+  }
+
+  export type BillingCheckoutSessionMaxAggregateInputType = {
+    id?: true
+    organizationId?: true
+    userId?: true
+    plan?: true
+    status?: true
+    providerCheckoutId?: true
+    providerOrderId?: true
+    providerSubscriptionId?: true
+    createdAt?: true
+    updatedAt?: true
+    completedAt?: true
+  }
+
+  export type BillingCheckoutSessionCountAggregateInputType = {
+    id?: true
+    organizationId?: true
+    userId?: true
+    plan?: true
+    status?: true
+    providerCheckoutId?: true
+    providerOrderId?: true
+    providerSubscriptionId?: true
+    createdAt?: true
+    updatedAt?: true
+    completedAt?: true
+    metadata?: true
+    _all?: true
+  }
+
+  export type BillingCheckoutSessionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BillingCheckoutSession to aggregate.
+     */
+    where?: BillingCheckoutSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BillingCheckoutSessions to fetch.
+     */
+    orderBy?: BillingCheckoutSessionOrderByWithRelationInput | BillingCheckoutSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BillingCheckoutSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BillingCheckoutSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BillingCheckoutSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BillingCheckoutSessions
+    **/
+    _count?: true | BillingCheckoutSessionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BillingCheckoutSessionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BillingCheckoutSessionMaxAggregateInputType
+  }
+
+  export type GetBillingCheckoutSessionAggregateType<T extends BillingCheckoutSessionAggregateArgs> = {
+        [P in keyof T & keyof AggregateBillingCheckoutSession]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBillingCheckoutSession[P]>
+      : GetScalarType<T[P], AggregateBillingCheckoutSession[P]>
+  }
+
+
+
+
+  export type BillingCheckoutSessionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BillingCheckoutSessionWhereInput
+    orderBy?: BillingCheckoutSessionOrderByWithAggregationInput | BillingCheckoutSessionOrderByWithAggregationInput[]
+    by: BillingCheckoutSessionScalarFieldEnum[] | BillingCheckoutSessionScalarFieldEnum
+    having?: BillingCheckoutSessionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BillingCheckoutSessionCountAggregateInputType | true
+    _min?: BillingCheckoutSessionMinAggregateInputType
+    _max?: BillingCheckoutSessionMaxAggregateInputType
+  }
+
+  export type BillingCheckoutSessionGroupByOutputType = {
+    id: string
+    organizationId: string
+    userId: string
+    plan: string
+    status: $Enums.BillingCheckoutStatus
+    providerCheckoutId: string | null
+    providerOrderId: string | null
+    providerSubscriptionId: string | null
+    createdAt: Date
+    updatedAt: Date
+    completedAt: Date | null
+    metadata: JsonValue | null
+    _count: BillingCheckoutSessionCountAggregateOutputType | null
+    _min: BillingCheckoutSessionMinAggregateOutputType | null
+    _max: BillingCheckoutSessionMaxAggregateOutputType | null
+  }
+
+  type GetBillingCheckoutSessionGroupByPayload<T extends BillingCheckoutSessionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BillingCheckoutSessionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BillingCheckoutSessionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BillingCheckoutSessionGroupByOutputType[P]>
+            : GetScalarType<T[P], BillingCheckoutSessionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BillingCheckoutSessionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    userId?: boolean
+    plan?: boolean
+    status?: boolean
+    providerCheckoutId?: boolean
+    providerOrderId?: boolean
+    providerSubscriptionId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    completedAt?: boolean
+    metadata?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["billingCheckoutSession"]>
+
+  export type BillingCheckoutSessionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    userId?: boolean
+    plan?: boolean
+    status?: boolean
+    providerCheckoutId?: boolean
+    providerOrderId?: boolean
+    providerSubscriptionId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    completedAt?: boolean
+    metadata?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["billingCheckoutSession"]>
+
+  export type BillingCheckoutSessionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    userId?: boolean
+    plan?: boolean
+    status?: boolean
+    providerCheckoutId?: boolean
+    providerOrderId?: boolean
+    providerSubscriptionId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    completedAt?: boolean
+    metadata?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["billingCheckoutSession"]>
+
+  export type BillingCheckoutSessionSelectScalar = {
+    id?: boolean
+    organizationId?: boolean
+    userId?: boolean
+    plan?: boolean
+    status?: boolean
+    providerCheckoutId?: boolean
+    providerOrderId?: boolean
+    providerSubscriptionId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    completedAt?: boolean
+    metadata?: boolean
+  }
+
+  export type BillingCheckoutSessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "userId" | "plan" | "status" | "providerCheckoutId" | "providerOrderId" | "providerSubscriptionId" | "createdAt" | "updatedAt" | "completedAt" | "metadata", ExtArgs["result"]["billingCheckoutSession"]>
+  export type BillingCheckoutSessionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type BillingCheckoutSessionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type BillingCheckoutSessionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $BillingCheckoutSessionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BillingCheckoutSession"
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      organizationId: string
+      userId: string
+      plan: string
+      status: $Enums.BillingCheckoutStatus
+      providerCheckoutId: string | null
+      providerOrderId: string | null
+      providerSubscriptionId: string | null
+      createdAt: Date
+      updatedAt: Date
+      completedAt: Date | null
+      metadata: Prisma.JsonValue | null
+    }, ExtArgs["result"]["billingCheckoutSession"]>
+    composites: {}
+  }
+
+  type BillingCheckoutSessionGetPayload<S extends boolean | null | undefined | BillingCheckoutSessionDefaultArgs> = $Result.GetResult<Prisma.$BillingCheckoutSessionPayload, S>
+
+  type BillingCheckoutSessionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BillingCheckoutSessionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BillingCheckoutSessionCountAggregateInputType | true
+    }
+
+  export interface BillingCheckoutSessionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BillingCheckoutSession'], meta: { name: 'BillingCheckoutSession' } }
+    /**
+     * Find zero or one BillingCheckoutSession that matches the filter.
+     * @param {BillingCheckoutSessionFindUniqueArgs} args - Arguments to find a BillingCheckoutSession
+     * @example
+     * // Get one BillingCheckoutSession
+     * const billingCheckoutSession = await prisma.billingCheckoutSession.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BillingCheckoutSessionFindUniqueArgs>(args: SelectSubset<T, BillingCheckoutSessionFindUniqueArgs<ExtArgs>>): Prisma__BillingCheckoutSessionClient<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one BillingCheckoutSession that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BillingCheckoutSessionFindUniqueOrThrowArgs} args - Arguments to find a BillingCheckoutSession
+     * @example
+     * // Get one BillingCheckoutSession
+     * const billingCheckoutSession = await prisma.billingCheckoutSession.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BillingCheckoutSessionFindUniqueOrThrowArgs>(args: SelectSubset<T, BillingCheckoutSessionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BillingCheckoutSessionClient<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BillingCheckoutSession that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingCheckoutSessionFindFirstArgs} args - Arguments to find a BillingCheckoutSession
+     * @example
+     * // Get one BillingCheckoutSession
+     * const billingCheckoutSession = await prisma.billingCheckoutSession.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BillingCheckoutSessionFindFirstArgs>(args?: SelectSubset<T, BillingCheckoutSessionFindFirstArgs<ExtArgs>>): Prisma__BillingCheckoutSessionClient<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BillingCheckoutSession that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingCheckoutSessionFindFirstOrThrowArgs} args - Arguments to find a BillingCheckoutSession
+     * @example
+     * // Get one BillingCheckoutSession
+     * const billingCheckoutSession = await prisma.billingCheckoutSession.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BillingCheckoutSessionFindFirstOrThrowArgs>(args?: SelectSubset<T, BillingCheckoutSessionFindFirstOrThrowArgs<ExtArgs>>): Prisma__BillingCheckoutSessionClient<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more BillingCheckoutSessions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingCheckoutSessionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BillingCheckoutSessions
+     * const billingCheckoutSessions = await prisma.billingCheckoutSession.findMany()
+     * 
+     * // Get first 10 BillingCheckoutSessions
+     * const billingCheckoutSessions = await prisma.billingCheckoutSession.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const billingCheckoutSessionWithIdOnly = await prisma.billingCheckoutSession.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BillingCheckoutSessionFindManyArgs>(args?: SelectSubset<T, BillingCheckoutSessionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a BillingCheckoutSession.
+     * @param {BillingCheckoutSessionCreateArgs} args - Arguments to create a BillingCheckoutSession.
+     * @example
+     * // Create one BillingCheckoutSession
+     * const BillingCheckoutSession = await prisma.billingCheckoutSession.create({
+     *   data: {
+     *     // ... data to create a BillingCheckoutSession
+     *   }
+     * })
+     * 
+     */
+    create<T extends BillingCheckoutSessionCreateArgs>(args: SelectSubset<T, BillingCheckoutSessionCreateArgs<ExtArgs>>): Prisma__BillingCheckoutSessionClient<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many BillingCheckoutSessions.
+     * @param {BillingCheckoutSessionCreateManyArgs} args - Arguments to create many BillingCheckoutSessions.
+     * @example
+     * // Create many BillingCheckoutSessions
+     * const billingCheckoutSession = await prisma.billingCheckoutSession.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BillingCheckoutSessionCreateManyArgs>(args?: SelectSubset<T, BillingCheckoutSessionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BillingCheckoutSessions and returns the data saved in the database.
+     * @param {BillingCheckoutSessionCreateManyAndReturnArgs} args - Arguments to create many BillingCheckoutSessions.
+     * @example
+     * // Create many BillingCheckoutSessions
+     * const billingCheckoutSession = await prisma.billingCheckoutSession.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BillingCheckoutSessions and only return the `id`
+     * const billingCheckoutSessionWithIdOnly = await prisma.billingCheckoutSession.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BillingCheckoutSessionCreateManyAndReturnArgs>(args?: SelectSubset<T, BillingCheckoutSessionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a BillingCheckoutSession.
+     * @param {BillingCheckoutSessionDeleteArgs} args - Arguments to delete one BillingCheckoutSession.
+     * @example
+     * // Delete one BillingCheckoutSession
+     * const BillingCheckoutSession = await prisma.billingCheckoutSession.delete({
+     *   where: {
+     *     // ... filter to delete one BillingCheckoutSession
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BillingCheckoutSessionDeleteArgs>(args: SelectSubset<T, BillingCheckoutSessionDeleteArgs<ExtArgs>>): Prisma__BillingCheckoutSessionClient<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one BillingCheckoutSession.
+     * @param {BillingCheckoutSessionUpdateArgs} args - Arguments to update one BillingCheckoutSession.
+     * @example
+     * // Update one BillingCheckoutSession
+     * const billingCheckoutSession = await prisma.billingCheckoutSession.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BillingCheckoutSessionUpdateArgs>(args: SelectSubset<T, BillingCheckoutSessionUpdateArgs<ExtArgs>>): Prisma__BillingCheckoutSessionClient<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more BillingCheckoutSessions.
+     * @param {BillingCheckoutSessionDeleteManyArgs} args - Arguments to filter BillingCheckoutSessions to delete.
+     * @example
+     * // Delete a few BillingCheckoutSessions
+     * const { count } = await prisma.billingCheckoutSession.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BillingCheckoutSessionDeleteManyArgs>(args?: SelectSubset<T, BillingCheckoutSessionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BillingCheckoutSessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingCheckoutSessionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BillingCheckoutSessions
+     * const billingCheckoutSession = await prisma.billingCheckoutSession.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BillingCheckoutSessionUpdateManyArgs>(args: SelectSubset<T, BillingCheckoutSessionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BillingCheckoutSessions and returns the data updated in the database.
+     * @param {BillingCheckoutSessionUpdateManyAndReturnArgs} args - Arguments to update many BillingCheckoutSessions.
+     * @example
+     * // Update many BillingCheckoutSessions
+     * const billingCheckoutSession = await prisma.billingCheckoutSession.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more BillingCheckoutSessions and only return the `id`
+     * const billingCheckoutSessionWithIdOnly = await prisma.billingCheckoutSession.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends BillingCheckoutSessionUpdateManyAndReturnArgs>(args: SelectSubset<T, BillingCheckoutSessionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one BillingCheckoutSession.
+     * @param {BillingCheckoutSessionUpsertArgs} args - Arguments to update or create a BillingCheckoutSession.
+     * @example
+     * // Update or create a BillingCheckoutSession
+     * const billingCheckoutSession = await prisma.billingCheckoutSession.upsert({
+     *   create: {
+     *     // ... data to create a BillingCheckoutSession
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BillingCheckoutSession we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BillingCheckoutSessionUpsertArgs>(args: SelectSubset<T, BillingCheckoutSessionUpsertArgs<ExtArgs>>): Prisma__BillingCheckoutSessionClient<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of BillingCheckoutSessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingCheckoutSessionCountArgs} args - Arguments to filter BillingCheckoutSessions to count.
+     * @example
+     * // Count the number of BillingCheckoutSessions
+     * const count = await prisma.billingCheckoutSession.count({
+     *   where: {
+     *     // ... the filter for the BillingCheckoutSessions we want to count
+     *   }
+     * })
+    **/
+    count<T extends BillingCheckoutSessionCountArgs>(
+      args?: Subset<T, BillingCheckoutSessionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BillingCheckoutSessionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BillingCheckoutSession.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingCheckoutSessionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BillingCheckoutSessionAggregateArgs>(args: Subset<T, BillingCheckoutSessionAggregateArgs>): Prisma.PrismaPromise<GetBillingCheckoutSessionAggregateType<T>>
+
+    /**
+     * Group by BillingCheckoutSession.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BillingCheckoutSessionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BillingCheckoutSessionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BillingCheckoutSessionGroupByArgs['orderBy'] }
+        : { orderBy?: BillingCheckoutSessionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BillingCheckoutSessionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBillingCheckoutSessionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BillingCheckoutSession model
+   */
+  readonly fields: BillingCheckoutSessionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BillingCheckoutSession.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BillingCheckoutSessionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BillingCheckoutSession model
+   */
+  interface BillingCheckoutSessionFieldRefs {
+    readonly id: FieldRef<"BillingCheckoutSession", 'String'>
+    readonly organizationId: FieldRef<"BillingCheckoutSession", 'String'>
+    readonly userId: FieldRef<"BillingCheckoutSession", 'String'>
+    readonly plan: FieldRef<"BillingCheckoutSession", 'String'>
+    readonly status: FieldRef<"BillingCheckoutSession", 'BillingCheckoutStatus'>
+    readonly providerCheckoutId: FieldRef<"BillingCheckoutSession", 'String'>
+    readonly providerOrderId: FieldRef<"BillingCheckoutSession", 'String'>
+    readonly providerSubscriptionId: FieldRef<"BillingCheckoutSession", 'String'>
+    readonly createdAt: FieldRef<"BillingCheckoutSession", 'DateTime'>
+    readonly updatedAt: FieldRef<"BillingCheckoutSession", 'DateTime'>
+    readonly completedAt: FieldRef<"BillingCheckoutSession", 'DateTime'>
+    readonly metadata: FieldRef<"BillingCheckoutSession", 'Json'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BillingCheckoutSession findUnique
+   */
+  export type BillingCheckoutSessionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which BillingCheckoutSession to fetch.
+     */
+    where: BillingCheckoutSessionWhereUniqueInput
+  }
+
+  /**
+   * BillingCheckoutSession findUniqueOrThrow
+   */
+  export type BillingCheckoutSessionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which BillingCheckoutSession to fetch.
+     */
+    where: BillingCheckoutSessionWhereUniqueInput
+  }
+
+  /**
+   * BillingCheckoutSession findFirst
+   */
+  export type BillingCheckoutSessionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which BillingCheckoutSession to fetch.
+     */
+    where?: BillingCheckoutSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BillingCheckoutSessions to fetch.
+     */
+    orderBy?: BillingCheckoutSessionOrderByWithRelationInput | BillingCheckoutSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BillingCheckoutSessions.
+     */
+    cursor?: BillingCheckoutSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BillingCheckoutSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BillingCheckoutSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BillingCheckoutSessions.
+     */
+    distinct?: BillingCheckoutSessionScalarFieldEnum | BillingCheckoutSessionScalarFieldEnum[]
+  }
+
+  /**
+   * BillingCheckoutSession findFirstOrThrow
+   */
+  export type BillingCheckoutSessionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which BillingCheckoutSession to fetch.
+     */
+    where?: BillingCheckoutSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BillingCheckoutSessions to fetch.
+     */
+    orderBy?: BillingCheckoutSessionOrderByWithRelationInput | BillingCheckoutSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BillingCheckoutSessions.
+     */
+    cursor?: BillingCheckoutSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BillingCheckoutSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BillingCheckoutSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BillingCheckoutSessions.
+     */
+    distinct?: BillingCheckoutSessionScalarFieldEnum | BillingCheckoutSessionScalarFieldEnum[]
+  }
+
+  /**
+   * BillingCheckoutSession findMany
+   */
+  export type BillingCheckoutSessionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionInclude<ExtArgs> | null
+    /**
+     * Filter, which BillingCheckoutSessions to fetch.
+     */
+    where?: BillingCheckoutSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BillingCheckoutSessions to fetch.
+     */
+    orderBy?: BillingCheckoutSessionOrderByWithRelationInput | BillingCheckoutSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BillingCheckoutSessions.
+     */
+    cursor?: BillingCheckoutSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BillingCheckoutSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BillingCheckoutSessions.
+     */
+    skip?: number
+    distinct?: BillingCheckoutSessionScalarFieldEnum | BillingCheckoutSessionScalarFieldEnum[]
+  }
+
+  /**
+   * BillingCheckoutSession create
+   */
+  export type BillingCheckoutSessionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BillingCheckoutSession.
+     */
+    data: XOR<BillingCheckoutSessionCreateInput, BillingCheckoutSessionUncheckedCreateInput>
+  }
+
+  /**
+   * BillingCheckoutSession createMany
+   */
+  export type BillingCheckoutSessionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BillingCheckoutSessions.
+     */
+    data: BillingCheckoutSessionCreateManyInput | BillingCheckoutSessionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BillingCheckoutSession createManyAndReturn
+   */
+  export type BillingCheckoutSessionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * The data used to create many BillingCheckoutSessions.
+     */
+    data: BillingCheckoutSessionCreateManyInput | BillingCheckoutSessionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BillingCheckoutSession update
+   */
+  export type BillingCheckoutSessionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BillingCheckoutSession.
+     */
+    data: XOR<BillingCheckoutSessionUpdateInput, BillingCheckoutSessionUncheckedUpdateInput>
+    /**
+     * Choose, which BillingCheckoutSession to update.
+     */
+    where: BillingCheckoutSessionWhereUniqueInput
+  }
+
+  /**
+   * BillingCheckoutSession updateMany
+   */
+  export type BillingCheckoutSessionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BillingCheckoutSessions.
+     */
+    data: XOR<BillingCheckoutSessionUpdateManyMutationInput, BillingCheckoutSessionUncheckedUpdateManyInput>
+    /**
+     * Filter which BillingCheckoutSessions to update
+     */
+    where?: BillingCheckoutSessionWhereInput
+    /**
+     * Limit how many BillingCheckoutSessions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BillingCheckoutSession updateManyAndReturn
+   */
+  export type BillingCheckoutSessionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * The data used to update BillingCheckoutSessions.
+     */
+    data: XOR<BillingCheckoutSessionUpdateManyMutationInput, BillingCheckoutSessionUncheckedUpdateManyInput>
+    /**
+     * Filter which BillingCheckoutSessions to update
+     */
+    where?: BillingCheckoutSessionWhereInput
+    /**
+     * Limit how many BillingCheckoutSessions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BillingCheckoutSession upsert
+   */
+  export type BillingCheckoutSessionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BillingCheckoutSession to update in case it exists.
+     */
+    where: BillingCheckoutSessionWhereUniqueInput
+    /**
+     * In case the BillingCheckoutSession found by the `where` argument doesn't exist, create a new BillingCheckoutSession with this data.
+     */
+    create: XOR<BillingCheckoutSessionCreateInput, BillingCheckoutSessionUncheckedCreateInput>
+    /**
+     * In case the BillingCheckoutSession was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BillingCheckoutSessionUpdateInput, BillingCheckoutSessionUncheckedUpdateInput>
+  }
+
+  /**
+   * BillingCheckoutSession delete
+   */
+  export type BillingCheckoutSessionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionInclude<ExtArgs> | null
+    /**
+     * Filter which BillingCheckoutSession to delete.
+     */
+    where: BillingCheckoutSessionWhereUniqueInput
+  }
+
+  /**
+   * BillingCheckoutSession deleteMany
+   */
+  export type BillingCheckoutSessionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BillingCheckoutSessions to delete
+     */
+    where?: BillingCheckoutSessionWhereInput
+    /**
+     * Limit how many BillingCheckoutSessions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * BillingCheckoutSession without action
+   */
+  export type BillingCheckoutSessionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BillingCheckoutSession
+     */
+    select?: BillingCheckoutSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BillingCheckoutSession
+     */
+    omit?: BillingCheckoutSessionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BillingCheckoutSessionInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -6966,6 +8323,24 @@ export namespace Prisma {
   };
 
   export type RedirectRuleScalarFieldEnum = (typeof RedirectRuleScalarFieldEnum)[keyof typeof RedirectRuleScalarFieldEnum]
+
+
+  export const BillingCheckoutSessionScalarFieldEnum: {
+    id: 'id',
+    organizationId: 'organizationId',
+    userId: 'userId',
+    plan: 'plan',
+    status: 'status',
+    providerCheckoutId: 'providerCheckoutId',
+    providerOrderId: 'providerOrderId',
+    providerSubscriptionId: 'providerSubscriptionId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    completedAt: 'completedAt',
+    metadata: 'metadata'
+  };
+
+  export type BillingCheckoutSessionScalarFieldEnum = (typeof BillingCheckoutSessionScalarFieldEnum)[keyof typeof BillingCheckoutSessionScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -7092,6 +8467,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'BillingCheckoutStatus'
+   */
+  export type EnumBillingCheckoutStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BillingCheckoutStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'BillingCheckoutStatus[]'
+   */
+  export type ListEnumBillingCheckoutStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BillingCheckoutStatus[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -7120,6 +8509,7 @@ export namespace Prisma {
     configuration?: JsonNullableFilter<"Organization">
     users?: UserListRelationFilter
     domainGroups?: DomainGroupListRelationFilter
+    checkoutSessions?: BillingCheckoutSessionListRelationFilter
   }
 
   export type OrganizationOrderByWithRelationInput = {
@@ -7131,6 +8521,7 @@ export namespace Prisma {
     configuration?: SortOrderInput | SortOrder
     users?: UserOrderByRelationAggregateInput
     domainGroups?: DomainGroupOrderByRelationAggregateInput
+    checkoutSessions?: BillingCheckoutSessionOrderByRelationAggregateInput
   }
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -7145,6 +8536,7 @@ export namespace Prisma {
     configuration?: JsonNullableFilter<"Organization">
     users?: UserListRelationFilter
     domainGroups?: DomainGroupListRelationFilter
+    checkoutSessions?: BillingCheckoutSessionListRelationFilter
   }, "id">
 
   export type OrganizationOrderByWithAggregationInput = {
@@ -7184,6 +8576,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    checkoutSessions?: BillingCheckoutSessionListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -7196,6 +8589,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     organization?: OrganizationOrderByWithRelationInput
+    checkoutSessions?: BillingCheckoutSessionOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -7211,6 +8605,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"User"> | Date | string
     deletedAt?: DateTimeNullableFilter<"User"> | Date | string | null
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    checkoutSessions?: BillingCheckoutSessionListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -7450,6 +8845,99 @@ export namespace Prisma {
     deletedAt?: DateTimeNullableWithAggregatesFilter<"RedirectRule"> | Date | string | null
   }
 
+  export type BillingCheckoutSessionWhereInput = {
+    AND?: BillingCheckoutSessionWhereInput | BillingCheckoutSessionWhereInput[]
+    OR?: BillingCheckoutSessionWhereInput[]
+    NOT?: BillingCheckoutSessionWhereInput | BillingCheckoutSessionWhereInput[]
+    id?: StringFilter<"BillingCheckoutSession"> | string
+    organizationId?: StringFilter<"BillingCheckoutSession"> | string
+    userId?: StringFilter<"BillingCheckoutSession"> | string
+    plan?: StringFilter<"BillingCheckoutSession"> | string
+    status?: EnumBillingCheckoutStatusFilter<"BillingCheckoutSession"> | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: StringNullableFilter<"BillingCheckoutSession"> | string | null
+    providerOrderId?: StringNullableFilter<"BillingCheckoutSession"> | string | null
+    providerSubscriptionId?: StringNullableFilter<"BillingCheckoutSession"> | string | null
+    createdAt?: DateTimeFilter<"BillingCheckoutSession"> | Date | string
+    updatedAt?: DateTimeFilter<"BillingCheckoutSession"> | Date | string
+    completedAt?: DateTimeNullableFilter<"BillingCheckoutSession"> | Date | string | null
+    metadata?: JsonNullableFilter<"BillingCheckoutSession">
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type BillingCheckoutSessionOrderByWithRelationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    userId?: SortOrder
+    plan?: SortOrder
+    status?: SortOrder
+    providerCheckoutId?: SortOrderInput | SortOrder
+    providerOrderId?: SortOrderInput | SortOrder
+    providerSubscriptionId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    organization?: OrganizationOrderByWithRelationInput
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type BillingCheckoutSessionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: BillingCheckoutSessionWhereInput | BillingCheckoutSessionWhereInput[]
+    OR?: BillingCheckoutSessionWhereInput[]
+    NOT?: BillingCheckoutSessionWhereInput | BillingCheckoutSessionWhereInput[]
+    organizationId?: StringFilter<"BillingCheckoutSession"> | string
+    userId?: StringFilter<"BillingCheckoutSession"> | string
+    plan?: StringFilter<"BillingCheckoutSession"> | string
+    status?: EnumBillingCheckoutStatusFilter<"BillingCheckoutSession"> | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: StringNullableFilter<"BillingCheckoutSession"> | string | null
+    providerOrderId?: StringNullableFilter<"BillingCheckoutSession"> | string | null
+    providerSubscriptionId?: StringNullableFilter<"BillingCheckoutSession"> | string | null
+    createdAt?: DateTimeFilter<"BillingCheckoutSession"> | Date | string
+    updatedAt?: DateTimeFilter<"BillingCheckoutSession"> | Date | string
+    completedAt?: DateTimeNullableFilter<"BillingCheckoutSession"> | Date | string | null
+    metadata?: JsonNullableFilter<"BillingCheckoutSession">
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type BillingCheckoutSessionOrderByWithAggregationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    userId?: SortOrder
+    plan?: SortOrder
+    status?: SortOrder
+    providerCheckoutId?: SortOrderInput | SortOrder
+    providerOrderId?: SortOrderInput | SortOrder
+    providerSubscriptionId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    _count?: BillingCheckoutSessionCountOrderByAggregateInput
+    _max?: BillingCheckoutSessionMaxOrderByAggregateInput
+    _min?: BillingCheckoutSessionMinOrderByAggregateInput
+  }
+
+  export type BillingCheckoutSessionScalarWhereWithAggregatesInput = {
+    AND?: BillingCheckoutSessionScalarWhereWithAggregatesInput | BillingCheckoutSessionScalarWhereWithAggregatesInput[]
+    OR?: BillingCheckoutSessionScalarWhereWithAggregatesInput[]
+    NOT?: BillingCheckoutSessionScalarWhereWithAggregatesInput | BillingCheckoutSessionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"BillingCheckoutSession"> | string
+    organizationId?: StringWithAggregatesFilter<"BillingCheckoutSession"> | string
+    userId?: StringWithAggregatesFilter<"BillingCheckoutSession"> | string
+    plan?: StringWithAggregatesFilter<"BillingCheckoutSession"> | string
+    status?: EnumBillingCheckoutStatusWithAggregatesFilter<"BillingCheckoutSession"> | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: StringNullableWithAggregatesFilter<"BillingCheckoutSession"> | string | null
+    providerOrderId?: StringNullableWithAggregatesFilter<"BillingCheckoutSession"> | string | null
+    providerSubscriptionId?: StringNullableWithAggregatesFilter<"BillingCheckoutSession"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"BillingCheckoutSession"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"BillingCheckoutSession"> | Date | string
+    completedAt?: DateTimeNullableWithAggregatesFilter<"BillingCheckoutSession"> | Date | string | null
+    metadata?: JsonNullableWithAggregatesFilter<"BillingCheckoutSession">
+  }
+
   export type OrganizationCreateInput = {
     id: string
     name: string
@@ -7459,6 +8947,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
+    checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateInput = {
@@ -7470,6 +8959,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
+    checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUpdateInput = {
@@ -7481,6 +8971,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
+    checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateInput = {
@@ -7492,6 +8983,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
+    checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateManyInput = {
@@ -7530,6 +9022,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     organization: OrganizationCreateNestedOneWithoutUsersInput
+    checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -7541,6 +9034,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -7552,6 +9046,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     organization?: OrganizationUpdateOneRequiredWithoutUsersNestedInput
+    checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -7563,6 +9058,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -7819,6 +9315,109 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type BillingCheckoutSessionCreateInput = {
+    id: string
+    plan: string
+    status?: $Enums.BillingCheckoutStatus
+    providerCheckoutId?: string | null
+    providerOrderId?: string | null
+    providerSubscriptionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    organization: OrganizationCreateNestedOneWithoutCheckoutSessionsInput
+    user: UserCreateNestedOneWithoutCheckoutSessionsInput
+  }
+
+  export type BillingCheckoutSessionUncheckedCreateInput = {
+    id: string
+    organizationId: string
+    userId: string
+    plan: string
+    status?: $Enums.BillingCheckoutStatus
+    providerCheckoutId?: string | null
+    providerOrderId?: string | null
+    providerSubscriptionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type BillingCheckoutSessionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    plan?: StringFieldUpdateOperationsInput | string
+    status?: EnumBillingCheckoutStatusFieldUpdateOperationsInput | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    organization?: OrganizationUpdateOneRequiredWithoutCheckoutSessionsNestedInput
+    user?: UserUpdateOneRequiredWithoutCheckoutSessionsNestedInput
+  }
+
+  export type BillingCheckoutSessionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    plan?: StringFieldUpdateOperationsInput | string
+    status?: EnumBillingCheckoutStatusFieldUpdateOperationsInput | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type BillingCheckoutSessionCreateManyInput = {
+    id: string
+    organizationId: string
+    userId: string
+    plan: string
+    status?: $Enums.BillingCheckoutStatus
+    providerCheckoutId?: string | null
+    providerOrderId?: string | null
+    providerSubscriptionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type BillingCheckoutSessionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    plan?: StringFieldUpdateOperationsInput | string
+    status?: EnumBillingCheckoutStatusFieldUpdateOperationsInput | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type BillingCheckoutSessionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    plan?: StringFieldUpdateOperationsInput | string
+    status?: EnumBillingCheckoutStatusFieldUpdateOperationsInput | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -7891,6 +9490,12 @@ export namespace Prisma {
     none?: DomainGroupWhereInput
   }
 
+  export type BillingCheckoutSessionListRelationFilter = {
+    every?: BillingCheckoutSessionWhereInput
+    some?: BillingCheckoutSessionWhereInput
+    none?: BillingCheckoutSessionWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -7901,6 +9506,10 @@ export namespace Prisma {
   }
 
   export type DomainGroupOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BillingCheckoutSessionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -8219,6 +9828,104 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
+  export type EnumBillingCheckoutStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.BillingCheckoutStatus | EnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BillingCheckoutStatus[] | ListEnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BillingCheckoutStatus[] | ListEnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBillingCheckoutStatusFilter<$PrismaModel> | $Enums.BillingCheckoutStatus
+  }
+
+  export type StringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
+  }
+
+  export type UserScalarRelationFilter = {
+    is?: UserWhereInput
+    isNot?: UserWhereInput
+  }
+
+  export type BillingCheckoutSessionCountOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    userId?: SortOrder
+    plan?: SortOrder
+    status?: SortOrder
+    providerCheckoutId?: SortOrder
+    providerOrderId?: SortOrder
+    providerSubscriptionId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    completedAt?: SortOrder
+    metadata?: SortOrder
+  }
+
+  export type BillingCheckoutSessionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    userId?: SortOrder
+    plan?: SortOrder
+    status?: SortOrder
+    providerCheckoutId?: SortOrder
+    providerOrderId?: SortOrder
+    providerSubscriptionId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type BillingCheckoutSessionMinOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    userId?: SortOrder
+    plan?: SortOrder
+    status?: SortOrder
+    providerCheckoutId?: SortOrder
+    providerOrderId?: SortOrder
+    providerSubscriptionId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type EnumBillingCheckoutStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BillingCheckoutStatus | EnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BillingCheckoutStatus[] | ListEnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BillingCheckoutStatus[] | ListEnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBillingCheckoutStatusWithAggregatesFilter<$PrismaModel> | $Enums.BillingCheckoutStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBillingCheckoutStatusFilter<$PrismaModel>
+    _max?: NestedEnumBillingCheckoutStatusFilter<$PrismaModel>
+  }
+
+  export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
+  }
+
   export type UserCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<UserCreateWithoutOrganizationInput, UserUncheckedCreateWithoutOrganizationInput> | UserCreateWithoutOrganizationInput[] | UserUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: UserCreateOrConnectWithoutOrganizationInput | UserCreateOrConnectWithoutOrganizationInput[]
@@ -8233,6 +9940,13 @@ export namespace Prisma {
     connect?: DomainGroupWhereUniqueInput | DomainGroupWhereUniqueInput[]
   }
 
+  export type BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<BillingCheckoutSessionCreateWithoutOrganizationInput, BillingCheckoutSessionUncheckedCreateWithoutOrganizationInput> | BillingCheckoutSessionCreateWithoutOrganizationInput[] | BillingCheckoutSessionUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput | BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput[]
+    createMany?: BillingCheckoutSessionCreateManyOrganizationInputEnvelope
+    connect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+  }
+
   export type UserUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<UserCreateWithoutOrganizationInput, UserUncheckedCreateWithoutOrganizationInput> | UserCreateWithoutOrganizationInput[] | UserUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: UserCreateOrConnectWithoutOrganizationInput | UserCreateOrConnectWithoutOrganizationInput[]
@@ -8245,6 +9959,13 @@ export namespace Prisma {
     connectOrCreate?: DomainGroupCreateOrConnectWithoutOrganizationInput | DomainGroupCreateOrConnectWithoutOrganizationInput[]
     createMany?: DomainGroupCreateManyOrganizationInputEnvelope
     connect?: DomainGroupWhereUniqueInput | DomainGroupWhereUniqueInput[]
+  }
+
+  export type BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<BillingCheckoutSessionCreateWithoutOrganizationInput, BillingCheckoutSessionUncheckedCreateWithoutOrganizationInput> | BillingCheckoutSessionCreateWithoutOrganizationInput[] | BillingCheckoutSessionUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput | BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput[]
+    createMany?: BillingCheckoutSessionCreateManyOrganizationInputEnvelope
+    connect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -8287,6 +10008,20 @@ export namespace Prisma {
     deleteMany?: DomainGroupScalarWhereInput | DomainGroupScalarWhereInput[]
   }
 
+  export type BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<BillingCheckoutSessionCreateWithoutOrganizationInput, BillingCheckoutSessionUncheckedCreateWithoutOrganizationInput> | BillingCheckoutSessionCreateWithoutOrganizationInput[] | BillingCheckoutSessionUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput | BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput[]
+    upsert?: BillingCheckoutSessionUpsertWithWhereUniqueWithoutOrganizationInput | BillingCheckoutSessionUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: BillingCheckoutSessionCreateManyOrganizationInputEnvelope
+    set?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    disconnect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    delete?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    connect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    update?: BillingCheckoutSessionUpdateWithWhereUniqueWithoutOrganizationInput | BillingCheckoutSessionUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: BillingCheckoutSessionUpdateManyWithWhereWithoutOrganizationInput | BillingCheckoutSessionUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: BillingCheckoutSessionScalarWhereInput | BillingCheckoutSessionScalarWhereInput[]
+  }
+
   export type UserUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<UserCreateWithoutOrganizationInput, UserUncheckedCreateWithoutOrganizationInput> | UserCreateWithoutOrganizationInput[] | UserUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: UserCreateOrConnectWithoutOrganizationInput | UserCreateOrConnectWithoutOrganizationInput[]
@@ -8315,10 +10050,38 @@ export namespace Prisma {
     deleteMany?: DomainGroupScalarWhereInput | DomainGroupScalarWhereInput[]
   }
 
+  export type BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<BillingCheckoutSessionCreateWithoutOrganizationInput, BillingCheckoutSessionUncheckedCreateWithoutOrganizationInput> | BillingCheckoutSessionCreateWithoutOrganizationInput[] | BillingCheckoutSessionUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput | BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput[]
+    upsert?: BillingCheckoutSessionUpsertWithWhereUniqueWithoutOrganizationInput | BillingCheckoutSessionUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: BillingCheckoutSessionCreateManyOrganizationInputEnvelope
+    set?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    disconnect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    delete?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    connect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    update?: BillingCheckoutSessionUpdateWithWhereUniqueWithoutOrganizationInput | BillingCheckoutSessionUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: BillingCheckoutSessionUpdateManyWithWhereWithoutOrganizationInput | BillingCheckoutSessionUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: BillingCheckoutSessionScalarWhereInput | BillingCheckoutSessionScalarWhereInput[]
+  }
+
   export type OrganizationCreateNestedOneWithoutUsersInput = {
     create?: XOR<OrganizationCreateWithoutUsersInput, OrganizationUncheckedCreateWithoutUsersInput>
     connectOrCreate?: OrganizationCreateOrConnectWithoutUsersInput
     connect?: OrganizationWhereUniqueInput
+  }
+
+  export type BillingCheckoutSessionCreateNestedManyWithoutUserInput = {
+    create?: XOR<BillingCheckoutSessionCreateWithoutUserInput, BillingCheckoutSessionUncheckedCreateWithoutUserInput> | BillingCheckoutSessionCreateWithoutUserInput[] | BillingCheckoutSessionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BillingCheckoutSessionCreateOrConnectWithoutUserInput | BillingCheckoutSessionCreateOrConnectWithoutUserInput[]
+    createMany?: BillingCheckoutSessionCreateManyUserInputEnvelope
+    connect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+  }
+
+  export type BillingCheckoutSessionUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<BillingCheckoutSessionCreateWithoutUserInput, BillingCheckoutSessionUncheckedCreateWithoutUserInput> | BillingCheckoutSessionCreateWithoutUserInput[] | BillingCheckoutSessionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BillingCheckoutSessionCreateOrConnectWithoutUserInput | BillingCheckoutSessionCreateOrConnectWithoutUserInput[]
+    createMany?: BillingCheckoutSessionCreateManyUserInputEnvelope
+    connect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -8331,6 +10094,34 @@ export namespace Prisma {
     upsert?: OrganizationUpsertWithoutUsersInput
     connect?: OrganizationWhereUniqueInput
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutUsersInput, OrganizationUpdateWithoutUsersInput>, OrganizationUncheckedUpdateWithoutUsersInput>
+  }
+
+  export type BillingCheckoutSessionUpdateManyWithoutUserNestedInput = {
+    create?: XOR<BillingCheckoutSessionCreateWithoutUserInput, BillingCheckoutSessionUncheckedCreateWithoutUserInput> | BillingCheckoutSessionCreateWithoutUserInput[] | BillingCheckoutSessionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BillingCheckoutSessionCreateOrConnectWithoutUserInput | BillingCheckoutSessionCreateOrConnectWithoutUserInput[]
+    upsert?: BillingCheckoutSessionUpsertWithWhereUniqueWithoutUserInput | BillingCheckoutSessionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: BillingCheckoutSessionCreateManyUserInputEnvelope
+    set?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    disconnect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    delete?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    connect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    update?: BillingCheckoutSessionUpdateWithWhereUniqueWithoutUserInput | BillingCheckoutSessionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: BillingCheckoutSessionUpdateManyWithWhereWithoutUserInput | BillingCheckoutSessionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: BillingCheckoutSessionScalarWhereInput | BillingCheckoutSessionScalarWhereInput[]
+  }
+
+  export type BillingCheckoutSessionUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<BillingCheckoutSessionCreateWithoutUserInput, BillingCheckoutSessionUncheckedCreateWithoutUserInput> | BillingCheckoutSessionCreateWithoutUserInput[] | BillingCheckoutSessionUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BillingCheckoutSessionCreateOrConnectWithoutUserInput | BillingCheckoutSessionCreateOrConnectWithoutUserInput[]
+    upsert?: BillingCheckoutSessionUpsertWithWhereUniqueWithoutUserInput | BillingCheckoutSessionUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: BillingCheckoutSessionCreateManyUserInputEnvelope
+    set?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    disconnect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    delete?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    connect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+    update?: BillingCheckoutSessionUpdateWithWhereUniqueWithoutUserInput | BillingCheckoutSessionUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: BillingCheckoutSessionUpdateManyWithWhereWithoutUserInput | BillingCheckoutSessionUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: BillingCheckoutSessionScalarWhereInput | BillingCheckoutSessionScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutDomainGroupsInput = {
@@ -8474,6 +10265,42 @@ export namespace Prisma {
     upsert?: DomainGroupUpsertWithoutRedirectRulesInput
     connect?: DomainGroupWhereUniqueInput
     update?: XOR<XOR<DomainGroupUpdateToOneWithWhereWithoutRedirectRulesInput, DomainGroupUpdateWithoutRedirectRulesInput>, DomainGroupUncheckedUpdateWithoutRedirectRulesInput>
+  }
+
+  export type OrganizationCreateNestedOneWithoutCheckoutSessionsInput = {
+    create?: XOR<OrganizationCreateWithoutCheckoutSessionsInput, OrganizationUncheckedCreateWithoutCheckoutSessionsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutCheckoutSessionsInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutCheckoutSessionsInput = {
+    create?: XOR<UserCreateWithoutCheckoutSessionsInput, UserUncheckedCreateWithoutCheckoutSessionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCheckoutSessionsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type EnumBillingCheckoutStatusFieldUpdateOperationsInput = {
+    set?: $Enums.BillingCheckoutStatus
+  }
+
+  export type NullableStringFieldUpdateOperationsInput = {
+    set?: string | null
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutCheckoutSessionsNestedInput = {
+    create?: XOR<OrganizationCreateWithoutCheckoutSessionsInput, OrganizationUncheckedCreateWithoutCheckoutSessionsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutCheckoutSessionsInput
+    upsert?: OrganizationUpsertWithoutCheckoutSessionsInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutCheckoutSessionsInput, OrganizationUpdateWithoutCheckoutSessionsInput>, OrganizationUncheckedUpdateWithoutCheckoutSessionsInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutCheckoutSessionsNestedInput = {
+    create?: XOR<UserCreateWithoutCheckoutSessionsInput, UserUncheckedCreateWithoutCheckoutSessionsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutCheckoutSessionsInput
+    upsert?: UserUpsertWithoutCheckoutSessionsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCheckoutSessionsInput, UserUpdateWithoutCheckoutSessionsInput>, UserUncheckedUpdateWithoutCheckoutSessionsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -8642,6 +10469,54 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
+  export type NestedEnumBillingCheckoutStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.BillingCheckoutStatus | EnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BillingCheckoutStatus[] | ListEnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BillingCheckoutStatus[] | ListEnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBillingCheckoutStatusFilter<$PrismaModel> | $Enums.BillingCheckoutStatus
+  }
+
+  export type NestedStringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
+  }
+
+  export type NestedEnumBillingCheckoutStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.BillingCheckoutStatus | EnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.BillingCheckoutStatus[] | ListEnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.BillingCheckoutStatus[] | ListEnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumBillingCheckoutStatusWithAggregatesFilter<$PrismaModel> | $Enums.BillingCheckoutStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumBillingCheckoutStatusFilter<$PrismaModel>
+    _max?: NestedEnumBillingCheckoutStatusFilter<$PrismaModel>
+  }
+
+  export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
+  }
+
   export type UserCreateWithoutOrganizationInput = {
     id: string
     email: string
@@ -8650,6 +10525,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutOrganizationInput = {
@@ -8660,6 +10536,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutOrganizationInput = {
@@ -8699,6 +10576,44 @@ export namespace Prisma {
 
   export type DomainGroupCreateManyOrganizationInputEnvelope = {
     data: DomainGroupCreateManyOrganizationInput | DomainGroupCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BillingCheckoutSessionCreateWithoutOrganizationInput = {
+    id: string
+    plan: string
+    status?: $Enums.BillingCheckoutStatus
+    providerCheckoutId?: string | null
+    providerOrderId?: string | null
+    providerSubscriptionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    user: UserCreateNestedOneWithoutCheckoutSessionsInput
+  }
+
+  export type BillingCheckoutSessionUncheckedCreateWithoutOrganizationInput = {
+    id: string
+    userId: string
+    plan: string
+    status?: $Enums.BillingCheckoutStatus
+    providerCheckoutId?: string | null
+    providerOrderId?: string | null
+    providerSubscriptionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput = {
+    where: BillingCheckoutSessionWhereUniqueInput
+    create: XOR<BillingCheckoutSessionCreateWithoutOrganizationInput, BillingCheckoutSessionUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type BillingCheckoutSessionCreateManyOrganizationInputEnvelope = {
+    data: BillingCheckoutSessionCreateManyOrganizationInput | BillingCheckoutSessionCreateManyOrganizationInput[]
     skipDuplicates?: boolean
   }
 
@@ -8760,6 +10675,40 @@ export namespace Prisma {
     deletedAt?: DateTimeNullableFilter<"DomainGroup"> | Date | string | null
   }
 
+  export type BillingCheckoutSessionUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: BillingCheckoutSessionWhereUniqueInput
+    update: XOR<BillingCheckoutSessionUpdateWithoutOrganizationInput, BillingCheckoutSessionUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<BillingCheckoutSessionCreateWithoutOrganizationInput, BillingCheckoutSessionUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type BillingCheckoutSessionUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: BillingCheckoutSessionWhereUniqueInput
+    data: XOR<BillingCheckoutSessionUpdateWithoutOrganizationInput, BillingCheckoutSessionUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type BillingCheckoutSessionUpdateManyWithWhereWithoutOrganizationInput = {
+    where: BillingCheckoutSessionScalarWhereInput
+    data: XOR<BillingCheckoutSessionUpdateManyMutationInput, BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
+  export type BillingCheckoutSessionScalarWhereInput = {
+    AND?: BillingCheckoutSessionScalarWhereInput | BillingCheckoutSessionScalarWhereInput[]
+    OR?: BillingCheckoutSessionScalarWhereInput[]
+    NOT?: BillingCheckoutSessionScalarWhereInput | BillingCheckoutSessionScalarWhereInput[]
+    id?: StringFilter<"BillingCheckoutSession"> | string
+    organizationId?: StringFilter<"BillingCheckoutSession"> | string
+    userId?: StringFilter<"BillingCheckoutSession"> | string
+    plan?: StringFilter<"BillingCheckoutSession"> | string
+    status?: EnumBillingCheckoutStatusFilter<"BillingCheckoutSession"> | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: StringNullableFilter<"BillingCheckoutSession"> | string | null
+    providerOrderId?: StringNullableFilter<"BillingCheckoutSession"> | string | null
+    providerSubscriptionId?: StringNullableFilter<"BillingCheckoutSession"> | string | null
+    createdAt?: DateTimeFilter<"BillingCheckoutSession"> | Date | string
+    updatedAt?: DateTimeFilter<"BillingCheckoutSession"> | Date | string
+    completedAt?: DateTimeNullableFilter<"BillingCheckoutSession"> | Date | string | null
+    metadata?: JsonNullableFilter<"BillingCheckoutSession">
+  }
+
   export type OrganizationCreateWithoutUsersInput = {
     id: string
     name: string
@@ -8768,6 +10717,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     configuration?: NullableJsonNullValueInput | InputJsonValue
     domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
+    checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutUsersInput = {
@@ -8778,11 +10728,50 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     configuration?: NullableJsonNullValueInput | InputJsonValue
     domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
+    checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutUsersInput = {
     where: OrganizationWhereUniqueInput
     create: XOR<OrganizationCreateWithoutUsersInput, OrganizationUncheckedCreateWithoutUsersInput>
+  }
+
+  export type BillingCheckoutSessionCreateWithoutUserInput = {
+    id: string
+    plan: string
+    status?: $Enums.BillingCheckoutStatus
+    providerCheckoutId?: string | null
+    providerOrderId?: string | null
+    providerSubscriptionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    organization: OrganizationCreateNestedOneWithoutCheckoutSessionsInput
+  }
+
+  export type BillingCheckoutSessionUncheckedCreateWithoutUserInput = {
+    id: string
+    organizationId: string
+    plan: string
+    status?: $Enums.BillingCheckoutStatus
+    providerCheckoutId?: string | null
+    providerOrderId?: string | null
+    providerSubscriptionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type BillingCheckoutSessionCreateOrConnectWithoutUserInput = {
+    where: BillingCheckoutSessionWhereUniqueInput
+    create: XOR<BillingCheckoutSessionCreateWithoutUserInput, BillingCheckoutSessionUncheckedCreateWithoutUserInput>
+  }
+
+  export type BillingCheckoutSessionCreateManyUserInputEnvelope = {
+    data: BillingCheckoutSessionCreateManyUserInput | BillingCheckoutSessionCreateManyUserInput[]
+    skipDuplicates?: boolean
   }
 
   export type OrganizationUpsertWithoutUsersInput = {
@@ -8804,6 +10793,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     configuration?: NullableJsonNullValueInput | InputJsonValue
     domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
+    checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutUsersInput = {
@@ -8814,6 +10804,23 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     configuration?: NullableJsonNullValueInput | InputJsonValue
     domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
+    checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type BillingCheckoutSessionUpsertWithWhereUniqueWithoutUserInput = {
+    where: BillingCheckoutSessionWhereUniqueInput
+    update: XOR<BillingCheckoutSessionUpdateWithoutUserInput, BillingCheckoutSessionUncheckedUpdateWithoutUserInput>
+    create: XOR<BillingCheckoutSessionCreateWithoutUserInput, BillingCheckoutSessionUncheckedCreateWithoutUserInput>
+  }
+
+  export type BillingCheckoutSessionUpdateWithWhereUniqueWithoutUserInput = {
+    where: BillingCheckoutSessionWhereUniqueInput
+    data: XOR<BillingCheckoutSessionUpdateWithoutUserInput, BillingCheckoutSessionUncheckedUpdateWithoutUserInput>
+  }
+
+  export type BillingCheckoutSessionUpdateManyWithWhereWithoutUserInput = {
+    where: BillingCheckoutSessionScalarWhereInput
+    data: XOR<BillingCheckoutSessionUpdateManyMutationInput, BillingCheckoutSessionUncheckedUpdateManyWithoutUserInput>
   }
 
   export type OrganizationCreateWithoutDomainGroupsInput = {
@@ -8824,6 +10831,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserCreateNestedManyWithoutOrganizationInput
+    checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutDomainGroupsInput = {
@@ -8834,6 +10842,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
+    checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutDomainGroupsInput = {
@@ -8920,6 +10929,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUpdateManyWithoutOrganizationNestedInput
+    checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutDomainGroupsInput = {
@@ -8930,6 +10940,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
+    checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type DomainUpsertWithWhereUniqueWithoutDomainGroupInput = {
@@ -9104,6 +11115,126 @@ export namespace Prisma {
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
 
+  export type OrganizationCreateWithoutCheckoutSessionsInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserCreateNestedManyWithoutOrganizationInput
+    domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutCheckoutSessionsInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
+    domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutCheckoutSessionsInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutCheckoutSessionsInput, OrganizationUncheckedCreateWithoutCheckoutSessionsInput>
+  }
+
+  export type UserCreateWithoutCheckoutSessionsInput = {
+    id: string
+    email: string
+    passwordHash: string
+    isOwner?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    organization: OrganizationCreateNestedOneWithoutUsersInput
+  }
+
+  export type UserUncheckedCreateWithoutCheckoutSessionsInput = {
+    id: string
+    email: string
+    passwordHash: string
+    organizationId: string
+    isOwner?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type UserCreateOrConnectWithoutCheckoutSessionsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutCheckoutSessionsInput, UserUncheckedCreateWithoutCheckoutSessionsInput>
+  }
+
+  export type OrganizationUpsertWithoutCheckoutSessionsInput = {
+    update: XOR<OrganizationUpdateWithoutCheckoutSessionsInput, OrganizationUncheckedUpdateWithoutCheckoutSessionsInput>
+    create: XOR<OrganizationCreateWithoutCheckoutSessionsInput, OrganizationUncheckedCreateWithoutCheckoutSessionsInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutCheckoutSessionsInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutCheckoutSessionsInput, OrganizationUncheckedUpdateWithoutCheckoutSessionsInput>
+  }
+
+  export type OrganizationUpdateWithoutCheckoutSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserUpdateManyWithoutOrganizationNestedInput
+    domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutCheckoutSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
+    domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type UserUpsertWithoutCheckoutSessionsInput = {
+    update: XOR<UserUpdateWithoutCheckoutSessionsInput, UserUncheckedUpdateWithoutCheckoutSessionsInput>
+    create: XOR<UserCreateWithoutCheckoutSessionsInput, UserUncheckedCreateWithoutCheckoutSessionsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutCheckoutSessionsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutCheckoutSessionsInput, UserUncheckedUpdateWithoutCheckoutSessionsInput>
+  }
+
+  export type UserUpdateWithoutCheckoutSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    isOwner?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    organization?: OrganizationUpdateOneRequiredWithoutUsersNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutCheckoutSessionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    isOwner?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type UserCreateManyOrganizationInput = {
     id: string
     email: string
@@ -9122,6 +11253,20 @@ export namespace Prisma {
     deletedAt?: Date | string | null
   }
 
+  export type BillingCheckoutSessionCreateManyOrganizationInput = {
+    id: string
+    userId: string
+    plan: string
+    status?: $Enums.BillingCheckoutStatus
+    providerCheckoutId?: string | null
+    providerOrderId?: string | null
+    providerSubscriptionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
   export type UserUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
@@ -9130,6 +11275,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOrganizationInput = {
@@ -9140,6 +11286,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutOrganizationInput = {
@@ -9178,6 +11325,104 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type BillingCheckoutSessionUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    plan?: StringFieldUpdateOperationsInput | string
+    status?: EnumBillingCheckoutStatusFieldUpdateOperationsInput | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    user?: UserUpdateOneRequiredWithoutCheckoutSessionsNestedInput
+  }
+
+  export type BillingCheckoutSessionUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    plan?: StringFieldUpdateOperationsInput | string
+    status?: EnumBillingCheckoutStatusFieldUpdateOperationsInput | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    plan?: StringFieldUpdateOperationsInput | string
+    status?: EnumBillingCheckoutStatusFieldUpdateOperationsInput | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type BillingCheckoutSessionCreateManyUserInput = {
+    id: string
+    organizationId: string
+    plan: string
+    status?: $Enums.BillingCheckoutStatus
+    providerCheckoutId?: string | null
+    providerOrderId?: string | null
+    providerSubscriptionId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type BillingCheckoutSessionUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    plan?: StringFieldUpdateOperationsInput | string
+    status?: EnumBillingCheckoutStatusFieldUpdateOperationsInput | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    organization?: OrganizationUpdateOneRequiredWithoutCheckoutSessionsNestedInput
+  }
+
+  export type BillingCheckoutSessionUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    plan?: StringFieldUpdateOperationsInput | string
+    status?: EnumBillingCheckoutStatusFieldUpdateOperationsInput | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type BillingCheckoutSessionUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    plan?: StringFieldUpdateOperationsInput | string
+    status?: EnumBillingCheckoutStatusFieldUpdateOperationsInput | $Enums.BillingCheckoutStatus
+    providerCheckoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    providerSubscriptionId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type DomainCreateManyDomainGroupInput = {
