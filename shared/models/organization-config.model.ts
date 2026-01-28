@@ -1,45 +1,77 @@
 export enum OrganizationPlan {
   FREE = 'FREE',
-  PAID = 'PAID',
+  STARTER = 'STARTER',
+  PRO = 'PRO',
+  ENTERPRISE = 'ENTERPRISE',
 }
 
 export enum OrganizationStatus {
   ACTIVE = 'ACTIVE',
   SUSPENDED = 'SUSPENDED',
-  PAYMENT_DUE = 'PAYMENT_DUE',
+  CANCELED = 'CANCELED',
 }
 
 /**
- * Represents the configuration and limits for an Organization.
- * Default values are applied if not present in the database.
+ * Detailed snapshot of a plan's limits and billing at the time of purchase.
  */
-export class OrganizationConfiguration {
-  // Account Status & Plan
+export class OrganizationSubscription {
   plan: OrganizationPlan = OrganizationPlan.FREE;
   status: OrganizationStatus = OrganizationStatus.ACTIVE;
 
-  // Domain Group Limits
-  maxDomainGroups: number = 1;
+  // Validity
+  activeFrom: Date = new Date();
+  activeUntil: Date | null = null;
 
-  // Domain Limits
-  maxDomainsPerGroup: number = 1;
-  maxTotalDomains: number = 1;
+  // Financials
+  amount: number = 0;
+  currency: string = 'EUR';
+  interval: 'MONTHLY' | 'YEARLY' | 'LIFETIME' = 'MONTHLY';
 
-  // Redirect Rule Limits
-  maxRulesPerGroup: number = 15;
-  maxTotalRules: number = 15;
+  // Limits "Snapshotted" for this specific subscription
+  limits = {
+    maxDomainGroups: 1,
+    maxDomainsPerGroup: 1,
+    maxTotalDomains: 1,
+    maxRulesPerGroup: 15,
+    maxTotalRules: 15,
+    redirectionLimitPerMinute: 10,
+  };
 
-  redirectionLimitPerMinute: number = 10;
+  constructor(partial?: Partial<OrganizationSubscription>) {
+    if (partial) {
+      Object.assign(this, partial);
+      if (this.activeUntil && typeof this.activeUntil === 'string') {
+        this.activeUntil = new Date(this.activeUntil);
+      }
+      if (this.activeFrom && typeof this.activeFrom === 'string') {
+        this.activeFrom = new Date(this.activeFrom);
+      }
+    }
+  }
+}
+
+/**
+ * Main Organization Configuration holder.
+ */
+export class OrganizationConfiguration {
+  activeSubscription: OrganizationSubscription = new OrganizationSubscription();
+  subscriptionHistory: OrganizationSubscription[] = [];
 
   constructor(partial?: Partial<OrganizationConfiguration>) {
     if (partial) {
-      Object.assign(this, partial);
+      if (partial.activeSubscription) {
+        this.activeSubscription = new OrganizationSubscription(
+          partial.activeSubscription,
+        );
+      }
+      if (partial.subscriptionHistory) {
+        this.subscriptionHistory = partial.subscriptionHistory.map(
+          (s) => new OrganizationSubscription(s),
+        );
+      }
     }
   }
 
-  /**
-   * Creates a configuration instance from a JSON object, applying defaults.
-   */
   static fromJson(json: any): OrganizationConfiguration {
     return new OrganizationConfiguration(json || {});
   }

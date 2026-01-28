@@ -890,7 +890,7 @@ export class RedirectService {
       return;
     }
 
-    // 2. Check Organization Status (Payment/Suspension)
+    // 2. Check Organization Status (Subscription status)
     try {
       const organization = await this.cacheManagerService.getData<Organization>(
         {
@@ -908,7 +908,9 @@ export class RedirectService {
         const config = OrganizationConfiguration.fromJson(
           organization.configuration,
         );
-        limit = config.redirectionLimitPerMinute;
+        const subscription =
+          this.organizationService.getEffectiveSubscription(config);
+        limit = subscription.limits.redirectionLimitPerMinute;
       }
 
       await this.cacheManagerService.checkOrganizationRateLimit(

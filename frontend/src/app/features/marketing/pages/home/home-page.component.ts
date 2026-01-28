@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { RouterLink } from '@angular/router';
 import { SITE_CONFIG } from '../../../../core/config/site-config';
 import { SeoService } from '../../../../core/seo/seo.service';
 import { MarketingHeroComponent } from '../../components/marketing-hero/marketing-hero.component';
@@ -10,6 +12,7 @@ import { MarketingFeatureGridComponent, MarketingFeature } from '../../component
 import { MarketingExampleCardComponent, MarketingRuleExample } from '../../components/marketing-example-card/marketing-example-card.component';
 import { MarketingCtaComponent } from '../../components/marketing-cta/marketing-cta.component';
 import { MarketingFaqComponent, MarketingFaqItem } from '../../components/marketing-faq/marketing-faq.component';
+import { PricingPlansComponent } from '../../components/pricing-plans/pricing-plans.component';
 
 const WORKFLOW_STEPS = [
   {
@@ -130,12 +133,15 @@ const FAQ_ITEMS: MarketingFaqItem[] = [
     CommonModule,
     MatCardModule,
     MatIconModule,
+    MatButtonModule,
+    RouterLink,
     MarketingHeroComponent,
     MarketingSectionComponent,
     MarketingFeatureGridComponent,
     MarketingExampleCardComponent,
     MarketingCtaComponent,
-    MarketingFaqComponent
+    MarketingFaqComponent,
+    PricingPlansComponent
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.css'

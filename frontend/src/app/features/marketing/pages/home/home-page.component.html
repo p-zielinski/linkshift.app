@@ -55,6 +55,18 @@
 </app-marketing-section>
 
 <app-marketing-section
+  eyebrow="Pricing"
+  title="Plans that grow with your traffic"
+  subtitle="Start free and scale only when your redirect inventory demands it."
+>
+  <app-pricing-plans [compact]="true"></app-pricing-plans>
+  <div class="mt-6 flex flex-wrap items-center gap-3">
+    <a mat-stroked-button routerLink="/pricing">See full pricing</a>
+    <a mat-flat-button color="primary" routerLink="/auth">Start free</a>
+  </div>
+</app-marketing-section>
+
+<app-marketing-section
   eyebrow="Examples"
   title="Rule syntax that mirrors real traffic"
   subtitle="Use regex, placeholders, and conditions to build consistent redirection logic."

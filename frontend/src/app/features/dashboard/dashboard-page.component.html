@@ -3,7 +3,7 @@
   subtitle="Operational overview for the active organization."
 ></app-page-header>
 
-<div class="mb-5 grid gap-5 sm:grid-cols-2">
+<div class="mb-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
   <mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
     <h3 class="m-0 text-lg font-semibold">Session details</h3>
     <div class="my-4 h-px bg-app-divider"></div>
@@ -35,17 +35,71 @@
           <div matListItemTitle>{{ organization.name }}</div>
           <div matListItemLine>Organization ID: {{ organization.id }}</div>
         </mat-list-item>
-        <mat-list-item>
-          <mat-icon matListItemIcon>verified_user</mat-icon>
-          <div matListItemTitle>Plan</div>
-          <div matListItemLine>{{ config().plan }}</div>
-        </mat-list-item>
-        <mat-list-item>
-          <mat-icon matListItemIcon>shield</mat-icon>
-          <div matListItemTitle>Status</div>
-          <div matListItemLine>{{ config().status }}</div>
-        </mat-list-item>
       </mat-list>
+    } @else {
+      <div class="text-[13px] text-app-muted">No organization loaded.</div>
+    }
+  </mat-card>
+
+  <mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
+    <h3 class="m-0 text-lg font-semibold">Subscription snapshot</h3>
+    <div class="my-4 h-px bg-app-divider"></div>
+    @if (organization()) {
+      @if (activeSubscription(); as subscription) {
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="rounded-2xl bg-app-accent-soft p-4">
+            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
+              Plan
+            </div>
+            <div class="text-[22px] font-semibold">
+              {{ subscription.plan }}
+            </div>
+            <div class="text-[13px] text-app-muted">
+              Status: {{ subscription.status }}
+            </div>
+          </div>
+          <div class="rounded-2xl bg-app-accent-soft p-4">
+            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
+              Billing
+            </div>
+            <div class="text-[22px] font-semibold">
+              {{ subscription.amount | number: '1.0-2' }}
+              {{ subscription.currency }}
+            </div>
+            <div class="text-[13px] text-app-muted">
+              Interval: {{ subscription.interval }}
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-2xl bg-app-accent-soft p-4">
+            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
+              Active from
+            </div>
+            <div class="text-[14px] font-semibold text-app-foreground">
+              {{ subscription.activeFrom | date: 'mediumDate' }}
+            </div>
+          </div>
+          <div class="rounded-2xl bg-app-accent-soft p-4">
+            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
+              Active until
+            </div>
+            <div class="text-[14px] font-semibold text-app-foreground">
+              @if (subscription.activeUntil) {
+                {{ subscription.activeUntil | date: 'mediumDate' }}
+              } @else {
+                No end date
+              }
+            </div>
+          </div>
+        </div>
+        <div class="mt-5 flex flex-wrap items-center gap-3">
+          <a mat-flat-button color="primary" routerLink="/pricing">
+            Upgrade subscription
+          </a>
+          <a mat-stroked-button routerLink="/pricing">Compare plans</a>
+        </div>
+      }
     } @else {
       <div class="text-[13px] text-app-muted">No organization loaded.</div>
     }
@@ -53,31 +107,43 @@
 </div>
 
 <mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
-  <h3 class="m-0 text-lg font-semibold">Organization limits</h3>
+  <h3 class="m-0 text-lg font-semibold">Subscription limits</h3>
   <div class="my-4 h-px bg-app-divider"></div>
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <div class="rounded-2xl bg-app-accent-soft p-4">
-      <div class="text-[22px] font-semibold">{{ config().maxDomainGroups }}</div>
+      <div class="text-[22px] font-semibold">
+        {{ limits().maxDomainGroups }}
+      </div>
       <div class="text-[13px] text-app-muted">Max domain groups</div>
     </div>
     <div class="rounded-2xl bg-app-accent-soft p-4">
-      <div class="text-[22px] font-semibold">{{ config().maxDomainsPerGroup }}</div>
+      <div class="text-[22px] font-semibold">
+        {{ limits().maxDomainsPerGroup }}
+      </div>
       <div class="text-[13px] text-app-muted">Domains per group</div>
     </div>
     <div class="rounded-2xl bg-app-accent-soft p-4">
-      <div class="text-[22px] font-semibold">{{ config().maxTotalDomains }}</div>
+      <div class="text-[22px] font-semibold">
+        {{ limits().maxTotalDomains }}
+      </div>
       <div class="text-[13px] text-app-muted">Total domains</div>
     </div>
     <div class="rounded-2xl bg-app-accent-soft p-4">
-      <div class="text-[22px] font-semibold">{{ config().maxRulesPerGroup }}</div>
+      <div class="text-[22px] font-semibold">
+        {{ limits().maxRulesPerGroup }}
+      </div>
       <div class="text-[13px] text-app-muted">Rules per group</div>
     </div>
     <div class="rounded-2xl bg-app-accent-soft p-4">
-      <div class="text-[22px] font-semibold">{{ config().maxTotalRules }}</div>
+      <div class="text-[22px] font-semibold">
+        {{ limits().maxTotalRules }}
+      </div>
       <div class="text-[13px] text-app-muted">Total rules</div>
     </div>
     <div class="rounded-2xl bg-app-accent-soft p-4">
-      <div class="text-[22px] font-semibold">{{ config().redirectionLimitPerMinute }}</div>
+      <div class="text-[22px] font-semibold">
+        {{ limits().redirectionLimitPerMinute }}
+      </div>
       <div class="text-[13px] text-app-muted">Redirections per minute</div>
     </div>
   </div>

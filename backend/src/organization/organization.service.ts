@@ -7,6 +7,8 @@ import {
 } from '@shared/models/error.model';
 import {
   OrganizationConfiguration,
+  OrganizationPlan,
+  OrganizationSubscription,
   OrganizationStatus,
 } from '@shared/models/organization-config.model';
 import {
@@ -56,14 +58,15 @@ export class OrganizationService {
    */
   async checkDomainGroupLimit(organizationId: string): Promise<void> {
     const config = await this.getConfiguration(organizationId);
+    const limits = this.getEffectiveSubscription(config).limits;
 
     const count = await this.prisma.domainGroup.count({
       where: { organizationId, deletedAt: null },
     });
 
-    if (count >= config.maxDomainGroups) {
+    if (count >= limits.maxDomainGroups) {
       this.throwLimitError(
-        `Domain group limit reached (${config.maxDomainGroups} max). Please upgrade your plan.`,
+        `Domain group limit reached (${limits.maxDomainGroups} max). Please upgrade your plan.`,
       );
     }
   }
@@ -77,6 +80,7 @@ export class OrganizationService {
     domainGroupId: string,
   ): Promise<void> {
     const config = await this.getConfiguration(organizationId);
+    const limits = this.getEffectiveSubscription(config).limits;
 
     // 1. Check total domains limit
     const totalCount = await this.prisma.domain.count({
@@ -86,9 +90,9 @@ export class OrganizationService {
       },
     });
 
-    if (totalCount >= config.maxTotalDomains) {
+    if (totalCount >= limits.maxTotalDomains) {
       this.throwLimitError(
-        `Total domain limit reached (${config.maxTotalDomains} max). Please upgrade your plan.`,
+        `Total domain limit reached (${limits.maxTotalDomains} max). Please upgrade your plan.`,
       );
     }
 
@@ -100,9 +104,9 @@ export class OrganizationService {
       },
     });
 
-    if (groupCount >= config.maxDomainsPerGroup) {
+    if (groupCount >= limits.maxDomainsPerGroup) {
       this.throwLimitError(
-        `Domain limit for this group reached (${config.maxDomainsPerGroup} max). Please upgrade your plan.`,
+        `Domain limit for this group reached (${limits.maxDomainsPerGroup} max). Please upgrade your plan.`,
       );
     }
   }
@@ -116,6 +120,7 @@ export class OrganizationService {
     domainGroupId: string,
   ): Promise<void> {
     const config = await this.getConfiguration(organizationId);
+    const limits = this.getEffectiveSubscription(config).limits;
 
     // 1. Check total rules limit
     const totalCount = await this.prisma.redirectRule.count({
@@ -125,9 +130,9 @@ export class OrganizationService {
       },
     });
 
-    if (totalCount >= config.maxTotalRules) {
+    if (totalCount >= limits.maxTotalRules) {
       this.throwLimitError(
-        `Total redirect rule limit reached (${config.maxTotalRules} max). Please upgrade your plan.`,
+        `Total redirect rule limit reached (${limits.maxTotalRules} max). Please upgrade your plan.`,
       );
     }
 
@@ -139,28 +144,135 @@ export class OrganizationService {
       },
     });
 
-    if (groupCount >= config.maxRulesPerGroup) {
+    if (groupCount >= limits.maxRulesPerGroup) {
       this.throwLimitError(
-        `Redirect rule limit for this group reached (${config.maxRulesPerGroup} max). Please upgrade your plan.`,
+        `Redirect rule limit for this group reached (${limits.maxRulesPerGroup} max). Please upgrade your plan.`,
       );
     }
   }
 
   /**
    * Checks if the organization is allowed to process redirects.
-   * Throws PaymentRequiredError if the account is suspended or has payment due.
+   * Throws PaymentRequiredError if the subscription is suspended or over limits.
    */
   async checkRedirectionAccess(organizationId: string): Promise<void> {
     const config = await this.getConfiguration(organizationId);
+    const status = config.activeSubscription.status;
 
-    if (
-      config.status === OrganizationStatus.SUSPENDED ||
-      config.status === OrganizationStatus.PAYMENT_DUE
-    ) {
+    if (status === OrganizationStatus.SUSPENDED) {
       this.throwLimitError(
-        `Organization status is ${config.status}. Please check your billing settings.`,
+        `Organization status is ${status}. Please check your billing settings.`,
       );
     }
+
+    const subscription = this.getEffectiveSubscription(config);
+    const overage = await this.findLimitOverage(
+      organizationId,
+      subscription.limits,
+    );
+
+    if (overage) {
+      this.throwLimitError(
+        `Organization exceeds ${subscription.plan} plan limits. ${overage}. Please upgrade or remove resources.`,
+      );
+    }
+  }
+
+  getEffectiveSubscription(
+    config: OrganizationConfiguration,
+  ): OrganizationSubscription {
+    const subscription =
+      config.activeSubscription ?? new OrganizationSubscription();
+
+    if (subscription.status === OrganizationStatus.SUSPENDED) {
+      return subscription;
+    }
+
+    const isExpired =
+      subscription.activeUntil instanceof Date &&
+      subscription.activeUntil.getTime() < Date.now();
+
+    if (subscription.status === OrganizationStatus.CANCELED || isExpired) {
+      return new OrganizationSubscription({
+        plan: OrganizationPlan.FREE,
+        status: OrganizationStatus.ACTIVE,
+      });
+    }
+
+    return subscription;
+  }
+
+  private async findLimitOverage(
+    organizationId: string,
+    limits: OrganizationSubscription['limits'],
+  ): Promise<string | null> {
+    const [
+      domainGroupCount,
+      totalDomainCount,
+      totalRuleCount,
+      domainCounts,
+      ruleCounts,
+    ] = await Promise.all([
+      this.prisma.domainGroup.count({
+        where: { organizationId, deletedAt: null },
+      }),
+      this.prisma.domain.count({
+        where: {
+          domainGroup: { organizationId, deletedAt: null },
+          deletedAt: null,
+        },
+      }),
+      this.prisma.redirectRule.count({
+        where: {
+          domainGroup: { organizationId, deletedAt: null },
+          deletedAt: null,
+        },
+      }),
+      this.prisma.domain.groupBy({
+        by: ['domainGroupId'],
+        where: {
+          deletedAt: null,
+          domainGroup: { organizationId, deletedAt: null },
+        },
+        _count: { _all: true },
+      }),
+      this.prisma.redirectRule.groupBy({
+        by: ['domainGroupId'],
+        where: {
+          deletedAt: null,
+          domainGroup: { organizationId, deletedAt: null },
+        },
+        _count: { _all: true },
+      }),
+    ]);
+
+    if (domainGroupCount > limits.maxDomainGroups) {
+      return `Domain groups ${domainGroupCount}/${limits.maxDomainGroups}`;
+    }
+
+    if (totalDomainCount > limits.maxTotalDomains) {
+      return `Total domains ${totalDomainCount}/${limits.maxTotalDomains}`;
+    }
+
+    if (totalRuleCount > limits.maxTotalRules) {
+      return `Total rules ${totalRuleCount}/${limits.maxTotalRules}`;
+    }
+
+    const domainOverage = domainCounts.find(
+      (entry) => entry._count._all > limits.maxDomainsPerGroup,
+    );
+    if (domainOverage) {
+      return `Domains per group ${domainOverage._count._all}/${limits.maxDomainsPerGroup}`;
+    }
+
+    const ruleOverage = ruleCounts.find(
+      (entry) => entry._count._all > limits.maxRulesPerGroup,
+    );
+    if (ruleOverage) {
+      return `Rules per group ${ruleOverage._count._all}/${limits.maxRulesPerGroup}`;
+    }
+
+    return null;
   }
 
   private throwLimitError(details: string): never {

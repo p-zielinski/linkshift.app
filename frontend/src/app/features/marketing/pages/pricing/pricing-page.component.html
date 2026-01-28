@@ -1,0 +1,48 @@
+<app-marketing-section
+  eyebrow="Pricing"
+  title="Plans that scale with your redirect inventory"
+  subtitle="Move from proof-of-concept to enterprise governance without rebuilding your routing model."
+  [center]="true"
+>
+  <app-pricing-plans></app-pricing-plans>
+</app-marketing-section>
+
+<app-marketing-section
+  eyebrow="Assurance"
+  title="Every plan protects production traffic"
+  subtitle="Limits keep routing stable, approvals keep changes auditable, and support keeps teams aligned."
+>
+  <div class="assurance-grid">
+    <mat-card class="assurance-card">
+      <mat-icon>verified_user</mat-icon>
+      <h3>Governance-ready by default</h3>
+      <p class="text-[13px] text-app-muted">
+        Domain groups preserve structure, enforce limits, and prevent accidental drift across brands.
+      </p>
+    </mat-card>
+    <mat-card class="assurance-card">
+      <mat-icon>history</mat-icon>
+      <h3>Audit-friendly workflows</h3>
+      <p class="text-[13px] text-app-muted">
+        Every rule change is tracked so teams can review, validate, and roll back quickly.
+      </p>
+    </mat-card>
+    <mat-card class="assurance-card">
+      <mat-icon>support_agent</mat-icon>
+      <h3>Support that scales with you</h3>
+      <p class="text-[13px] text-app-muted">
+        From email support to a dedicated architect, your team stays aligned as routing grows.
+      </p>
+    </mat-card>
+  </div>
+</app-marketing-section>
+
+<app-marketing-cta
+  title="Ready to upgrade your redirect governance?"
+  description="Choose the plan that matches your traffic and keep every environment aligned."
+  primaryLabel="Create account"
+  primaryLink="/auth"
+  secondaryLabel="See alternatives"
+  secondaryLink="/alternatives/redirect-pizza"
+  note="30-day satisfaction guarantee. Refunds available with no explanation required."
+></app-marketing-cta>

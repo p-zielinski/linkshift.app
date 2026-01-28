@@ -1,0 +1,52 @@
+<div class="pricing-grid" [class.compact]="compact()">
+  @for (plan of plans; track plan.key) {
+    <mat-card class="pricing-card" [class.featured]="plan.featured">
+      <div class="plan-header">
+        <div>
+          <div class="plan-title-row">
+            <div class="plan-name">{{ plan.name }}</div>
+            @if (plan.badge) {
+              <div class="plan-badge">{{ plan.badge }}</div>
+            }
+          </div>
+          <div class="plan-description text-[13px] text-app-muted">
+            {{ plan.description }}
+          </div>
+        </div>
+        <div class="plan-price">
+          <div class="price-amount">{{ plan.price }}</div>
+          <div class="price-note text-[12px] text-app-muted">{{ plan.priceNote }}</div>
+        </div>
+      </div>
+      <div class="plan-limits">
+        @for (limit of plan.limits; track limit) {
+          <span class="limit-chip">{{ limit }}</span>
+        }
+      </div>
+      <div class="plan-features">
+        @for (feature of getFeatures(plan); track feature) {
+          <div class="feature-row">
+            <mat-icon>check_circle</mat-icon>
+            <span>{{ feature }}</span>
+          </div>
+        }
+        @if (hasExtraFeatures(plan)) {
+          <div class="feature-more text-[12px] text-app-muted">
+            + more included in full plan details
+          </div>
+        }
+      </div>
+      <div class="plan-actions">
+        @if (plan.featured) {
+          <a mat-flat-button color="primary" [routerLink]="plan.ctaLink">
+            {{ plan.ctaLabel }}
+          </a>
+        } @else {
+          <a mat-stroked-button [routerLink]="plan.ctaLink">
+            {{ plan.ctaLabel }}
+          </a>
+        }
+      </div>
+    </mat-card>
+  }
+</div>

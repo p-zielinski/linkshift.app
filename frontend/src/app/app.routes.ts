@@ -10,6 +10,7 @@ import { domainGroupsRequiredGuard } from './core/domain-groups/domain-group.gua
 import { MarketingShellComponent } from './features/marketing/components/marketing-shell/marketing-shell.component';
 import { HomePageComponent } from './features/marketing/pages/home/home-page.component';
 import { AlternativePageComponent } from './features/marketing/pages/alternative/alternative-page.component';
+import { PricingPageComponent } from './features/marketing/pages/pricing/pricing-page.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'home' },
@@ -19,6 +20,7 @@ export const routes: Routes = [
     component: MarketingShellComponent,
     children: [
       { path: 'home', component: HomePageComponent },
+      { path: 'pricing', component: PricingPageComponent },
       {
         path: 'alternatives/redirect-pizza',
         component: AlternativePageComponent,
