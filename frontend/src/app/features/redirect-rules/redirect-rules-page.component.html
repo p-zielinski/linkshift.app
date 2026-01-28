@@ -38,13 +38,17 @@
     <div class="min-h-0 flex-1 overflow-auto">
       <table mat-table [dataSource]="rules()" class="w-full mat-elevation-z0">
         <ng-container matColumnDef="priority">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold">Priority</th>
-          <td mat-cell *matCellDef="let rule" class="py-3">{{ rule.priority }}</td>
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[80px] max-w-[250px] truncate">
+            Priority
+          </th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[80px] max-w-[250px] truncate">
+            {{ rule.priority }}
+          </td>
         </ng-container>
 
         <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold">Id</th>
-          <td mat-cell *matCellDef="let rule" class="py-3">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">Id</th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[150px] max-w-[250px] truncate">
             <app-resource-pill
               [label]="rule.id"
               [tooltip]="'Redirect rule Id: ' + rule.id"
@@ -52,19 +56,37 @@
           </td>
         </ng-container>
 
+        <ng-container matColumnDef="matchMethod">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Methods
+          </th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[150px] max-w-[250px] truncate">
+            {{ formatMatchMethods(rule.matchMethod) }}
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="source">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold">Source</th>
-          <td mat-cell *matCellDef="let rule" class="py-3" [matTooltip]="rule.source">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Source
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let rule"
+            class="py-3 min-w-[150px] max-w-[250px] truncate"
+            [matTooltip]="rule.source"
+          >
             {{ rule.source }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="destination">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold">Destination</th>
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Destination
+          </th>
           <td
             mat-cell
             *matCellDef="let rule"
-            class="py-3"
+            class="py-3 min-w-[150px] max-w-[250px] truncate"
             [matTooltip]="rule.destination"
           >
             {{ rule.destination }}
@@ -72,13 +94,19 @@
         </ng-container>
 
         <ng-container matColumnDef="statusCode">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold">Status</th>
-          <td mat-cell *matCellDef="let rule" class="py-3">{{ rule.statusCode }}</td>
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[80px] max-w-[250px] truncate">
+            Status
+          </th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[80px] max-w-[250px] truncate">
+            {{ rule.statusCode }}
+          </td>
         </ng-container>
 
         <ng-container matColumnDef="group">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold">Domain group</th>
-          <td mat-cell *matCellDef="let rule" class="py-3">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Domain group
+          </th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[150px] max-w-[250px] truncate">
             <app-resource-pill
               [label]="groupLabel(rule.domainGroupId)"
               [tooltip]="groupTooltip(rule.domainGroupId)"
@@ -87,15 +115,21 @@
         </ng-container>
 
         <ng-container matColumnDef="createdAt">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold">Created at</th>
-          <td mat-cell *matCellDef="let rule" class="py-3 text-[13px] text-app-muted">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Created at
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let rule"
+            class="py-3 min-w-[150px] max-w-[250px] truncate text-[13px] text-app-muted"
+          >
             {{ rule.createdAt | date:'yyyy-MM-dd HH:mm' }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let rule" class="py-3">
+          <th mat-header-cell *matHeaderCellDef class="min-w-[150px] max-w-[250px] truncate"></th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[150px] max-w-[250px] truncate">
             <div class="flex items-center gap-1">
               <button
                 mat-icon-button

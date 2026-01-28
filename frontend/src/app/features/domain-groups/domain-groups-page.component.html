@@ -19,13 +19,15 @@
         class="w-full mat-elevation-z0"
       >
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold">Name</th>
-          <td mat-cell *matCellDef="let group" class="py-3">{{ group.name }}</td>
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">Name</th>
+          <td mat-cell *matCellDef="let group" class="py-3 min-w-[150px] max-w-[250px] truncate">
+            {{ group.name }}
+          </td>
         </ng-container>
 
         <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold">Id</th>
-          <td mat-cell *matCellDef="let group" class="py-3">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">Id</th>
+          <td mat-cell *matCellDef="let group" class="py-3 min-w-[150px] max-w-[250px] truncate">
             <app-resource-pill
               [label]="group.id"
               [tooltip]="'Domain group ID: ' + group.id"
@@ -34,8 +36,10 @@
         </ng-container>
 
         <ng-container matColumnDef="domains">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold">Domains</th>
-          <td mat-cell *matCellDef="let group" class="py-3">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Domains
+          </th>
+          <td mat-cell *matCellDef="let group" class="py-3 min-w-[150px] max-w-[250px] truncate">
             <span
               class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[12px] text-app-muted"
               [matTooltip]="domainCount(group.id) + ' domains linked'"
@@ -46,15 +50,21 @@
         </ng-container>
 
         <ng-container matColumnDef="createdAt">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold">Created at</th>
-          <td mat-cell *matCellDef="let group" class="py-3 text-[13px] text-app-muted">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Created at
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let group"
+            class="py-3 min-w-[150px] max-w-[250px] truncate text-[13px] text-app-muted"
+          >
             {{ group.createdAt | date:'yyyy-MM-dd HH:mm' }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let group" class="py-3">
+          <th mat-header-cell *matHeaderCellDef class="min-w-[150px] max-w-[250px] truncate"></th>
+          <td mat-cell *matCellDef="let group" class="py-3 min-w-[150px] max-w-[250px] truncate">
             <div class="flex items-center gap-1">
               <button
                 mat-icon-button

@@ -49,6 +49,7 @@ export class RedirectRulesPageComponent {
   readonly columns = [
     'priority',
     'id',
+    'matchMethod',
     'source',
     'destination',
     'statusCode',
@@ -260,6 +261,13 @@ export class RedirectRulesPageComponent {
     return name
       ? `Domain group: ${name} (${groupId})`
       : `Domain group Id: ${groupId}`;
+  }
+
+  formatMatchMethods(methods: string[] | undefined): string {
+    if (!methods || methods.length === 0) {
+      return 'All';
+    }
+    return methods.join(', ');
   }
 
   onPageChange(page: number): void {

@@ -20,6 +20,8 @@ import {
 } from './redirect-rule.schemas';
 import type { RedirectRule } from '../../core/models/redirect-rule.model';
 import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
+import { $Enums } from '@shared/prisma-client';
+import HttpMethod = $Enums.HttpMethod;
 
 type WizardMode = 'guided' | 'fast';
 type RedirectRuleFormModel = {
@@ -27,7 +29,7 @@ type RedirectRuleFormModel = {
   source: string;
   destination: string;
   statusCode: string;
-  matchMethod: string;
+  matchMethod: HttpMethod[];
   priority: string;
 };
 
@@ -158,7 +160,7 @@ export class RedirectRuleFormDialogComponent {
     source: this.rule?.source ?? '',
     destination: this.rule?.destination ?? 'https://',
     statusCode: String(this.initialStatusCode),
-    matchMethod: this.rule?.matchMethod ?? '*',
+    matchMethod: this.rule?.matchMethod ?? [],
     priority: String(this.rule?.priority ?? 0)
   });
 
@@ -173,7 +175,6 @@ export class RedirectRuleFormDialogComponent {
     required(f.source);
     required(f.destination);
     required(f.statusCode);
-    required(f.matchMethod);
     required(f.priority);
     applyZodField(f.domainGroupId, redirectRuleSchema.shape.domainGroupId);
     applyZodField(f.source, redirectRuleSchema.shape.source);
@@ -185,6 +186,13 @@ export class RedirectRuleFormDialogComponent {
 
   field(key: keyof RedirectRuleFormModel): any {
     return (this.ruleForm as unknown as Record<string, unknown>)[key];
+  }
+
+  formatMatchMethods(methods: HttpMethod[] | undefined): string {
+    if (!methods || methods.length === 0) {
+      return 'All methods';
+    }
+    return methods.join(', ');
   }
 
   sourceError = computed(() => this.getFieldError(this.ruleForm.source()));

@@ -14,6 +14,16 @@ datasource db {
   provider = "postgresql"
 }
 
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+  OPTIONS
+  HEAD
+}
+
 // Organization entity - top-level tenant
 model Organization {
   id        String    @id
@@ -84,15 +94,15 @@ model Domain {
 
 // RedirectRule entity - defines redirection logic
 model RedirectRule {
-  id            String    @id
+  id            String       @id
   source        String // Source path or regex pattern
   destination   String // Target URL with variable support
-  statusCode    Int       @default(302) // HTTP status code (301 or 302)
-  matchMethod   String    @default("*") // Request method filter ("*", GET, POST, etc.)
-  priority      Int       @default(0) // For rule ordering (higher priority = evaluated first)
+  statusCode    Int          @default(302) // HTTP status code (301 or 302)
+  matchMethod   HttpMethod[] @default([]) // Empty array means all methods.
+  priority      Int          @default(0) // For rule ordering (higher priority = evaluated first)
   domainGroupId String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   deletedAt     DateTime?
 
   domainGroup DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)

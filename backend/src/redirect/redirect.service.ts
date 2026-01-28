@@ -20,7 +20,7 @@ import {
 import { AppEntity, createCustomCuid, throwHttpException } from '../utils';
 import { OrganizationService } from '../organization/organization.service';
 import { REDIRECT_ENGINE_LIMITS } from '../constants';
-import { Prisma } from '@prisma/client/index';
+import { HttpMethod, Prisma } from '@prisma/client';
 import {
   CachedByProperty,
   CacheManagerService,
@@ -84,10 +84,12 @@ export interface RedirectRule {
   source: string | RegExp;
   destination: string;
   statusCode?: number;
-  matchMethod?: string;
+  matchMethod?: HttpMethod[];
 }
 
 type Manipulator = (val: string) => string;
+
+const ALLOWED_MATCH_METHODS = new Set<string>(Object.values(HttpMethod));
 
 @Injectable()
 export class RedirectService {
@@ -630,13 +632,14 @@ export class RedirectService {
     }
 
     // 4. Create
+    const matchMethod = this.normalizeMatchMethods(data.matchMethod);
     const rule = await this.prisma.redirectRule.create({
       data: {
         id: createCustomCuid(AppEntity.RedirectRule, 32),
         source: data.source,
         destination: data.destination,
         statusCode: data.statusCode,
-        matchMethod: data.matchMethod,
+        matchMethod,
         priority: data.priority,
         domainGroupId: data.domainGroupId,
       },
@@ -693,9 +696,29 @@ export class RedirectService {
     }
 
     // 3. Update
+    const updateData: Prisma.RedirectRuleUpdateInput = {
+      updatedAt: new Date(),
+    };
+
+    if (data.source !== undefined) {
+      updateData.source = data.source;
+    }
+    if (data.destination !== undefined) {
+      updateData.destination = data.destination;
+    }
+    if (data.statusCode !== undefined) {
+      updateData.statusCode = data.statusCode;
+    }
+    if (data.priority !== undefined) {
+      updateData.priority = data.priority;
+    }
+    if (data.matchMethod !== undefined) {
+      updateData.matchMethod = this.normalizeMatchMethods(data.matchMethod);
+    }
+
     const rule = await this.prisma.redirectRule.update({
       where: { id },
-      data: { ...data, updatedAt: new Date() },
+      data: updateData,
     });
 
     await this.invalidateDomainCache({
@@ -1017,13 +1040,56 @@ export class RedirectService {
   }
 
   private isMethodMatch(
-    matchMethod: string | undefined,
+    matchMethod: HttpMethod[] | undefined,
     requestMethod: string,
   ): boolean {
-    if (!matchMethod || matchMethod === '*') {
+    if (!matchMethod || matchMethod.length === 0) {
       return true;
     }
-    return matchMethod.toUpperCase() === requestMethod.toUpperCase();
+    const normalized = requestMethod.toUpperCase();
+    return matchMethod.some((method) => method.toUpperCase() === normalized);
+  }
+
+  private normalizeMatchMethods(
+    matchMethod: string[] | undefined,
+  ): HttpMethod[] {
+    if (!matchMethod || matchMethod.length === 0) {
+      return [];
+    }
+
+    const normalized = matchMethod
+      .map((method) => method.toUpperCase().trim())
+      .filter((method) => method.length > 0);
+
+    if (normalized.length === 0) {
+      return [];
+    }
+
+    const unique = new Set(normalized);
+    if (unique.size !== normalized.length) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'matchMethod must not contain duplicate methods.',
+          relatedObjectParameter: 'matchMethod',
+        }),
+      );
+    }
+
+    const invalid = normalized.filter(
+      (method) => !ALLOWED_MATCH_METHODS.has(method),
+    );
+    if (invalid.length > 0) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: `matchMethod contains unsupported values: ${invalid.join(', ')}`,
+          relatedObjectParameter: 'matchMethod',
+        }),
+      );
+    }
+
+    return Array.from(unique) as HttpMethod[];
   }
 
   private processRule(

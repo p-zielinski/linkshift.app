@@ -177,12 +177,12 @@ describe('RedirectService', () => {
         {
           source: '*',
           destination: '/get-only',
-          matchMethod: 'GET',
+          matchMethod: ['GET'],
         },
         {
           source: '*',
           destination: '/any',
-          matchMethod: '*',
+          matchMethod: [],
         },
       ];
 
@@ -198,7 +198,7 @@ describe('RedirectService', () => {
         {
           source: '*',
           destination: '/post-only',
-          matchMethod: 'POST',
+          matchMethod: ['POST'],
         },
       ];
 
@@ -1029,6 +1029,53 @@ describe('RedirectService', () => {
     });
   });
 
+  describe('Match Method Validation', () => {
+    const organizationId = 'org_123';
+    const domainGroupId = 'dg_123';
+
+    beforeEach(() => {
+      (prisma.domainGroup.findFirst as jest.Mock).mockResolvedValue({
+        id: domainGroupId,
+      });
+      mockOrganizationService.checkRedirectRuleLimit.mockResolvedValue(
+        undefined,
+      );
+    });
+
+    it('should allow empty matchMethod arrays (all methods)', async () => {
+      (prisma.redirectRule.create as jest.Mock).mockResolvedValue({
+        id: 'rule_1',
+        domainGroupId,
+      });
+
+      await service.createRule(organizationId, {
+        source: '/foo',
+        destination: 'https://example.com/bar',
+        statusCode: 302,
+        matchMethod: [],
+        domainGroupId,
+        priority: 0,
+      });
+
+      expect(prisma.redirectRule.create).toHaveBeenCalled();
+    });
+
+    it('should reject duplicate matchMethod values', async () => {
+      await expect(
+        service.createRule(organizationId, {
+          source: '/foo',
+          destination: 'https://example.com/bar',
+          statusCode: 302,
+          matchMethod: ['GET', 'get'],
+          domainGroupId,
+          priority: 0,
+        }),
+      ).rejects.toThrow();
+
+      expect(prisma.redirectRule.create).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Organization Limits Enforcement', () => {
     const organizationId = 'org_123';
 
@@ -1101,7 +1148,7 @@ describe('RedirectService', () => {
           source: '/foo',
           destination: 'https://example.com/bar',
           statusCode: 301,
-          matchMethod: '*',
+          matchMethod: [],
           domainGroupId,
           priority: 1,
         }),
@@ -1134,7 +1181,7 @@ describe('RedirectService', () => {
         source: '/foo',
         destination: 'https://example.com/bar',
         statusCode: 301,
-        matchMethod: '*',
+        matchMethod: [],
         domainGroupId,
         priority: 1,
       });
@@ -1200,7 +1247,7 @@ describe('RedirectService', () => {
               source: '*',
               destination: 'https://example.com/new',
               statusCode: 301,
-              matchMethod: '*',
+              matchMethod: [],
             },
           ],
         },

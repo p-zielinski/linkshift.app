@@ -1,22 +1,28 @@
 import { z } from 'zod';
 import { AppEntity, getEntityIdRegex } from '../utils';
+import { HttpMethod } from '@prisma/client';
 
 const ALLOWED_STATUS_CODES: number[] = [301, 302, 307, 308];
-const MATCH_METHODS = [
-  '*',
-  'GET',
-  'POST',
-  'PUT',
-  'PATCH',
-  'DELETE',
-  'OPTIONS',
-  'HEAD',
-] as const;
 
-const MatchMethodSchema = z.preprocess(
-  (value) => (typeof value === 'string' ? value.toUpperCase() : value),
-  z.enum(MATCH_METHODS),
-);
+const HTTP_METHOD_VALUES = Object.values(HttpMethod) as [string, ...string[]];
+
+const MatchMethodListSchema = z
+  .array(z.enum(HttpMethod))
+  .superRefine((values, ctx) => {
+    if (new Set(values).size !== values.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'matchMethod must not contain duplicates',
+      });
+    }
+
+    if (values.length >= HTTP_METHOD_VALUES.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Maximum ${HTTP_METHOD_VALUES.length - 1} methods allowed (or leave empty for all)`,
+      });
+    }
+  });
 
 export const CreateRedirectRuleSchema = z.object({
   source: z
@@ -35,7 +41,7 @@ export const CreateRedirectRuleSchema = z.object({
       `Status code must be one of: ${ALLOWED_STATUS_CODES.join(', ')}`,
     )
     .default(302),
-  matchMethod: MatchMethodSchema.default('*'),
+  matchMethod: MatchMethodListSchema.default([]),
   priority: z
     .number()
     .int()
@@ -67,7 +73,7 @@ export const UpdateRedirectRuleSchema = z.object({
       `Status code must be one of: ${ALLOWED_STATUS_CODES.join(', ')}`,
     )
     .optional(),
-  matchMethod: MatchMethodSchema.optional(),
+  matchMethod: MatchMethodListSchema.optional(),
   priority: z.number().int().min(0).max(1000).optional(),
 });
 

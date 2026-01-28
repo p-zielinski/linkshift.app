@@ -40,6 +40,28 @@ export type Domain = $Result.DefaultSelection<Prisma.$DomainPayload>
 export type RedirectRule = $Result.DefaultSelection<Prisma.$RedirectRulePayload>
 
 /**
+ * Enums
+ */
+export namespace $Enums {
+  export const HttpMethod: {
+  GET: 'GET',
+  POST: 'POST',
+  PUT: 'PUT',
+  PATCH: 'PATCH',
+  DELETE: 'DELETE',
+  OPTIONS: 'OPTIONS',
+  HEAD: 'HEAD'
+};
+
+export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod]
+
+}
+
+export type HttpMethod = $Enums.HttpMethod
+
+export const HttpMethod: typeof $Enums.HttpMethod
+
+/**
  * ##  Prisma Client ʲˢ
  *
  * Type-safe database client for TypeScript & Node.js
@@ -5736,7 +5758,6 @@ export namespace Prisma {
     source: string | null
     destination: string | null
     statusCode: number | null
-    matchMethod: string | null
     priority: number | null
     domainGroupId: string | null
     createdAt: Date | null
@@ -5749,7 +5770,6 @@ export namespace Prisma {
     source: string | null
     destination: string | null
     statusCode: number | null
-    matchMethod: string | null
     priority: number | null
     domainGroupId: string | null
     createdAt: Date | null
@@ -5787,7 +5807,6 @@ export namespace Prisma {
     source?: true
     destination?: true
     statusCode?: true
-    matchMethod?: true
     priority?: true
     domainGroupId?: true
     createdAt?: true
@@ -5800,7 +5819,6 @@ export namespace Prisma {
     source?: true
     destination?: true
     statusCode?: true
-    matchMethod?: true
     priority?: true
     domainGroupId?: true
     createdAt?: true
@@ -5913,7 +5931,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode: number
-    matchMethod: string
+    matchMethod: $Enums.HttpMethod[]
     priority: number
     domainGroupId: string
     createdAt: Date
@@ -6016,7 +6034,7 @@ export namespace Prisma {
       source: string
       destination: string
       statusCode: number
-      matchMethod: string
+      matchMethod: $Enums.HttpMethod[]
       priority: number
       domainGroupId: string
       createdAt: Date
@@ -6450,7 +6468,7 @@ export namespace Prisma {
     readonly source: FieldRef<"RedirectRule", 'String'>
     readonly destination: FieldRef<"RedirectRule", 'String'>
     readonly statusCode: FieldRef<"RedirectRule", 'Int'>
-    readonly matchMethod: FieldRef<"RedirectRule", 'String'>
+    readonly matchMethod: FieldRef<"RedirectRule", 'HttpMethod[]'>
     readonly priority: FieldRef<"RedirectRule", 'Int'>
     readonly domainGroupId: FieldRef<"RedirectRule", 'String'>
     readonly createdAt: FieldRef<"RedirectRule", 'DateTime'>
@@ -7060,6 +7078,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'HttpMethod[]'
+   */
+  export type ListEnumHttpMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HttpMethod[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'HttpMethod'
+   */
+  export type EnumHttpMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HttpMethod'>
+    
+
+
+  /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -7343,7 +7375,7 @@ export namespace Prisma {
     source?: StringFilter<"RedirectRule"> | string
     destination?: StringFilter<"RedirectRule"> | string
     statusCode?: IntFilter<"RedirectRule"> | number
-    matchMethod?: StringFilter<"RedirectRule"> | string
+    matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
     priority?: IntFilter<"RedirectRule"> | number
     domainGroupId?: StringFilter<"RedirectRule"> | string
     createdAt?: DateTimeFilter<"RedirectRule"> | Date | string
@@ -7375,7 +7407,7 @@ export namespace Prisma {
     source?: StringFilter<"RedirectRule"> | string
     destination?: StringFilter<"RedirectRule"> | string
     statusCode?: IntFilter<"RedirectRule"> | number
-    matchMethod?: StringFilter<"RedirectRule"> | string
+    matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
     priority?: IntFilter<"RedirectRule"> | number
     domainGroupId?: StringFilter<"RedirectRule"> | string
     createdAt?: DateTimeFilter<"RedirectRule"> | Date | string
@@ -7410,7 +7442,7 @@ export namespace Prisma {
     source?: StringWithAggregatesFilter<"RedirectRule"> | string
     destination?: StringWithAggregatesFilter<"RedirectRule"> | string
     statusCode?: IntWithAggregatesFilter<"RedirectRule"> | number
-    matchMethod?: StringWithAggregatesFilter<"RedirectRule"> | string
+    matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
     priority?: IntWithAggregatesFilter<"RedirectRule"> | number
     domainGroupId?: StringWithAggregatesFilter<"RedirectRule"> | string
     createdAt?: DateTimeWithAggregatesFilter<"RedirectRule"> | Date | string
@@ -7702,7 +7734,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode?: number
-    matchMethod?: string
+    matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -7715,7 +7747,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode?: number
-    matchMethod?: string
+    matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     priority?: number
     domainGroupId: string
     createdAt?: Date | string
@@ -7728,7 +7760,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
-    matchMethod?: StringFieldUpdateOperationsInput | string
+    matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7741,7 +7773,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
-    matchMethod?: StringFieldUpdateOperationsInput | string
+    matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     priority?: IntFieldUpdateOperationsInput | number
     domainGroupId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7754,7 +7786,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode?: number
-    matchMethod?: string
+    matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     priority?: number
     domainGroupId: string
     createdAt?: Date | string
@@ -7767,7 +7799,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
-    matchMethod?: StringFieldUpdateOperationsInput | string
+    matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -7779,7 +7811,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
-    matchMethod?: StringFieldUpdateOperationsInput | string
+    matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     priority?: IntFieldUpdateOperationsInput | number
     domainGroupId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -8110,6 +8142,14 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type EnumHttpMethodNullableListFilter<$PrismaModel = never> = {
+    equals?: $Enums.HttpMethod[] | ListEnumHttpMethodFieldRefInput<$PrismaModel> | null
+    has?: $Enums.HttpMethod | EnumHttpMethodFieldRefInput<$PrismaModel> | null
+    hasEvery?: $Enums.HttpMethod[] | ListEnumHttpMethodFieldRefInput<$PrismaModel>
+    hasSome?: $Enums.HttpMethod[] | ListEnumHttpMethodFieldRefInput<$PrismaModel>
+    isEmpty?: boolean
+  }
+
   export type RedirectRulePriorityCreatedAtIdCompoundUniqueInput = {
     priority: number
     createdAt: Date | string
@@ -8139,7 +8179,6 @@ export namespace Prisma {
     source?: SortOrder
     destination?: SortOrder
     statusCode?: SortOrder
-    matchMethod?: SortOrder
     priority?: SortOrder
     domainGroupId?: SortOrder
     createdAt?: SortOrder
@@ -8152,7 +8191,6 @@ export namespace Prisma {
     source?: SortOrder
     destination?: SortOrder
     statusCode?: SortOrder
-    matchMethod?: SortOrder
     priority?: SortOrder
     domainGroupId?: SortOrder
     createdAt?: SortOrder
@@ -8407,6 +8445,10 @@ export namespace Prisma {
     update?: XOR<XOR<DomainGroupUpdateToOneWithWhereWithoutDomainsInput, DomainGroupUpdateWithoutDomainsInput>, DomainGroupUncheckedUpdateWithoutDomainsInput>
   }
 
+  export type RedirectRuleCreatematchMethodInput = {
+    set: $Enums.HttpMethod[]
+  }
+
   export type DomainGroupCreateNestedOneWithoutRedirectRulesInput = {
     create?: XOR<DomainGroupCreateWithoutRedirectRulesInput, DomainGroupUncheckedCreateWithoutRedirectRulesInput>
     connectOrCreate?: DomainGroupCreateOrConnectWithoutRedirectRulesInput
@@ -8419,6 +8461,11 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type RedirectRuleUpdatematchMethodInput = {
+    set?: $Enums.HttpMethod[]
+    push?: $Enums.HttpMethod | $Enums.HttpMethod[]
   }
 
   export type DomainGroupUpdateOneRequiredWithoutRedirectRulesNestedInput = {
@@ -8825,7 +8872,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode?: number
-    matchMethod?: string
+    matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -8837,7 +8884,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode?: number
-    matchMethod?: string
+    matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -8937,7 +8984,7 @@ export namespace Prisma {
     source?: StringFilter<"RedirectRule"> | string
     destination?: StringFilter<"RedirectRule"> | string
     statusCode?: IntFilter<"RedirectRule"> | number
-    matchMethod?: StringFilter<"RedirectRule"> | string
+    matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
     priority?: IntFilter<"RedirectRule"> | number
     domainGroupId?: StringFilter<"RedirectRule"> | string
     createdAt?: DateTimeFilter<"RedirectRule"> | Date | string
@@ -9146,7 +9193,7 @@ export namespace Prisma {
     source: string
     destination: string
     statusCode?: number
-    matchMethod?: string
+    matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -9182,7 +9229,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
-    matchMethod?: StringFieldUpdateOperationsInput | string
+    matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9194,7 +9241,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
-    matchMethod?: StringFieldUpdateOperationsInput | string
+    matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9206,7 +9253,7 @@ export namespace Prisma {
     source?: StringFieldUpdateOperationsInput | string
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
-    matchMethod?: StringFieldUpdateOperationsInput | string
+    matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

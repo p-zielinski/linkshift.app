@@ -66,14 +66,14 @@
 
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Request method</mat-label>
-            <mat-select [formField]="field('matchMethod')">
+            <mat-select [formField]="field('matchMethod')" multiple>
               @for (method of matchMethodOptions; track method) {
                 <mat-option [value]="method">
-                  {{ method === '*' ? 'Any method (*)' : method }}
+                  {{ method }}
                 </mat-option>
               }
             </mat-select>
-            <mat-hint>Use any to match all HTTP methods.</mat-hint>
+            <mat-hint>Leave empty to match all HTTP methods.</mat-hint>
             @if (matchMethodError(); as error) {
               <mat-error>{{ error }}</mat-error>
             }
@@ -334,7 +334,7 @@
               </div>
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <span class="text-app-muted">Request method</span>
-                <span>{{ ruleModel().matchMethod }}</span>
+                <span>{{ formatMatchMethods(ruleModel().matchMethod) }}</span>
               </div>
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <span class="text-app-muted">Status</span>
@@ -382,13 +382,14 @@
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Request method</mat-label>
-          <mat-select [formField]="field('matchMethod')">
+          <mat-select [formField]="field('matchMethod')" multiple>
             @for (method of matchMethodOptions; track method) {
               <mat-option [value]="method">
-                {{ method === '*' ? 'Any method (*)' : method }}
+                {{ method }}
               </mat-option>
             }
           </mat-select>
+          <mat-hint>Leave empty to match all HTTP methods.</mat-hint>
           @if (matchMethodError(); as error) {
             <mat-error>{{ error }}</mat-error>
           }
