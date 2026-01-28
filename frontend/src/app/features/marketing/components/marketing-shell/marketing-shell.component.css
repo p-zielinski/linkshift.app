@@ -1,3 +1,15 @@
+.marketing-toolbar,
+.marketing-content,
+.marketing-footer {
+  width: 100%;
+}
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 .marketing-toolbar {
   position: sticky;
   top: 0;
@@ -57,6 +69,7 @@
   padding: 32px 32px 80px;
   max-width: 1200px;
   margin: 0 auto;
+  flex: 1;
 }
 
 .marketing-footer {

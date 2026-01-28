@@ -1,0 +1,25 @@
+<app-marketing-section
+  eyebrow="Contact"
+  title="Reach us with bugs, features, or custom plans"
+  subtitle="We respond quickly with next steps, estimated timelines, and the right plan for your team."
+>
+  <div class="contact-grid">
+    @for (topic of topics; track topic.title) {
+      <mat-card class="contact-card">
+        <mat-icon>{{ topic.icon }}</mat-icon>
+        <h3>{{ topic.title }}</h3>
+        <p class="text-[13px] text-app-muted">{{ topic.description }}</p>
+        <a
+          mat-flat-button
+          color="primary"
+          [href]="mailtoLink(topic.subject)"
+        >
+          Email us
+        </a>
+      </mat-card>
+    }
+  </div>
+  <div class="contact-note text-[12px] text-app-muted">
+    Prefer email? Reach us directly at {{ supportEmail }}.
+  </div>
+</app-marketing-section>

@@ -30,14 +30,6 @@ export const PLAN_LIMITS: Record<OrganizationPlan, PlanLimits> = {
     maxTotalRules: 500,
     redirectionLimitPerMinute: 100,
   },
-  [OrganizationPlan.ENTERPRISE]: {
-    maxDomainGroups: 1000000,
-    maxDomainsPerGroup: 1000000,
-    maxTotalDomains: 1000000,
-    maxRulesPerGroup: 1000000,
-    maxTotalRules: 1000000,
-    redirectionLimitPerMinute: 1000000,
-  },
 };
 
 export const CHECKOUT_PLANS: OrganizationPlan[] = [

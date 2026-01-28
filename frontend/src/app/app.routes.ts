@@ -11,6 +11,7 @@ import { MarketingShellComponent } from './features/marketing/components/marketi
 import { HomePageComponent } from './features/marketing/pages/home/home-page.component';
 import { AlternativePageComponent } from './features/marketing/pages/alternative/alternative-page.component';
 import { PricingPageComponent } from './features/marketing/pages/pricing/pricing-page.component';
+import { ContactPageComponent } from './features/marketing/pages/contact/contact-page.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'home' },
@@ -21,6 +22,7 @@ export const routes: Routes = [
     children: [
       { path: 'home', component: HomePageComponent },
       { path: 'pricing', component: PricingPageComponent },
+      { path: 'contact', component: ContactPageComponent },
       {
         path: 'alternatives/redirect-pizza',
         component: AlternativePageComponent,

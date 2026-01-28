@@ -1,0 +1,50 @@
+:host {
+  display: block;
+}
+
+:host ::ng-deep .mat-mdc-dialog-content {
+  padding-top: 0;
+}
+
+.dialog-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  margin-bottom: 2px;
+}
+
+.dialog-title-text {
+  margin: 0;
+  font-size: 20px;
+  text-align: left;
+  flex: 1;
+}
+
+.close-button {
+  margin-top: 2px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.close-button:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.close-button:active {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.dialog-spacer {
+  height: 4px;
+}
+
+.dialog-subtitle {
+  margin: 2px 0 0;
+}
+
+app-pricing-plans {
+  display: block;
+  margin-top: 12px;
+}

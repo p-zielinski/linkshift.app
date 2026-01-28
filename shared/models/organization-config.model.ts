@@ -2,7 +2,6 @@ export enum OrganizationPlan {
   FREE = 'FREE',
   STARTER = 'STARTER',
   PRO = 'PRO',
-  ENTERPRISE = 'ENTERPRISE',
 }
 
 export enum OrganizationStatus {

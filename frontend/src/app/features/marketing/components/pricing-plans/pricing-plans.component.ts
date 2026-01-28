@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { OrganizationPlan } from '@shared/models/organization-config.model';
 
 type PricingPlan = {
-  key: 'FREE' | 'STARTER' | 'PRO' | 'ENTERPRISE';
+  key: OrganizationPlan | 'CUSTOM';
   name: string;
   description: string;
   price: string;
@@ -21,7 +22,7 @@ type PricingPlan = {
 
 const PRICING_PLANS: PricingPlan[] = [
   {
-    key: 'FREE',
+    key: OrganizationPlan.FREE,
     name: 'Free',
     description: 'For proof-of-concept routing and single-brand setups.',
     price: '0 EUR',
@@ -37,7 +38,7 @@ const PRICING_PLANS: PricingPlan[] = [
     ctaLink: '/auth',
   },
   {
-    key: 'STARTER',
+    key: OrganizationPlan.STARTER,
     name: 'Starter',
     description: 'For growing teams standardizing redirects across regions.',
     price: '10 EUR',
@@ -58,7 +59,7 @@ const PRICING_PLANS: PricingPlan[] = [
     ctaLink: '/auth',
   },
   {
-    key: 'PRO',
+    key: OrganizationPlan.PRO,
     name: 'Pro',
     description: 'For high-traffic sites that need stricter governance.',
     price: '29 EUR',
@@ -81,7 +82,7 @@ const PRICING_PLANS: PricingPlan[] = [
     ctaLink: '/auth',
   },
   {
-    key: 'ENTERPRISE',
+    key: 'CUSTOM',
     name: 'Custom',
     description:
       'For teams that need a plan tailored to their traffic, limits, and expectations.',
@@ -100,7 +101,7 @@ const PRICING_PLANS: PricingPlan[] = [
       'Support SLAs based on needs',
     ],
     ctaLabel: 'Request a custom plan',
-    ctaLink: '/auth',
+    ctaLink: '/contact',
   },
 ];
 
@@ -113,6 +114,11 @@ const PRICING_PLANS: PricingPlan[] = [
 })
 export class PricingPlansComponent {
   readonly compact = input<boolean>(false);
+  readonly actionMode = input<'link' | 'select'>('link');
+  readonly currentPlan = input<OrganizationPlan | null>(null);
+  readonly customLink = input<string>('/contact');
+  readonly planSelected = output<OrganizationPlan>();
+  readonly customRequested = output<void>();
   readonly plans = PRICING_PLANS;
 
   getFeatures(plan: PricingPlan): string[] {
@@ -121,5 +127,36 @@ export class PricingPlansComponent {
 
   hasExtraFeatures(plan: PricingPlan): boolean {
     return this.compact() && plan.features.length > 3;
+  }
+
+  isCurrentPlan(plan: OrganizationPlan | 'CUSTOM'): boolean {
+    if (plan === 'CUSTOM') {
+      return false;
+    }
+    return this.currentPlan() === plan;
+  }
+
+  isSelectablePlan(plan: OrganizationPlan | 'CUSTOM'): boolean {
+    if (plan === 'CUSTOM') {
+      return false;
+    }
+    return plan === OrganizationPlan.STARTER || plan === OrganizationPlan.PRO;
+  }
+
+  selectPlan(plan: OrganizationPlan | 'CUSTOM'): void {
+    if (this.actionMode() !== 'select') {
+      return;
+    }
+    if (plan === 'CUSTOM') {
+      return;
+    }
+    this.planSelected.emit(plan);
+  }
+
+  requestCustomPlan(): void {
+    if (this.actionMode() !== 'select') {
+      return;
+    }
+    this.customRequested.emit();
   }
 }

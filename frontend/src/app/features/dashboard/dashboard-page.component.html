@@ -3,7 +3,7 @@
   subtitle="Operational overview for the active organization."
 ></app-page-header>
 
-<div class="mb-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+<div class="mb-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
   <mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
     <h3 class="m-0 text-lg font-semibold">Session details</h3>
     <div class="my-4 h-px bg-app-divider"></div>
@@ -17,7 +17,23 @@
         <mat-list-item>
           <mat-icon matListItemIcon>badge</mat-icon>
           <div matListItemTitle>User ID</div>
-          <div matListItemLine>{{ user.id }}</div>
+          <div matListItemLine class="id-line">
+            <span
+              #userIdText
+              class="id-text"
+              [class.is-truncated]="userIdOverflow()"
+              [matTooltip]="user.id"
+              [matTooltipDisabled]="!userIdOverflow()"
+              matTooltipPosition="above"
+              [attr.tabindex]="userIdOverflow() ? 0 : -1"
+              [attr.role]="userIdOverflow() ? 'button' : null"
+              (click)="userIdOverflow() && copyId(user.id)"
+              (keydown.enter)="userIdOverflow() && copyId(user.id)"
+              (keydown.space)="userIdOverflow() && copyId(user.id); $event.preventDefault()"
+            >
+              {{ user.id }}
+            </span>
+          </div>
         </mat-list-item>
       </mat-list>
     } @else {
@@ -33,7 +49,24 @@
         <mat-list-item>
           <mat-icon matListItemIcon>apartment</mat-icon>
           <div matListItemTitle>{{ organization.name }}</div>
-          <div matListItemLine>Organization ID: {{ organization.id }}</div>
+          <div matListItemLine class="id-line">
+            <span class="id-label">Organization ID:</span>
+            <span
+              #orgIdText
+              class="id-text"
+              [class.is-truncated]="orgIdOverflow()"
+              [matTooltip]="organization.id"
+              [matTooltipDisabled]="!orgIdOverflow()"
+              matTooltipPosition="above"
+              [attr.tabindex]="orgIdOverflow() ? 0 : -1"
+              [attr.role]="orgIdOverflow() ? 'button' : null"
+              (click)="orgIdOverflow() && copyId(organization.id)"
+              (keydown.enter)="orgIdOverflow() && copyId(organization.id)"
+              (keydown.space)="orgIdOverflow() && copyId(organization.id); $event.preventDefault()"
+            >
+              {{ organization.id }}
+            </span>
+          </div>
         </mat-list-item>
       </mat-list>
     } @else {
@@ -94,28 +127,16 @@
           </div>
         </div>
         <div class="mt-5 flex flex-wrap items-center gap-3">
-          @if (canUpgradeToStarter()) {
-            <button
-              mat-flat-button
-              color="primary"
-              type="button"
-              [disabled]="billingBusy()"
-              (click)="startCheckout(OrganizationPlan.STARTER)"
-            >
-              Upgrade to Starter
-            </button>
-          }
-          @if (canUpgradeToPro()) {
-            <button
-              mat-stroked-button
-              type="button"
-              [disabled]="billingBusy()"
-              (click)="startCheckout(OrganizationPlan.PRO)"
-            >
-              Upgrade to Pro
-            </button>
-          }
-          @if (activeSubscription().plan !== OrganizationPlan.FREE) {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="billingBusy()"
+            (click)="openUpgradeDialog()"
+          >
+            Upgrade
+          </button>
+          @if (activeSubscription().plan !== 'FREE') {
             <button
               mat-stroked-button
               type="button"
@@ -144,36 +165,85 @@
 <mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
   <h3 class="m-0 text-lg font-semibold">Subscription limits</h3>
   <div class="my-4 h-px bg-app-divider"></div>
+  @if (suspensionMessage(); as message) {
+    <div class="mb-4 rounded-2xl bg-red-50 p-4 text-[13px] text-red-700">
+      {{ message }}
+    </div>
+  }
+  @if (usageLoading()) {
+    <div class="mb-3 text-[12px] text-app-muted">Refreshing usage...</div>
+  } @else if (usageError(); as error) {
+    <div class="mb-3 text-[12px] text-red-600">{{ error }}</div>
+  }
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    <div class="rounded-2xl bg-app-accent-soft p-4">
-      <div class="text-[22px] font-semibold">
-        {{ limits().maxDomainGroups }}
+    <div
+      class="rounded-2xl p-4"
+      [class.bg-app-accent-soft]="!domainGroupLimitReached()"
+      [class.bg-red-50]="domainGroupLimitReached()"
+    >
+      <div
+        class="text-[22px] font-semibold"
+        [class.text-red-700]="domainGroupLimitReached()"
+      >
+        {{ usage()?.domainGroups ?? '-' }} / {{ limits().maxDomainGroups }}
       </div>
-      <div class="text-[13px] text-app-muted">Max domain groups</div>
+      <div
+        class="text-[13px]"
+        [class.text-red-600]="domainGroupLimitReached()"
+        [class.text-app-muted]="!domainGroupLimitReached()"
+      >
+        Domain groups used
+      </div>
     </div>
     <div class="rounded-2xl bg-app-accent-soft p-4">
       <div class="text-[22px] font-semibold">
         {{ limits().maxDomainsPerGroup }}
       </div>
-      <div class="text-[13px] text-app-muted">Domains per group</div>
+      <div class="text-[13px] text-app-muted">Domains per group limit</div>
     </div>
-    <div class="rounded-2xl bg-app-accent-soft p-4">
-      <div class="text-[22px] font-semibold">
-        {{ limits().maxTotalDomains }}
+    <div
+      class="rounded-2xl p-4"
+      [class.bg-app-accent-soft]="!domainLimitReached()"
+      [class.bg-red-50]="domainLimitReached()"
+    >
+      <div
+        class="text-[22px] font-semibold"
+        [class.text-red-700]="domainLimitReached()"
+      >
+        {{ usage()?.domains ?? '-' }} / {{ limits().maxTotalDomains }}
       </div>
-      <div class="text-[13px] text-app-muted">Total domains</div>
+      <div
+        class="text-[13px]"
+        [class.text-red-600]="domainLimitReached()"
+        [class.text-app-muted]="!domainLimitReached()"
+      >
+        Domains used
+      </div>
     </div>
     <div class="rounded-2xl bg-app-accent-soft p-4">
       <div class="text-[22px] font-semibold">
         {{ limits().maxRulesPerGroup }}
       </div>
-      <div class="text-[13px] text-app-muted">Rules per group</div>
+      <div class="text-[13px] text-app-muted">Rules per group limit</div>
     </div>
-    <div class="rounded-2xl bg-app-accent-soft p-4">
-      <div class="text-[22px] font-semibold">
-        {{ limits().maxTotalRules }}
+    <div
+      class="rounded-2xl p-4"
+      [class.bg-app-accent-soft]="!ruleLimitReached()"
+      [class.bg-red-50]="ruleLimitReached()"
+    >
+      <div
+        class="text-[22px] font-semibold"
+        [class.text-red-700]="ruleLimitReached()"
+      >
+        {{ usage()?.rules ?? '-' }} / {{ limits().maxTotalRules }}
       </div>
-      <div class="text-[13px] text-app-muted">Total rules</div>
+      <div
+        class="text-[13px]"
+        [class.text-red-600]="ruleLimitReached()"
+        [class.text-app-muted]="!ruleLimitReached()"
+      >
+        Rules used
+      </div>
     </div>
     <div class="rounded-2xl bg-app-accent-soft p-4">
       <div class="text-[22px] font-semibold">

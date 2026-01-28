@@ -37,14 +37,39 @@
         }
       </div>
       <div class="plan-actions">
-        @if (plan.featured) {
-          <a mat-flat-button color="primary" [routerLink]="plan.ctaLink">
-            {{ plan.ctaLabel }}
-          </a>
+        @if (actionMode() === 'link') {
+          @if (plan.featured) {
+            <a mat-flat-button color="primary" [routerLink]="plan.ctaLink">
+              {{ plan.ctaLabel }}
+            </a>
+          } @else {
+            <a mat-stroked-button [routerLink]="plan.ctaLink">
+              {{ plan.ctaLabel }}
+            </a>
+          }
         } @else {
-          <a mat-stroked-button [routerLink]="plan.ctaLink">
-            {{ plan.ctaLabel }}
-          </a>
+          @if (isCurrentPlan(plan.key)) {
+            <button mat-stroked-button disabled type="button">
+              Current plan
+            </button>
+          } @else if (plan.key === 'CUSTOM') {
+            <button mat-stroked-button type="button" (click)="requestCustomPlan()">
+              Request a custom plan
+            </button>
+          } @else if (!isSelectablePlan(plan.key)) {
+            <button mat-stroked-button disabled type="button">
+              Not available
+            </button>
+          } @else {
+            <button
+              mat-flat-button
+              [color]="plan.featured ? 'primary' : undefined"
+              type="button"
+              (click)="selectPlan(plan.key)"
+            >
+              {{ plan.ctaLabel }}
+            </button>
+          }
         }
       </div>
     </mat-card>

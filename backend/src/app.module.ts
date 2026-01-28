@@ -11,6 +11,7 @@ import { DomainsController } from './api/domains.controller';
 import { RedirectRulesController } from './api/redirect-rules.controller';
 import { AuthController } from './api/auth.controller';
 import { BillingController } from './api/billing.controller';
+import { OrganizationController } from './api/organization.controller';
 import { AuthService } from './auth/auth.service';
 import { ApiRedirectionMiddleware } from './middleware/api-redirection.middleware';
 import { ClsModule } from 'nestjs-cls';
@@ -45,6 +46,7 @@ import { LemonSqueezyService } from './billing/lemon-squeezy.service';
     RedirectRulesController,
     AuthController,
     BillingController,
+    OrganizationController,
   ],
   providers: [
     RedirectService,

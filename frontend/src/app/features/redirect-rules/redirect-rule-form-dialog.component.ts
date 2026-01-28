@@ -71,7 +71,8 @@ export type RedirectRuleDialogData = {
 
       :host ::ng-deep .wizard-stepper .mat-horizontal-stepper-wrapper {
         display: grid;
-        grid-template-columns: 200px minmax(0, 1fr);
+        grid-template-columns: max-content minmax(0, 1fr);
+        column-gap: 12px;
         grid-template-rows: minmax(0, 1fr);
         height: 100%;
       }
@@ -87,17 +88,22 @@ export type RedirectRuleDialogData = {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
-        padding: 8px 12px 12px 0;
+        padding: 8px 16px 12px 0;
         border-right: 1px solid var(--app-border-soft, rgba(0, 0, 0, 0.08));
-        overflow: auto;
+        overflow: visible;
         white-space: normal;
+        box-sizing: border-box;
+        width: max-content;
+        align-self: flex-start;
       }
 
       :host ::ng-deep .wizard-stepper .mat-horizontal-stepper-header {
         justify-content: flex-start;
-        width: 100%;
-        padding: 8px 12px;
+        width: auto;
+        max-width: 100%;
+        padding: 10px 16px;
         border-radius: 12px;
+        box-sizing: border-box;
       }
 
       :host ::ng-deep .wizard-stepper .mat-horizontal-stepper-header .mat-step-icon {

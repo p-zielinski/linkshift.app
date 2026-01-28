@@ -148,9 +148,7 @@ export class BillingService {
       organizationId ?? (await this.findOrganizationIdByEmail(email));
 
     if (!orgId) {
-      this.logger.warn(
-        `Webhook ${eventName} missing organization mapping.`,
-      );
+      this.logger.warn(`Webhook ${eventName} missing organization mapping.`);
       return;
     }
 
@@ -165,9 +163,7 @@ export class BillingService {
       providerOrderId: attributes.order_id ?? null,
       providerVariantId: attributes.variant_id ?? null,
       activeFrom: this.parseDate(attributes.created_at),
-      activeUntil: this.parseDate(
-        attributes.ends_at ?? attributes.renews_at,
-      ),
+      activeUntil: this.parseDate(attributes.ends_at),
       amount: this.parseAmount(
         attributes.price ?? attributes.unit_price ?? attributes.renewal_price,
       ),
@@ -211,7 +207,7 @@ export class BillingService {
       plan: details.plan,
       status: details.status,
       activeFrom: details.activeFrom ?? previous.activeFrom,
-      activeUntil: details.activeUntil ?? previous.activeUntil,
+      activeUntil: details.activeUntil,
       amount: details.amount ?? previous.amount,
       currency: details.currency ?? previous.currency,
       interval: details.interval ?? previous.interval,
@@ -354,14 +350,11 @@ export class BillingService {
     variantId: string | number | null | undefined,
   ): OrganizationPlan {
     const normalized = (plan ?? '').toString().toUpperCase();
-    if (normalized === OrganizationPlan.STARTER) {
+    if (normalized === String(OrganizationPlan.STARTER)) {
       return OrganizationPlan.STARTER;
     }
-    if (normalized === OrganizationPlan.PRO) {
+    if (normalized === String(OrganizationPlan.PRO)) {
       return OrganizationPlan.PRO;
-    }
-    if (normalized === OrganizationPlan.ENTERPRISE) {
-      return OrganizationPlan.ENTERPRISE;
     }
 
     const variantIdStr = variantId ? String(variantId) : null;

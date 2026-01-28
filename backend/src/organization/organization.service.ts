@@ -188,11 +188,21 @@ export class OrganizationService {
       return subscription;
     }
 
-    const isExpired =
-      subscription.activeUntil instanceof Date &&
-      subscription.activeUntil.getTime() < Date.now();
+    const hasActiveUntil = subscription.activeUntil instanceof Date;
+    const hasEnded =
+      hasActiveUntil && subscription.activeUntil.getTime() <= Date.now();
 
-    if (subscription.status === OrganizationStatus.CANCELED || isExpired) {
+    if (subscription.status === OrganizationStatus.CANCELED) {
+      if (hasActiveUntil && !hasEnded) {
+        return subscription;
+      }
+      return new OrganizationSubscription({
+        plan: OrganizationPlan.FREE,
+        status: OrganizationStatus.ACTIVE,
+      });
+    }
+
+    if (hasEnded) {
       return new OrganizationSubscription({
         plan: OrganizationPlan.FREE,
         status: OrganizationStatus.ACTIVE,
@@ -273,6 +283,32 @@ export class OrganizationService {
     }
 
     return null;
+  }
+
+  async getUsageSummary(organizationId: string): Promise<{
+    domainGroups: number;
+    domains: number;
+    rules: number;
+  }> {
+    const [domainGroups, domains, rules] = await Promise.all([
+      this.prisma.domainGroup.count({
+        where: { organizationId, deletedAt: null },
+      }),
+      this.prisma.domain.count({
+        where: {
+          domainGroup: { organizationId, deletedAt: null },
+          deletedAt: null,
+        },
+      }),
+      this.prisma.redirectRule.count({
+        where: {
+          domainGroup: { organizationId, deletedAt: null },
+          deletedAt: null,
+        },
+      }),
+    ]);
+
+    return { domainGroups, domains, rules };
   }
 
   private throwLimitError(details: string): never {
