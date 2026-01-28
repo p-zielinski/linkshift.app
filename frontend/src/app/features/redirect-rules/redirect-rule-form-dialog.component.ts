@@ -22,6 +22,14 @@ import type { RedirectRule } from '../../core/models/redirect-rule.model';
 import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
 
 type WizardMode = 'guided' | 'fast';
+type RedirectRuleFormModel = {
+  domainGroupId: string;
+  source: string;
+  destination: string;
+  statusCode: string;
+  matchMethod: string;
+  priority: string;
+};
 
 const WIZARD_MODE_KEY = 'redirectRulesWizardMode';
 
@@ -174,6 +182,10 @@ export class RedirectRuleFormDialogComponent {
     applyZodField(f.matchMethod, redirectRuleSchema.shape.matchMethod);
     applyZodField(f.priority, redirectRuleSchema.shape.priority);
   });
+
+  field(key: keyof RedirectRuleFormModel): any {
+    return (this.ruleForm as unknown as Record<string, unknown>)[key];
+  }
 
   sourceError = computed(() => this.getFieldError(this.ruleForm.source()));
   destinationError = computed(() => this.getFieldError(this.ruleForm.destination()));

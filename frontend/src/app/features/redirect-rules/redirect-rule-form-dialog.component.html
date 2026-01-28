@@ -27,11 +27,11 @@
       <mat-step [completed]="scopeValid()">
         <ng-template matStepLabel>Scope</ng-template>
         <div class="mt-4 grid gap-4">
-          <input type="hidden" [formField]="ruleForm.domainGroupId" />
+          <input type="hidden" [formField]="field('domainGroupId')" />
 
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Priority</mat-label>
-            <input matInput type="number" [formField]="ruleForm.priority" />
+            <input matInput type="number" [formField]="field('priority')" />
             <mat-hint>Higher priority rules are evaluated first (0-1000).</mat-hint>
             @if (priorityError(); as error) {
               <mat-error>{{ error }}</mat-error>
@@ -57,7 +57,7 @@
         <div class="mt-4 grid gap-4">
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Source</mat-label>
-            <input matInput type="text" [formField]="ruleForm.source" />
+            <input matInput type="text" [formField]="field('source')" />
             <mat-hint>Use an exact path, <code>/pattern/flags</code> regex, or <code>*</code>.</mat-hint>
             @if (sourceError(); as error) {
               <mat-error>{{ error }}</mat-error>
@@ -66,7 +66,7 @@
 
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Request method</mat-label>
-            <mat-select [formField]="ruleForm.matchMethod">
+            <mat-select [formField]="field('matchMethod')">
               @for (method of matchMethodOptions; track method) {
                 <mat-option [value]="method">
                   {{ method === '*' ? 'Any method (*)' : method }}
@@ -142,7 +142,7 @@
         <div class="mt-4 grid gap-4">
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Destination</mat-label>
-            <input matInput type="text" [formField]="ruleForm.destination" />
+            <input matInput type="text" [formField]="field('destination')" />
             <mat-hint>
               Must start with <code>http://</code> or <code>https://</code>.
             </mat-hint>
@@ -285,7 +285,7 @@
 
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Status code</mat-label>
-            <mat-select [formField]="ruleForm.statusCode">
+            <mat-select [formField]="field('statusCode')">
               @for (code of statusCodeOptions(); track code) {
                 <mat-option [value]="code.toString()">{{ code }}</mat-option>
               }
@@ -369,11 +369,11 @@
       </mat-stepper>
     } @else {
       <div class="grid gap-4">
-        <input type="hidden" [formField]="ruleForm.domainGroupId" />
+        <input type="hidden" [formField]="field('domainGroupId')" />
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Source</mat-label>
-          <input matInput type="text" [formField]="ruleForm.source" />
+          <input matInput type="text" [formField]="field('source')" />
           <mat-hint>Use an exact path, <code>/pattern/flags</code> regex, or <code>*</code>.</mat-hint>
           @if (sourceError(); as error) {
             <mat-error>{{ error }}</mat-error>
@@ -382,7 +382,7 @@
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Request method</mat-label>
-          <mat-select [formField]="ruleForm.matchMethod">
+          <mat-select [formField]="field('matchMethod')">
             @for (method of matchMethodOptions; track method) {
               <mat-option [value]="method">
                 {{ method === '*' ? 'Any method (*)' : method }}
@@ -396,7 +396,7 @@
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Destination</mat-label>
-          <input matInput type="text" [formField]="ruleForm.destination" />
+          <input matInput type="text" [formField]="field('destination')" />
           <mat-hint>Must start with <code>http://</code> or <code>https://</code>.</mat-hint>
           @if (destinationError(); as error) {
             <mat-error>{{ error }}</mat-error>
@@ -405,7 +405,7 @@
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Status code</mat-label>
-          <mat-select [formField]="ruleForm.statusCode">
+          <mat-select [formField]="field('statusCode')">
             @for (code of statusCodeOptions(); track code) {
               <mat-option [value]="code.toString()">{{ code }}</mat-option>
             }
@@ -417,7 +417,7 @@
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Priority</mat-label>
-          <input matInput type="number" [formField]="ruleForm.priority" />
+          <input matInput type="number" [formField]="field('priority')" />
           <mat-hint>Higher priority rules are evaluated first (0-1000).</mat-hint>
           @if (priorityError(); as error) {
             <mat-error>{{ error }}</mat-error>
