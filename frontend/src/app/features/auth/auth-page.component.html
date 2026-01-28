@@ -25,7 +25,7 @@
 
     <mat-tab-group animationDuration="0ms">
       <mat-tab label="Login">
-        <form class="grid gap-4" (submit)="onLogin($event); $event.preventDefault()">
+        <form class="grid gap-4" (submit)="onLogin($event)">
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Email</mat-label>
             <input matInput type="email" [formField]="loginForm.email" />
@@ -57,7 +57,7 @@
       </mat-tab>
 
       <mat-tab label="Register">
-        <form class="grid gap-4" (submit)="onRegister($event); $event.preventDefault()">
+        <form class="grid gap-4" (submit)="onRegister($event)">
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Organization name</mat-label>
             <input matInput type="text" [formField]="registerForm.organizationName" />

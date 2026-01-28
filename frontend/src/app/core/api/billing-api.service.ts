@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
 import { API_CONFIG } from '../config/api-config';
+import { OrganizationPlan } from '@shared/models/organization-config.model';
 
 type CheckoutResponse = {
   checkoutUrl: string;
@@ -19,7 +20,7 @@ export class BillingApiService {
   private readonly apiConfig = inject(API_CONFIG);
   private readonly apiUrl = `${this.apiConfig.baseUrl}/api/v1/billing`;
 
-  createCheckout(plan: 'STARTER' | 'PRO'): Observable<CheckoutResponse> {
+  createCheckout(plan: OrganizationPlan): Observable<CheckoutResponse> {
     return this.http.post<CheckoutResponse>(`${this.apiUrl}/checkout`, {
       plan,
     });
