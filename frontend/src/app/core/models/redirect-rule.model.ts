@@ -1,5 +1,4 @@
-import { $Enums } from '@shared/prisma-client';
-import HttpMethod = $Enums.HttpMethod;
+import { HttpMethod } from './http-method.model';
 
 
 export type RedirectRule = {

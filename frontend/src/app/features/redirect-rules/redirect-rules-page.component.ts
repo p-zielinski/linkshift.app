@@ -16,6 +16,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
+import { RedirectTestResultsStore } from '../../core/store/redirect-test-results.store';
 import { RedirectRuleFormDialogComponent } from './redirect-rule-form-dialog.component';
 import type { RedirectRule } from '../../core/models/redirect-rule.model';
 
@@ -44,6 +45,7 @@ export class RedirectRulesPageComponent {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly redirectRuleStore = inject(RedirectRuleStore);
+  private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
 
   readonly columns = [
@@ -247,6 +249,7 @@ export class RedirectRulesPageComponent {
 
     dialogRef.afterClosed().subscribe((confirmed) => {
       if (confirmed) {
+        this.redirectTestResultsStore.clearAll();
         this.redirectRuleStore.remove(ruleId);
       }
     });

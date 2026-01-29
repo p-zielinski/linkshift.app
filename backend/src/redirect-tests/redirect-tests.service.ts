@@ -24,7 +24,11 @@ export class RedirectTestsService {
   async listTests(
     organizationId: string,
     domainGroupId: string,
-    params?: { limit?: number; search?: string; startAfterId?: string },
+    params?: {
+      limit?: number;
+      search?: string;
+      startAfterId?: string;
+    },
   ) {
     const { limit = 20, search, startAfterId } = params || {};
     const take = Number(limit);
@@ -126,6 +130,7 @@ export class RedirectTestsService {
     const pathWithQuery = this.normalizePathWithQuery(data.pathWithQuery);
 
     const requestData = this.normalizeRequestData(data.requestData);
+    const expectedResult = this.normalizeExpectedResult(data.expectedResult);
 
     const test = await this.prisma.redirectTest.create({
       data: {
@@ -134,6 +139,7 @@ export class RedirectTestsService {
         domainGroupId: data.domainGroupId,
         pathWithQuery,
         requestData,
+        expectedResult,
       },
     });
 
@@ -180,6 +186,10 @@ export class RedirectTestsService {
 
     if (data.requestData !== undefined) {
       updateData.requestData = this.normalizeRequestData(data.requestData);
+    }
+
+    if (data.expectedResult !== undefined) {
+      updateData.expectedResult = this.normalizeExpectedResult(data.expectedResult);
     }
 
     const test = await this.prisma.redirectTest.update({
@@ -272,5 +282,17 @@ export class RedirectTestsService {
     }
 
     return data;
+  }
+
+  private normalizeExpectedResult(
+    input: NonNullable<
+      CreateRedirectTestDto['expectedResult'] | UpdateRedirectTestDto['expectedResult']
+    >,
+  ): Prisma.InputJsonValue {
+    return {
+      matched: input.matched,
+      statusCode: input.statusCode,
+      target: input.target ?? null,
+    };
   }
 }

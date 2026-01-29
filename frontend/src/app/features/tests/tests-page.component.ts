@@ -1,140 +1,411 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
+import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { form, FormField } from '@angular/forms/signals';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { debounce, form, required, FormField } from '@angular/forms/signals';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
-import { RedirectRulesApiService } from '../../core/api/redirect-rules-api.service';
-import type { RedirectSimulationResult } from '../../core/models/redirect-rule.model';
-import { firstValueFrom } from 'rxjs';
-
-type TestFormModel = {
-  domainGroupId: string;
-  path: string;
-  query: string;
-};
+import { RedirectTestStore } from '../../core/store/redirect-test.store';
+import {
+  RedirectTestResultsStore,
+  type RedirectTestRunState
+} from '../../core/store/redirect-test-results.store';
+import { RedirectTestFormDialogComponent } from './redirect-test-form-dialog.component';
+import { RedirectTestResultDialogComponent } from './redirect-test-result-dialog.component';
+import { RunPendingTestsDialogComponent } from './run-pending-tests-dialog.component';
+import type { RedirectTest, RedirectTestResult } from '../../core/models/redirect-test.model';
 
 @Component({
   selector: 'app-tests-page',
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
+    MatTableModule,
     MatButtonModule,
     MatIconModule,
+    MatTooltipModule,
+    MatDialogModule,
     MatSnackBarModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
     FormField,
     PageHeaderComponent,
+    TablePaginatorComponent
   ],
   templateUrl: './tests-page.component.html',
-  styleUrl: './tests-page.component.css',
+  styleUrl: './tests-page.component.css'
 })
 export class TestsPageComponent {
-  private readonly domainGroupStore = inject(DomainGroupStore);
-  private readonly redirectRulesApi = inject(RedirectRulesApiService);
+  private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly redirectTestStore = inject(RedirectTestStore);
+  private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
+  private readonly domainGroupStore = inject(DomainGroupStore);
 
+  readonly columns = ['path', 'expected', 'result', 'actions'];
   readonly domainGroups = this.domainGroupStore.selectList();
-  readonly busy = signal(false);
-  readonly result = signal<RedirectSimulationResult | null>(null);
+  readonly pageLimitOptions = [20];
+  readonly pageLimit = signal(20);
+  readonly page = signal(1);
+  readonly pageCursors = signal<Record<number, string | null>>({ 1: null });
 
-  readonly formModel = signal<TestFormModel>({
+  filterModel = signal({
     domainGroupId: '',
-    path: '',
-    query: '',
+    search: ''
   });
 
-  readonly form = form(this.formModel, () => {});
-
-  readonly selectedGroupId = computed(() => this.formModel().domainGroupId);
-  readonly hasDomainGroups = computed(() => this.domainGroups().length > 0);
-  readonly canRun = computed(() => {
-    const model = this.formModel();
-    return !!model.domainGroupId && model.path.trim().length > 0 && !this.busy();
+  filterForm = form(this.filterModel, (f) => {
+    required(f.domainGroupId);
+    debounce(f.search, 350);
   });
+
+  readonly activeGroupId = computed(() => this.filterModel().domainGroupId || '');
+
+  readonly baseFilter = computed(() => {
+    const { domainGroupId, search } = this.filterModel();
+    if (!domainGroupId) {
+      return null;
+    }
+
+    const trimmedSearch = search.trim();
+    return {
+      domainGroupId,
+      ...(trimmedSearch ? { search: trimmedSearch } : {})
+    };
+  });
+
+  readonly filterParams = computed(() => {
+    const baseFilter = this.baseFilter();
+    if (!baseFilter) {
+      return null;
+    }
+
+    const cursor = this.pageCursors()[this.page()];
+    return {
+      ...baseFilter,
+      limit: this.pageLimit(),
+      ...(cursor ? { startAfterId: cursor } : {})
+    };
+  });
+
+  readonly tests = computed(() => {
+    const filter = this.filterParams();
+    if (!filter) {
+      return [] as RedirectTest[];
+    }
+    return this.redirectTestStore.selectList(filter)();
+  });
+
+  readonly listResult = computed(() => {
+    const filter = this.filterParams();
+    if (!filter) {
+      return null;
+    }
+    return this.redirectTestStore.selectListResult(filter)();
+  });
+
+  readonly hasNextPage = computed(() => !!this.listResult()?.moreStartingAfterId);
 
   constructor() {
     this.domainGroupStore.searchList();
 
     effect(() => {
+      this.baseFilter();
+      this.page.set(1);
+      this.pageCursors.set({ 1: null });
+    });
+
+    effect(() => {
+      const filter = this.filterParams();
+      if (filter) {
+        this.redirectTestStore.searchList(filter);
+      }
+    });
+
+    effect(() => {
+      const result = this.listResult();
+      const currentPage = this.page();
+      if (!result?.moreStartingAfterId) {
+        return;
+      }
+
+      const nextCursor = result.moreStartingAfterId;
+      this.pageCursors.update((cursors) => {
+        const nextPage = currentPage + 1;
+        if (cursors[nextPage] === nextCursor) {
+          return cursors;
+        }
+        return { ...cursors, [nextPage]: nextCursor };
+      });
+    });
+
+    effect(() => {
       const groups = this.domainGroups();
-      const current = this.selectedGroupId();
+      const current = this.activeGroupId();
       const hasCurrent = groups.some((group) => group.id === current);
 
       if (!current && groups.length === 1) {
-        this.formModel.update((model) => ({
+        this.filterModel.update((model) => ({
           ...model,
-          domainGroupId: groups[0].id,
+          domainGroupId: groups[0].id
         }));
         return;
       }
 
       if (current && !hasCurrent) {
-        this.formModel.update((model) => ({
+        this.filterModel.update((model) => ({
           ...model,
-          domainGroupId: groups.length === 1 ? groups[0].id : '',
+          domainGroupId: groups.length === 1 ? groups[0].id : ''
         }));
+      }
+    });
+
+    effect(() => {
+      const error = this.redirectTestStore.lastError();
+      if (error) {
+        this.snackBar.open(error, 'Dismiss', { duration: 4000 });
+        this.redirectTestStore.clearError();
       }
     });
   }
 
-  async runTest(): Promise<void> {
-    const model = this.formModel();
-    if (!model.domainGroupId) {
-      this.snackBar.open('Select a domain group first.', 'Dismiss', {
-        duration: 3000,
-      });
-      return;
-    }
-    const path = model.path.trim();
-    if (!path) {
-      this.snackBar.open('Provide a path to test.', 'Dismiss', {
-        duration: 3000,
+  openCreateDialog(): void {
+    if (!this.activeGroupId()) {
+      this.snackBar.open('Select a domain group before creating a test.', 'Dismiss', {
+        duration: 4000
       });
       return;
     }
 
-    const fullPath = this.buildPathWithQuery(path, model.query);
-    this.busy.set(true);
-    try {
-      const response = await firstValueFrom(
-        this.redirectRulesApi.simulate([
-          {
-            domainGroupId: model.domainGroupId,
-            path: fullPath,
-            method: 'GET',
-          },
-        ]),
-      );
+    const dialogRef = this.dialog.open(RedirectTestFormDialogComponent, {
+      width: 'calc(100vw - 60px)',
+      maxWidth: 'calc(100vw - 60px)',
+      height: 'calc(100vh - 60px)',
+      maxHeight: 'calc(100vh - 60px)',
+      data: {
+        domainGroupId: this.activeGroupId()
+      }
+    });
 
-      const result = response?.results?.[0] ?? null;
-      this.result.set(result);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Simulation failed.';
-      this.snackBar.open(message, 'Dismiss', {
-        duration: 4000,
-      });
-    } finally {
-      this.busy.set(false);
-    }
+    dialogRef.afterClosed().subscribe((created) => {
+      if (created) {
+        this.refreshListAfterSave();
+      }
+    });
   }
 
-  private buildPathWithQuery(path: string, query: string): string {
-    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-    const trimmedQuery = query.trim().replace(/^\?/, '');
-    if (!trimmedQuery) {
-      return normalizedPath;
+  openEditDialog(test: RedirectTest): void {
+    const dialogRef = this.dialog.open(RedirectTestFormDialogComponent, {
+      width: 'calc(100vw - 60px)',
+      maxWidth: 'calc(100vw - 60px)',
+      height: 'calc(100vh - 60px)',
+      maxHeight: 'calc(100vh - 60px)',
+      data: {
+        test
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((saved) => {
+      if (saved) {
+        this.refreshListAfterSave();
+      }
+    });
+  }
+
+  confirmDelete(test: RedirectTest): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Delete redirect test',
+        message: 'This test will be removed and no longer tracked.',
+        confirmLabel: 'Delete',
+        tone: 'warning'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.redirectTestResultsStore.clearByIds([test.id]);
+        this.redirectTestStore.remove(test.id);
+      }
+    });
+  }
+
+  openResultDialog(test: RedirectTest): void {
+    this.dialog.open(RedirectTestResultDialogComponent, {
+      width: 'min(720px, 94vw)',
+      maxWidth: '94vw',
+      data: {
+        test,
+        runState: this.resolveRunState(test)
+      }
+    });
+  }
+
+  runPendingTests(): void {
+    if (!this.activeGroupId()) {
+      return;
     }
-    return `${normalizedPath}?${trimmedQuery}`;
+
+    const dialogRef = this.dialog.open(RunPendingTestsDialogComponent, {
+      width: 'min(560px, 94vw)',
+      maxWidth: '94vw',
+      disableClose: true,
+      data: {
+        domainGroupId: this.activeGroupId()
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((didRun) => {
+      if (didRun) {
+        this.refreshListAfterSave();
+      }
+    });
+  }
+
+  formatExpectedResult(test: RedirectTest): string {
+    const expected = test.expectedResult;
+    if (!expected) {
+      return 'Expectation not set';
+    }
+    if (!expected.matched) {
+      return 'No redirect (404)';
+    }
+    if (!expected.target) {
+      return `${expected.statusCode} (missing target)`;
+    }
+    return `${expected.statusCode} -> ${expected.target}`;
+  }
+
+  formatActualResult(test: RedirectTest): string {
+    const runState = this.resolveRunState(test);
+    if (runState?.lastError) {
+      return runState.lastError;
+    }
+    if (!runState?.lastResult) {
+      return '';
+    }
+
+    const { statusCode, target, matched } = runState.lastResult;
+    if (!matched) {
+      return 'No redirect (404)';
+    }
+    if (!target) {
+      return `${statusCode} (no target)`;
+    }
+    return `${statusCode} -> ${target}`;
+  }
+
+  statusLabel(test: RedirectTest): string {
+    const status = this.computeStatus(test);
+    return status.label;
+  }
+
+  statusClass(test: RedirectTest): string {
+    const status = this.computeStatus(test);
+    return status.tone;
+  }
+
+  showResultDetails(test: RedirectTest): boolean {
+    const status = this.computeStatus(test);
+    return status.kind !== 'pending';
+  }
+
+  onPageChange(page: number): void {
+    this.page.set(page);
+  }
+
+  onPageLimitChange(limit: number): void {
+    this.pageLimit.set(limit);
+    this.page.set(1);
+    this.pageCursors.set({ 1: null });
+  }
+
+  private refreshListAfterSave(): void {
+    const baseFilter = this.baseFilter();
+    if (!baseFilter) {
+      return;
+    }
+
+    this.redirectTestStore.invalidateList();
+    this.page.set(1);
+    this.pageCursors.set({ 1: null });
+    this.redirectTestStore.searchList(
+      {
+        ...baseFilter,
+        limit: this.pageLimit()
+      },
+      true
+    );
+  }
+
+  private resolveRunState(test: RedirectTest): RedirectTestRunState | null {
+    return this.redirectTestResultsStore.results()[test.id] ?? null;
+  }
+
+  private computeStatus(test: RedirectTest): {
+    label: string;
+    kind: 'pending' | 'success' | 'warning' | 'danger';
+    tone: string;
+  } {
+    const runState = this.resolveRunState(test);
+    const expected = test.expectedResult;
+
+    if (!runState || (!runState.lastRunAt && !runState.lastResult && !runState.lastError)) {
+      return {
+        label: 'Pending',
+        kind: 'pending',
+        tone: 'status-pill status-pill--pending'
+      };
+    }
+
+    if (runState.lastError) {
+      return {
+        label: 'Error',
+        kind: 'danger',
+        tone: 'status-pill status-pill--danger'
+      };
+    }
+
+    if (!runState.lastResult || !expected) {
+      return {
+        label: 'Needs review',
+        kind: 'warning',
+        tone: 'status-pill status-pill--warning'
+      };
+    }
+
+    const matches = this.compareResults(expected, runState.lastResult);
+    if (matches) {
+      return {
+        label: 'Passed',
+        kind: 'success',
+        tone: 'status-pill status-pill--success'
+      };
+    }
+
+    return {
+      label: 'Failed',
+      kind: 'danger',
+      tone: 'status-pill status-pill--danger'
+    };
+  }
+
+  private compareResults(expected: RedirectTestResult, actual: RedirectTestResult): boolean {
+    return (
+      expected.matched === actual.matched &&
+      expected.statusCode === actual.statusCode &&
+      (expected.target ?? null) === (actual.target ?? null)
+    );
   }
 }

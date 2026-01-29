@@ -96,16 +96,13 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
     });
 
     await this.afterDomainChange(hostname, created);
-    this.logger.log(
-      `Ngrok domain assigned: ${hostname} -> ${domainGroup.id}`,
-    );
+    this.logger.log(`Ngrok domain assigned: ${hostname} -> ${domainGroup.id}`);
   }
 
   private isEnabled(): boolean {
     const nodeEnv = this.configService.get<string>('NODE_ENV') ?? 'development';
     return (
-      nodeEnv !== 'production' &&
-      !!this.configService.get<string>('NGROK_URL')
+      nodeEnv !== 'production' && !!this.configService.get<string>('NGROK_URL')
     );
   }
 
@@ -141,9 +138,7 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
   private async resolveDomainGroup(
     organizationId: string,
   ): Promise<DomainGroup | null> {
-    const groupId = this.configService.get<string>(
-      'DEV_NGROK_DOMAIN_GROUP_ID',
-    );
+    const groupId = this.configService.get<string>('DEV_NGROK_DOMAIN_GROUP_ID');
     if (groupId) {
       return this.prisma.domainGroup.findFirst({
         where: { id: groupId, organizationId, deletedAt: null },

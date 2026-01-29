@@ -136,6 +136,7 @@ model RedirectTest {
   domainGroupId  String
   pathWithQuery  String
   requestData    Json
+  expectedResult Json
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   deletedAt      DateTime?

@@ -1,0 +1,29 @@
+<h2 mat-dialog-title>Run pending tests</h2>
+
+<div mat-dialog-content class="space-y-4">
+  <div class="text-sm text-app-muted">
+    Running all tests that have not been executed yet for this domain group.
+  </div>
+
+  <mat-progress-bar
+    [mode]="running() && total() === 0 ? 'indeterminate' : 'determinate'"
+    [value]="progress()"
+  ></mat-progress-bar>
+
+  <div class="flex items-center justify-between text-sm">
+    <span class="text-app-muted">Completed</span>
+    <span class="font-semibold text-app-foreground">{{ completed() }}/{{ total() }}</span>
+  </div>
+
+  @if (summary()) {
+    <div class="rounded-xl border border-app-border-soft bg-app-muted/5 p-3 text-sm">
+      {{ summary() }}
+    </div>
+  }
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-flat-button color="primary" (click)="close()" [disabled]="running()">
+    Close
+  </button>
+</div>

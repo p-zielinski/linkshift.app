@@ -14,6 +14,7 @@ import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
+import { RedirectTestResultsStore } from '../../core/store/redirect-test-results.store';
 import { applyZodField } from '../../core/forms/zod-validators';
 import {
   redirectRuleSchema,
@@ -22,8 +23,7 @@ import {
 } from './redirect-rule.schemas';
 import type { RedirectRule } from '../../core/models/redirect-rule.model';
 import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
-import { $Enums } from '@shared/prisma-client';
-import HttpMethod = $Enums.HttpMethod;
+import { HttpMethod } from '../../core/models/http-method.model';
 
 type WizardMode = 'guided' | 'fast';
 type RedirectRuleFormModel = {
@@ -67,6 +67,7 @@ export class RedirectRuleFormDialogComponent {
   private readonly data = inject<RedirectRuleDialogData | null>(MAT_DIALOG_DATA, { optional: true });
   private readonly redirectRuleStore = inject(RedirectRuleStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -445,6 +446,7 @@ export class RedirectRuleFormDialogComponent {
         this.submitKey.set(CREATE_ENTITY_ID);
 
         if (!hadError) {
+          this.redirectTestResultsStore.clearAll();
           this.dialogRef.close(true);
         }
       },

@@ -177,6 +177,7 @@ exports.Prisma.RedirectTestScalarFieldEnum = {
   domainGroupId: 'domainGroupId',
   pathWithQuery: 'pathWithQuery',
   requestData: 'requestData',
+  expectedResult: 'expectedResult',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'

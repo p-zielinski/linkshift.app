@@ -2,6 +2,12 @@ import { z } from 'zod';
 import { AppEntity, getEntityIdRegex } from '../utils';
 import { HttpMethod } from '@prisma/client';
 
+const RedirectTestResultSchema = z.object({
+  matched: z.boolean(),
+  statusCode: z.number().int().min(100).max(599),
+  target: z.string().max(4096).nullable(),
+});
+
 const RequestDataSchema = z
   .object({
     method: z.nativeEnum(HttpMethod).optional(),
@@ -33,6 +39,7 @@ export const CreateRedirectTestSchema = z.object({
     .min(1, 'Path is required')
     .max(2048, 'Path is too long'),
   requestData: RequestDataSchema.optional(),
+  expectedResult: RedirectTestResultSchema,
 });
 
 export const UpdateRedirectTestSchema = z.object({
@@ -42,6 +49,7 @@ export const UpdateRedirectTestSchema = z.object({
     .max(2048, 'Path is too long')
     .optional(),
   requestData: RequestDataSchema.optional(),
+  expectedResult: RedirectTestResultSchema.optional(),
 });
 
 export const ListRedirectTestsQuerySchema = z.object({

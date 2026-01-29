@@ -7293,6 +7293,7 @@ export namespace Prisma {
     domainGroupId: number
     pathWithQuery: number
     requestData: number
+    expectedResult: number
     createdAt: number
     updatedAt: number
     deletedAt: number
@@ -7326,6 +7327,7 @@ export namespace Prisma {
     domainGroupId?: true
     pathWithQuery?: true
     requestData?: true
+    expectedResult?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -7410,6 +7412,7 @@ export namespace Prisma {
     domainGroupId: string
     pathWithQuery: string
     requestData: JsonValue
+    expectedResult: JsonValue
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -7438,6 +7441,7 @@ export namespace Prisma {
     domainGroupId?: boolean
     pathWithQuery?: boolean
     requestData?: boolean
+    expectedResult?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7451,6 +7455,7 @@ export namespace Prisma {
     domainGroupId?: boolean
     pathWithQuery?: boolean
     requestData?: boolean
+    expectedResult?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7464,6 +7469,7 @@ export namespace Prisma {
     domainGroupId?: boolean
     pathWithQuery?: boolean
     requestData?: boolean
+    expectedResult?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7477,12 +7483,13 @@ export namespace Prisma {
     domainGroupId?: boolean
     pathWithQuery?: boolean
     requestData?: boolean
+    expectedResult?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
   }
 
-  export type RedirectTestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "domainGroupId" | "pathWithQuery" | "requestData" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["redirectTest"]>
+  export type RedirectTestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "domainGroupId" | "pathWithQuery" | "requestData" | "expectedResult" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["redirectTest"]>
   export type RedirectTestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
@@ -7508,6 +7515,7 @@ export namespace Prisma {
       domainGroupId: string
       pathWithQuery: string
       requestData: Prisma.JsonValue
+      expectedResult: Prisma.JsonValue
       createdAt: Date
       updatedAt: Date
       deletedAt: Date | null
@@ -7941,6 +7949,7 @@ export namespace Prisma {
     readonly domainGroupId: FieldRef<"RedirectTest", 'String'>
     readonly pathWithQuery: FieldRef<"RedirectTest", 'String'>
     readonly requestData: FieldRef<"RedirectTest", 'Json'>
+    readonly expectedResult: FieldRef<"RedirectTest", 'Json'>
     readonly createdAt: FieldRef<"RedirectTest", 'DateTime'>
     readonly updatedAt: FieldRef<"RedirectTest", 'DateTime'>
     readonly deletedAt: FieldRef<"RedirectTest", 'DateTime'>
@@ -9597,6 +9606,7 @@ export namespace Prisma {
     domainGroupId: 'domainGroupId',
     pathWithQuery: 'pathWithQuery',
     requestData: 'requestData',
+    expectedResult: 'expectedResult',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     deletedAt: 'deletedAt'
@@ -10147,6 +10157,7 @@ export namespace Prisma {
     domainGroupId?: StringFilter<"RedirectTest"> | string
     pathWithQuery?: StringFilter<"RedirectTest"> | string
     requestData?: JsonFilter<"RedirectTest">
+    expectedResult?: JsonFilter<"RedirectTest">
     createdAt?: DateTimeFilter<"RedirectTest"> | Date | string
     updatedAt?: DateTimeFilter<"RedirectTest"> | Date | string
     deletedAt?: DateTimeNullableFilter<"RedirectTest"> | Date | string | null
@@ -10160,6 +10171,7 @@ export namespace Prisma {
     domainGroupId?: SortOrder
     pathWithQuery?: SortOrder
     requestData?: SortOrder
+    expectedResult?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -10177,6 +10189,7 @@ export namespace Prisma {
     domainGroupId?: StringFilter<"RedirectTest"> | string
     pathWithQuery?: StringFilter<"RedirectTest"> | string
     requestData?: JsonFilter<"RedirectTest">
+    expectedResult?: JsonFilter<"RedirectTest">
     createdAt?: DateTimeFilter<"RedirectTest"> | Date | string
     updatedAt?: DateTimeFilter<"RedirectTest"> | Date | string
     deletedAt?: DateTimeNullableFilter<"RedirectTest"> | Date | string | null
@@ -10190,6 +10203,7 @@ export namespace Prisma {
     domainGroupId?: SortOrder
     pathWithQuery?: SortOrder
     requestData?: SortOrder
+    expectedResult?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -10207,6 +10221,7 @@ export namespace Prisma {
     domainGroupId?: StringWithAggregatesFilter<"RedirectTest"> | string
     pathWithQuery?: StringWithAggregatesFilter<"RedirectTest"> | string
     requestData?: JsonWithAggregatesFilter<"RedirectTest">
+    expectedResult?: JsonWithAggregatesFilter<"RedirectTest">
     createdAt?: DateTimeWithAggregatesFilter<"RedirectTest"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"RedirectTest"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"RedirectTest"> | Date | string | null
@@ -10694,6 +10709,7 @@ export namespace Prisma {
     id: string
     pathWithQuery: string
     requestData: JsonNullValueInput | InputJsonValue
+    expectedResult: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -10707,6 +10723,7 @@ export namespace Prisma {
     domainGroupId: string
     pathWithQuery: string
     requestData: JsonNullValueInput | InputJsonValue
+    expectedResult: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -10716,6 +10733,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     pathWithQuery?: StringFieldUpdateOperationsInput | string
     requestData?: JsonNullValueInput | InputJsonValue
+    expectedResult?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10729,6 +10747,7 @@ export namespace Prisma {
     domainGroupId?: StringFieldUpdateOperationsInput | string
     pathWithQuery?: StringFieldUpdateOperationsInput | string
     requestData?: JsonNullValueInput | InputJsonValue
+    expectedResult?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10740,6 +10759,7 @@ export namespace Prisma {
     domainGroupId: string
     pathWithQuery: string
     requestData: JsonNullValueInput | InputJsonValue
+    expectedResult: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -10749,6 +10769,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     pathWithQuery?: StringFieldUpdateOperationsInput | string
     requestData?: JsonNullValueInput | InputJsonValue
+    expectedResult?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10760,6 +10781,7 @@ export namespace Prisma {
     domainGroupId?: StringFieldUpdateOperationsInput | string
     pathWithQuery?: StringFieldUpdateOperationsInput | string
     requestData?: JsonNullValueInput | InputJsonValue
+    expectedResult?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -11322,6 +11344,7 @@ export namespace Prisma {
     domainGroupId?: SortOrder
     pathWithQuery?: SortOrder
     requestData?: SortOrder
+    expectedResult?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -12303,6 +12326,7 @@ export namespace Prisma {
     id: string
     pathWithQuery: string
     requestData: JsonNullValueInput | InputJsonValue
+    expectedResult: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -12314,6 +12338,7 @@ export namespace Prisma {
     domainGroupId: string
     pathWithQuery: string
     requestData: JsonNullValueInput | InputJsonValue
+    expectedResult: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -12446,6 +12471,7 @@ export namespace Prisma {
     domainGroupId?: StringFilter<"RedirectTest"> | string
     pathWithQuery?: StringFilter<"RedirectTest"> | string
     requestData?: JsonFilter<"RedirectTest">
+    expectedResult?: JsonFilter<"RedirectTest">
     createdAt?: DateTimeFilter<"RedirectTest"> | Date | string
     updatedAt?: DateTimeFilter<"RedirectTest"> | Date | string
     deletedAt?: DateTimeNullableFilter<"RedirectTest"> | Date | string | null
@@ -12662,6 +12688,7 @@ export namespace Prisma {
     id: string
     pathWithQuery: string
     requestData: JsonNullValueInput | InputJsonValue
+    expectedResult: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -12673,6 +12700,7 @@ export namespace Prisma {
     organizationId: string
     pathWithQuery: string
     requestData: JsonNullValueInput | InputJsonValue
+    expectedResult: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -13204,6 +13232,7 @@ export namespace Prisma {
     domainGroupId: string
     pathWithQuery: string
     requestData: JsonNullValueInput | InputJsonValue
+    expectedResult: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -13317,6 +13346,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     pathWithQuery?: StringFieldUpdateOperationsInput | string
     requestData?: JsonNullValueInput | InputJsonValue
+    expectedResult?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -13328,6 +13358,7 @@ export namespace Prisma {
     domainGroupId?: StringFieldUpdateOperationsInput | string
     pathWithQuery?: StringFieldUpdateOperationsInput | string
     requestData?: JsonNullValueInput | InputJsonValue
+    expectedResult?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -13338,6 +13369,7 @@ export namespace Prisma {
     domainGroupId?: StringFieldUpdateOperationsInput | string
     pathWithQuery?: StringFieldUpdateOperationsInput | string
     requestData?: JsonNullValueInput | InputJsonValue
+    expectedResult?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -13424,6 +13456,7 @@ export namespace Prisma {
     organizationId: string
     pathWithQuery: string
     requestData: JsonNullValueInput | InputJsonValue
+    expectedResult: JsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -13493,6 +13526,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     pathWithQuery?: StringFieldUpdateOperationsInput | string
     requestData?: JsonNullValueInput | InputJsonValue
+    expectedResult?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -13504,6 +13538,7 @@ export namespace Prisma {
     organizationId?: StringFieldUpdateOperationsInput | string
     pathWithQuery?: StringFieldUpdateOperationsInput | string
     requestData?: JsonNullValueInput | InputJsonValue
+    expectedResult?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -13514,6 +13549,7 @@ export namespace Prisma {
     organizationId?: StringFieldUpdateOperationsInput | string
     pathWithQuery?: StringFieldUpdateOperationsInput | string
     requestData?: JsonNullValueInput | InputJsonValue
+    expectedResult?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
