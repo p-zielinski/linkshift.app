@@ -6,6 +6,7 @@ import { DashboardPageComponent } from './features/dashboard/dashboard-page.comp
 import { DomainsPageComponent } from './features/domains/domains-page.component';
 import { DomainGroupsPageComponent } from './features/domain-groups/domain-groups-page.component';
 import { RedirectRulesPageComponent } from './features/redirect-rules/redirect-rules-page.component';
+import { TestsPageComponent } from './features/tests/tests-page.component';
 import { domainGroupsRequiredGuard } from './core/domain-groups/domain-group.guard';
 import { MarketingShellComponent } from './features/marketing/components/marketing-shell/marketing-shell.component';
 import { HomePageComponent } from './features/marketing/pages/home/home-page.component';
@@ -55,6 +56,11 @@ export const routes: Routes = [
       {
         path: 'redirect-rules',
         component: RedirectRulesPageComponent,
+        canActivate: [domainGroupsRequiredGuard]
+      },
+      {
+        path: 'tests',
+        component: TestsPageComponent,
         canActivate: [domainGroupsRequiredGuard]
       }
     ]

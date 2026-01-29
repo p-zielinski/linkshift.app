@@ -12,6 +12,7 @@ import { RedirectRulesController } from './api/redirect-rules.controller';
 import { AuthController } from './api/auth.controller';
 import { BillingController } from './api/billing.controller';
 import { OrganizationController } from './api/organization.controller';
+import { RedirectTestsController } from './api/redirect-tests.controller';
 import { AuthService } from './auth/auth.service';
 import { ApiRedirectionMiddleware } from './middleware/api-redirection.middleware';
 import { ClsModule } from 'nestjs-cls';
@@ -25,6 +26,7 @@ import { BillingService } from './billing/billing.service';
 import { LemonSqueezyService } from './billing/lemon-squeezy.service';
 import { LoginRateLimitService } from './auth/login-rate-limit.service';
 import { NgrokDomainAssignerService } from './dev/ngrok-domain-assigner.service';
+import { RedirectTestsService } from './redirect-tests/redirect-tests.service';
 
 @Module({
   imports: [
@@ -49,6 +51,7 @@ import { NgrokDomainAssignerService } from './dev/ngrok-domain-assigner.service'
     AuthController,
     BillingController,
     OrganizationController,
+    RedirectTestsController,
   ],
   providers: [
     RedirectService,
@@ -61,6 +64,7 @@ import { NgrokDomainAssignerService } from './dev/ngrok-domain-assigner.service'
     LemonSqueezyService,
     LoginRateLimitService,
     NgrokDomainAssignerService,
+    RedirectTestsService,
     AuthGuard,
     RedisService,
     CacheManagerIdsService,

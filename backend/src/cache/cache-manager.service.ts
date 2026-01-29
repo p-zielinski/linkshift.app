@@ -8,6 +8,7 @@ import {
   Domain,
   RedirectRule,
   DomainGroup,
+  RedirectTest,
 } from '@prisma/client';
 import * as _ from 'lodash';
 import type { DomainWithRelationsContext } from '../redirect/redirect.service';
@@ -26,6 +27,7 @@ export enum DataType {
   ORGANIZATIONS = 'organization',
   DOMAINS = 'domain',
   REDIRECT_RULES = 'redirectRule',
+  REDIRECT_TESTS = 'redirectTest',
   DOMAIN_GROUPS = 'domainGroup',
   BLACKLIST_TOKEN = 'blacklistToken',
 }
@@ -48,6 +50,7 @@ const storeByProperties: Record<
   [DataType.DOMAINS]: [CachedByProperty.ID, CachedByProperty.NAME],
   [DataType.DOMAIN_GROUPS]: [CachedByProperty.ID],
   [DataType.REDIRECT_RULES]: [CachedByProperty.ID],
+  [DataType.REDIRECT_TESTS]: [CachedByProperty.ID],
   [DataType.BLACKLIST_TOKEN]: [CachedByProperty.JTI],
 };
 
@@ -56,6 +59,7 @@ const ttlPerResource: Partial<Record<DataType, number>> = {
   [DataType.ORGANIZATIONS]: minutesToTtl(60),
   [DataType.DOMAINS]: minutesToTtl(10),
   [DataType.REDIRECT_RULES]: minutesToTtl(10),
+  [DataType.REDIRECT_TESTS]: minutesToTtl(10),
   [DataType.DOMAIN_GROUPS]: minutesToTtl(30),
 };
 
@@ -298,7 +302,13 @@ export class CacheManagerService {
    * Caches the existence of data.
    */
   async setDataExist<
-    T extends User | Organization | Domain | DomainGroup | RedirectRule,
+    T extends
+      | User
+      | Organization
+      | Domain
+      | DomainGroup
+      | RedirectRule
+      | RedirectTest,
   >({ data, dataType }: { data: T; dataType: DataType }): Promise<T> {
     const omitProperties = forbiddenPropertiesByDataType[dataType];
     const dataWithoutOmitProperties = omitProperties
@@ -343,7 +353,13 @@ export class CacheManagerService {
    * Main method to get data from Cache (or DB on miss).
    */
   async getData<
-    T extends User | Organization | Domain | DomainGroup | RedirectRule,
+    T extends
+      | User
+      | Organization
+      | Domain
+      | DomainGroup
+      | RedirectRule
+      | RedirectTest,
   >(
     {
       properties,

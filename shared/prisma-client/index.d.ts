@@ -39,6 +39,11 @@ export type Domain = $Result.DefaultSelection<Prisma.$DomainPayload>
  */
 export type RedirectRule = $Result.DefaultSelection<Prisma.$RedirectRulePayload>
 /**
+ * Model RedirectTest
+ * 
+ */
+export type RedirectTest = $Result.DefaultSelection<Prisma.$RedirectTestPayload>
+/**
  * Model BillingCheckoutSession
  * 
  */
@@ -247,6 +252,16 @@ export class PrismaClient<
     * ```
     */
   get redirectRule(): Prisma.RedirectRuleDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.redirectTest`: Exposes CRUD operations for the **RedirectTest** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more RedirectTests
+    * const redirectTests = await prisma.redirectTest.findMany()
+    * ```
+    */
+  get redirectTest(): Prisma.RedirectTestDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.billingCheckoutSession`: Exposes CRUD operations for the **BillingCheckoutSession** model.
@@ -696,6 +711,7 @@ export namespace Prisma {
     DomainGroup: 'DomainGroup',
     Domain: 'Domain',
     RedirectRule: 'RedirectRule',
+    RedirectTest: 'RedirectTest',
     BillingCheckoutSession: 'BillingCheckoutSession'
   };
 
@@ -712,7 +728,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "organization" | "user" | "domainGroup" | "domain" | "redirectRule" | "billingCheckoutSession"
+      modelProps: "organization" | "user" | "domainGroup" | "domain" | "redirectRule" | "redirectTest" | "billingCheckoutSession"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1086,6 +1102,80 @@ export namespace Prisma {
           }
         }
       }
+      RedirectTest: {
+        payload: Prisma.$RedirectTestPayload<ExtArgs>
+        fields: Prisma.RedirectTestFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.RedirectTestFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectTestPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.RedirectTestFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectTestPayload>
+          }
+          findFirst: {
+            args: Prisma.RedirectTestFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectTestPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.RedirectTestFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectTestPayload>
+          }
+          findMany: {
+            args: Prisma.RedirectTestFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectTestPayload>[]
+          }
+          create: {
+            args: Prisma.RedirectTestCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectTestPayload>
+          }
+          createMany: {
+            args: Prisma.RedirectTestCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.RedirectTestCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectTestPayload>[]
+          }
+          delete: {
+            args: Prisma.RedirectTestDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectTestPayload>
+          }
+          update: {
+            args: Prisma.RedirectTestUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectTestPayload>
+          }
+          deleteMany: {
+            args: Prisma.RedirectTestDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.RedirectTestUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.RedirectTestUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectTestPayload>[]
+          }
+          upsert: {
+            args: Prisma.RedirectTestUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectTestPayload>
+          }
+          aggregate: {
+            args: Prisma.RedirectTestAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateRedirectTest>
+          }
+          groupBy: {
+            args: Prisma.RedirectTestGroupByArgs<ExtArgs>
+            result: $Utils.Optional<RedirectTestGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.RedirectTestCountArgs<ExtArgs>
+            result: $Utils.Optional<RedirectTestCountAggregateOutputType> | number
+          }
+        }
+      }
       BillingCheckoutSession: {
         payload: Prisma.$BillingCheckoutSessionPayload<ExtArgs>
         fields: Prisma.BillingCheckoutSessionFieldRefs
@@ -1273,6 +1363,7 @@ export namespace Prisma {
     domainGroup?: DomainGroupOmit
     domain?: DomainOmit
     redirectRule?: RedirectRuleOmit
+    redirectTest?: RedirectTestOmit
     billingCheckoutSession?: BillingCheckoutSessionOmit
   }
 
@@ -1357,12 +1448,14 @@ export namespace Prisma {
     users: number
     domainGroups: number
     checkoutSessions: number
+    redirectTests: number
   }
 
   export type OrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     users?: boolean | OrganizationCountOutputTypeCountUsersArgs
     domainGroups?: boolean | OrganizationCountOutputTypeCountDomainGroupsArgs
     checkoutSessions?: boolean | OrganizationCountOutputTypeCountCheckoutSessionsArgs
+    redirectTests?: boolean | OrganizationCountOutputTypeCountRedirectTestsArgs
   }
 
   // Custom InputTypes
@@ -1395,6 +1488,13 @@ export namespace Prisma {
    */
   export type OrganizationCountOutputTypeCountCheckoutSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: BillingCheckoutSessionWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountRedirectTestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RedirectTestWhereInput
   }
 
 
@@ -1436,11 +1536,13 @@ export namespace Prisma {
   export type DomainGroupCountOutputType = {
     domains: number
     redirectRules: number
+    redirectTests: number
   }
 
   export type DomainGroupCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     domains?: boolean | DomainGroupCountOutputTypeCountDomainsArgs
     redirectRules?: boolean | DomainGroupCountOutputTypeCountRedirectRulesArgs
+    redirectTests?: boolean | DomainGroupCountOutputTypeCountRedirectTestsArgs
   }
 
   // Custom InputTypes
@@ -1466,6 +1568,13 @@ export namespace Prisma {
    */
   export type DomainGroupCountOutputTypeCountRedirectRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: RedirectRuleWhereInput
+  }
+
+  /**
+   * DomainGroupCountOutputType without action
+   */
+  export type DomainGroupCountOutputTypeCountRedirectTestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RedirectTestWhereInput
   }
 
 
@@ -1644,6 +1753,7 @@ export namespace Prisma {
     users?: boolean | Organization$usersArgs<ExtArgs>
     domainGroups?: boolean | Organization$domainGroupsArgs<ExtArgs>
     checkoutSessions?: boolean | Organization$checkoutSessionsArgs<ExtArgs>
+    redirectTests?: boolean | Organization$redirectTestsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organization"]>
 
@@ -1679,6 +1789,7 @@ export namespace Prisma {
     users?: boolean | Organization$usersArgs<ExtArgs>
     domainGroups?: boolean | Organization$domainGroupsArgs<ExtArgs>
     checkoutSessions?: boolean | Organization$checkoutSessionsArgs<ExtArgs>
+    redirectTests?: boolean | Organization$redirectTestsArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1690,6 +1801,7 @@ export namespace Prisma {
       users: Prisma.$UserPayload<ExtArgs>[]
       domainGroups: Prisma.$DomainGroupPayload<ExtArgs>[]
       checkoutSessions: Prisma.$BillingCheckoutSessionPayload<ExtArgs>[]
+      redirectTests: Prisma.$RedirectTestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2095,6 +2207,7 @@ export namespace Prisma {
     users<T extends Organization$usersArgs<ExtArgs> = {}>(args?: Subset<T, Organization$usersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     domainGroups<T extends Organization$domainGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$domainGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DomainGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     checkoutSessions<T extends Organization$checkoutSessionsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$checkoutSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    redirectTests<T extends Organization$redirectTestsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$redirectTestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2587,6 +2700,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: BillingCheckoutSessionScalarFieldEnum | BillingCheckoutSessionScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.redirectTests
+   */
+  export type Organization$redirectTestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestInclude<ExtArgs> | null
+    where?: RedirectTestWhereInput
+    orderBy?: RedirectTestOrderByWithRelationInput | RedirectTestOrderByWithRelationInput[]
+    cursor?: RedirectTestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RedirectTestScalarFieldEnum | RedirectTestScalarFieldEnum[]
   }
 
   /**
@@ -3910,6 +4047,7 @@ export namespace Prisma {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     domains?: boolean | DomainGroup$domainsArgs<ExtArgs>
     redirectRules?: boolean | DomainGroup$redirectRulesArgs<ExtArgs>
+    redirectTests?: boolean | DomainGroup$redirectTestsArgs<ExtArgs>
     _count?: boolean | DomainGroupCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["domainGroup"]>
 
@@ -3947,6 +4085,7 @@ export namespace Prisma {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     domains?: boolean | DomainGroup$domainsArgs<ExtArgs>
     redirectRules?: boolean | DomainGroup$redirectRulesArgs<ExtArgs>
+    redirectTests?: boolean | DomainGroup$redirectTestsArgs<ExtArgs>
     _count?: boolean | DomainGroupCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type DomainGroupIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3962,6 +4101,7 @@ export namespace Prisma {
       organization: Prisma.$OrganizationPayload<ExtArgs>
       domains: Prisma.$DomainPayload<ExtArgs>[]
       redirectRules: Prisma.$RedirectRulePayload<ExtArgs>[]
+      redirectTests: Prisma.$RedirectTestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -4367,6 +4507,7 @@ export namespace Prisma {
     organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     domains<T extends DomainGroup$domainsArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroup$domainsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DomainPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     redirectRules<T extends DomainGroup$redirectRulesArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroup$redirectRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    redirectTests<T extends DomainGroup$redirectTestsArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroup$redirectTestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4843,6 +4984,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: RedirectRuleScalarFieldEnum | RedirectRuleScalarFieldEnum[]
+  }
+
+  /**
+   * DomainGroup.redirectTests
+   */
+  export type DomainGroup$redirectTestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestInclude<ExtArgs> | null
+    where?: RedirectTestWhereInput
+    orderBy?: RedirectTestOrderByWithRelationInput | RedirectTestOrderByWithRelationInput[]
+    cursor?: RedirectTestWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RedirectTestScalarFieldEnum | RedirectTestScalarFieldEnum[]
   }
 
   /**
@@ -7093,6 +7258,1107 @@ export namespace Prisma {
 
 
   /**
+   * Model RedirectTest
+   */
+
+  export type AggregateRedirectTest = {
+    _count: RedirectTestCountAggregateOutputType | null
+    _min: RedirectTestMinAggregateOutputType | null
+    _max: RedirectTestMaxAggregateOutputType | null
+  }
+
+  export type RedirectTestMinAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    domainGroupId: string | null
+    pathWithQuery: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type RedirectTestMaxAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    domainGroupId: string | null
+    pathWithQuery: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type RedirectTestCountAggregateOutputType = {
+    id: number
+    organizationId: number
+    domainGroupId: number
+    pathWithQuery: number
+    requestData: number
+    createdAt: number
+    updatedAt: number
+    deletedAt: number
+    _all: number
+  }
+
+
+  export type RedirectTestMinAggregateInputType = {
+    id?: true
+    organizationId?: true
+    domainGroupId?: true
+    pathWithQuery?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type RedirectTestMaxAggregateInputType = {
+    id?: true
+    organizationId?: true
+    domainGroupId?: true
+    pathWithQuery?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type RedirectTestCountAggregateInputType = {
+    id?: true
+    organizationId?: true
+    domainGroupId?: true
+    pathWithQuery?: true
+    requestData?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+    _all?: true
+  }
+
+  export type RedirectTestAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which RedirectTest to aggregate.
+     */
+    where?: RedirectTestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RedirectTests to fetch.
+     */
+    orderBy?: RedirectTestOrderByWithRelationInput | RedirectTestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: RedirectTestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RedirectTests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RedirectTests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned RedirectTests
+    **/
+    _count?: true | RedirectTestCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: RedirectTestMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: RedirectTestMaxAggregateInputType
+  }
+
+  export type GetRedirectTestAggregateType<T extends RedirectTestAggregateArgs> = {
+        [P in keyof T & keyof AggregateRedirectTest]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateRedirectTest[P]>
+      : GetScalarType<T[P], AggregateRedirectTest[P]>
+  }
+
+
+
+
+  export type RedirectTestGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RedirectTestWhereInput
+    orderBy?: RedirectTestOrderByWithAggregationInput | RedirectTestOrderByWithAggregationInput[]
+    by: RedirectTestScalarFieldEnum[] | RedirectTestScalarFieldEnum
+    having?: RedirectTestScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: RedirectTestCountAggregateInputType | true
+    _min?: RedirectTestMinAggregateInputType
+    _max?: RedirectTestMaxAggregateInputType
+  }
+
+  export type RedirectTestGroupByOutputType = {
+    id: string
+    organizationId: string
+    domainGroupId: string
+    pathWithQuery: string
+    requestData: JsonValue
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date | null
+    _count: RedirectTestCountAggregateOutputType | null
+    _min: RedirectTestMinAggregateOutputType | null
+    _max: RedirectTestMaxAggregateOutputType | null
+  }
+
+  type GetRedirectTestGroupByPayload<T extends RedirectTestGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<RedirectTestGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof RedirectTestGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], RedirectTestGroupByOutputType[P]>
+            : GetScalarType<T[P], RedirectTestGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type RedirectTestSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    domainGroupId?: boolean
+    pathWithQuery?: boolean
+    requestData?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["redirectTest"]>
+
+  export type RedirectTestSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    domainGroupId?: boolean
+    pathWithQuery?: boolean
+    requestData?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["redirectTest"]>
+
+  export type RedirectTestSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    domainGroupId?: boolean
+    pathWithQuery?: boolean
+    requestData?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["redirectTest"]>
+
+  export type RedirectTestSelectScalar = {
+    id?: boolean
+    organizationId?: boolean
+    domainGroupId?: boolean
+    pathWithQuery?: boolean
+    requestData?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+  }
+
+  export type RedirectTestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "domainGroupId" | "pathWithQuery" | "requestData" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["redirectTest"]>
+  export type RedirectTestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }
+  export type RedirectTestIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }
+  export type RedirectTestIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }
+
+  export type $RedirectTestPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "RedirectTest"
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+      domainGroup: Prisma.$DomainGroupPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      organizationId: string
+      domainGroupId: string
+      pathWithQuery: string
+      requestData: Prisma.JsonValue
+      createdAt: Date
+      updatedAt: Date
+      deletedAt: Date | null
+    }, ExtArgs["result"]["redirectTest"]>
+    composites: {}
+  }
+
+  type RedirectTestGetPayload<S extends boolean | null | undefined | RedirectTestDefaultArgs> = $Result.GetResult<Prisma.$RedirectTestPayload, S>
+
+  type RedirectTestCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<RedirectTestFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: RedirectTestCountAggregateInputType | true
+    }
+
+  export interface RedirectTestDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['RedirectTest'], meta: { name: 'RedirectTest' } }
+    /**
+     * Find zero or one RedirectTest that matches the filter.
+     * @param {RedirectTestFindUniqueArgs} args - Arguments to find a RedirectTest
+     * @example
+     * // Get one RedirectTest
+     * const redirectTest = await prisma.redirectTest.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends RedirectTestFindUniqueArgs>(args: SelectSubset<T, RedirectTestFindUniqueArgs<ExtArgs>>): Prisma__RedirectTestClient<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one RedirectTest that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {RedirectTestFindUniqueOrThrowArgs} args - Arguments to find a RedirectTest
+     * @example
+     * // Get one RedirectTest
+     * const redirectTest = await prisma.redirectTest.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends RedirectTestFindUniqueOrThrowArgs>(args: SelectSubset<T, RedirectTestFindUniqueOrThrowArgs<ExtArgs>>): Prisma__RedirectTestClient<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first RedirectTest that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectTestFindFirstArgs} args - Arguments to find a RedirectTest
+     * @example
+     * // Get one RedirectTest
+     * const redirectTest = await prisma.redirectTest.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends RedirectTestFindFirstArgs>(args?: SelectSubset<T, RedirectTestFindFirstArgs<ExtArgs>>): Prisma__RedirectTestClient<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first RedirectTest that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectTestFindFirstOrThrowArgs} args - Arguments to find a RedirectTest
+     * @example
+     * // Get one RedirectTest
+     * const redirectTest = await prisma.redirectTest.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends RedirectTestFindFirstOrThrowArgs>(args?: SelectSubset<T, RedirectTestFindFirstOrThrowArgs<ExtArgs>>): Prisma__RedirectTestClient<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more RedirectTests that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectTestFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all RedirectTests
+     * const redirectTests = await prisma.redirectTest.findMany()
+     * 
+     * // Get first 10 RedirectTests
+     * const redirectTests = await prisma.redirectTest.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const redirectTestWithIdOnly = await prisma.redirectTest.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends RedirectTestFindManyArgs>(args?: SelectSubset<T, RedirectTestFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a RedirectTest.
+     * @param {RedirectTestCreateArgs} args - Arguments to create a RedirectTest.
+     * @example
+     * // Create one RedirectTest
+     * const RedirectTest = await prisma.redirectTest.create({
+     *   data: {
+     *     // ... data to create a RedirectTest
+     *   }
+     * })
+     * 
+     */
+    create<T extends RedirectTestCreateArgs>(args: SelectSubset<T, RedirectTestCreateArgs<ExtArgs>>): Prisma__RedirectTestClient<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many RedirectTests.
+     * @param {RedirectTestCreateManyArgs} args - Arguments to create many RedirectTests.
+     * @example
+     * // Create many RedirectTests
+     * const redirectTest = await prisma.redirectTest.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends RedirectTestCreateManyArgs>(args?: SelectSubset<T, RedirectTestCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many RedirectTests and returns the data saved in the database.
+     * @param {RedirectTestCreateManyAndReturnArgs} args - Arguments to create many RedirectTests.
+     * @example
+     * // Create many RedirectTests
+     * const redirectTest = await prisma.redirectTest.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many RedirectTests and only return the `id`
+     * const redirectTestWithIdOnly = await prisma.redirectTest.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends RedirectTestCreateManyAndReturnArgs>(args?: SelectSubset<T, RedirectTestCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a RedirectTest.
+     * @param {RedirectTestDeleteArgs} args - Arguments to delete one RedirectTest.
+     * @example
+     * // Delete one RedirectTest
+     * const RedirectTest = await prisma.redirectTest.delete({
+     *   where: {
+     *     // ... filter to delete one RedirectTest
+     *   }
+     * })
+     * 
+     */
+    delete<T extends RedirectTestDeleteArgs>(args: SelectSubset<T, RedirectTestDeleteArgs<ExtArgs>>): Prisma__RedirectTestClient<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one RedirectTest.
+     * @param {RedirectTestUpdateArgs} args - Arguments to update one RedirectTest.
+     * @example
+     * // Update one RedirectTest
+     * const redirectTest = await prisma.redirectTest.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends RedirectTestUpdateArgs>(args: SelectSubset<T, RedirectTestUpdateArgs<ExtArgs>>): Prisma__RedirectTestClient<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more RedirectTests.
+     * @param {RedirectTestDeleteManyArgs} args - Arguments to filter RedirectTests to delete.
+     * @example
+     * // Delete a few RedirectTests
+     * const { count } = await prisma.redirectTest.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends RedirectTestDeleteManyArgs>(args?: SelectSubset<T, RedirectTestDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more RedirectTests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectTestUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many RedirectTests
+     * const redirectTest = await prisma.redirectTest.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends RedirectTestUpdateManyArgs>(args: SelectSubset<T, RedirectTestUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more RedirectTests and returns the data updated in the database.
+     * @param {RedirectTestUpdateManyAndReturnArgs} args - Arguments to update many RedirectTests.
+     * @example
+     * // Update many RedirectTests
+     * const redirectTest = await prisma.redirectTest.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more RedirectTests and only return the `id`
+     * const redirectTestWithIdOnly = await prisma.redirectTest.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends RedirectTestUpdateManyAndReturnArgs>(args: SelectSubset<T, RedirectTestUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one RedirectTest.
+     * @param {RedirectTestUpsertArgs} args - Arguments to update or create a RedirectTest.
+     * @example
+     * // Update or create a RedirectTest
+     * const redirectTest = await prisma.redirectTest.upsert({
+     *   create: {
+     *     // ... data to create a RedirectTest
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the RedirectTest we want to update
+     *   }
+     * })
+     */
+    upsert<T extends RedirectTestUpsertArgs>(args: SelectSubset<T, RedirectTestUpsertArgs<ExtArgs>>): Prisma__RedirectTestClient<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of RedirectTests.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectTestCountArgs} args - Arguments to filter RedirectTests to count.
+     * @example
+     * // Count the number of RedirectTests
+     * const count = await prisma.redirectTest.count({
+     *   where: {
+     *     // ... the filter for the RedirectTests we want to count
+     *   }
+     * })
+    **/
+    count<T extends RedirectTestCountArgs>(
+      args?: Subset<T, RedirectTestCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], RedirectTestCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a RedirectTest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectTestAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends RedirectTestAggregateArgs>(args: Subset<T, RedirectTestAggregateArgs>): Prisma.PrismaPromise<GetRedirectTestAggregateType<T>>
+
+    /**
+     * Group by RedirectTest.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectTestGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends RedirectTestGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: RedirectTestGroupByArgs['orderBy'] }
+        : { orderBy?: RedirectTestGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, RedirectTestGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetRedirectTestGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the RedirectTest model
+   */
+  readonly fields: RedirectTestFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for RedirectTest.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__RedirectTestClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    domainGroup<T extends DomainGroupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroupDefaultArgs<ExtArgs>>): Prisma__DomainGroupClient<$Result.GetResult<Prisma.$DomainGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the RedirectTest model
+   */
+  interface RedirectTestFieldRefs {
+    readonly id: FieldRef<"RedirectTest", 'String'>
+    readonly organizationId: FieldRef<"RedirectTest", 'String'>
+    readonly domainGroupId: FieldRef<"RedirectTest", 'String'>
+    readonly pathWithQuery: FieldRef<"RedirectTest", 'String'>
+    readonly requestData: FieldRef<"RedirectTest", 'Json'>
+    readonly createdAt: FieldRef<"RedirectTest", 'DateTime'>
+    readonly updatedAt: FieldRef<"RedirectTest", 'DateTime'>
+    readonly deletedAt: FieldRef<"RedirectTest", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * RedirectTest findUnique
+   */
+  export type RedirectTestFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestInclude<ExtArgs> | null
+    /**
+     * Filter, which RedirectTest to fetch.
+     */
+    where: RedirectTestWhereUniqueInput
+  }
+
+  /**
+   * RedirectTest findUniqueOrThrow
+   */
+  export type RedirectTestFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestInclude<ExtArgs> | null
+    /**
+     * Filter, which RedirectTest to fetch.
+     */
+    where: RedirectTestWhereUniqueInput
+  }
+
+  /**
+   * RedirectTest findFirst
+   */
+  export type RedirectTestFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestInclude<ExtArgs> | null
+    /**
+     * Filter, which RedirectTest to fetch.
+     */
+    where?: RedirectTestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RedirectTests to fetch.
+     */
+    orderBy?: RedirectTestOrderByWithRelationInput | RedirectTestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for RedirectTests.
+     */
+    cursor?: RedirectTestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RedirectTests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RedirectTests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of RedirectTests.
+     */
+    distinct?: RedirectTestScalarFieldEnum | RedirectTestScalarFieldEnum[]
+  }
+
+  /**
+   * RedirectTest findFirstOrThrow
+   */
+  export type RedirectTestFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestInclude<ExtArgs> | null
+    /**
+     * Filter, which RedirectTest to fetch.
+     */
+    where?: RedirectTestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RedirectTests to fetch.
+     */
+    orderBy?: RedirectTestOrderByWithRelationInput | RedirectTestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for RedirectTests.
+     */
+    cursor?: RedirectTestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RedirectTests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RedirectTests.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of RedirectTests.
+     */
+    distinct?: RedirectTestScalarFieldEnum | RedirectTestScalarFieldEnum[]
+  }
+
+  /**
+   * RedirectTest findMany
+   */
+  export type RedirectTestFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestInclude<ExtArgs> | null
+    /**
+     * Filter, which RedirectTests to fetch.
+     */
+    where?: RedirectTestWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RedirectTests to fetch.
+     */
+    orderBy?: RedirectTestOrderByWithRelationInput | RedirectTestOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing RedirectTests.
+     */
+    cursor?: RedirectTestWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RedirectTests from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RedirectTests.
+     */
+    skip?: number
+    distinct?: RedirectTestScalarFieldEnum | RedirectTestScalarFieldEnum[]
+  }
+
+  /**
+   * RedirectTest create
+   */
+  export type RedirectTestCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestInclude<ExtArgs> | null
+    /**
+     * The data needed to create a RedirectTest.
+     */
+    data: XOR<RedirectTestCreateInput, RedirectTestUncheckedCreateInput>
+  }
+
+  /**
+   * RedirectTest createMany
+   */
+  export type RedirectTestCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many RedirectTests.
+     */
+    data: RedirectTestCreateManyInput | RedirectTestCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * RedirectTest createManyAndReturn
+   */
+  export type RedirectTestCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * The data used to create many RedirectTests.
+     */
+    data: RedirectTestCreateManyInput | RedirectTestCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * RedirectTest update
+   */
+  export type RedirectTestUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestInclude<ExtArgs> | null
+    /**
+     * The data needed to update a RedirectTest.
+     */
+    data: XOR<RedirectTestUpdateInput, RedirectTestUncheckedUpdateInput>
+    /**
+     * Choose, which RedirectTest to update.
+     */
+    where: RedirectTestWhereUniqueInput
+  }
+
+  /**
+   * RedirectTest updateMany
+   */
+  export type RedirectTestUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update RedirectTests.
+     */
+    data: XOR<RedirectTestUpdateManyMutationInput, RedirectTestUncheckedUpdateManyInput>
+    /**
+     * Filter which RedirectTests to update
+     */
+    where?: RedirectTestWhereInput
+    /**
+     * Limit how many RedirectTests to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * RedirectTest updateManyAndReturn
+   */
+  export type RedirectTestUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * The data used to update RedirectTests.
+     */
+    data: XOR<RedirectTestUpdateManyMutationInput, RedirectTestUncheckedUpdateManyInput>
+    /**
+     * Filter which RedirectTests to update
+     */
+    where?: RedirectTestWhereInput
+    /**
+     * Limit how many RedirectTests to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * RedirectTest upsert
+   */
+  export type RedirectTestUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestInclude<ExtArgs> | null
+    /**
+     * The filter to search for the RedirectTest to update in case it exists.
+     */
+    where: RedirectTestWhereUniqueInput
+    /**
+     * In case the RedirectTest found by the `where` argument doesn't exist, create a new RedirectTest with this data.
+     */
+    create: XOR<RedirectTestCreateInput, RedirectTestUncheckedCreateInput>
+    /**
+     * In case the RedirectTest was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<RedirectTestUpdateInput, RedirectTestUncheckedUpdateInput>
+  }
+
+  /**
+   * RedirectTest delete
+   */
+  export type RedirectTestDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestInclude<ExtArgs> | null
+    /**
+     * Filter which RedirectTest to delete.
+     */
+    where: RedirectTestWhereUniqueInput
+  }
+
+  /**
+   * RedirectTest deleteMany
+   */
+  export type RedirectTestDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which RedirectTests to delete
+     */
+    where?: RedirectTestWhereInput
+    /**
+     * Limit how many RedirectTests to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * RedirectTest without action
+   */
+  export type RedirectTestDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectTest
+     */
+    select?: RedirectTestSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectTest
+     */
+    omit?: RedirectTestOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectTestInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model BillingCheckoutSession
    */
 
@@ -8325,6 +9591,20 @@ export namespace Prisma {
   export type RedirectRuleScalarFieldEnum = (typeof RedirectRuleScalarFieldEnum)[keyof typeof RedirectRuleScalarFieldEnum]
 
 
+  export const RedirectTestScalarFieldEnum: {
+    id: 'id',
+    organizationId: 'organizationId',
+    domainGroupId: 'domainGroupId',
+    pathWithQuery: 'pathWithQuery',
+    requestData: 'requestData',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+  };
+
+  export type RedirectTestScalarFieldEnum = (typeof RedirectTestScalarFieldEnum)[keyof typeof RedirectTestScalarFieldEnum]
+
+
   export const BillingCheckoutSessionScalarFieldEnum: {
     id: 'id',
     organizationId: 'organizationId',
@@ -8357,6 +9637,13 @@ export namespace Prisma {
   };
 
   export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
   export const QueryMode: {
@@ -8510,6 +9797,7 @@ export namespace Prisma {
     users?: UserListRelationFilter
     domainGroups?: DomainGroupListRelationFilter
     checkoutSessions?: BillingCheckoutSessionListRelationFilter
+    redirectTests?: RedirectTestListRelationFilter
   }
 
   export type OrganizationOrderByWithRelationInput = {
@@ -8522,6 +9810,7 @@ export namespace Prisma {
     users?: UserOrderByRelationAggregateInput
     domainGroups?: DomainGroupOrderByRelationAggregateInput
     checkoutSessions?: BillingCheckoutSessionOrderByRelationAggregateInput
+    redirectTests?: RedirectTestOrderByRelationAggregateInput
   }
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -8537,6 +9826,7 @@ export namespace Prisma {
     users?: UserListRelationFilter
     domainGroups?: DomainGroupListRelationFilter
     checkoutSessions?: BillingCheckoutSessionListRelationFilter
+    redirectTests?: RedirectTestListRelationFilter
   }, "id">
 
   export type OrganizationOrderByWithAggregationInput = {
@@ -8649,6 +9939,7 @@ export namespace Prisma {
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     domains?: DomainListRelationFilter
     redirectRules?: RedirectRuleListRelationFilter
+    redirectTests?: RedirectTestListRelationFilter
   }
 
   export type DomainGroupOrderByWithRelationInput = {
@@ -8661,6 +9952,7 @@ export namespace Prisma {
     organization?: OrganizationOrderByWithRelationInput
     domains?: DomainOrderByRelationAggregateInput
     redirectRules?: RedirectRuleOrderByRelationAggregateInput
+    redirectTests?: RedirectTestOrderByRelationAggregateInput
   }
 
   export type DomainGroupWhereUniqueInput = Prisma.AtLeast<{
@@ -8676,6 +9968,7 @@ export namespace Prisma {
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     domains?: DomainListRelationFilter
     redirectRules?: RedirectRuleListRelationFilter
+    redirectTests?: RedirectTestListRelationFilter
   }, "id">
 
   export type DomainGroupOrderByWithAggregationInput = {
@@ -8845,6 +10138,80 @@ export namespace Prisma {
     deletedAt?: DateTimeNullableWithAggregatesFilter<"RedirectRule"> | Date | string | null
   }
 
+  export type RedirectTestWhereInput = {
+    AND?: RedirectTestWhereInput | RedirectTestWhereInput[]
+    OR?: RedirectTestWhereInput[]
+    NOT?: RedirectTestWhereInput | RedirectTestWhereInput[]
+    id?: StringFilter<"RedirectTest"> | string
+    organizationId?: StringFilter<"RedirectTest"> | string
+    domainGroupId?: StringFilter<"RedirectTest"> | string
+    pathWithQuery?: StringFilter<"RedirectTest"> | string
+    requestData?: JsonFilter<"RedirectTest">
+    createdAt?: DateTimeFilter<"RedirectTest"> | Date | string
+    updatedAt?: DateTimeFilter<"RedirectTest"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"RedirectTest"> | Date | string | null
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    domainGroup?: XOR<DomainGroupScalarRelationFilter, DomainGroupWhereInput>
+  }
+
+  export type RedirectTestOrderByWithRelationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    domainGroupId?: SortOrder
+    pathWithQuery?: SortOrder
+    requestData?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    organization?: OrganizationOrderByWithRelationInput
+    domainGroup?: DomainGroupOrderByWithRelationInput
+  }
+
+  export type RedirectTestWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    createdAt_id?: RedirectTestCreatedAtIdCompoundUniqueInput
+    AND?: RedirectTestWhereInput | RedirectTestWhereInput[]
+    OR?: RedirectTestWhereInput[]
+    NOT?: RedirectTestWhereInput | RedirectTestWhereInput[]
+    organizationId?: StringFilter<"RedirectTest"> | string
+    domainGroupId?: StringFilter<"RedirectTest"> | string
+    pathWithQuery?: StringFilter<"RedirectTest"> | string
+    requestData?: JsonFilter<"RedirectTest">
+    createdAt?: DateTimeFilter<"RedirectTest"> | Date | string
+    updatedAt?: DateTimeFilter<"RedirectTest"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"RedirectTest"> | Date | string | null
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+    domainGroup?: XOR<DomainGroupScalarRelationFilter, DomainGroupWhereInput>
+  }, "id" | "createdAt_id">
+
+  export type RedirectTestOrderByWithAggregationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    domainGroupId?: SortOrder
+    pathWithQuery?: SortOrder
+    requestData?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    _count?: RedirectTestCountOrderByAggregateInput
+    _max?: RedirectTestMaxOrderByAggregateInput
+    _min?: RedirectTestMinOrderByAggregateInput
+  }
+
+  export type RedirectTestScalarWhereWithAggregatesInput = {
+    AND?: RedirectTestScalarWhereWithAggregatesInput | RedirectTestScalarWhereWithAggregatesInput[]
+    OR?: RedirectTestScalarWhereWithAggregatesInput[]
+    NOT?: RedirectTestScalarWhereWithAggregatesInput | RedirectTestScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"RedirectTest"> | string
+    organizationId?: StringWithAggregatesFilter<"RedirectTest"> | string
+    domainGroupId?: StringWithAggregatesFilter<"RedirectTest"> | string
+    pathWithQuery?: StringWithAggregatesFilter<"RedirectTest"> | string
+    requestData?: JsonWithAggregatesFilter<"RedirectTest">
+    createdAt?: DateTimeWithAggregatesFilter<"RedirectTest"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"RedirectTest"> | Date | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"RedirectTest"> | Date | string | null
+  }
+
   export type BillingCheckoutSessionWhereInput = {
     AND?: BillingCheckoutSessionWhereInput | BillingCheckoutSessionWhereInput[]
     OR?: BillingCheckoutSessionWhereInput[]
@@ -8948,6 +10315,7 @@ export namespace Prisma {
     users?: UserCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
+    redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateInput = {
@@ -8960,6 +10328,7 @@ export namespace Prisma {
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUpdateInput = {
@@ -8972,6 +10341,7 @@ export namespace Prisma {
     users?: UserUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
+    redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateInput = {
@@ -8984,6 +10354,7 @@ export namespace Prisma {
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateManyInput = {
@@ -9102,6 +10473,7 @@ export namespace Prisma {
     organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
     domains?: DomainCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
+    redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
   }
 
   export type DomainGroupUncheckedCreateInput = {
@@ -9113,6 +10485,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
+    redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
   }
 
   export type DomainGroupUpdateInput = {
@@ -9124,6 +10497,7 @@ export namespace Prisma {
     organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
     domains?: DomainUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
+    redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
   }
 
   export type DomainGroupUncheckedUpdateInput = {
@@ -9135,6 +10509,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
+    redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
 
   export type DomainGroupCreateManyInput = {
@@ -9310,6 +10685,81 @@ export namespace Prisma {
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     priority?: IntFieldUpdateOperationsInput | number
     domainGroupId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type RedirectTestCreateInput = {
+    id: string
+    pathWithQuery: string
+    requestData: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    organization: OrganizationCreateNestedOneWithoutRedirectTestsInput
+    domainGroup: DomainGroupCreateNestedOneWithoutRedirectTestsInput
+  }
+
+  export type RedirectTestUncheckedCreateInput = {
+    id: string
+    organizationId: string
+    domainGroupId: string
+    pathWithQuery: string
+    requestData: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type RedirectTestUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    pathWithQuery?: StringFieldUpdateOperationsInput | string
+    requestData?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    organization?: OrganizationUpdateOneRequiredWithoutRedirectTestsNestedInput
+    domainGroup?: DomainGroupUpdateOneRequiredWithoutRedirectTestsNestedInput
+  }
+
+  export type RedirectTestUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    pathWithQuery?: StringFieldUpdateOperationsInput | string
+    requestData?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type RedirectTestCreateManyInput = {
+    id: string
+    organizationId: string
+    domainGroupId: string
+    pathWithQuery: string
+    requestData: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type RedirectTestUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    pathWithQuery?: StringFieldUpdateOperationsInput | string
+    requestData?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type RedirectTestUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    pathWithQuery?: StringFieldUpdateOperationsInput | string
+    requestData?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -9496,6 +10946,12 @@ export namespace Prisma {
     none?: BillingCheckoutSessionWhereInput
   }
 
+  export type RedirectTestListRelationFilter = {
+    every?: RedirectTestWhereInput
+    some?: RedirectTestWhereInput
+    none?: RedirectTestWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -9510,6 +10966,10 @@ export namespace Prisma {
   }
 
   export type BillingCheckoutSessionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type RedirectTestOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -9827,6 +11287,91 @@ export namespace Prisma {
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
   }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type RedirectTestCreatedAtIdCompoundUniqueInput = {
+    createdAt: Date | string
+    id: string
+  }
+
+  export type RedirectTestCountOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    domainGroupId?: SortOrder
+    pathWithQuery?: SortOrder
+    requestData?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type RedirectTestMaxOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    domainGroupId?: SortOrder
+    pathWithQuery?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type RedirectTestMinOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    domainGroupId?: SortOrder
+    pathWithQuery?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
+  }
 
   export type EnumBillingCheckoutStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.BillingCheckoutStatus | EnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
@@ -9947,6 +11492,13 @@ export namespace Prisma {
     connect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
   }
 
+  export type RedirectTestCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<RedirectTestCreateWithoutOrganizationInput, RedirectTestUncheckedCreateWithoutOrganizationInput> | RedirectTestCreateWithoutOrganizationInput[] | RedirectTestUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: RedirectTestCreateOrConnectWithoutOrganizationInput | RedirectTestCreateOrConnectWithoutOrganizationInput[]
+    createMany?: RedirectTestCreateManyOrganizationInputEnvelope
+    connect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+  }
+
   export type UserUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<UserCreateWithoutOrganizationInput, UserUncheckedCreateWithoutOrganizationInput> | UserCreateWithoutOrganizationInput[] | UserUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: UserCreateOrConnectWithoutOrganizationInput | UserCreateOrConnectWithoutOrganizationInput[]
@@ -9966,6 +11518,13 @@ export namespace Prisma {
     connectOrCreate?: BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput | BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput[]
     createMany?: BillingCheckoutSessionCreateManyOrganizationInputEnvelope
     connect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+  }
+
+  export type RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<RedirectTestCreateWithoutOrganizationInput, RedirectTestUncheckedCreateWithoutOrganizationInput> | RedirectTestCreateWithoutOrganizationInput[] | RedirectTestUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: RedirectTestCreateOrConnectWithoutOrganizationInput | RedirectTestCreateOrConnectWithoutOrganizationInput[]
+    createMany?: RedirectTestCreateManyOrganizationInputEnvelope
+    connect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -10022,6 +11581,20 @@ export namespace Prisma {
     deleteMany?: BillingCheckoutSessionScalarWhereInput | BillingCheckoutSessionScalarWhereInput[]
   }
 
+  export type RedirectTestUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<RedirectTestCreateWithoutOrganizationInput, RedirectTestUncheckedCreateWithoutOrganizationInput> | RedirectTestCreateWithoutOrganizationInput[] | RedirectTestUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: RedirectTestCreateOrConnectWithoutOrganizationInput | RedirectTestCreateOrConnectWithoutOrganizationInput[]
+    upsert?: RedirectTestUpsertWithWhereUniqueWithoutOrganizationInput | RedirectTestUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: RedirectTestCreateManyOrganizationInputEnvelope
+    set?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    disconnect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    delete?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    connect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    update?: RedirectTestUpdateWithWhereUniqueWithoutOrganizationInput | RedirectTestUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: RedirectTestUpdateManyWithWhereWithoutOrganizationInput | RedirectTestUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: RedirectTestScalarWhereInput | RedirectTestScalarWhereInput[]
+  }
+
   export type UserUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<UserCreateWithoutOrganizationInput, UserUncheckedCreateWithoutOrganizationInput> | UserCreateWithoutOrganizationInput[] | UserUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: UserCreateOrConnectWithoutOrganizationInput | UserCreateOrConnectWithoutOrganizationInput[]
@@ -10062,6 +11635,20 @@ export namespace Prisma {
     update?: BillingCheckoutSessionUpdateWithWhereUniqueWithoutOrganizationInput | BillingCheckoutSessionUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: BillingCheckoutSessionUpdateManyWithWhereWithoutOrganizationInput | BillingCheckoutSessionUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: BillingCheckoutSessionScalarWhereInput | BillingCheckoutSessionScalarWhereInput[]
+  }
+
+  export type RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<RedirectTestCreateWithoutOrganizationInput, RedirectTestUncheckedCreateWithoutOrganizationInput> | RedirectTestCreateWithoutOrganizationInput[] | RedirectTestUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: RedirectTestCreateOrConnectWithoutOrganizationInput | RedirectTestCreateOrConnectWithoutOrganizationInput[]
+    upsert?: RedirectTestUpsertWithWhereUniqueWithoutOrganizationInput | RedirectTestUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: RedirectTestCreateManyOrganizationInputEnvelope
+    set?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    disconnect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    delete?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    connect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    update?: RedirectTestUpdateWithWhereUniqueWithoutOrganizationInput | RedirectTestUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: RedirectTestUpdateManyWithWhereWithoutOrganizationInput | RedirectTestUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: RedirectTestScalarWhereInput | RedirectTestScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutUsersInput = {
@@ -10144,6 +11731,13 @@ export namespace Prisma {
     connect?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
   }
 
+  export type RedirectTestCreateNestedManyWithoutDomainGroupInput = {
+    create?: XOR<RedirectTestCreateWithoutDomainGroupInput, RedirectTestUncheckedCreateWithoutDomainGroupInput> | RedirectTestCreateWithoutDomainGroupInput[] | RedirectTestUncheckedCreateWithoutDomainGroupInput[]
+    connectOrCreate?: RedirectTestCreateOrConnectWithoutDomainGroupInput | RedirectTestCreateOrConnectWithoutDomainGroupInput[]
+    createMany?: RedirectTestCreateManyDomainGroupInputEnvelope
+    connect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+  }
+
   export type DomainUncheckedCreateNestedManyWithoutDomainGroupInput = {
     create?: XOR<DomainCreateWithoutDomainGroupInput, DomainUncheckedCreateWithoutDomainGroupInput> | DomainCreateWithoutDomainGroupInput[] | DomainUncheckedCreateWithoutDomainGroupInput[]
     connectOrCreate?: DomainCreateOrConnectWithoutDomainGroupInput | DomainCreateOrConnectWithoutDomainGroupInput[]
@@ -10156,6 +11750,13 @@ export namespace Prisma {
     connectOrCreate?: RedirectRuleCreateOrConnectWithoutDomainGroupInput | RedirectRuleCreateOrConnectWithoutDomainGroupInput[]
     createMany?: RedirectRuleCreateManyDomainGroupInputEnvelope
     connect?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
+  }
+
+  export type RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput = {
+    create?: XOR<RedirectTestCreateWithoutDomainGroupInput, RedirectTestUncheckedCreateWithoutDomainGroupInput> | RedirectTestCreateWithoutDomainGroupInput[] | RedirectTestUncheckedCreateWithoutDomainGroupInput[]
+    connectOrCreate?: RedirectTestCreateOrConnectWithoutDomainGroupInput | RedirectTestCreateOrConnectWithoutDomainGroupInput[]
+    createMany?: RedirectTestCreateManyDomainGroupInputEnvelope
+    connect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
   }
 
   export type OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput = {
@@ -10194,6 +11795,20 @@ export namespace Prisma {
     deleteMany?: RedirectRuleScalarWhereInput | RedirectRuleScalarWhereInput[]
   }
 
+  export type RedirectTestUpdateManyWithoutDomainGroupNestedInput = {
+    create?: XOR<RedirectTestCreateWithoutDomainGroupInput, RedirectTestUncheckedCreateWithoutDomainGroupInput> | RedirectTestCreateWithoutDomainGroupInput[] | RedirectTestUncheckedCreateWithoutDomainGroupInput[]
+    connectOrCreate?: RedirectTestCreateOrConnectWithoutDomainGroupInput | RedirectTestCreateOrConnectWithoutDomainGroupInput[]
+    upsert?: RedirectTestUpsertWithWhereUniqueWithoutDomainGroupInput | RedirectTestUpsertWithWhereUniqueWithoutDomainGroupInput[]
+    createMany?: RedirectTestCreateManyDomainGroupInputEnvelope
+    set?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    disconnect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    delete?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    connect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    update?: RedirectTestUpdateWithWhereUniqueWithoutDomainGroupInput | RedirectTestUpdateWithWhereUniqueWithoutDomainGroupInput[]
+    updateMany?: RedirectTestUpdateManyWithWhereWithoutDomainGroupInput | RedirectTestUpdateManyWithWhereWithoutDomainGroupInput[]
+    deleteMany?: RedirectTestScalarWhereInput | RedirectTestScalarWhereInput[]
+  }
+
   export type DomainUncheckedUpdateManyWithoutDomainGroupNestedInput = {
     create?: XOR<DomainCreateWithoutDomainGroupInput, DomainUncheckedCreateWithoutDomainGroupInput> | DomainCreateWithoutDomainGroupInput[] | DomainUncheckedCreateWithoutDomainGroupInput[]
     connectOrCreate?: DomainCreateOrConnectWithoutDomainGroupInput | DomainCreateOrConnectWithoutDomainGroupInput[]
@@ -10220,6 +11835,20 @@ export namespace Prisma {
     update?: RedirectRuleUpdateWithWhereUniqueWithoutDomainGroupInput | RedirectRuleUpdateWithWhereUniqueWithoutDomainGroupInput[]
     updateMany?: RedirectRuleUpdateManyWithWhereWithoutDomainGroupInput | RedirectRuleUpdateManyWithWhereWithoutDomainGroupInput[]
     deleteMany?: RedirectRuleScalarWhereInput | RedirectRuleScalarWhereInput[]
+  }
+
+  export type RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput = {
+    create?: XOR<RedirectTestCreateWithoutDomainGroupInput, RedirectTestUncheckedCreateWithoutDomainGroupInput> | RedirectTestCreateWithoutDomainGroupInput[] | RedirectTestUncheckedCreateWithoutDomainGroupInput[]
+    connectOrCreate?: RedirectTestCreateOrConnectWithoutDomainGroupInput | RedirectTestCreateOrConnectWithoutDomainGroupInput[]
+    upsert?: RedirectTestUpsertWithWhereUniqueWithoutDomainGroupInput | RedirectTestUpsertWithWhereUniqueWithoutDomainGroupInput[]
+    createMany?: RedirectTestCreateManyDomainGroupInputEnvelope
+    set?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    disconnect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    delete?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    connect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
+    update?: RedirectTestUpdateWithWhereUniqueWithoutDomainGroupInput | RedirectTestUpdateWithWhereUniqueWithoutDomainGroupInput[]
+    updateMany?: RedirectTestUpdateManyWithWhereWithoutDomainGroupInput | RedirectTestUpdateManyWithWhereWithoutDomainGroupInput[]
+    deleteMany?: RedirectTestScalarWhereInput | RedirectTestScalarWhereInput[]
   }
 
   export type DomainGroupCreateNestedOneWithoutDomainsInput = {
@@ -10265,6 +11894,34 @@ export namespace Prisma {
     upsert?: DomainGroupUpsertWithoutRedirectRulesInput
     connect?: DomainGroupWhereUniqueInput
     update?: XOR<XOR<DomainGroupUpdateToOneWithWhereWithoutRedirectRulesInput, DomainGroupUpdateWithoutRedirectRulesInput>, DomainGroupUncheckedUpdateWithoutRedirectRulesInput>
+  }
+
+  export type OrganizationCreateNestedOneWithoutRedirectTestsInput = {
+    create?: XOR<OrganizationCreateWithoutRedirectTestsInput, OrganizationUncheckedCreateWithoutRedirectTestsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutRedirectTestsInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type DomainGroupCreateNestedOneWithoutRedirectTestsInput = {
+    create?: XOR<DomainGroupCreateWithoutRedirectTestsInput, DomainGroupUncheckedCreateWithoutRedirectTestsInput>
+    connectOrCreate?: DomainGroupCreateOrConnectWithoutRedirectTestsInput
+    connect?: DomainGroupWhereUniqueInput
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutRedirectTestsNestedInput = {
+    create?: XOR<OrganizationCreateWithoutRedirectTestsInput, OrganizationUncheckedCreateWithoutRedirectTestsInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutRedirectTestsInput
+    upsert?: OrganizationUpsertWithoutRedirectTestsInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutRedirectTestsInput, OrganizationUpdateWithoutRedirectTestsInput>, OrganizationUncheckedUpdateWithoutRedirectTestsInput>
+  }
+
+  export type DomainGroupUpdateOneRequiredWithoutRedirectTestsNestedInput = {
+    create?: XOR<DomainGroupCreateWithoutRedirectTestsInput, DomainGroupUncheckedCreateWithoutRedirectTestsInput>
+    connectOrCreate?: DomainGroupCreateOrConnectWithoutRedirectTestsInput
+    upsert?: DomainGroupUpsertWithoutRedirectTestsInput
+    connect?: DomainGroupWhereUniqueInput
+    update?: XOR<XOR<DomainGroupUpdateToOneWithWhereWithoutRedirectTestsInput, DomainGroupUpdateWithoutRedirectTestsInput>, DomainGroupUncheckedUpdateWithoutRedirectTestsInput>
   }
 
   export type OrganizationCreateNestedOneWithoutCheckoutSessionsInput = {
@@ -10468,6 +12125,29 @@ export namespace Prisma {
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
   }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type NestedEnumBillingCheckoutStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.BillingCheckoutStatus | EnumBillingCheckoutStatusFieldRefInput<$PrismaModel>
@@ -10557,6 +12237,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     domains?: DomainCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
+    redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
   }
 
   export type DomainGroupUncheckedCreateWithoutOrganizationInput = {
@@ -10567,6 +12248,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
+    redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
   }
 
   export type DomainGroupCreateOrConnectWithoutOrganizationInput = {
@@ -10614,6 +12296,36 @@ export namespace Prisma {
 
   export type BillingCheckoutSessionCreateManyOrganizationInputEnvelope = {
     data: BillingCheckoutSessionCreateManyOrganizationInput | BillingCheckoutSessionCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type RedirectTestCreateWithoutOrganizationInput = {
+    id: string
+    pathWithQuery: string
+    requestData: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    domainGroup: DomainGroupCreateNestedOneWithoutRedirectTestsInput
+  }
+
+  export type RedirectTestUncheckedCreateWithoutOrganizationInput = {
+    id: string
+    domainGroupId: string
+    pathWithQuery: string
+    requestData: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type RedirectTestCreateOrConnectWithoutOrganizationInput = {
+    where: RedirectTestWhereUniqueInput
+    create: XOR<RedirectTestCreateWithoutOrganizationInput, RedirectTestUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type RedirectTestCreateManyOrganizationInputEnvelope = {
+    data: RedirectTestCreateManyOrganizationInput | RedirectTestCreateManyOrganizationInput[]
     skipDuplicates?: boolean
   }
 
@@ -10709,6 +12421,36 @@ export namespace Prisma {
     metadata?: JsonNullableFilter<"BillingCheckoutSession">
   }
 
+  export type RedirectTestUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: RedirectTestWhereUniqueInput
+    update: XOR<RedirectTestUpdateWithoutOrganizationInput, RedirectTestUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<RedirectTestCreateWithoutOrganizationInput, RedirectTestUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type RedirectTestUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: RedirectTestWhereUniqueInput
+    data: XOR<RedirectTestUpdateWithoutOrganizationInput, RedirectTestUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type RedirectTestUpdateManyWithWhereWithoutOrganizationInput = {
+    where: RedirectTestScalarWhereInput
+    data: XOR<RedirectTestUpdateManyMutationInput, RedirectTestUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
+  export type RedirectTestScalarWhereInput = {
+    AND?: RedirectTestScalarWhereInput | RedirectTestScalarWhereInput[]
+    OR?: RedirectTestScalarWhereInput[]
+    NOT?: RedirectTestScalarWhereInput | RedirectTestScalarWhereInput[]
+    id?: StringFilter<"RedirectTest"> | string
+    organizationId?: StringFilter<"RedirectTest"> | string
+    domainGroupId?: StringFilter<"RedirectTest"> | string
+    pathWithQuery?: StringFilter<"RedirectTest"> | string
+    requestData?: JsonFilter<"RedirectTest">
+    createdAt?: DateTimeFilter<"RedirectTest"> | Date | string
+    updatedAt?: DateTimeFilter<"RedirectTest"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"RedirectTest"> | Date | string | null
+  }
+
   export type OrganizationCreateWithoutUsersInput = {
     id: string
     name: string
@@ -10718,6 +12460,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
+    redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutUsersInput = {
@@ -10729,6 +12472,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutUsersInput = {
@@ -10794,6 +12538,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
+    redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutUsersInput = {
@@ -10805,6 +12550,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type BillingCheckoutSessionUpsertWithWhereUniqueWithoutUserInput = {
@@ -10832,6 +12578,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
+    redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutDomainGroupsInput = {
@@ -10843,6 +12590,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutDomainGroupsInput = {
@@ -10910,6 +12658,36 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type RedirectTestCreateWithoutDomainGroupInput = {
+    id: string
+    pathWithQuery: string
+    requestData: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    organization: OrganizationCreateNestedOneWithoutRedirectTestsInput
+  }
+
+  export type RedirectTestUncheckedCreateWithoutDomainGroupInput = {
+    id: string
+    organizationId: string
+    pathWithQuery: string
+    requestData: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type RedirectTestCreateOrConnectWithoutDomainGroupInput = {
+    where: RedirectTestWhereUniqueInput
+    create: XOR<RedirectTestCreateWithoutDomainGroupInput, RedirectTestUncheckedCreateWithoutDomainGroupInput>
+  }
+
+  export type RedirectTestCreateManyDomainGroupInputEnvelope = {
+    data: RedirectTestCreateManyDomainGroupInput | RedirectTestCreateManyDomainGroupInput[]
+    skipDuplicates?: boolean
+  }
+
   export type OrganizationUpsertWithoutDomainGroupsInput = {
     update: XOR<OrganizationUpdateWithoutDomainGroupsInput, OrganizationUncheckedUpdateWithoutDomainGroupsInput>
     create: XOR<OrganizationCreateWithoutDomainGroupsInput, OrganizationUncheckedCreateWithoutDomainGroupsInput>
@@ -10930,6 +12708,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
+    redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutDomainGroupsInput = {
@@ -10941,6 +12720,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type DomainUpsertWithWhereUniqueWithoutDomainGroupInput = {
@@ -11003,6 +12783,22 @@ export namespace Prisma {
     deletedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
   }
 
+  export type RedirectTestUpsertWithWhereUniqueWithoutDomainGroupInput = {
+    where: RedirectTestWhereUniqueInput
+    update: XOR<RedirectTestUpdateWithoutDomainGroupInput, RedirectTestUncheckedUpdateWithoutDomainGroupInput>
+    create: XOR<RedirectTestCreateWithoutDomainGroupInput, RedirectTestUncheckedCreateWithoutDomainGroupInput>
+  }
+
+  export type RedirectTestUpdateWithWhereUniqueWithoutDomainGroupInput = {
+    where: RedirectTestWhereUniqueInput
+    data: XOR<RedirectTestUpdateWithoutDomainGroupInput, RedirectTestUncheckedUpdateWithoutDomainGroupInput>
+  }
+
+  export type RedirectTestUpdateManyWithWhereWithoutDomainGroupInput = {
+    where: RedirectTestScalarWhereInput
+    data: XOR<RedirectTestUpdateManyMutationInput, RedirectTestUncheckedUpdateManyWithoutDomainGroupInput>
+  }
+
   export type DomainGroupCreateWithoutDomainsInput = {
     id: string
     name: string
@@ -11011,6 +12807,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
     redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
+    redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
   }
 
   export type DomainGroupUncheckedCreateWithoutDomainsInput = {
@@ -11021,6 +12818,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
+    redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
   }
 
   export type DomainGroupCreateOrConnectWithoutDomainsInput = {
@@ -11047,6 +12845,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
     redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
+    redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
   }
 
   export type DomainGroupUncheckedUpdateWithoutDomainsInput = {
@@ -11057,6 +12856,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
+    redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
 
   export type DomainGroupCreateWithoutRedirectRulesInput = {
@@ -11067,6 +12867,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
     domains?: DomainCreateNestedManyWithoutDomainGroupInput
+    redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
   }
 
   export type DomainGroupUncheckedCreateWithoutRedirectRulesInput = {
@@ -11077,6 +12878,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
+    redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
   }
 
   export type DomainGroupCreateOrConnectWithoutRedirectRulesInput = {
@@ -11103,6 +12905,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
     domains?: DomainUpdateManyWithoutDomainGroupNestedInput
+    redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
   }
 
   export type DomainGroupUncheckedUpdateWithoutRedirectRulesInput = {
@@ -11113,6 +12916,131 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
+    redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
+  }
+
+  export type OrganizationCreateWithoutRedirectTestsInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserCreateNestedManyWithoutOrganizationInput
+    domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
+    checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutRedirectTestsInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
+    domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
+    checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutRedirectTestsInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutRedirectTestsInput, OrganizationUncheckedCreateWithoutRedirectTestsInput>
+  }
+
+  export type DomainGroupCreateWithoutRedirectTestsInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
+    domains?: DomainCreateNestedManyWithoutDomainGroupInput
+    redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
+  }
+
+  export type DomainGroupUncheckedCreateWithoutRedirectTestsInput = {
+    id: string
+    name: string
+    organizationId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
+    redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
+  }
+
+  export type DomainGroupCreateOrConnectWithoutRedirectTestsInput = {
+    where: DomainGroupWhereUniqueInput
+    create: XOR<DomainGroupCreateWithoutRedirectTestsInput, DomainGroupUncheckedCreateWithoutRedirectTestsInput>
+  }
+
+  export type OrganizationUpsertWithoutRedirectTestsInput = {
+    update: XOR<OrganizationUpdateWithoutRedirectTestsInput, OrganizationUncheckedUpdateWithoutRedirectTestsInput>
+    create: XOR<OrganizationCreateWithoutRedirectTestsInput, OrganizationUncheckedCreateWithoutRedirectTestsInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutRedirectTestsInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutRedirectTestsInput, OrganizationUncheckedUpdateWithoutRedirectTestsInput>
+  }
+
+  export type OrganizationUpdateWithoutRedirectTestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserUpdateManyWithoutOrganizationNestedInput
+    domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
+    checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutRedirectTestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
+    domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
+    checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type DomainGroupUpsertWithoutRedirectTestsInput = {
+    update: XOR<DomainGroupUpdateWithoutRedirectTestsInput, DomainGroupUncheckedUpdateWithoutRedirectTestsInput>
+    create: XOR<DomainGroupCreateWithoutRedirectTestsInput, DomainGroupUncheckedCreateWithoutRedirectTestsInput>
+    where?: DomainGroupWhereInput
+  }
+
+  export type DomainGroupUpdateToOneWithWhereWithoutRedirectTestsInput = {
+    where?: DomainGroupWhereInput
+    data: XOR<DomainGroupUpdateWithoutRedirectTestsInput, DomainGroupUncheckedUpdateWithoutRedirectTestsInput>
+  }
+
+  export type DomainGroupUpdateWithoutRedirectTestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
+    domains?: DomainUpdateManyWithoutDomainGroupNestedInput
+    redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
+  }
+
+  export type DomainGroupUncheckedUpdateWithoutRedirectTestsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
+    redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
 
   export type OrganizationCreateWithoutCheckoutSessionsInput = {
@@ -11124,6 +13052,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
+    redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCheckoutSessionsInput = {
@@ -11135,6 +13064,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCheckoutSessionsInput = {
@@ -11189,6 +13119,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
+    redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCheckoutSessionsInput = {
@@ -11200,6 +13131,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutCheckoutSessionsInput = {
@@ -11267,6 +13199,16 @@ export namespace Prisma {
     metadata?: NullableJsonNullValueInput | InputJsonValue
   }
 
+  export type RedirectTestCreateManyOrganizationInput = {
+    id: string
+    domainGroupId: string
+    pathWithQuery: string
+    requestData: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
   export type UserUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
@@ -11307,6 +13249,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
+    redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
   }
 
   export type DomainGroupUncheckedUpdateWithoutOrganizationInput = {
@@ -11317,6 +13260,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
+    redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
 
   export type DomainGroupUncheckedUpdateManyWithoutOrganizationInput = {
@@ -11367,6 +13311,36 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type RedirectTestUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    pathWithQuery?: StringFieldUpdateOperationsInput | string
+    requestData?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    domainGroup?: DomainGroupUpdateOneRequiredWithoutRedirectTestsNestedInput
+  }
+
+  export type RedirectTestUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    pathWithQuery?: StringFieldUpdateOperationsInput | string
+    requestData?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type RedirectTestUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    pathWithQuery?: StringFieldUpdateOperationsInput | string
+    requestData?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type BillingCheckoutSessionCreateManyUserInput = {
@@ -11445,6 +13419,16 @@ export namespace Prisma {
     deletedAt?: Date | string | null
   }
 
+  export type RedirectTestCreateManyDomainGroupInput = {
+    id: string
+    organizationId: string
+    pathWithQuery: string
+    requestData: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
   export type DomainUpdateWithoutDomainGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -11500,6 +13484,36 @@ export namespace Prisma {
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type RedirectTestUpdateWithoutDomainGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    pathWithQuery?: StringFieldUpdateOperationsInput | string
+    requestData?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    organization?: OrganizationUpdateOneRequiredWithoutRedirectTestsNestedInput
+  }
+
+  export type RedirectTestUncheckedUpdateWithoutDomainGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    pathWithQuery?: StringFieldUpdateOperationsInput | string
+    requestData?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type RedirectTestUncheckedUpdateManyWithoutDomainGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    pathWithQuery?: StringFieldUpdateOperationsInput | string
+    requestData?: JsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

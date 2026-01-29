@@ -29,6 +29,12 @@ const NAV_ITEMS: NavItem[] = [
     route: '/redirect-rules',
     icon: 'swap_horiz',
     requiresDomainGroups: true
+  },
+  {
+    label: 'Tests',
+    route: '/tests',
+    icon: 'science',
+    requiresDomainGroups: true
   }
 ];
 

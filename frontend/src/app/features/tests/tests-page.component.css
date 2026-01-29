@@ -1,0 +1,13 @@
+.test-actions button {
+  min-width: 140px;
+}
+
+@media (max-width: 1023px) {
+  .test-actions {
+    justify-content: stretch;
+  }
+
+  .test-actions button {
+    width: 100%;
+  }
+}

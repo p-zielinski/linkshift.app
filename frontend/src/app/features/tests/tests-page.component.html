@@ -1,0 +1,91 @@
+<app-page-header
+  title="Tests"
+  subtitle="Quickly simulate redirect outcomes without visiting the URL."
+></app-page-header>
+
+<mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
+  <div class="grid gap-4 lg:grid-cols-[1.1fr_1.1fr_0.8fr_auto]">
+    <mat-form-field appearance="outline">
+      <mat-label>Domain group</mat-label>
+      <mat-select [formField]="form.domainGroupId">
+        @for (group of domainGroups(); track group.id) {
+          <mat-option [value]="group.id">{{ group.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Path</mat-label>
+      <input
+        matInput
+        type="text"
+        placeholder="/pricing"
+        [formField]="form.path"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Query</mat-label>
+      <input
+        matInput
+        type="text"
+        placeholder="utm_source=ads"
+        [formField]="form.query"
+      />
+    </mat-form-field>
+
+    <div class="test-actions flex items-center justify-end">
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        [disabled]="!canRun()"
+        (click)="runTest()"
+      >
+        <mat-icon>science</mat-icon>
+        Run test
+      </button>
+    </div>
+  </div>
+
+  @if (!hasDomainGroups()) {
+    <div class="mt-3 text-[12px] text-app-muted">
+      Create a domain group to start running tests.
+    </div>
+  }
+</mat-card>
+
+<mat-card class="mt-5 rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
+  <h3 class="m-0 text-lg font-semibold">Latest result</h3>
+  <div class="my-4 h-px bg-app-divider"></div>
+  @if (result(); as testResult) {
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="rounded-2xl bg-app-accent-soft p-4">
+        <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
+          Status code
+        </div>
+        <div class="text-[22px] font-semibold">
+          {{ testResult.statusCode }}
+        </div>
+        <div class="text-[13px] text-app-muted">
+          {{ testResult.matched ? 'Redirect matched' : 'No redirect found' }}
+        </div>
+      </div>
+      <div class="rounded-2xl bg-app-accent-soft p-4">
+        <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
+          Target
+        </div>
+        <div class="text-[14px] font-semibold text-app-foreground break-all">
+          {{ testResult.target || 'No matching target.' }}
+        </div>
+        <div class="text-[12px] text-app-muted">
+          Host: {{ testResult.hostname }}
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="text-[13px] text-app-muted">
+      Run a test to see where the request would redirect.
+    </div>
+  }
+</mat-card>

@@ -171,6 +171,17 @@ exports.Prisma.RedirectRuleScalarFieldEnum = {
   deletedAt: 'deletedAt'
 };
 
+exports.Prisma.RedirectTestScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  domainGroupId: 'domainGroupId',
+  pathWithQuery: 'pathWithQuery',
+  requestData: 'requestData',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
 exports.Prisma.BillingCheckoutSessionScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -193,6 +204,10 @@ exports.Prisma.SortOrder = {
 
 exports.Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -235,6 +250,7 @@ exports.Prisma.ModelName = {
   DomainGroup: 'DomainGroup',
   Domain: 'Domain',
   RedirectRule: 'RedirectRule',
+  RedirectTest: 'RedirectTest',
   BillingCheckoutSession: 'BillingCheckoutSession'
 };
 

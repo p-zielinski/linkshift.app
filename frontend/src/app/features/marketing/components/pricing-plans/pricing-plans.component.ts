@@ -27,7 +27,13 @@ const PRICING_PLANS: PricingPlan[] = [
     description: 'For proof-of-concept routing and single-brand setups.',
     price: '0 EUR',
     priceNote: 'per month',
-    limits: ['1 domain group', '1 domain', '15 rules', '10 redirects/min'],
+    limits: [
+      '1 domain group',
+      '1 domain',
+      '15 rules',
+      '30 tests',
+      '10 redirects/min',
+    ],
     features: [
       'Regex and placeholder rules',
       'Domain group governance',
@@ -47,6 +53,7 @@ const PRICING_PLANS: PricingPlan[] = [
       '1 domain group',
       '10 domains',
       '250 rules',
+      '500 tests',
       '50 redirects/min',
     ],
     features: [
@@ -70,6 +77,7 @@ const PRICING_PLANS: PricingPlan[] = [
       '2 domain groups',
       '15 domains',
       '500 rules',
+      '1000 tests',
       '100 redirects/min',
     ],
     features: [
@@ -91,6 +99,7 @@ const PRICING_PLANS: PricingPlan[] = [
     limits: [
       'Tailored limits',
       'Flexible billing',
+      'Custom test suites',
       'Custom onboarding',
       'Dedicated SLA',
     ],

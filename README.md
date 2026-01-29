@@ -1,0 +1,129 @@
+# Redirect Master
+
+Redirect Master is a multi-tenant redirection platform with a NestJS backend,
+Angular frontend, and shared models. It includes plan-based limits, billing via
+Lemon Squeezy, Redis-backed caching and rate limiting, and an ngrok-based local
+testing flow for webhooks and redirects.
+
+## Repository layout
+- `backend/`: NestJS API, billing, subscriptions, redirects, caching.
+- `frontend/`: Angular 21 UI (SSR-ready).
+- `shared/`: shared models and types used by backend and frontend.
+- `documentation.html`: end-user guide for redirect rule syntax.
+
+## Quick start (local)
+1) Start dependencies (Postgres + Redis) using Docker Compose:
+```bash
+docker compose up -d
+```
+
+2) Configure env files:
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+```
+
+3) Install dependencies:
+```bash
+cd backend && npm install
+cd ../frontend && npm install
+```
+
+4) Run backend:
+```bash
+cd backend
+npm run start:dev
+```
+`start:dev` runs migrations, starts NestJS in watch mode, and launches ngrok.
+Use `npm run start:dev-offline` if you do not want ngrok.
+
+5) Run frontend:
+```bash
+cd frontend
+npm run start
+```
+
+## Environment variables
+
+### Backend (`backend/.env`)
+Core:
+- `NODE_ENV`: `development` or `production`. Controls logging and security headers.
+- `PORT`: API port (default `3000`).
+- `API_HOSTNAME`: Hostname used to distinguish API traffic from redirect traffic.
+- `CORS_ORIGINS`: Comma-separated list of allowed frontend origins.
+- `TRUST_PROXY`: Set `true` behind a proxy or load balancer so IP-based logic is correct.
+- `HOST_ID`: Optional fingerprint used for CUIDs; keep stable per environment.
+
+Database:
+- `DATABASE_URL`: Postgres connection string used by Prisma.
+
+Redis:
+- `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`, `REDIS_PASSWORD`: Redis connection.
+  Redis is used for caching, rate limiting, and token blacklisting.
+
+Auth:
+- `JWT_SECRET`: Access token signing secret.
+- `JWT_REFRESH_SECRET`: Refresh token signing secret.
+- `JWT_REFRESH_EXPIRES_IN`: Refresh token TTL (e.g. `7d`, `12h`).
+  Refresh tokens are stored in an HttpOnly cookie.
+
+Billing (Lemon Squeezy):
+- `LEMON_SQUEEZY_API_KEY`: API token.
+- `LEMON_SQUEEZY_STORE_ID`: Store identifier.
+- `LEMON_SQUEEZY_WEBHOOK_SECRET`: Webhook signing secret.
+- `LEMON_SQUEEZY_SUCCESS_URL`: Base redirect URL after checkout.
+- `LEMON_SQUEEZY_CANCEL_URL`: Base redirect URL when checkout is canceled.
+  The app appends `checkout_session=<id>` to both URLs automatically.
+- `LEMON_SQUEEZY_VARIANT_STARTER_ID`: Variant ID for the Starter plan.
+- `LEMON_SQUEEZY_VARIANT_PRO_ID`: Variant ID for the Pro plan.
+
+Ngrok (local dev only):
+- `NGROK_AUTH_TOKEN`: Ngrok auth token used by `start:dev`.
+- `NGROK_URL`: Automatically injected by the ngrok wrapper.
+- `DEV_NGROK_ORG_ID`: Organization to receive the ngrok domain.
+- `DEV_NGROK_ORG_EMAIL`: Alternative to org ID (owner email).
+- `DEV_NGROK_DOMAIN_GROUP_ID`: Optional domain group to attach the ngrok domain.
+  On each dev startup, any existing `*ngrok*` domains for that org are removed
+  and replaced with the new ngrok hostname.
+
+### Frontend (`frontend/.env`)
+- `PORT`: SSR server port (when running `serve:ssr:frontend`).
+- `APP_API_BASE_URL`: Base URL for API calls, exposed to the browser.
+
+## Docker Compose defaults
+The provided `docker-compose.yml` exposes:
+- Postgres on port `5454`
+- Redis on port `6767`
+
+If you use Docker Compose, update `DATABASE_URL` and `REDIS_PORT` accordingly.
+
+## Billing flow (high level)
+- Checkout creates a local `BillingCheckoutSession` record.
+- Lemon Squeezy webhooks update subscription status.
+- The UI shows a "Processing" dialog and polls the backend for the session status.
+
+## Testing
+Backend:
+```bash
+cd backend
+npm test
+```
+
+Frontend:
+```bash
+cd frontend
+npm run test
+```
+
+## Formatting and pre-commit
+Angular templates are formatted and linted via ESLint + Prettier:
+```bash
+cd frontend
+npm run format:templates
+```
+
+Pre-commit runs template formatting on staged HTML via Husky + lint-staged.
+
+## Additional docs
+- `documentation.html` contains the redirect rules syntax guide.
+- `backend/README.md` documents the API endpoints.

@@ -104,6 +104,13 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     }
     return usage.rules >= this.limits().maxTotalRules;
   });
+  readonly testLimitReached = computed(() => {
+    const usage = this.usage();
+    if (!usage) {
+      return false;
+    }
+    return usage.tests >= this.limits().maxTotalTests;
+  });
 
   readonly overLimitDetails = computed(() => {
     const usage = this.usage();

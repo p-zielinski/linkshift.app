@@ -5,7 +5,9 @@ import type {
   RedirectRule,
   CreateRedirectRuleDto,
   UpdateRedirectRuleDto,
-  RedirectRuleListQuery
+  RedirectRuleListQuery,
+  RedirectSimulationEntry,
+  RedirectSimulationResponse
 } from '../models/redirect-rule.model';
 import type { QueryResult } from '../models/query-result.model';
 import { buildHttpParams } from './api.utils';
@@ -42,5 +44,11 @@ export class RedirectRulesApiService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  simulate(entries: RedirectSimulationEntry[]): Observable<RedirectSimulationResponse> {
+    return this.http.post<RedirectSimulationResponse>(`${this.apiUrl}/simulate`, {
+      entries
+    });
   }
 }

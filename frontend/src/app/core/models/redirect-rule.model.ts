@@ -38,3 +38,29 @@ export type RedirectRuleListQuery = {
   startAfterId?: string;
   search?: string;
 };
+
+export type RedirectSimulationEntry = {
+  domainGroupId: string;
+  path: string;
+  method?: HttpMethod;
+  protocol?: 'http' | 'https';
+  ip?: string;
+  userAgent?: string;
+  headers?: Record<string, string>;
+  query?: Record<string, string | string[] | number | boolean>;
+};
+
+export type RedirectSimulationResult = {
+  index: number;
+  domainGroupId: string;
+  method: string;
+  path: string;
+  hostname: string;
+  matched: boolean;
+  statusCode: number;
+  target: string | null;
+};
+
+export type RedirectSimulationResponse = {
+  results: RedirectSimulationResult[];
+};

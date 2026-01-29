@@ -25,10 +25,13 @@ Payload:
   email: string;            // Valid email format
   password: string;         // Min. 8 characters
   organizationName: string; // Min. 1 character
+  plan?: 'FREE' | 'STARTER' | 'PRO';
 }
 ```
 
-Returns: `ApiResponse<{ user: User, accessToken: string, refreshToken: string }>`
+Returns: `ApiResponse<{ user: User, accessToken: string }>`
+Notes:
+- Refresh token is set as an HttpOnly cookie (`refresh_token`) scoped to `/api/v1/auth/refresh`.
 
 #### Login
 `POST /auth/login`
@@ -39,12 +42,20 @@ Payload:
     password: string;
 }
 ```
-Returns: `ApiResponse<{ user: User, accessToken: string, refreshToken: string }>`
+Returns: `ApiResponse<{ user: User, accessToken: string }>`
+Notes:
+- Refresh token is set as an HttpOnly cookie (`refresh_token`) scoped to `/api/v1/auth/refresh`.
 
 #### Token Refresh
 `POST /auth/refresh`
-Payload: `{ refreshToken: string }`
-Returns: `ApiResponse<{ accessToken: string, refreshToken: string }>`
+Payload: `{ refreshToken?: string }` (optional if the cookie is present)
+Returns: `ApiResponse<{ accessToken: string }>`
+Notes:
+- Refresh token is rotated and sent back via HttpOnly cookie.
+
+#### Logout
+`POST /auth/logout`
+Clears the refresh token cookie.
 
 ### 3. Domain Groups Module (/domain-groups)
 

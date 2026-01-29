@@ -46,6 +46,7 @@ model Organization {
   users        User[]
   domainGroups DomainGroup[]
   checkoutSessions BillingCheckoutSession[]
+  redirectTests RedirectTest[]
 
   @@index([deletedAt])
 }
@@ -81,6 +82,7 @@ model DomainGroup {
   organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   domains       Domain[]
   redirectRules RedirectRule[]
+  redirectTests RedirectTest[]
 
   @@index([organizationId])
   @@index([deletedAt])
@@ -127,6 +129,28 @@ model RedirectRule {
 
     // Optional but recommended for performance of list queries
   @@index([domainGroupId, deletedAt, priority, createdAt, id])
+}
+
+// RedirectTest entity - stored redirect simulations
+model RedirectTest {
+  id             String   @id
+  organizationId String
+  domainGroupId  String
+  pathWithQuery  String
+  requestData    Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  domainGroup  DomainGroup  @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([domainGroupId])
+  @@index([deletedAt])
+  @@index([pathWithQuery])
+  @@unique([createdAt, id])
+  @@index([organizationId, deletedAt, createdAt, id])
 }
 
 model BillingCheckoutSession {

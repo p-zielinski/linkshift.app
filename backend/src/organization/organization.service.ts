@@ -152,6 +152,44 @@ export class OrganizationService {
   }
 
   /**
+   * Checks if the organization can create a new redirect test.
+   * Verifies both total organization limit and per-group limit.
+   */
+  async checkRedirectTestLimit(
+    organizationId: string,
+    domainGroupId: string,
+  ): Promise<void> {
+    const config = await this.getConfiguration(organizationId);
+    const limits = this.getEffectiveSubscription(config).limits;
+
+    const totalCount = await this.prisma.redirectTest.count({
+      where: {
+        organizationId,
+        deletedAt: null,
+      },
+    });
+
+    if (totalCount >= limits.maxTotalTests) {
+      this.throwLimitError(
+        `Total redirect test limit reached (${limits.maxTotalTests} max). Please upgrade your plan.`,
+      );
+    }
+
+    const groupCount = await this.prisma.redirectTest.count({
+      where: {
+        domainGroupId,
+        deletedAt: null,
+      },
+    });
+
+    if (groupCount >= limits.maxTestsPerGroup) {
+      this.throwLimitError(
+        `Redirect test limit for this group reached (${limits.maxTestsPerGroup} max). Please upgrade your plan.`,
+      );
+    }
+  }
+
+  /**
    * Checks if the organization is allowed to process redirects.
    * Throws PaymentRequiredError if the subscription is suspended or over limits.
    */
@@ -289,8 +327,9 @@ export class OrganizationService {
     domainGroups: number;
     domains: number;
     rules: number;
+    tests: number;
   }> {
-    const [domainGroups, domains, rules] = await Promise.all([
+    const [domainGroups, domains, rules, tests] = await Promise.all([
       this.prisma.domainGroup.count({
         where: { organizationId, deletedAt: null },
       }),
@@ -306,9 +345,15 @@ export class OrganizationService {
           deletedAt: null,
         },
       }),
+      this.prisma.redirectTest.count({
+        where: {
+          organizationId,
+          deletedAt: null,
+        },
+      }),
     ]);
 
-    return { domainGroups, domains, rules };
+    return { domainGroups, domains, rules, tests };
   }
 
   private throwLimitError(details: string): never {

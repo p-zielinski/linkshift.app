@@ -18,6 +18,7 @@ export enum AppEntity {
   DomainGroup = 'DomainGroup',
   Domain = 'Domain',
   RedirectRule = 'RedirectRule',
+  RedirectTest = 'RedirectTest',
   CheckoutSession = 'CheckoutSession',
   Request = 'Request',
 }
@@ -32,6 +33,7 @@ export const ENTITY_PREFIXES: Record<AppEntity, string> = {
   [AppEntity.DomainGroup]: 'dmg',
   [AppEntity.Domain]: 'dom',
   [AppEntity.RedirectRule]: 'rule',
+  [AppEntity.RedirectTest]: 'tst',
   [AppEntity.CheckoutSession]: 'chk',
   [AppEntity.Request]: 'req',
 };

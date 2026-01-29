@@ -87,6 +87,28 @@ export interface RedirectRule {
   matchMethod?: HttpMethod[];
 }
 
+type RedirectSimulationEntry = {
+  domainGroupId: string;
+  path: string;
+  method?: HttpMethod;
+  protocol?: 'http' | 'https';
+  ip?: string;
+  userAgent?: string;
+  headers?: Record<string, string>;
+  query?: Record<string, string | string[] | number | boolean>;
+};
+
+type RedirectSimulationResult = {
+  index: number;
+  domainGroupId: string;
+  method: string;
+  path: string;
+  hostname: string;
+  matched: boolean;
+  statusCode: number;
+  target: string | null;
+};
+
 type Manipulator = (val: string) => string;
 
 const ALLOWED_MATCH_METHODS = new Set<string>(Object.values(HttpMethod));
@@ -930,27 +952,8 @@ export class RedirectService {
     }
 
     // 3. Convert database rules to RedirectRule format
-    const rules: RedirectRule[] = domain.domainGroup.redirectRules.map(
-      (rule) => {
-        // Check if source is a regex pattern (starts with / and has closing /)
-        if (rule.source.startsWith('/') && rule.source.lastIndexOf('/') > 0) {
-          const lastSlashIndex = rule.source.lastIndexOf('/');
-          const pattern = rule.source.substring(1, lastSlashIndex);
-          const flags = rule.source.substring(lastSlashIndex + 1);
-          return {
-            source: new RegExp(pattern, flags),
-            destination: rule.destination,
-            statusCode: rule.statusCode,
-            matchMethod: rule.matchMethod,
-          };
-        }
-        return {
-          source: rule.source,
-          destination: rule.destination,
-          statusCode: rule.statusCode,
-          matchMethod: rule.matchMethod,
-        };
-      },
+    const rules: RedirectRule[] = this.mapStoredRules(
+      domain.domainGroup.redirectRules,
     );
 
     // 4. Pass rules to getRedirect to find a match
@@ -975,6 +978,97 @@ export class RedirectService {
     return match ? match.target : null;
   }
 
+  async simulateRedirects(
+    organizationId: string,
+    entries: RedirectSimulationEntry[],
+  ): Promise<{ results: RedirectSimulationResult[] }> {
+    await this.organizationService.checkRedirectionAccess(organizationId);
+
+    const domainGroupIds = [...new Set(entries.map((entry) => entry.domainGroupId))];
+    const domainGroups = await this.prisma.domainGroup.findMany({
+      where: {
+        id: { in: domainGroupIds },
+        organizationId,
+        deletedAt: null,
+      },
+      include: {
+        redirectRules: {
+          where: { deletedAt: null },
+          orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+        },
+        domains: {
+          where: { deletedAt: null },
+          orderBy: { createdAt: 'asc' },
+        },
+      },
+    });
+
+    if (domainGroups.length !== domainGroupIds.length) {
+      const foundIds = new Set(domainGroups.map((group) => group.id));
+      const missing = domainGroupIds.filter((id) => !foundIds.has(id));
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: `Domain group(s) not found or not owned by organization: ${missing.join(', ')}`,
+          relatedObject: 'DomainGroup',
+        }),
+      );
+    }
+
+    const groupMap = new Map(domainGroups.map((group) => [group.id, group]));
+
+    const results = entries.map((entry, index) => {
+      const group = groupMap.get(entry.domainGroupId);
+      if (!group) {
+        return {
+          index,
+          domainGroupId: entry.domainGroupId,
+          method: entry.method ?? 'GET',
+          path: entry.path,
+          hostname: '',
+          matched: false,
+          statusCode: 400,
+          target: null,
+        };
+      }
+
+      const hostname = this.selectSimulationHostname(
+        group.domains.map((domain) => domain.name),
+        entry.domainGroupId,
+      );
+      const request = this.buildSimulationRequest(entry, hostname);
+      const rules = this.mapStoredRules(group.redirectRules);
+      const match = this.getRedirectMatch(request, rules);
+
+      if (match) {
+        const statusCode = match.rule.statusCode ?? 302;
+        return {
+          index,
+          domainGroupId: entry.domainGroupId,
+          method: request.method,
+          path: request.path,
+          hostname,
+          matched: true,
+          statusCode,
+          target: match.target,
+        };
+      }
+
+      return {
+        index,
+        domainGroupId: entry.domainGroupId,
+        method: request.method,
+        path: request.path,
+        hostname,
+        matched: false,
+        statusCode: 404,
+        target: null,
+      };
+    });
+
+    return { results };
+  }
+
   private getRedirectMatch(
     req: Request,
     rules: RedirectRule[],
@@ -990,6 +1084,125 @@ export class RedirectService {
     }
 
     return null;
+  }
+
+  private mapStoredRules(
+    rules: {
+      source: string;
+      destination: string;
+      statusCode: number;
+      matchMethod: HttpMethod[];
+    }[],
+  ): RedirectRule[] {
+    return rules.map((rule) => {
+      if (rule.source.startsWith('/') && rule.source.lastIndexOf('/') > 0) {
+        const lastSlashIndex = rule.source.lastIndexOf('/');
+        const pattern = rule.source.substring(1, lastSlashIndex);
+        const flags = rule.source.substring(lastSlashIndex + 1);
+        return {
+          source: new RegExp(pattern, flags),
+          destination: rule.destination,
+          statusCode: rule.statusCode,
+          matchMethod: rule.matchMethod,
+        };
+      }
+
+      return {
+        source: rule.source,
+        destination: rule.destination,
+        statusCode: rule.statusCode,
+        matchMethod: rule.matchMethod,
+      };
+    });
+  }
+
+  private selectSimulationHostname(
+    domains: string[],
+    domainGroupId: string,
+  ): string {
+    if (domains.length > 0) {
+      return domains[0];
+    }
+
+    const safeId = domainGroupId
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-');
+    return `group-${safeId}.local`;
+  }
+
+  private buildSimulationRequest(
+    entry: RedirectSimulationEntry,
+    hostname: string,
+  ): Request {
+    const headers = this.normalizeHeaders(entry.headers);
+    const userAgent = entry.userAgent ?? headers['user-agent'] ?? '';
+    const method = (entry.method ?? 'GET').toUpperCase();
+    const protocol = entry.protocol ?? 'https';
+    const ip = entry.ip ?? '127.0.0.1';
+    const { path, originalUrl } = this.normalizePath(entry.path, entry.query);
+
+    const get = (header: string) => {
+      const key = header.toLowerCase();
+      if (key === 'host') {
+        return hostname;
+      }
+      if (key === 'user-agent') {
+        return userAgent;
+      }
+      return headers[key];
+    };
+
+    return {
+      method,
+      protocol,
+      path,
+      originalUrl,
+      ip,
+      socket: { remoteAddress: ip },
+      get,
+    } as Request;
+  }
+
+  private normalizeHeaders(headers?: Record<string, string>): Record<string, string> {
+    if (!headers) {
+      return {};
+    }
+
+    return Object.entries(headers).reduce<Record<string, string>>(
+      (acc, [key, value]) => {
+        acc[key.toLowerCase()] = value;
+        return acc;
+      },
+      {},
+    );
+  }
+
+  private normalizePath(
+    path: string,
+    query?: Record<string, string | string[] | number | boolean>,
+  ): { path: string; originalUrl: string } {
+    const url = new URL(path, 'http://localhost');
+    const searchParams = new URLSearchParams(url.search);
+
+    if (query) {
+      for (const [key, value] of Object.entries(query)) {
+        if (Array.isArray(value)) {
+          value.forEach((item) => searchParams.append(key, item));
+        } else if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      }
+    }
+
+    const normalizedPath = url.pathname.startsWith('/')
+      ? url.pathname
+      : `/${url.pathname}`;
+    const queryString = searchParams.toString();
+    const originalUrl = queryString
+      ? `${normalizedPath}?${queryString}`
+      : normalizedPath;
+
+    return { path: normalizedPath, originalUrl };
   }
 
   private getRequestUrl(req: Request): URL {

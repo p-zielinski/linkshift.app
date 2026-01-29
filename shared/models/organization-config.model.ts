@@ -38,12 +38,20 @@ export class OrganizationSubscription {
     maxTotalDomains: 1,
     maxRulesPerGroup: 15,
     maxTotalRules: 15,
+    maxTestsPerGroup: 30,
+    maxTotalTests: 30,
     redirectionLimitPerMinute: 10,
   };
 
   constructor(partial?: Partial<OrganizationSubscription>) {
     if (partial) {
       Object.assign(this, partial);
+      if (partial.limits) {
+        this.limits = {
+          ...this.limits,
+          ...partial.limits,
+        };
+      }
       if (this.activeUntil && typeof this.activeUntil === 'string') {
         this.activeUntil = new Date(this.activeUntil);
       }

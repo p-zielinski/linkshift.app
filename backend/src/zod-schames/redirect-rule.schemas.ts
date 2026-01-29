@@ -89,8 +89,37 @@ export const ListRedirectRulesQuerySchema = z.object({
     .optional(),
 });
 
+const SimulationEntrySchema = z.object({
+  domainGroupId: z
+    .string()
+    .max(100)
+    .regex(getEntityIdRegex(AppEntity.DomainGroup), 'Invalid ID'),
+  path: z.string().min(1, 'Path is required'),
+  method: z.nativeEnum(HttpMethod).optional(),
+  protocol: z.enum(['http', 'https']).optional(),
+  ip: z.string().optional(),
+  userAgent: z.string().max(512).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
+  query: z
+    .record(
+      z.string(),
+      z.union([
+        z.string(),
+        z.array(z.string()),
+        z.number(),
+        z.boolean(),
+      ]),
+    )
+    .optional(),
+});
+
+export const SimulateRedirectsSchema = z.object({
+  entries: z.array(SimulationEntrySchema).min(1).max(20),
+});
+
 export type CreateRedirectRuleDto = z.infer<typeof CreateRedirectRuleSchema>;
 export type UpdateRedirectRuleDto = z.infer<typeof UpdateRedirectRuleSchema>;
 export type ListRedirectRulesQueryDto = z.infer<
   typeof ListRedirectRulesQuerySchema
 >;
+export type SimulateRedirectsDto = z.infer<typeof SimulateRedirectsSchema>;

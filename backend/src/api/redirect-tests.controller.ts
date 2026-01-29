@@ -1,29 +1,29 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
+  NotFoundException,
+  Param,
   Post,
   Put,
-  Delete,
-  Param,
-  Body,
   Query,
   UseGuards,
-  NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { RedirectService } from '../redirect/redirect.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
-import * as redirectRuleSchemas from '../zod-schames/redirect-rule.schemas';
+import { RedirectTestsService } from '../redirect-tests/redirect-tests.service';
 import { ZodPipe } from '../pipes/zod.pipe';
+import * as testSchemas from '../zod-schames/redirect-test.schemas';
 import { BadRequestError, NotFoundError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { throwHttpException } from '../utils';
 
-@Controller('api/v1/redirect-rules')
-export class RedirectRulesController {
+@Controller('api/v1/redirect-tests')
+export class RedirectTestsController {
   constructor(
-    private readonly redirectService: RedirectService,
+    private readonly redirectTestsService: RedirectTestsService,
     private readonly clsService: ClsService,
   ) {}
 
@@ -31,12 +31,11 @@ export class RedirectRulesController {
   @UseGuards(AuthGuard)
   async list(
     @User('organizationId') organizationId: string,
-    @Query(new ZodPipe(redirectRuleSchemas.ListRedirectRulesQuerySchema))
-    query: redirectRuleSchemas.ListRedirectRulesQueryDto,
+    @Query(new ZodPipe(testSchemas.ListRedirectTestsQuerySchema))
+    query: testSchemas.ListRedirectTestsQueryDto,
   ) {
     const { domainGroupId, ...pagination } = query;
-
-    return this.redirectService.listRules(
+    return this.redirectTestsService.listTests(
       organizationId,
       domainGroupId,
       pagination,
@@ -50,14 +49,14 @@ export class RedirectRulesController {
     @User('organizationId') organizationId: string,
   ) {
     try {
-      return this.redirectService.getRuleById(id, organizationId);
+      return this.redirectTestsService.getTestById(id, organizationId);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
           new NotFoundError({
             requestId: this.clsService.getId(),
             details: error.message,
-            relatedObject: 'RedirectRule',
+            relatedObject: 'RedirectTest',
             relatedObjectId: id,
           }),
         );
@@ -70,11 +69,11 @@ export class RedirectRulesController {
   @UseGuards(AuthGuard)
   async create(
     @User('organizationId') organizationId: string,
-    @Body(new ZodPipe(redirectRuleSchemas.CreateRedirectRuleSchema))
-    body: redirectRuleSchemas.CreateRedirectRuleDto,
+    @Body(new ZodPipe(testSchemas.CreateRedirectTestSchema))
+    body: testSchemas.CreateRedirectTestDto,
   ) {
     try {
-      return this.redirectService.createRule(organizationId, body);
+      return this.redirectTestsService.createTest(organizationId, body);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
@@ -98,36 +97,23 @@ export class RedirectRulesController {
     }
   }
 
-  @Post('simulate')
-  @UseGuards(AuthGuard)
-  async simulate(
-    @User('organizationId') organizationId: string,
-    @Body(new ZodPipe(redirectRuleSchemas.SimulateRedirectsSchema))
-    body: redirectRuleSchemas.SimulateRedirectsDto,
-  ) {
-    return this.redirectService.simulateRedirects(
-      organizationId,
-      body.entries,
-    );
-  }
-
   @Put(':id')
   @UseGuards(AuthGuard)
   async update(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
-    @Body(new ZodPipe(redirectRuleSchemas.UpdateRedirectRuleSchema))
-    body: redirectRuleSchemas.UpdateRedirectRuleDto,
+    @Body(new ZodPipe(testSchemas.UpdateRedirectTestSchema))
+    body: testSchemas.UpdateRedirectTestDto,
   ) {
     try {
-      return this.redirectService.updateRule(id, organizationId, body);
+      return this.redirectTestsService.updateTest(id, organizationId, body);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
           new NotFoundError({
             requestId: this.clsService.getId(),
             details: error.message,
-            relatedObject: 'RedirectRule',
+            relatedObject: 'RedirectTest',
             relatedObjectId: id,
           }),
         );
@@ -152,14 +138,15 @@ export class RedirectRulesController {
     @User('organizationId') organizationId: string,
   ) {
     try {
-      return this.redirectService.deleteRule(id, organizationId);
+      await this.redirectTestsService.deleteTest(id, organizationId);
+      return;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throwHttpException(
           new NotFoundError({
             requestId: this.clsService.getId(),
             details: error.message,
-            relatedObject: 'RedirectRule',
+            relatedObject: 'RedirectTest',
             relatedObjectId: id,
           }),
         );
