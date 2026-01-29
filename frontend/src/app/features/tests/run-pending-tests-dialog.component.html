@@ -7,13 +7,25 @@
 
   <mat-progress-bar
     [mode]="running() && total() === 0 ? 'indeterminate' : 'determinate'"
-    [value]="progress()"
+    [value]="running() ? progress() : 100"
   ></mat-progress-bar>
 
-  <div class="flex items-center justify-between text-sm">
-    <span class="text-app-muted">Completed</span>
-    <span class="font-semibold text-app-foreground">{{ completed() }}/{{ total() }}</span>
-  </div>
+  @if (running()) {
+    <div class="flex items-center justify-between text-sm">
+      <span class="text-app-muted">Completed</span>
+      <span class="font-semibold text-app-foreground">{{ completed() }}/{{ total() }}</span>
+    </div>
+  } @else if (total() === 0) {
+    <div class="rounded-xl border border-app-border-soft bg-app-muted/5 p-3 text-sm">
+      <div class="font-semibold text-app-foreground">No pending tests.</div>
+      <div class="text-app-muted">Everything already has a result for this session.</div>
+    </div>
+  } @else {
+    <div class="flex items-center justify-between text-sm">
+      <span class="text-app-muted">Completed</span>
+      <span class="font-semibold text-app-foreground">{{ completed() }}/{{ total() }}</span>
+    </div>
+  }
 
   @if (summary()) {
     <div class="rounded-xl border border-app-border-soft bg-app-muted/5 p-3 text-sm">
