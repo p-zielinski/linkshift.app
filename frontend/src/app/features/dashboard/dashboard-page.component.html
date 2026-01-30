@@ -264,6 +264,25 @@
         Tests used
       </div>
     </div>
+    <div
+      class="rounded-2xl p-4"
+      [class.bg-app-accent-soft]="!userLimitReached()"
+      [class.bg-red-50]="userLimitReached()"
+    >
+      <div
+        class="text-[22px] font-semibold"
+        [class.text-red-700]="userLimitReached()"
+      >
+        {{ usage()?.users ?? '-' }} / {{ limits().maxUsers }}
+      </div>
+      <div
+        class="text-[13px]"
+        [class.text-red-600]="userLimitReached()"
+        [class.text-app-muted]="!userLimitReached()"
+      >
+        Active users
+      </div>
+    </div>
     <div class="rounded-2xl bg-app-accent-soft p-4">
       <div class="text-[22px] font-semibold">
         {{ limits().redirectionLimitPerMinute }}

@@ -1,20 +1,33 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   ConflictException,
   UnauthorizedException,
+  BadRequestException,
+  ForbiddenException,
   Req,
   Res,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
 import * as authSchemas from '../zod-schames/auth.schemas';
 import { ZodPipe } from '../pipes/zod.pipe';
-import { ConflictError, UnauthorizedError } from '@shared/models/error.model';
+import {
+  BadRequestError,
+  ConflictError,
+  ForbiddenError,
+  UnauthorizedError,
+} from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { throwHttpException } from '../utils';
 import type { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { AuthGuard } from '../auth/auth.guard';
+import { User } from '../auth/user.decorator';
+import { OrganizationMembersService } from '../organization/organization-members.service';
 
 @Controller('api/v1/auth')
 export class AuthController {
@@ -25,6 +38,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly clsService: ClsService,
     private readonly configService: ConfigService,
+    private readonly membersService: OrganizationMembersService,
   ) {
     const nodeEnv = this.configService.get<string>('NODE_ENV') ?? 'development';
     this.isProduction = nodeEnv === 'production';
@@ -90,6 +104,56 @@ export class AuthController {
     }
   }
 
+  @Post('register-invite')
+  async registerInvite(
+    @Body(new ZodPipe(authSchemas.InviteRegisterSchema))
+    body: authSchemas.InviteRegisterDto,
+  ) {
+    try {
+      return await this.membersService.registerFromInvite(body);
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        return throwHttpException(
+          new ConflictError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+          }),
+        );
+      }
+      if (error instanceof ForbiddenException) {
+        return throwHttpException(
+          new ForbiddenError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+          }),
+        );
+      }
+      if (error instanceof BadRequestException) {
+        return throwHttpException(
+          new BadRequestError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+          }),
+        );
+      }
+      throw error;
+    }
+  }
+
+  @Get('invites/lookup')
+  async lookupInvite(@Query('token') token?: string) {
+    const invite = await this.membersService.lookupInvite(token ?? '');
+    if (!invite) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Invite link is invalid or expired.',
+        }),
+      );
+    }
+    return invite;
+  }
+
   @Post('login')
   async login(
     @Req() request: Request,
@@ -113,6 +177,66 @@ export class AuthController {
       }
       throw error;
     }
+  }
+
+  @Post('verify-email')
+  async verifyEmail(
+    @Body(new ZodPipe(authSchemas.EmailVerificationSchema))
+    body: authSchemas.EmailVerificationDto,
+  ) {
+    return this.authService.verifyEmail(body.token);
+  }
+
+  @Post('resend-verification')
+  @UseGuards(AuthGuard)
+  async resendVerification(@User('userId') userId: string) {
+    return this.authService.resendVerification(userId);
+  }
+
+  @Post('password-reset/request')
+  async requestPasswordReset(
+    @Body(new ZodPipe(authSchemas.PasswordResetRequestSchema))
+    body: authSchemas.PasswordResetRequestDto,
+  ) {
+    return this.authService.requestPasswordReset(body.email);
+  }
+
+  @Post('password-reset/confirm')
+  async confirmPasswordReset(
+    @Body(new ZodPipe(authSchemas.PasswordResetConfirmSchema))
+    body: authSchemas.PasswordResetConfirmDto,
+  ) {
+    return this.authService.resetPassword(body.token, body.password);
+  }
+
+  @Post('email-change')
+  @UseGuards(AuthGuard)
+  async updateEmailForUnverified(
+    @User('userId') userId: string,
+    @Body(new ZodPipe(authSchemas.EmailChangeRequestSchema))
+    body: authSchemas.EmailChangeRequestDto,
+  ) {
+    return this.authService.updateEmailForUnverified(userId, body.newEmail);
+  }
+
+  @Post('email-change/request')
+  @UseGuards(AuthGuard)
+  async requestEmailChange(
+    @User('userId') userId: string,
+    @Body(new ZodPipe(authSchemas.EmailChangeRequestSchema))
+    body: authSchemas.EmailChangeRequestDto,
+  ) {
+    return this.authService.requestEmailChange(userId, body.newEmail);
+  }
+
+  @Post('email-change/confirm')
+  @UseGuards(AuthGuard)
+  async confirmEmailChange(
+    @User('userId') userId: string,
+    @Body(new ZodPipe(authSchemas.EmailChangeConfirmSchema))
+    body: authSchemas.EmailChangeConfirmDto,
+  ) {
+    return this.authService.confirmEmailChange(userId, body.code);
   }
 
   @Post('logout')

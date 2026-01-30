@@ -40,6 +40,7 @@ export class OrganizationSubscription {
     maxTotalRules: 15,
     maxTestsPerGroup: 30,
     maxTotalTests: 30,
+    maxUsers: 1,
     redirectionLimitPerMinute: 10,
   };
 

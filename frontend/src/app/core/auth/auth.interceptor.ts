@@ -15,8 +15,19 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authStore = inject(AuthStore);
   const token = authStore.accessToken();
 
-  // 1. Skip Auth for Auth endpoints (login/register/refresh) to avoid infinite loops
-  if (req.url.includes('/api/v1/auth')) {
+  // 1. Skip Auth for public auth endpoints to avoid infinite loops
+  const publicAuthPaths = [
+    '/api/v1/auth/login',
+    '/api/v1/auth/register',
+    '/api/v1/auth/register-invite',
+    '/api/v1/auth/refresh',
+    '/api/v1/auth/logout',
+    '/api/v1/auth/verify-email',
+    '/api/v1/auth/password-reset/request',
+    '/api/v1/auth/password-reset/confirm',
+    '/api/v1/auth/invites/lookup'
+  ];
+  if (publicAuthPaths.some((path) => req.url.includes(path))) {
     return next(req);
   }
 

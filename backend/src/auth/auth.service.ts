@@ -5,11 +5,19 @@ import { JwtService } from './jwt.service';
 import { RegisterDto, LoginDto } from '../zod-schames/auth.schemas';
 import { AppEntity, createCustomCuid, throwHttpException } from '../utils';
 import { CacheManagerService, DataType } from '../cache/cache-manager.service';
-import { ConflictError, UnauthorizedError } from '@shared/models/error.model';
+import {
+  BadRequestError,
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+  UnauthorizedError,
+} from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { BillingService } from '../billing/billing.service';
 import { OrganizationPlan } from '@shared/models/organization-config.model';
 import { LoginRateLimitService } from './login-rate-limit.service';
+import { EmailService } from '../email/email.service';
+import { AuthTokenService } from './auth-token.service';
 
 @Injectable()
 export class AuthService {
@@ -20,13 +28,16 @@ export class AuthService {
     private readonly clsService: ClsService,
     private readonly billingService: BillingService,
     private readonly loginRateLimitService: LoginRateLimitService,
+    private readonly emailService: EmailService,
+    private readonly authTokenService: AuthTokenService,
   ) {}
 
   async register(data: RegisterDto) {
+    const normalizedEmail = data.email.trim().toLowerCase();
     // 1. Check if user already exists
     const existingUser = await this.prisma.user.findFirst({
       where: {
-        email: data.email,
+        email: { equals: normalizedEmail, mode: 'insensitive' },
         deletedAt: null,
       },
     });
@@ -57,7 +68,7 @@ export class AuthService {
       const user = await tx.user.create({
         data: {
           id: createCustomCuid(AppEntity.User),
-          email: data.email,
+          email: normalizedEmail,
           passwordHash,
           organizationId: organization.id,
           isOwner: true,
@@ -92,14 +103,28 @@ export class AuthService {
         })
       : null;
 
+    const verificationToken = await this.authTokenService.createToken(
+      'email_verification',
+      {
+        userId: result.user.id,
+        email: normalizedEmail,
+      },
+    );
+    await this.emailService.sendVerificationEmail({
+      email: normalizedEmail,
+      token: verificationToken,
+    });
+
     // 4. Generate JWT token
     const tokens = this.jwtService.generateTokens({
       userId: result.user.id,
       organizationId: result.user.organizationId,
     });
 
+    const { passwordHash: _passwordHash, ...userWithoutPassword } = result.user;
+
     return {
-      user: result.user,
+      user: userWithoutPassword,
       organization: result.organization,
       checkoutUrl: checkout?.checkoutUrl ?? null,
       ...tokens,
@@ -108,11 +133,12 @@ export class AuthService {
 
   async login(data: LoginDto, ip: string | null) {
     await this.loginRateLimitService.assertNotBlocked(ip);
+    const normalizedEmail = data.email.trim().toLowerCase();
 
     // 1. Find user
     const user = await this.prisma.user.findFirst({
       where: {
-        email: data.email,
+        email: { equals: normalizedEmail, mode: 'insensitive' },
         deletedAt: null,
       },
       include: {
@@ -147,6 +173,15 @@ export class AuthService {
     }
 
     await this.loginRateLimitService.reset(ip);
+
+    if (user.isBlocked) {
+      return throwHttpException(
+        new ForbiddenError({
+          requestId: this.clsService.getId(),
+          details: 'Account is blocked by the organization owner.',
+        }),
+      );
+    }
 
     await this.cacheManagerService.setDataExist({
       dataType: DataType.USERS,
@@ -203,6 +238,15 @@ export class AuthService {
       );
     }
 
+    if (user.isBlocked) {
+      return throwHttpException(
+        new ForbiddenError({
+          requestId: this.clsService.getId(),
+          details: 'Account is blocked by the organization owner.',
+        }),
+      );
+    }
+
     // 3. Blacklist the OLD token via CacheManager
     await this.blacklistRefreshToken(payload as RefreshTokenPayload);
 
@@ -223,6 +267,310 @@ export class AuthService {
     }
 
     await this.blacklistRefreshToken(payload as RefreshTokenPayload);
+  }
+
+  async resendVerification(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId, deletedAt: null },
+    });
+
+    if (!user) {
+      return throwHttpException(
+        new NotFoundError({
+          requestId: this.clsService.getId(),
+          details: `User ${userId} not found.`,
+          relatedObject: 'User',
+          relatedObjectId: userId,
+        }),
+      );
+    }
+
+    if (user.emailVerifiedAt) {
+      return { alreadyVerified: true };
+    }
+
+    const token = await this.authTokenService.createToken(
+      'email_verification',
+      {
+        userId: user.id,
+        email: user.email,
+      },
+    );
+    await this.emailService.sendVerificationEmail({
+      email: user.email,
+      token,
+    });
+
+    return { sent: true };
+  }
+
+  async verifyEmail(token: string) {
+    const payload = await this.authTokenService.consumeToken(
+      'email_verification',
+      token,
+    );
+    if (!payload?.userId || !payload.email) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Verification token is invalid or expired.',
+        }),
+      );
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.userId, deletedAt: null },
+    });
+    if (!user) {
+      return throwHttpException(
+        new NotFoundError({
+          requestId: this.clsService.getId(),
+          details: `User ${payload.userId} not found.`,
+          relatedObject: 'User',
+          relatedObjectId: payload.userId,
+        }),
+      );
+    }
+
+    if (user.email !== payload.email) {
+      return throwHttpException(
+        new ConflictError({
+          requestId: this.clsService.getId(),
+          details: 'Email address does not match the verification request.',
+        }),
+      );
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerifiedAt: new Date() },
+    });
+
+    await this.cacheManagerService.setDataExist({
+      dataType: DataType.USERS,
+      data: updated,
+    });
+
+    return { verified: true };
+  }
+
+  async requestPasswordReset(email: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await this.prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' }, deletedAt: null },
+    });
+
+    if (!user) {
+      return { sent: true };
+    }
+
+    const token = await this.authTokenService.createToken('password_reset', {
+      userId: user.id,
+      email: user.email,
+    });
+    await this.emailService.sendPasswordResetEmail({
+      email: user.email,
+      token,
+    });
+
+    return { sent: true };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const payload = await this.authTokenService.consumeToken(
+      'password_reset',
+      token,
+    );
+    if (!payload?.userId) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Reset token is invalid or expired.',
+        }),
+      );
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.userId, deletedAt: null },
+    });
+    if (!user) {
+      return throwHttpException(
+        new NotFoundError({
+          requestId: this.clsService.getId(),
+          details: `User ${payload.userId} not found.`,
+          relatedObject: 'User',
+          relatedObjectId: payload.userId,
+        }),
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    const updated = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash },
+    });
+
+    await this.cacheManagerService.setDataExist({
+      dataType: DataType.USERS,
+      data: updated,
+    });
+
+    return { success: true };
+  }
+
+  async updateEmailForUnverified(userId: string, email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId, deletedAt: null },
+    });
+    if (!user) {
+      return throwHttpException(
+        new NotFoundError({
+          requestId: this.clsService.getId(),
+          details: `User ${userId} not found.`,
+          relatedObject: 'User',
+          relatedObjectId: userId,
+        }),
+      );
+    }
+
+    if (user.emailVerifiedAt) {
+      return throwHttpException(
+        new ConflictError({
+          requestId: this.clsService.getId(),
+          details: 'Email is already verified. Use the secure change flow.',
+        }),
+      );
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await this.prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' }, deletedAt: null },
+    });
+    if (existingUser) {
+      return throwHttpException(
+        new ConflictError({
+          requestId: this.clsService.getId(),
+          details: `User with email ${normalizedEmail} already exists.`,
+        }),
+      );
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        email: normalizedEmail,
+        emailVerifiedAt: null,
+      },
+    });
+
+    const token = await this.authTokenService.createToken(
+      'email_verification',
+      {
+        userId: updated.id,
+        email: normalizedEmail,
+      },
+    );
+    await this.emailService.sendVerificationEmail({
+      email: normalizedEmail,
+      token,
+    });
+
+    await this.cacheManagerService.setDataExist({
+      dataType: DataType.USERS,
+      data: updated,
+    });
+
+    return { updated: true };
+  }
+
+  async requestEmailChange(userId: string, email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId, deletedAt: null },
+    });
+    if (!user) {
+      return throwHttpException(
+        new NotFoundError({
+          requestId: this.clsService.getId(),
+          details: `User ${userId} not found.`,
+          relatedObject: 'User',
+          relatedObjectId: userId,
+        }),
+      );
+    }
+
+    if (!user.emailVerifiedAt) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Email is not verified. Update it directly instead.',
+        }),
+      );
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await this.prisma.user.findFirst({
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' }, deletedAt: null },
+    });
+    if (existingUser) {
+      return throwHttpException(
+        new ConflictError({
+          requestId: this.clsService.getId(),
+          details: `User with email ${normalizedEmail} already exists.`,
+        }),
+      );
+    }
+
+    const code = await this.authTokenService.createCode('email_change', {
+      userId: user.id,
+      newEmail: normalizedEmail,
+    });
+
+    await this.emailService.sendEmailChangeCode({
+      email: normalizedEmail,
+      code,
+    });
+
+    return { sent: true };
+  }
+
+  async confirmEmailChange(userId: string, code: string) {
+    const payload = await this.authTokenService.consumeToken(
+      'email_change',
+      code,
+    );
+
+    if (!payload?.userId || !payload.newEmail) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Email change code is invalid or expired.',
+        }),
+      );
+    }
+
+    if (payload.userId !== userId) {
+      return throwHttpException(
+        new ForbiddenError({
+          requestId: this.clsService.getId(),
+          details: 'Email change code does not match this account.',
+        }),
+      );
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: payload.newEmail,
+        emailVerifiedAt: new Date(),
+      },
+    });
+
+    await this.cacheManagerService.setDataExist({
+      dataType: DataType.USERS,
+      data: updated,
+    });
+
+    return { updated: true };
   }
 
   private async ensureRefreshTokenNotReused(

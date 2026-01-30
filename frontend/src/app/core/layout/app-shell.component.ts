@@ -22,6 +22,8 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
+  { label: 'Profile', route: '/profile', icon: 'person' },
+  { label: 'Organization', route: '/organization', icon: 'groups' },
   { label: 'Domain Groups', route: '/domain-groups', icon: 'layers' },
   { label: 'Domains', route: '/domains', icon: 'public', requiresDomainGroups: true },
   {

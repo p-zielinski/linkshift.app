@@ -15,6 +15,7 @@ import {
 import { LemonSqueezyService } from './lemon-squeezy.service';
 import { AppEntity, createCustomCuid } from '../utils';
 import { ConfigService } from '@nestjs/config';
+import { EmailService } from '../email/email.service';
 
 type LemonWebhookPayload = {
   meta?: {
@@ -42,6 +43,7 @@ export class BillingService {
     private readonly cacheManagerService: CacheManagerService,
     private readonly lemon: LemonSqueezyService,
     private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {
     this.variantIds = {
       starter: this.configService.get<string>(
@@ -224,7 +226,7 @@ export class BillingService {
     const plan = this.resolvePlan(customData.plan, attributes.variant_id);
     const status = this.resolveStatus(attributes.status, eventName);
 
-    await this.updateOrganizationSubscription(orgId, {
+    const subscriptionUpdate = await this.updateOrganizationSubscription(orgId, {
       plan,
       status,
       providerSubscriptionId: subscriptionId,
@@ -241,6 +243,24 @@ export class BillingService {
         attributes.billing_interval ?? attributes.interval,
       ),
     });
+
+    if (subscriptionUpdate) {
+      const renewsAt = this.parseDate(attributes.renews_at);
+      const notificationEmail =
+        email ?? (await this.findOwnerEmailByOrganizationId(orgId));
+      await this.notifyCustomer({
+        email: notificationEmail,
+        eventName,
+        organizationName: subscriptionUpdate.organizationName,
+        previous: subscriptionUpdate.previous,
+        next: subscriptionUpdate.next,
+        amount: subscriptionUpdate.next.amount,
+        currency: subscriptionUpdate.next.currency,
+        interval: subscriptionUpdate.next.interval,
+        endsAt: subscriptionUpdate.next.activeUntil,
+        renewsAt,
+      });
+    }
 
     const checkoutSessionId =
       customData.checkoutSessionId ??
@@ -292,14 +312,18 @@ export class BillingService {
       currency: string;
       interval: OrganizationSubscription['interval'];
     },
-  ) {
+  ): Promise<{
+    previous: OrganizationSubscription;
+    next: OrganizationSubscription;
+    organizationName: string;
+  } | null> {
     const organization = await this.prisma.organization.findUnique({
       where: { id: organizationId },
     });
 
     if (!organization) {
       this.logger.warn(`Organization ${organizationId} not found for billing.`);
-      return;
+      return null;
     }
 
     const config = OrganizationConfiguration.fromJson(
@@ -358,6 +382,109 @@ export class BillingService {
       data: updatedOrganization,
       dataType: DataType.ORGANIZATIONS,
     });
+
+    return {
+      previous,
+      next: nextSubscription,
+      organizationName: organization.name,
+    };
+  }
+
+  private async notifyCustomer(params: {
+    email: string | null;
+    eventName: string;
+    organizationName: string;
+    previous: OrganizationSubscription;
+    next: OrganizationSubscription;
+    amount: number;
+    currency: string;
+    interval: OrganizationSubscription['interval'];
+    endsAt: Date | null;
+    renewsAt: Date | null;
+  }): Promise<void> {
+    if (!params.email) {
+      return;
+    }
+
+    const normalizedEvent = params.eventName.toLowerCase();
+    const planChanged = params.previous.plan !== params.next.plan;
+    const statusBecameActive =
+      params.previous.status !== OrganizationStatus.ACTIVE &&
+      params.next.status === OrganizationStatus.ACTIVE;
+    const isUpdateEvent =
+      normalizedEvent.includes('subscription_updated') ||
+      normalizedEvent.includes('subscription_change');
+
+    try {
+      if (
+        normalizedEvent.includes('subscription_created') ||
+        normalizedEvent.includes('subscription_resumed') ||
+        statusBecameActive
+      ) {
+        await this.emailService.sendSubscriptionActivated({
+          email: params.email,
+          organization: params.organizationName,
+          plan: params.next.plan,
+          amount: params.amount,
+          currency: params.currency,
+          interval: params.interval,
+        });
+      }
+
+      if (
+        normalizedEvent.includes('payment_success') ||
+        normalizedEvent.includes('payment_succeeded')
+      ) {
+        await this.emailService.sendSubscriptionRenewal({
+          email: params.email,
+          organization: params.organizationName,
+          plan: params.next.plan,
+          amount: params.amount,
+          currency: params.currency,
+          interval: params.interval,
+          renewsAt: params.renewsAt,
+        });
+      }
+
+      if (
+        normalizedEvent.includes('payment_failed') ||
+        normalizedEvent.includes('payment_failure')
+      ) {
+        await this.emailService.sendSubscriptionPaymentFailed({
+          email: params.email,
+          organization: params.organizationName,
+          plan: params.next.plan,
+        });
+      }
+
+      if (
+        normalizedEvent.includes('subscription_cancelled') ||
+        normalizedEvent.includes('subscription_canceled') ||
+        normalizedEvent.includes('subscription_expired')
+      ) {
+        await this.emailService.sendSubscriptionCanceled({
+          email: params.email,
+          organization: params.organizationName,
+          plan: params.next.plan,
+          endsAt: params.endsAt,
+        });
+      }
+
+      if (planChanged && isUpdateEvent) {
+        await this.emailService.sendPlanChanged({
+          email: params.email,
+          organization: params.organizationName,
+          fromPlan: params.previous.plan,
+          toPlan: params.next.plan,
+        });
+      }
+    } catch (error) {
+      this.logger.warn(
+        `Billing email notification failed: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
+    }
   }
 
   private serializeConfig(config: OrganizationConfiguration) {
@@ -383,6 +510,7 @@ export class BillingService {
       domainGroupCount,
       totalDomainCount,
       totalRuleCount,
+      activeUserCount,
       domainCounts,
       ruleCounts,
     ] = await Promise.all([
@@ -399,6 +527,13 @@ export class BillingService {
         where: {
           domainGroup: { organizationId, deletedAt: null },
           deletedAt: null,
+        },
+      }),
+      this.prisma.user.count({
+        where: {
+          organizationId,
+          deletedAt: null,
+          isBlocked: false,
         },
       }),
       this.prisma.domain.groupBy({
@@ -429,6 +564,10 @@ export class BillingService {
 
     if (totalRuleCount > limits.maxTotalRules) {
       return `Total rules ${totalRuleCount}/${limits.maxTotalRules}`;
+    }
+
+    if (activeUserCount > limits.maxUsers) {
+      return `Active users ${activeUserCount}/${limits.maxUsers}`;
     }
 
     const domainOverage = domainCounts.find(
@@ -629,5 +768,19 @@ export class BillingService {
       where: { email, deletedAt: null },
     });
     return user?.organizationId ?? null;
+  }
+
+  private async findOwnerEmailByOrganizationId(
+    organizationId: string,
+  ): Promise<string | null> {
+    const owner = await this.prisma.user.findFirst({
+      where: {
+        organizationId,
+        isOwner: true,
+        deletedAt: null,
+      },
+      select: { email: true },
+    });
+    return owner?.email ?? null;
   }
 }

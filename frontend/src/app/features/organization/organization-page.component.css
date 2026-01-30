@@ -1,0 +1,36 @@
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-pill--success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #047857;
+}
+
+.status-pill--danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c;
+}
+
+.invite-tooltip {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.invite-button {
+  align-self: stretch;
+  min-height: 56px;
+  padding: 0 18px;
+}
+
+.invite-button--disabled {
+  opacity: 0.55;
+}

@@ -32,6 +32,7 @@ const PRICING_PLANS: PricingPlan[] = [
       '1 domain',
       '15 rules',
       '30 tests',
+      '1 seat',
       '10 redirects/min',
     ],
     features: [
@@ -54,6 +55,7 @@ const PRICING_PLANS: PricingPlan[] = [
       '10 domains',
       '250 rules',
       '500 tests',
+      '3 seats',
       '50 redirects/min',
     ],
     features: [
@@ -78,6 +80,7 @@ const PRICING_PLANS: PricingPlan[] = [
       '15 domains',
       '500 rules',
       '1000 tests',
+      '5 seats',
       '100 redirects/min',
     ],
     features: [

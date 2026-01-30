@@ -135,9 +135,25 @@ exports.Prisma.UserScalarFieldEnum = {
   passwordHash: 'passwordHash',
   organizationId: 'organizationId',
   isOwner: 'isOwner',
+  emailVerifiedAt: 'emailVerifiedAt',
+  isBlocked: 'isBlocked',
+  blockedAt: 'blockedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
+};
+
+exports.Prisma.OrganizationInviteScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  email: 'email',
+  tokenHash: 'tokenHash',
+  expiresAt: 'expiresAt',
+  createdByUserId: 'createdByUserId',
+  acceptedAt: 'acceptedAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.DomainGroupScalarFieldEnum = {
@@ -248,6 +264,7 @@ exports.BillingCheckoutStatus = exports.$Enums.BillingCheckoutStatus = {
 exports.Prisma.ModelName = {
   Organization: 'Organization',
   User: 'User',
+  OrganizationInvite: 'OrganizationInvite',
   DomainGroup: 'DomainGroup',
   Domain: 'Domain',
   RedirectRule: 'RedirectRule',

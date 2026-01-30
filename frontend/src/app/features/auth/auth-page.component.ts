@@ -100,19 +100,19 @@ export class AuthPageComponent {
       id: OrganizationPlan.FREE,
       title: 'Free',
       price: '0 EUR',
-      note: '1 domain group • 1 domain • 15 rules • 10 redirects/min'
+      note: '1 domain group • 1 domain • 15 rules • 1 seat • 10 redirects/min'
     },
     {
       id: OrganizationPlan.STARTER,
       title: 'Starter',
       price: '10 EUR',
-      note: '1 domain group • 10 domains • 250 rules • 50 redirects/min'
+      note: '1 domain group • 10 domains • 250 rules • 3 seats • 50 redirects/min'
     },
     {
       id: OrganizationPlan.PRO,
       title: 'Pro',
       price: '29 EUR',
-      note: '2 domain groups • 15 domains • 500 rules • 100 redirects/min'
+      note: '2 domain groups • 15 domains • 500 rules • 5 seats • 100 redirects/min'
     }
   ];
 

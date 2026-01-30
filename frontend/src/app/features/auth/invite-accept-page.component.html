@@ -1,0 +1,49 @@
+<div class="auth-shell flex min-h-[calc(100vh-48px)] items-center justify-center px-4 py-10">
+  <mat-card class="auth-card w-[min(520px,96vw)] rounded-[20px] p-6">
+    @if (loading()) {
+      <div class="flex flex-col items-center gap-3 text-center">
+        <mat-progress-spinner diameter="48" mode="indeterminate"></mat-progress-spinner>
+        <p class="text-[13px] text-app-muted">Loading invite...</p>
+      </div>
+    } @else if (error()) {
+      <h2 class="m-0 text-lg font-semibold text-app-foreground">Invite unavailable</h2>
+      <p class="mt-2 text-[13px] text-app-muted">{{ error() }}</p>
+      <a routerLink="/auth" class="mt-4 inline-flex text-[12px] text-app-muted">Back to login</a>
+    } @else if (completed()) {
+      <h2 class="m-0 text-lg font-semibold text-app-foreground">Invitation accepted</h2>
+      <p class="mt-2 text-[13px] text-app-muted">
+        Your account has been created. Please verify your email and wait for an owner to unblock your access.
+      </p>
+      <a routerLink="/auth" class="mt-4 inline-flex text-[12px] text-app-muted">Go to login</a>
+    } @else {
+      <h2 class="m-0 text-lg font-semibold text-app-foreground">Join {{ organizationName() }}</h2>
+      <p class="mt-2 text-[13px] text-app-muted">
+        Complete your account setup for {{ inviteEmail() }}.
+      </p>
+
+      <form class="mt-6 grid gap-4" (submit)="registerFromInvite()">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" [value]="inviteEmail()" disabled />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" [formField]="form.password" />
+          @if (passwordError()) {
+            <mat-error>{{ passwordError() }}</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Confirm password</mat-label>
+          <input matInput type="password" [formField]="form.confirmPassword" />
+          @if (confirmError()) {
+            <mat-error>{{ confirmError() }}</mat-error>
+          }
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit">
+          Create account
+        </button>
+      </form>
+    }
+  </mat-card>
+</div>

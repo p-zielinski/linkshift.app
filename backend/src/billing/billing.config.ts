@@ -14,6 +14,7 @@ export const PLAN_LIMITS: Record<OrganizationPlan, PlanLimits> = {
     maxTotalRules: 15,
     maxTestsPerGroup: 30,
     maxTotalTests: 30,
+    maxUsers: 1,
     redirectionLimitPerMinute: 10,
   },
   [OrganizationPlan.STARTER]: {
@@ -24,6 +25,7 @@ export const PLAN_LIMITS: Record<OrganizationPlan, PlanLimits> = {
     maxTotalRules: 250,
     maxTestsPerGroup: 500,
     maxTotalTests: 500,
+    maxUsers: 3,
     redirectionLimitPerMinute: 50,
   },
   [OrganizationPlan.PRO]: {
@@ -34,6 +36,7 @@ export const PLAN_LIMITS: Record<OrganizationPlan, PlanLimits> = {
     maxTotalRules: 500,
     maxTestsPerGroup: 1000,
     maxTotalTests: 1000,
+    maxUsers: 5,
     redirectionLimitPerMinute: 100,
   },
 };

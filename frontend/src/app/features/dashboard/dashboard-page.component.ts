@@ -111,6 +111,13 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     }
     return usage.tests >= this.limits().maxTotalTests;
   });
+  readonly userLimitReached = computed(() => {
+    const usage = this.usage();
+    if (!usage) {
+      return false;
+    }
+    return usage.users >= this.limits().maxUsers;
+  });
 
   readonly overLimitDetails = computed(() => {
     const usage = this.usage();
@@ -127,6 +134,9 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     }
     if (usage.rules > limits.maxTotalRules) {
       details.push(`Rules ${usage.rules}/${limits.maxTotalRules}`);
+    }
+    if (usage.users > limits.maxUsers) {
+      details.push(`Active users ${usage.users}/${limits.maxUsers}`);
     }
     return details;
   });

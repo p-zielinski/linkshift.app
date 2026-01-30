@@ -47,27 +47,54 @@ model Organization {
   domainGroups     DomainGroup[]
   checkoutSessions BillingCheckoutSession[]
   redirectTests    RedirectTest[]
+  invites          OrganizationInvite[]
 
   @@index([deletedAt])
 }
 
 // User entity - belongs to one organization (1:1 relation)
 model User {
-  id             String    @id
-  email          String    @unique
-  passwordHash   String
-  organizationId String
-  isOwner        Boolean   @default(false)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  deletedAt      DateTime?
+  id              String    @id
+  email           String    @unique
+  passwordHash    String
+  organizationId  String
+  isOwner         Boolean   @default(false)
+  emailVerifiedAt DateTime?
+  isBlocked       Boolean   @default(false)
+  blockedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
 
   organization     Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   checkoutSessions BillingCheckoutSession[]
+  createdInvites   OrganizationInvite[]     @relation("InviteCreatedBy")
 
   @@index([organizationId])
   @@index([deletedAt])
   @@index([email])
+}
+
+model OrganizationInvite {
+  id              String    @id
+  organizationId  String
+  email           String
+  tokenHash       String
+  expiresAt       DateTime
+  createdByUserId String
+  acceptedAt      DateTime?
+  revokedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("InviteCreatedBy", fields: [createdByUserId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@index([acceptedAt])
 }
 
 // DomainGroup entity - groups multiple domains with shared redirect rules

@@ -27,6 +27,9 @@ import { LemonSqueezyService } from './billing/lemon-squeezy.service';
 import { LoginRateLimitService } from './auth/login-rate-limit.service';
 import { NgrokDomainAssignerService } from './dev/ngrok-domain-assigner.service';
 import { RedirectTestsService } from './redirect-tests/redirect-tests.service';
+import { EmailService } from './email/email.service';
+import { AuthTokenService } from './auth/auth-token.service';
+import { OrganizationMembersService } from './organization/organization-members.service';
 
 @Module({
   imports: [
@@ -66,6 +69,9 @@ import { RedirectTestsService } from './redirect-tests/redirect-tests.service';
     NgrokDomainAssignerService,
     RedirectTestsService,
     AuthGuard,
+    AuthTokenService,
+    EmailService,
+    OrganizationMembersService,
     RedisService,
     CacheManagerIdsService,
     CacheManagerService,

@@ -190,6 +190,29 @@ export class OrganizationService {
   }
 
   /**
+   * Checks if the organization can activate another user.
+   * Only active (non-blocked) users are counted.
+   */
+  async checkActiveUserLimit(organizationId: string): Promise<void> {
+    const config = await this.getConfiguration(organizationId);
+    const limits = this.getEffectiveSubscription(config).limits;
+
+    const activeUserCount = await this.prisma.user.count({
+      where: {
+        organizationId,
+        deletedAt: null,
+        isBlocked: false,
+      },
+    });
+
+    if (activeUserCount >= limits.maxUsers) {
+      this.throwLimitError(
+        `Active user limit reached (${limits.maxUsers} max). Please upgrade your plan.`,
+      );
+    }
+  }
+
+  /**
    * Checks if the organization is allowed to process redirects.
    * Throws PaymentRequiredError if the subscription is suspended or over limits.
    */
@@ -258,6 +281,7 @@ export class OrganizationService {
       domainGroupCount,
       totalDomainCount,
       totalRuleCount,
+      activeUserCount,
       domainCounts,
       ruleCounts,
     ] = await Promise.all([
@@ -274,6 +298,13 @@ export class OrganizationService {
         where: {
           domainGroup: { organizationId, deletedAt: null },
           deletedAt: null,
+        },
+      }),
+      this.prisma.user.count({
+        where: {
+          organizationId,
+          deletedAt: null,
+          isBlocked: false,
         },
       }),
       this.prisma.domain.groupBy({
@@ -306,6 +337,10 @@ export class OrganizationService {
       return `Total rules ${totalRuleCount}/${limits.maxTotalRules}`;
     }
 
+    if (activeUserCount > limits.maxUsers) {
+      return `Active users ${activeUserCount}/${limits.maxUsers}`;
+    }
+
     const domainOverage = domainCounts.find(
       (entry) => entry._count._all > limits.maxDomainsPerGroup,
     );
@@ -328,8 +363,9 @@ export class OrganizationService {
     domains: number;
     rules: number;
     tests: number;
+    users: number;
   }> {
-    const [domainGroups, domains, rules, tests] = await Promise.all([
+    const [domainGroups, domains, rules, tests, users] = await Promise.all([
       this.prisma.domainGroup.count({
         where: { organizationId, deletedAt: null },
       }),
@@ -351,9 +387,16 @@ export class OrganizationService {
           deletedAt: null,
         },
       }),
+      this.prisma.user.count({
+        where: {
+          organizationId,
+          deletedAt: null,
+          isBlocked: false,
+        },
+      }),
     ]);
 
-    return { domainGroups, domains, rules, tests };
+    return { domainGroups, domains, rules, tests, users };
   }
 
   private throwLimitError(details: string): never {

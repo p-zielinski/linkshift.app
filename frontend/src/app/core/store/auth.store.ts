@@ -69,6 +69,19 @@ export const AuthStore = signalStore(
       });
     };
 
+    const updateUser = (partial: Partial<User>) => {
+      const current = store.user();
+      if (!current) {
+        return;
+      }
+      const nextUser = { ...current, ...partial };
+      patchState(store, { user: nextUser });
+      storeSession({
+        user: nextUser,
+        organization: store.organization()
+      });
+    };
+
     const setError = (error: unknown, fallback: string) => {
       const message = extractErrorMessage(error, fallback);
       patchState(store, { error: message, isLoading: false });
@@ -135,6 +148,7 @@ export const AuthStore = signalStore(
       register,
       refreshTokens,
       logout,
+      updateUser,
       clearError: () => patchState(store, { error: null })
     };
   })

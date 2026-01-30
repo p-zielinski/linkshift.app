@@ -3,4 +3,5 @@ export type OrganizationUsage = {
   domains: number;
   rules: number;
   tests: number;
+  users: number;
 };

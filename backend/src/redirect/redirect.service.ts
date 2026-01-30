@@ -1057,7 +1057,7 @@ export class RedirectService {
           }
           hostname = matched;
         } else {
-          hostname = entry.hostname.trim();
+          hostname = requestedHost;
         }
       }
       const request = this.buildSimulationRequest(entry, hostname);

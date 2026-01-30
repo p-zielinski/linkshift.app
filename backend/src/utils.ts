@@ -20,6 +20,7 @@ export enum AppEntity {
   RedirectRule = 'RedirectRule',
   RedirectTest = 'RedirectTest',
   CheckoutSession = 'CheckoutSession',
+  OrganizationInvite = 'OrganizationInvite',
   Request = 'Request',
 }
 
@@ -35,6 +36,7 @@ export const ENTITY_PREFIXES: Record<AppEntity, string> = {
   [AppEntity.RedirectRule]: 'rule',
   [AppEntity.RedirectTest]: 'tst',
   [AppEntity.CheckoutSession]: 'chk',
+  [AppEntity.OrganizationInvite]: 'inv',
   [AppEntity.Request]: 'req',
 };
 

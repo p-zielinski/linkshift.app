@@ -13,10 +13,18 @@ import { HomePageComponent } from './features/marketing/pages/home/home-page.com
 import { AlternativePageComponent } from './features/marketing/pages/alternative/alternative-page.component';
 import { PricingPageComponent } from './features/marketing/pages/pricing/pricing-page.component';
 import { ContactPageComponent } from './features/marketing/pages/contact/contact-page.component';
+import { ProfilePageComponent } from './features/profile/profile-page.component';
+import { OrganizationPageComponent } from './features/organization/organization-page.component';
+import { ResetPasswordPageComponent } from './features/auth/reset-password-page.component';
+import { VerifyEmailPageComponent } from './features/auth/verify-email-page.component';
+import { InviteAcceptPageComponent } from './features/auth/invite-accept-page.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'home' },
   { path: 'auth', component: AuthPageComponent, canMatch: [guestGuard] },
+  { path: 'verify-email', component: VerifyEmailPageComponent },
+  { path: 'reset-password', component: ResetPasswordPageComponent },
+  { path: 'invite', component: InviteAcceptPageComponent },
   {
     path: '',
     component: MarketingShellComponent,
@@ -47,6 +55,8 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: DashboardPageComponent },
+      { path: 'profile', component: ProfilePageComponent },
+      { path: 'organization', component: OrganizationPageComponent },
       {
         path: 'domains',
         component: DomainsPageComponent,
