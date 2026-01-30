@@ -34,3 +34,7 @@
 .invite-button--disabled {
   opacity: 0.55;
 }
+
+.seat-progress {
+  background: var(--app-accent, #e11d48);
+}

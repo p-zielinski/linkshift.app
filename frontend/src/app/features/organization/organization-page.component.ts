@@ -55,6 +55,15 @@ export class OrganizationPageComponent {
   readonly maxUsers = computed(() => this.config().activeSubscription.limits.maxUsers);
   readonly activeUsers = computed(() => this.usageStore.usage()?.users ?? 0);
   readonly seatsAvailable = computed(() => this.activeUsers() < this.maxUsers());
+  readonly seatUsagePercent = computed(() => {
+    const max = this.maxUsers();
+    if (!max || max <= 0) {
+      return 0;
+    }
+    const used = this.activeUsers();
+    const percent = Math.round((used / max) * 100);
+    return Math.min(100, Math.max(0, percent));
+  });
 
   readonly inviteBusy = signal(false);
   readonly inviteFormModel = signal({ email: '' });
