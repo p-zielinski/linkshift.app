@@ -268,6 +268,9 @@ export class RedirectTestsService {
     if (input.protocol) {
       data.protocol = input.protocol;
     }
+    if (input.hostname) {
+      data.hostname = input.hostname;
+    }
     if (input.ip) {
       data.ip = input.ip;
     }

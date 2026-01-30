@@ -94,6 +94,7 @@ const SimulationEntrySchema = z.object({
     .string()
     .max(100)
     .regex(getEntityIdRegex(AppEntity.DomainGroup), 'Invalid ID'),
+  hostname: z.string().max(253).optional(),
   path: z.string().min(1, 'Path is required'),
   method: z.nativeEnum(HttpMethod).optional(),
   protocol: z.enum(['http', 'https']).optional(),

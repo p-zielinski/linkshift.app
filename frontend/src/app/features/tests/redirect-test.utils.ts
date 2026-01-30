@@ -123,6 +123,7 @@ export const buildSimulationEntry = (
 
   return {
     domainGroupId: test.domainGroupId,
+    hostname: test.requestData?.hostname,
     path,
     method: test.requestData?.method,
     protocol: test.requestData?.protocol,
@@ -137,6 +138,7 @@ export const buildRequestData = (
   input: {
     method?: string;
     protocol?: string;
+    hostname?: string;
     ip?: string;
     userAgent?: string;
     headers?: string;
@@ -154,6 +156,10 @@ export const buildRequestData = (
 
   if (input.protocol === 'http' || input.protocol === 'https') {
     requestData.protocol = input.protocol;
+  }
+
+  if (input.hostname && input.hostname.trim()) {
+    requestData.hostname = input.hostname.trim();
   }
 
   if (input.ip && input.ip.trim()) {

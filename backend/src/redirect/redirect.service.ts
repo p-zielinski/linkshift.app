@@ -89,6 +89,7 @@ export interface RedirectRule {
 
 type RedirectSimulationEntry = {
   domainGroupId: string;
+  hostname?: string;
   path: string;
   method?: HttpMethod;
   protocol?: 'http' | 'https';
@@ -1032,10 +1033,33 @@ export class RedirectService {
         };
       }
 
-      const hostname = this.selectSimulationHostname(
-        group.domains.map((domain) => domain.name),
+      const groupDomains = group.domains.map((domain) => domain.name);
+      const requestedHost = entry.hostname?.trim().toLowerCase();
+      let hostname = this.selectSimulationHostname(
+        groupDomains,
         entry.domainGroupId,
       );
+
+      if (requestedHost) {
+        if (groupDomains.length > 0) {
+          const matched = groupDomains.find(
+            (domain) => domain.toLowerCase() === requestedHost,
+          );
+          if (!matched) {
+            return throwHttpException(
+              new BadRequestError({
+                requestId: this.clsService.getId(),
+                details: `Hostname ${entry.hostname} does not belong to domain group ${entry.domainGroupId}`,
+                relatedObject: 'DomainGroup',
+                relatedObjectId: entry.domainGroupId,
+              }),
+            );
+          }
+          hostname = matched;
+        } else {
+          hostname = entry.hostname.trim();
+        }
+      }
       const request = this.buildSimulationRequest(entry, hostname);
       const rules = this.mapStoredRules(group.redirectRules);
       const match = this.getRedirectMatch(request, rules);
@@ -1232,8 +1256,6 @@ export class RedirectService {
       scheme: req.protocol,
       ip: req.ip || req.socket.remoteAddress,
       'user-agent': req.get('User-Agent') || '',
-      // Special static variables
-      random: String(Math.floor(Math.random() * 1000000)),
       // Geo placeholder (Mock)
       'geo.country': this.getCountryByIp(req.ip || req.socket.remoteAddress),
     };

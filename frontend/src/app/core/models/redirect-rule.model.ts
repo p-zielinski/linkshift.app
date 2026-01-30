@@ -40,6 +40,7 @@ export type RedirectRuleListQuery = {
 
 export type RedirectSimulationEntry = {
   domainGroupId: string;
+  hostname?: string;
   path: string;
   method?: HttpMethod;
   protocol?: 'http' | 'https';

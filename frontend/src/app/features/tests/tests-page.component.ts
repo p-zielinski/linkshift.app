@@ -127,7 +127,8 @@ export class TestsPageComponent {
 
     effect(() => {
       const filter = this.filterParams();
-      if (filter) {
+      const listResult = this.listResult();
+      if (filter && !listResult) {
         this.redirectTestStore.searchList(filter);
       }
     });
@@ -257,18 +258,12 @@ export class TestsPageComponent {
       return;
     }
 
-    const dialogRef = this.dialog.open(RunPendingTestsDialogComponent, {
+    this.dialog.open(RunPendingTestsDialogComponent, {
       width: 'min(560px, 94vw)',
       maxWidth: '94vw',
       disableClose: true,
       data: {
         domainGroupId: this.activeGroupId()
-      }
-    });
-
-    dialogRef.afterClosed().subscribe((didRun) => {
-      if (didRun) {
-        this.refreshListAfterSave();
       }
     });
   }
@@ -363,7 +358,7 @@ export class TestsPageComponent {
 
     if (!runState || (!runState.lastRunAt && !runState.lastResult && !runState.lastError)) {
       return {
-        label: 'Pending',
+        label: 'Not run',
         kind: 'pending',
         tone: 'status-pill status-pill--pending'
       };

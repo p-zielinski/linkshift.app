@@ -126,11 +126,20 @@ export class RunPendingTestsDialogComponent {
       };
 
       this.resultsStore.setSuccess(test.id, lastResult);
-      return true;
+      return this.matchesExpected(test, lastResult);
     } catch (error) {
       const message = extractErrorMessage(error, 'Simulation failed.');
       this.resultsStore.setFailure(test.id, message);
       return false;
     }
+  }
+
+  private matchesExpected(test: RedirectTest, actual: RedirectTestResult): boolean {
+    const expected = test.expectedResult;
+    return (
+      expected.matched === actual.matched &&
+      expected.statusCode === actual.statusCode &&
+      (expected.target ?? null) === (actual.target ?? null)
+    );
   }
 }

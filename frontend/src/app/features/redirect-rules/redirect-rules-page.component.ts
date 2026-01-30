@@ -1,4 +1,12 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  EnvironmentInjector,
+  runInInjectionContext
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,13 +18,23 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { debounce, form, required, FormField } from '@angular/forms/signals';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { ResourcePillComponent } from '../../shared/components/resource-pill/resource-pill.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
+import { RedirectTestStore } from '../../core/store/redirect-test.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { RedirectTestResultsStore } from '../../core/store/redirect-test-results.store';
+import { RunPendingTestsDialogComponent } from '../tests/run-pending-tests-dialog.component';
+import type {
+  RedirectTest,
+  RedirectTestListQuery,
+  RedirectTestResult
+} from '../../core/models/redirect-test.model';
+import { extractErrorMessage } from '../../core/store/store-error.utils';
+import { filter, firstValueFrom, take } from 'rxjs';
 import { RedirectRuleFormDialogComponent } from './redirect-rule-form-dialog.component';
 import type { RedirectRule } from '../../core/models/redirect-rule.model';
 
@@ -46,7 +64,9 @@ export class RedirectRulesPageComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly redirectRuleStore = inject(RedirectRuleStore);
   private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
+  private readonly redirectTestStore = inject(RedirectTestStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly envInjector = inject(EnvironmentInjector);
 
   readonly columns = [
     'priority',
@@ -122,6 +142,56 @@ export class RedirectRulesPageComponent {
 
   readonly hasNextPage = computed(() => !!this.listResult()?.moreStartingAfterId);
 
+  readonly tests = signal<RedirectTest[]>([]);
+  readonly testsLoading = signal(false);
+  readonly testsError = signal<string | null>(null);
+  private testsLoadSequence = 0;
+
+  readonly testsMetrics = computed(() => {
+    const tests = this.tests();
+    const results = this.redirectTestResultsStore.results();
+
+    let passed = 0;
+    let failed = 0;
+    let errored = 0;
+    let notRun = 0;
+
+    tests.forEach((test) => {
+      const runState = results[test.id];
+      if (!runState) {
+        notRun += 1;
+        return;
+      }
+      if (runState.lastError) {
+        errored += 1;
+        return;
+      }
+      if (!runState.lastResult) {
+        notRun += 1;
+        return;
+      }
+      if (this.compareResults(test.expectedResult, runState.lastResult)) {
+        passed += 1;
+      } else {
+        failed += 1;
+      }
+    });
+
+    const total = tests.length;
+    const runCount = passed + failed + errored;
+    const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+    return {
+      total,
+      passed,
+      failed,
+      errored,
+      notRun,
+      runCount,
+      passRate
+    };
+  });
+
   readonly groupMap = computed(() => {
     const map: Record<string, { name: string } | undefined> = {};
     for (const group of this.domainGroups()) {
@@ -141,9 +211,26 @@ export class RedirectRulesPageComponent {
 
     effect(() => {
       const filter = this.filterParams();
-      if (filter) {
+      const listResult = this.listResult();
+      if (filter && !listResult) {
         this.redirectRuleStore.searchList(filter);
       }
+    });
+
+    effect(() => {
+      const groupId = this.activeGroupId();
+      if (!groupId) {
+        this.tests.set([]);
+        this.testsError.set(null);
+        this.testsLoading.set(false);
+        return;
+      }
+      queueMicrotask(() => {
+        if (this.activeGroupId() !== groupId) {
+          return;
+        }
+        this.loadTestsSnapshot(groupId);
+      });
     });
 
     effect(() => {
@@ -255,6 +342,21 @@ export class RedirectRulesPageComponent {
     });
   }
 
+  runTests(): void {
+    if (!this.activeGroupId()) {
+      return;
+    }
+
+    this.dialog.open(RunPendingTestsDialogComponent, {
+      width: 'min(560px, 94vw)',
+      maxWidth: '94vw',
+      disableClose: true,
+      data: {
+        domainGroupId: this.activeGroupId()
+      }
+    });
+  }
+
   groupLabel(groupId: string): string {
     return this.groupMap()[groupId]?.name ?? groupId;
   }
@@ -298,6 +400,70 @@ export class RedirectRulesPageComponent {
         limit: this.pageLimit()
       },
       true
+    );
+  }
+
+  private async loadTestsSnapshot(groupId: string): Promise<void> {
+    const currentSequence = ++this.testsLoadSequence;
+    this.testsLoading.set(true);
+    this.testsError.set(null);
+    this.tests.set([]);
+
+    const collected: RedirectTest[] = [];
+    let cursor: string | undefined;
+
+    try {
+      do {
+        const filterParams: RedirectTestListQuery = {
+          domainGroupId: groupId,
+          limit: 100,
+          ...(cursor ? { startAfterId: cursor } : {})
+        };
+
+        this.redirectTestStore.searchList(filterParams);
+        const result = await firstValueFrom(
+          runInInjectionContext(this.envInjector, () =>
+            toObservable(this.redirectTestStore.selectListResult(filterParams)).pipe(
+              filter((value) => value !== null),
+              take(1)
+            )
+          )
+        );
+
+        if (currentSequence !== this.testsLoadSequence) {
+          return;
+        }
+
+        collected.push(...this.redirectTestStore.selectList(filterParams)());
+        cursor = result?.moreStartingAfterId ?? undefined;
+
+        const storeError = this.redirectTestStore.lastError();
+        if (storeError) {
+          this.testsError.set(storeError);
+          this.redirectTestStore.clearError();
+        }
+      } while (cursor);
+
+      if (currentSequence === this.testsLoadSequence) {
+        this.tests.set(collected);
+      }
+    } catch (error) {
+      if (currentSequence === this.testsLoadSequence) {
+        this.tests.set([]);
+        this.testsError.set(extractErrorMessage(error, 'Failed to load tests.'));
+      }
+    } finally {
+      if (currentSequence === this.testsLoadSequence) {
+        this.testsLoading.set(false);
+      }
+    }
+  }
+
+  private compareResults(expected: RedirectTestResult, actual: RedirectTestResult): boolean {
+    return (
+      expected.matched === actual.matched &&
+      expected.statusCode === actual.statusCode &&
+      (expected.target ?? null) === (actual.target ?? null)
     );
   }
 }

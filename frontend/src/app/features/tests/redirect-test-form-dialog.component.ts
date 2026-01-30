@@ -11,15 +11,16 @@ import { CommonModule } from '@angular/common';
 import { form, required, submit, FormField } from '@angular/forms/signals';
 import { RedirectTestStore } from '../../core/store/redirect-test.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
+import { DomainStore } from '../../core/store/domain.store';
 import { RedirectRulesApiService } from '../../core/api/redirect-rules-api.service';
 import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
 import { HttpMethod } from '../../core/models/http-method.model';
 import type { RedirectTest, RedirectTestResult } from '../../core/models/redirect-test.model';
+import { RedirectTestResultsStore } from '../../core/store/redirect-test-results.store';
 import { firstValueFrom } from 'rxjs';
 import {
   buildPathWithQuery,
   buildRequestData,
-  parseQueryString,
   splitPathWithQuery,
   stringifyHeaders,
   stringifyQuery,
@@ -46,6 +47,7 @@ const PROTOCOL_OPTIONS = [
 
 type RedirectTestFormModel = {
   domainGroupId: string;
+  hostname: string;
   path: string;
   query: string;
   method: string;
@@ -84,11 +86,14 @@ export class RedirectTestFormDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<RedirectTestFormDialogComponent>);
   private readonly data = inject<RedirectTestDialogData | null>(MAT_DIALOG_DATA, { optional: true });
   private readonly redirectTestStore = inject(RedirectTestStore);
+  private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
   private readonly redirectRulesApi = inject(RedirectRulesApiService);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly domainStore = inject(DomainStore);
   private readonly snackBar = inject(MatSnackBar);
 
   readonly domainGroups = this.domainGroupStore.selectList();
+  readonly domains = this.domainStore.selectList();
   readonly test = this.data?.test ?? null;
   readonly isEdit = !!this.test;
   readonly dialogTitle = this.isEdit ? 'Edit redirect test' : 'Create redirect test';
@@ -103,6 +108,7 @@ export class RedirectTestFormDialogComponent {
 
   formModel = signal<RedirectTestFormModel>({
     domainGroupId: this.test?.domainGroupId ?? this.data?.domainGroupId ?? '',
+    hostname: this.test?.requestData?.hostname ?? '',
     path: this.initialPathState.path || '/',
     query: this.initialQuery,
     method: this.test?.requestData?.method ?? '',
@@ -132,6 +138,7 @@ export class RedirectTestFormDialogComponent {
     const model = this.formModel();
     return JSON.stringify({
       domainGroupId: model.domainGroupId,
+      hostname: model.hostname,
       path: model.path,
       query: model.query,
       method: model.method,
@@ -156,6 +163,16 @@ export class RedirectTestFormDialogComponent {
     const id = this.formModel().domainGroupId;
     return this.groupMap()[id] ?? id;
   });
+  readonly domainsForGroup = computed(() => {
+    const groupId = this.formModel().domainGroupId;
+    if (!groupId) {
+      return [];
+    }
+    return this.domains().filter((domain) => domain.domainGroupId === groupId);
+  });
+  readonly hostnameOptions = computed(() =>
+    this.domainsForGroup().map((domain) => domain.name)
+  );
   readonly scopeValid = computed(() => {
     const model = this.formModel();
     return (
@@ -207,6 +224,7 @@ export class RedirectTestFormDialogComponent {
 
   constructor() {
     this.domainGroupStore.searchList();
+    this.domainStore.searchList();
     effect(
       () => {
         if (!this.pendingSubmit()) {
@@ -232,6 +250,9 @@ export class RedirectTestFormDialogComponent {
         this.submitKey.set(CREATE_ENTITY_ID);
 
         if (!hadError) {
+          if (this.isEdit && this.test) {
+            this.redirectTestResultsStore.clearByIds([this.test.id]);
+          }
           this.dialogRef.close(true);
         }
       },
@@ -255,6 +276,18 @@ export class RedirectTestFormDialogComponent {
         this.formModel.update((model) => ({
           ...model,
           domainGroupId: groups.length === 1 ? groups[0].id : ''
+        }));
+      }
+    });
+
+    effect(() => {
+      const options = this.hostnameOptions();
+      const currentHostname = this.formModel().hostname;
+
+      if (currentHostname && !options.includes(currentHostname)) {
+        this.formModel.update((model) => ({
+          ...model,
+          hostname: ''
         }));
       }
     });
@@ -288,18 +321,25 @@ export class RedirectTestFormDialogComponent {
 
     this.simulating.set(true);
     try {
-      const query = parseQueryString(model.query);
+      const requestData = buildRequestData({
+        method: model.method,
+        protocol: model.protocol,
+        hostname: model.hostname,
+        ip: model.ip,
+        userAgent: model.userAgent,
+        headers: model.headers,
+        query: model.query
+      });
       const entry = {
         domainGroupId: model.domainGroupId,
+        hostname: requestData.hostname,
         path: ensureLeadingSlash(model.path.trim()),
-        method: model.method ? (model.method as HttpMethod) : undefined,
-        protocol: model.protocol === 'http' || model.protocol === 'https'
-          ? (model.protocol as 'http' | 'https')
-          : undefined,
-        ip: model.ip.trim() ? model.ip.trim() : undefined,
-        userAgent: model.userAgent.trim() ? model.userAgent.trim() : undefined,
-        headers: buildRequestData({ headers: model.headers }).headers,
-        query: Object.keys(query).length > 0 ? query : undefined
+        method: requestData.method,
+        protocol: requestData.protocol,
+        ip: requestData.ip,
+        userAgent: requestData.userAgent,
+        headers: requestData.headers,
+        query: requestData.query
       };
 
       const response = await firstValueFrom(this.redirectRulesApi.simulate([entry]));
@@ -337,6 +377,7 @@ export class RedirectTestFormDialogComponent {
       const requestData = buildRequestData({
         method: value.method,
         protocol: value.protocol,
+        hostname: value.hostname,
         ip: value.ip,
         userAgent: value.userAgent,
         headers: value.headers,
