@@ -1,27 +1,10 @@
 import { z } from 'zod';
 
-export const RegisterSchema = z.object({
+const RegisterBaseSchema = z.object({
   email: z.email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   organizationName: z.string().min(1, 'Organization name is required'),
-  plan: z
-    .enum(['FREE', 'STARTER', 'PRO'])
-    .optional(),
-  acceptTerms: z
-    .boolean()
-    .refine((value) => value === true, {
-      message: 'Terms of Service acceptance is required',
-    }),
-  acceptPrivacy: z
-    .boolean()
-    .refine((value) => value === true, {
-      message: 'Privacy Policy acceptance is required',
-    }),
-  confirmAge: z
-    .boolean()
-    .refine((value) => value === true, {
-      message: 'Age confirmation is required',
-    }),
+  plan: z.enum(['FREE', 'STARTER', 'PRO']).optional(),
 });
 
 export const LoginSchema = z.object({
@@ -33,25 +16,10 @@ export const RefreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required').optional(),
 });
 
-export const InviteRegisterSchema = z.object({
+const InviteRegisterBaseSchema = z.object({
   token: z.string().min(1, 'Invite token is required'),
   email: z.email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  acceptTerms: z
-    .boolean()
-    .refine((value) => value === true, {
-      message: 'Terms of Service acceptance is required',
-    }),
-  acceptPrivacy: z
-    .boolean()
-    .refine((value) => value === true, {
-      message: 'Privacy Policy acceptance is required',
-    }),
-  confirmAge: z
-    .boolean()
-    .refine((value) => value === true, {
-      message: 'Age confirmation is required',
-    }),
 });
 
 export const EmailVerificationSchema = z.object({
@@ -79,23 +47,24 @@ export const EmailChangeConfirmSchema = z.object({
   code: z.string().min(1, 'Verification code is required'),
 });
 
-export const LegalConsentSchema = z.object({
-  acceptTerms: z
-    .boolean()
-    .refine((value) => value === true, {
+export const LegalConsentSchema = z
+  .object({
+    acceptTerms: z.boolean().refine((value) => value === true, {
       message: 'Terms of Service acceptance is required',
     }),
-  acceptPrivacy: z
-    .boolean()
-    .refine((value) => value === true, {
+    acceptPrivacy: z.boolean().refine((value) => value === true, {
       message: 'Privacy Policy acceptance is required',
     }),
-  confirmAge: z
-    .boolean()
-    .refine((value) => value === true, {
+    confirmAge: z.boolean().refine((value) => value === true, {
       message: 'Age confirmation is required',
     }),
-});
+  })
+  .strict();
+
+export const RegisterSchema =
+  RegisterBaseSchema.merge(LegalConsentSchema).strict();
+export const InviteRegisterSchema =
+  InviteRegisterBaseSchema.merge(LegalConsentSchema).strict();
 
 export type RefreshTokenDto = z.infer<typeof RefreshTokenSchema>;
 export type RegisterDto = z.infer<typeof RegisterSchema>;
@@ -103,8 +72,12 @@ export type LoginDto = z.infer<typeof LoginSchema>;
 export type InviteRegisterDto = z.infer<typeof InviteRegisterSchema>;
 export type EmailVerificationDto = z.infer<typeof EmailVerificationSchema>;
 export type ResendVerificationDto = z.infer<typeof ResendVerificationSchema>;
-export type PasswordResetRequestDto = z.infer<typeof PasswordResetRequestSchema>;
-export type PasswordResetConfirmDto = z.infer<typeof PasswordResetConfirmSchema>;
+export type PasswordResetRequestDto = z.infer<
+  typeof PasswordResetRequestSchema
+>;
+export type PasswordResetConfirmDto = z.infer<
+  typeof PasswordResetConfirmSchema
+>;
 export type EmailChangeRequestDto = z.infer<typeof EmailChangeRequestSchema>;
 export type EmailChangeConfirmDto = z.infer<typeof EmailChangeConfirmSchema>;
 export type LegalConsentDto = z.infer<typeof LegalConsentSchema>;
