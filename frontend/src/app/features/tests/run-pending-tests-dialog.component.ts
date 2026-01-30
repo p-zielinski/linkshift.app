@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
@@ -10,6 +10,14 @@ import { RedirectTestResultsStore } from '../../core/store/redirect-test-results
 import { extractErrorMessage } from '../../core/store/store-error.utils';
 import type { RedirectTest, RedirectTestResult } from '../../core/models/redirect-test.model';
 import { buildSimulationEntry } from './redirect-test.utils';
+import { RedirectTestResultDialogComponent } from './redirect-test-result-dialog.component';
+
+type RunTestOutcome = {
+  test: RedirectTest;
+  reason: 'passed' | 'failed' | 'error';
+  actual: RedirectTestResult | null;
+  error: string | null;
+};
 
 export type RunPendingTestsDialogData = {
   domainGroupId: string;
@@ -28,6 +36,7 @@ export type RunPendingTestsDialogData = {
 })
 export class RunPendingTestsDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<RunPendingTestsDialogComponent>);
+  private readonly dialog = inject(MatDialog);
   private readonly redirectTestsApi = inject(RedirectTestsApiService);
   private readonly redirectRulesApi = inject(RedirectRulesApiService);
   private readonly resultsStore = inject(RedirectTestResultsStore);
@@ -38,6 +47,7 @@ export class RunPendingTestsDialogComponent {
   readonly running = signal(true);
   readonly summary = signal<string | null>(null);
   readonly didRun = signal(false);
+  readonly failures = signal<RunTestOutcome[]>([]);
 
   readonly progress = computed(() => {
     const total = this.total();
@@ -62,20 +72,25 @@ export class RunPendingTestsDialogComponent {
       this.didRun.set(tests.length > 0);
 
       if (tests.length === 0) {
-        this.summary.set('No pending tests to run.');
+        this.summary.set('No tests to run.');
         this.running.set(false);
         return;
       }
 
-      let failures = 0;
-      for (const test of tests) {
-        const success = await this.runTest(test);
-        if (!success) {
-          failures += 1;
-        }
-        this.completed.update((value) => value + 1);
+      const failedTests: RunTestOutcome[] = [];
+      const batches = this.chunkTests(tests, 100);
+      for (const batch of batches) {
+        const outcomes = await this.runBatch(batch);
+        outcomes.forEach((outcome) => {
+          if (outcome.reason !== 'passed') {
+            failedTests.push(outcome);
+          }
+        });
+        this.completed.update((value) => value + batch.length);
       }
 
+      this.failures.set(failedTests);
+      const failures = failedTests.length;
       const successCount = tests.length - failures;
       this.summary.set(
         failures
@@ -97,7 +112,7 @@ export class RunPendingTestsDialogComponent {
       const response = await firstValueFrom(
         this.redirectTestsApi.list({
           domainGroupId: this.data.domainGroupId,
-          limit: 20,
+          limit: 100,
           ...(cursor ? { startAfterId: cursor } : {})
         })
       );
@@ -109,28 +124,63 @@ export class RunPendingTestsDialogComponent {
     return collected.filter((test) => !this.resultsStore.results()[test.id]);
   }
 
-  private async runTest(test: RedirectTest): Promise<boolean> {
+  private async runBatch(tests: RedirectTest[]): Promise<RunTestOutcome[]> {
+    if (tests.length === 0) {
+      return [];
+    }
+
     try {
       const response = await firstValueFrom(
-        this.redirectRulesApi.simulate([buildSimulationEntry(test)])
+        this.redirectRulesApi.simulate(tests.map(buildSimulationEntry))
       );
-      const result = response?.results?.[0];
-      if (!result) {
-        throw new Error('No result returned.');
-      }
+      const results = response?.results ?? [];
+      return tests.map((test, index) => {
+        const result = results[index];
+        if (!result) {
+          const errorMessage = 'No result returned.';
+          this.resultsStore.setFailure(test.id, errorMessage);
+          return {
+            test,
+            reason: 'error',
+            actual: null,
+            error: errorMessage
+          };
+        }
 
-      const lastResult: RedirectTestResult = {
-        matched: result.matched,
-        statusCode: result.statusCode,
-        target: result.target ?? null
-      };
+        const lastResult: RedirectTestResult = {
+          matched: result.matched,
+          statusCode: result.statusCode,
+          target: result.target ?? null
+        };
 
-      this.resultsStore.setSuccess(test.id, lastResult);
-      return this.matchesExpected(test, lastResult);
+        this.resultsStore.setSuccess(test.id, lastResult);
+        const matches = this.matchesExpected(test, lastResult);
+        if (matches) {
+          return {
+            test,
+            reason: 'passed',
+            actual: lastResult,
+            error: null
+          };
+        }
+        return {
+          test,
+          reason: 'failed',
+          actual: lastResult,
+          error: null
+        };
+      });
     } catch (error) {
       const message = extractErrorMessage(error, 'Simulation failed.');
-      this.resultsStore.setFailure(test.id, message);
-      return false;
+      return tests.map((test) => {
+        this.resultsStore.setFailure(test.id, message);
+        return {
+          test,
+          reason: 'error',
+          actual: null,
+          error: message
+        };
+      });
     }
   }
 
@@ -141,5 +191,57 @@ export class RunPendingTestsDialogComponent {
       expected.statusCode === actual.statusCode &&
       (expected.target ?? null) === (actual.target ?? null)
     );
+  }
+
+  private chunkTests(tests: RedirectTest[], size: number): RedirectTest[][] {
+    if (tests.length <= size) {
+      return [tests];
+    }
+    const chunks: RedirectTest[][] = [];
+    for (let i = 0; i < tests.length; i += size) {
+      chunks.push(tests.slice(i, i + size));
+    }
+    return chunks;
+  }
+
+  formatExpected(test: RedirectTest): string {
+    const expected = test.expectedResult;
+    if (!expected) {
+      return 'Expectation not set';
+    }
+    if (!expected.matched) {
+      return 'No redirect (404)';
+    }
+    if (!expected.target) {
+      return `${expected.statusCode} (missing target)`;
+    }
+    return `${expected.statusCode} -> ${expected.target}`;
+  }
+
+  formatActual(failure: RunTestOutcome): string {
+    if (failure.error) {
+      return failure.error;
+    }
+    if (!failure.actual) {
+      return 'No result';
+    }
+    if (!failure.actual.matched) {
+      return 'No redirect (404)';
+    }
+    if (!failure.actual.target) {
+      return `${failure.actual.statusCode} (no target)`;
+    }
+    return `${failure.actual.statusCode} -> ${failure.actual.target}`;
+  }
+
+  openDetails(test: RedirectTest): void {
+    this.dialog.open(RedirectTestResultDialogComponent, {
+      width: 'min(720px, 94vw)',
+      maxWidth: '94vw',
+      data: {
+        test,
+        runState: this.resultsStore.results()[test.id] ?? null
+      }
+    });
   }
 }

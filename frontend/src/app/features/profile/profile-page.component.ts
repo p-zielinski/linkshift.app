@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -12,6 +13,8 @@ import { AuthStore } from '../../core/store/auth.store';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { firstValueFrom } from 'rxjs';
+import { SITE_CONFIG } from '../../core/config/site-config';
+import { needsLegalConsent } from '../../core/legal/legal-consent.utils';
 
 const emailSchema = z.string().email('Invalid email address');
 
@@ -20,6 +23,7 @@ const emailSchema = z.string().email('Invalid email address');
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     MatCardModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -35,10 +39,12 @@ export class ProfilePageComponent {
   private readonly authStore = inject(AuthStore);
   private readonly authApi = inject(AuthApiService);
   private readonly snackBar = inject(MatSnackBar);
+  readonly siteConfig = inject(SITE_CONFIG);
 
   readonly user = computed(() => this.authStore.user());
   readonly isVerified = computed(() => !!this.user()?.emailVerifiedAt);
   readonly email = computed(() => this.user()?.email ?? '');
+  readonly needsLegalUpdate = computed(() => needsLegalConsent(this.user(), this.siteConfig));
 
   readonly busy = signal(false);
   readonly changeCodeSent = signal(false);

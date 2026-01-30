@@ -30,6 +30,7 @@ import { RedirectTestsService } from './redirect-tests/redirect-tests.service';
 import { EmailService } from './email/email.service';
 import { AuthTokenService } from './auth/auth-token.service';
 import { OrganizationMembersService } from './organization/organization-members.service';
+import { LegalService } from './legal/legal.service';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { OrganizationMembersService } from './organization/organization-members.
     AuthTokenService,
     EmailService,
     OrganizationMembersService,
+    LegalService,
     RedisService,
     CacheManagerIdsService,
     CacheManagerService,

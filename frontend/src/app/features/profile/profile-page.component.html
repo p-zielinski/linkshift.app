@@ -100,5 +100,26 @@
         }
       </div>
     </div>
+
+    <div class="rounded-[18px] border border-app-border-soft bg-app-surface p-4 lg:col-span-2">
+      <div class="text-sm font-semibold text-app-foreground">Legal consent</div>
+      <p class="mt-1 text-[12px] text-app-muted">
+        Version {{ siteConfig.legalVersion }} · Minimum age {{ siteConfig.minAge }}
+      </p>
+      @if (needsLegalUpdate()) {
+        <div class="mt-3 rounded-[14px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+          Updated legal terms require your review.
+        </div>
+        <div class="mt-3">
+          <a mat-stroked-button color="primary" routerLink="/legal/consent">
+            Review and accept updates
+          </a>
+        </div>
+      } @else {
+        <div class="mt-3 text-[12px] text-app-muted">
+          Your latest consent is on file.
+        </div>
+      }
+    </div>
   </div>
 </div>

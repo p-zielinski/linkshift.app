@@ -18,6 +18,12 @@ import { OrganizationPageComponent } from './features/organization/organization-
 import { ResetPasswordPageComponent } from './features/auth/reset-password-page.component';
 import { VerifyEmailPageComponent } from './features/auth/verify-email-page.component';
 import { InviteAcceptPageComponent } from './features/auth/invite-accept-page.component';
+import { TermsPageComponent } from './features/legal/terms-page.component';
+import { PrivacyPageComponent } from './features/legal/privacy-page.component';
+import { CookiesPageComponent } from './features/legal/cookies-page.component';
+import { DoNotSellPageComponent } from './features/legal/do-not-sell-page.component';
+import { LegalConsentPageComponent } from './features/legal/legal-consent-page.component';
+import { legalConsentGuard } from './core/legal/legal-consent.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'home' },
@@ -32,6 +38,10 @@ export const routes: Routes = [
       { path: 'home', component: HomePageComponent },
       { path: 'pricing', component: PricingPageComponent },
       { path: 'contact', component: ContactPageComponent },
+      { path: 'terms', component: TermsPageComponent },
+      { path: 'privacy', component: PrivacyPageComponent },
+      { path: 'cookies', component: CookiesPageComponent },
+      { path: 'do-not-sell', component: DoNotSellPageComponent },
       {
         path: 'alternatives/redirect-pizza',
         component: AlternativePageComponent,
@@ -52,9 +62,10 @@ export const routes: Routes = [
   {
     path: '',
     component: AppShellComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, legalConsentGuard],
     children: [
       { path: 'dashboard', component: DashboardPageComponent },
+      { path: 'legal/consent', component: LegalConsentPageComponent },
       { path: 'profile', component: ProfilePageComponent },
       { path: 'organization', component: OrganizationPageComponent },
       {

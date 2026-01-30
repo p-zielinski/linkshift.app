@@ -5,6 +5,7 @@ import { ForbiddenError, UnauthorizedError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { throwHttpException } from '../utils';
 import { CacheManagerService, DataType, CachedByProperty } from '../cache/cache-manager.service';
+import { LegalService } from '../legal/legal.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -12,6 +13,7 @@ export class AuthGuard implements CanActivate {
     private readonly jwtService: JwtService,
     private readonly clsService: ClsService,
     private readonly cacheManagerService: CacheManagerService,
+    private readonly legalService: LegalService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -39,6 +41,12 @@ export class AuthGuard implements CanActivate {
       }
       if ((user as any).isBlocked) {
         return this.throwForbiddenError();
+      }
+      if (!this.shouldBypassLegalCheck(request)) {
+        const upToDate = this.legalService.isConsentUpToDate(user as any);
+        if (!upToDate) {
+          return this.throwLegalConsentError();
+        }
       }
       // Attach user to request object so controllers can access it via @User()
       request['user'] = payload;
@@ -68,5 +76,19 @@ export class AuthGuard implements CanActivate {
         details: 'Account is blocked by the organization owner.',
       }),
     );
+  }
+
+  private throwLegalConsentError(): never {
+    return throwHttpException(
+      new ForbiddenError({
+        requestId: this.clsService.getId(),
+        details: 'Legal consent update required.',
+      }),
+    );
+  }
+
+  private shouldBypassLegalCheck(request: Request): boolean {
+    const path = request.path ?? request.url ?? '';
+    return path.startsWith('/api/v1/auth/accept-legal');
   }
 }

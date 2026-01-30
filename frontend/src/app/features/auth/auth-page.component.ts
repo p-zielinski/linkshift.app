@@ -15,12 +15,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../core/store/auth.store';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { loginSchema, registerSchema } from './auth.schemas';
 import { OrganizationPlan } from '@shared/models/organization-config.model';
+import { SITE_CONFIG } from '../../core/config/site-config';
 
 @Component({
   selector: 'app-auth-page',
@@ -35,6 +37,7 @@ import { OrganizationPlan } from '@shared/models/organization-config.model';
     MatIconModule,
     MatSnackBarModule,
     MatRadioModule,
+    MatCheckboxModule,
     FormField,
     RouterLink
   ],
@@ -45,6 +48,7 @@ export class AuthPageComponent {
   readonly authStore = inject(AuthStore);
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
+  readonly siteConfig = inject(SITE_CONFIG);
 
   loginModel = signal({
     email: '',
@@ -56,7 +60,10 @@ export class AuthPageComponent {
     email: '',
     password: '',
     confirmPassword: '',
-    plan: OrganizationPlan.FREE
+    plan: OrganizationPlan.FREE,
+    acceptTerms: false,
+    acceptPrivacy: false,
+    confirmAge: false
   });
 
   loginForm = form(this.loginModel, (f) => {
@@ -76,6 +83,9 @@ export class AuthPageComponent {
     applyZodField(f.email, registerSchema.shape.email);
     applyZodField(f.password, registerSchema.shape.password);
     applyZodField(f.plan, registerSchema.shape.plan);
+    applyZodField(f.acceptTerms, registerSchema.shape.acceptTerms);
+    applyZodField(f.acceptPrivacy, registerSchema.shape.acceptPrivacy);
+    applyZodField(f.confirmAge, registerSchema.shape.confirmAge);
 
     validate(f.confirmPassword, ({ value, valueOf }) => {
       if (!value()) {
@@ -94,6 +104,9 @@ export class AuthPageComponent {
   registerEmailError = computed(() => this.getFieldError(this.registerForm.email()));
   registerPasswordError = computed(() => this.getFieldError(this.registerForm.password()));
   registerConfirmError = computed(() => this.getFieldError(this.registerForm.confirmPassword()));
+  registerTermsError = computed(() => this.getFieldError(this.registerForm.acceptTerms()));
+  registerPrivacyError = computed(() => this.getFieldError(this.registerForm.acceptPrivacy()));
+  registerAgeError = computed(() => this.getFieldError(this.registerForm.confirmAge()));
 
   readonly plans = [
     {

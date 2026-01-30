@@ -10,12 +10,18 @@ export type RegisterDto = {
   password: string;
   organizationName: string;
   plan?: OrganizationPlan;
+  acceptTerms: boolean;
+  acceptPrivacy: boolean;
+  confirmAge: boolean;
 };
 
 export type InviteRegisterDto = {
   token: string;
   email: string;
   password: string;
+  acceptTerms: boolean;
+  acceptPrivacy: boolean;
+  confirmAge: boolean;
 };
 
 export type PasswordResetRequestDto = {
@@ -37,6 +43,12 @@ export type EmailChangeRequestDto = {
 
 export type EmailChangeConfirmDto = {
   code: string;
+};
+
+export type LegalConsentDto = {
+  acceptTerms: boolean;
+  acceptPrivacy: boolean;
+  confirmAge: boolean;
 };
 
 export type RefreshTokenDto = {

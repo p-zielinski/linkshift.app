@@ -91,6 +91,14 @@
             <div class="flex items-center gap-1">
               <button
                 mat-icon-button
+                [matTooltip]="canRunTest(test) ? 'Run test' : 'Test already run'"
+                [disabled]="!canRunTest(test)"
+                (click)="runSingleTest(test)"
+              >
+                <mat-icon>play_arrow</mat-icon>
+              </button>
+              <button
+                mat-icon-button
                 matTooltip="View result details"
                 [disabled]="!showResultDetails(test)"
                 (click)="openResultDialog(test)"

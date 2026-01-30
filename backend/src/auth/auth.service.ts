@@ -18,6 +18,7 @@ import { OrganizationPlan } from '@shared/models/organization-config.model';
 import { LoginRateLimitService } from './login-rate-limit.service';
 import { EmailService } from '../email/email.service';
 import { AuthTokenService } from './auth-token.service';
+import { LegalService } from '../legal/legal.service';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +31,7 @@ export class AuthService {
     private readonly loginRateLimitService: LoginRateLimitService,
     private readonly emailService: EmailService,
     private readonly authTokenService: AuthTokenService,
+    private readonly legalService: LegalService,
   ) {}
 
   async register(data: RegisterDto) {
@@ -53,6 +55,7 @@ export class AuthService {
 
     // 2. Hash password
     const passwordHash = await bcrypt.hash(data.password, 10);
+    const legalConsent = this.legalService.buildConsentRecord();
 
     // 3. Create organization and user in a transaction
     const result = await this.prisma.$transaction(async (tx) => {
@@ -72,6 +75,7 @@ export class AuthService {
           passwordHash,
           organizationId: organization.id,
           isOwner: true,
+          ...legalConsent,
         },
       });
 
@@ -571,6 +575,41 @@ export class AuthService {
     });
 
     return { updated: true };
+  }
+
+  async acceptLegalConsent(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId, deletedAt: null },
+    });
+    if (!user) {
+      return throwHttpException(
+        new NotFoundError({
+          requestId: this.clsService.getId(),
+          details: `User ${userId} not found.`,
+          relatedObject: 'User',
+          relatedObjectId: userId,
+        }),
+      );
+    }
+
+    const consent = this.legalService.buildConsentRecord();
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        termsAcceptedAt: consent.termsAcceptedAt,
+        privacyAcceptedAt: consent.privacyAcceptedAt,
+        ageConfirmedAt: consent.ageConfirmedAt,
+        legalVersion: consent.legalVersion,
+      },
+    });
+
+    await this.cacheManagerService.setDataExist({
+      dataType: DataType.USERS,
+      data: updated,
+    });
+
+    const { passwordHash: _passwordHash, ...userWithoutPassword } = updated;
+    return { user: userWithoutPassword };
   }
 
   private async ensureRefreshTokenNotReused(

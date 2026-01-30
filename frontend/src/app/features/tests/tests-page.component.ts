@@ -23,6 +23,10 @@ import { RedirectTestFormDialogComponent } from './redirect-test-form-dialog.com
 import { RedirectTestResultDialogComponent } from './redirect-test-result-dialog.component';
 import { RunPendingTestsDialogComponent } from './run-pending-tests-dialog.component';
 import type { RedirectTest, RedirectTestResult } from '../../core/models/redirect-test.model';
+import { RedirectRulesApiService } from '../../core/api/redirect-rules-api.service';
+import { buildSimulationEntry } from './redirect-test.utils';
+import { extractErrorMessage } from '../../core/store/store-error.utils';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-tests-page',
@@ -51,13 +55,15 @@ export class TestsPageComponent {
   private readonly redirectTestStore = inject(RedirectTestStore);
   private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly redirectRulesApi = inject(RedirectRulesApiService);
 
   readonly columns = ['path', 'expected', 'result', 'actions'];
   readonly domainGroups = this.domainGroupStore.selectList();
-  readonly pageLimitOptions = [20];
-  readonly pageLimit = signal(20);
+  readonly pageLimitOptions = [100];
+  readonly pageLimit = signal(100);
   readonly page = signal(1);
   readonly pageCursors = signal<Record<number, string | null>>({ 1: null });
+  readonly runningTestIds = signal<Set<string>>(new Set());
 
   filterModel = signal({
     domainGroupId: '',
@@ -253,6 +259,47 @@ export class TestsPageComponent {
     });
   }
 
+  async runSingleTest(test: RedirectTest): Promise<void> {
+    if (!this.canRunTest(test)) {
+      return;
+    }
+
+    this.setRunning(test.id, true);
+    try {
+      const response = await firstValueFrom(
+        this.redirectRulesApi.simulate([buildSimulationEntry(test)])
+      );
+      const result = response?.results?.[0];
+      if (!result) {
+        throw new Error('No result returned.');
+      }
+
+      const lastResult: RedirectTestResult = {
+        matched: result.matched,
+        statusCode: result.statusCode,
+        target: result.target ?? null
+      };
+
+      this.redirectTestResultsStore.setSuccess(test.id, lastResult);
+
+      const matches = this.compareResults(test.expectedResult, lastResult);
+      const message = matches
+        ? 'Test passed.'
+        : 'Test failed. Review details for differences.';
+      this.snackBar.open(message, 'Dismiss', { duration: 3000 });
+    } catch (error) {
+      const message = extractErrorMessage(error, 'Test run failed.');
+      this.redirectTestResultsStore.setFailure(test.id, message);
+      this.snackBar.open(message, 'Dismiss', { duration: 4000 });
+    } finally {
+      this.setRunning(test.id, false);
+    }
+  }
+
+  canRunTest(test: RedirectTest): boolean {
+    return !this.showResultDetails(test) && !this.runningTestIds().has(test.id);
+  }
+
   runPendingTests(): void {
     if (!this.activeGroupId()) {
       return;
@@ -402,5 +449,17 @@ export class TestsPageComponent {
       expected.statusCode === actual.statusCode &&
       (expected.target ?? null) === (actual.target ?? null)
     );
+  }
+
+  private setRunning(testId: string, running: boolean): void {
+    this.runningTestIds.update((current) => {
+      const next = new Set(current);
+      if (running) {
+        next.add(testId);
+      } else {
+        next.delete(testId);
+      }
+      return next;
+    });
   }
 }

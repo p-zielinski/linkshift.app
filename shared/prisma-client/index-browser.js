@@ -138,6 +138,10 @@ exports.Prisma.UserScalarFieldEnum = {
   emailVerifiedAt: 'emailVerifiedAt',
   isBlocked: 'isBlocked',
   blockedAt: 'blockedAt',
+  termsAcceptedAt: 'termsAcceptedAt',
+  privacyAcceptedAt: 'privacyAcceptedAt',
+  ageConfirmedAt: 'ageConfirmedAt',
+  legalVersion: 'legalVersion',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'

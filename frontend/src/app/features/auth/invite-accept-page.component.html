@@ -40,6 +40,30 @@
             <mat-error>{{ confirmError() }}</mat-error>
           }
         </mat-form-field>
+
+        <div class="grid gap-2 rounded-[16px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+          <mat-checkbox [formField]="form.acceptTerms">
+            I agree to the <a routerLink="/terms" class="text-app-accent-strong">Terms of Service</a>.
+          </mat-checkbox>
+          @if (termsError()) {
+            <div class="text-[11px] text-red-600">{{ termsError() }}</div>
+          }
+
+          <mat-checkbox [formField]="form.acceptPrivacy">
+            I agree to the <a routerLink="/privacy" class="text-app-accent-strong">Privacy Policy</a>.
+          </mat-checkbox>
+          @if (privacyError()) {
+            <div class="text-[11px] text-red-600">{{ privacyError() }}</div>
+          }
+
+          <mat-checkbox [formField]="form.confirmAge">
+            I confirm that I am at least {{ siteConfig.minAge }} years old.
+          </mat-checkbox>
+          @if (ageError()) {
+            <div class="text-[11px] text-red-600">{{ ageError() }}</div>
+          }
+        </div>
+
         <button mat-flat-button color="primary" type="submit">
           Create account
         </button>

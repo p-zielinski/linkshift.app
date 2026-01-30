@@ -7,6 +7,21 @@ export const RegisterSchema = z.object({
   plan: z
     .enum(['FREE', 'STARTER', 'PRO'])
     .optional(),
+  acceptTerms: z
+    .boolean()
+    .refine((value) => value === true, {
+      message: 'Terms of Service acceptance is required',
+    }),
+  acceptPrivacy: z
+    .boolean()
+    .refine((value) => value === true, {
+      message: 'Privacy Policy acceptance is required',
+    }),
+  confirmAge: z
+    .boolean()
+    .refine((value) => value === true, {
+      message: 'Age confirmation is required',
+    }),
 });
 
 export const LoginSchema = z.object({
@@ -22,6 +37,21 @@ export const InviteRegisterSchema = z.object({
   token: z.string().min(1, 'Invite token is required'),
   email: z.email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  acceptTerms: z
+    .boolean()
+    .refine((value) => value === true, {
+      message: 'Terms of Service acceptance is required',
+    }),
+  acceptPrivacy: z
+    .boolean()
+    .refine((value) => value === true, {
+      message: 'Privacy Policy acceptance is required',
+    }),
+  confirmAge: z
+    .boolean()
+    .refine((value) => value === true, {
+      message: 'Age confirmation is required',
+    }),
 });
 
 export const EmailVerificationSchema = z.object({
@@ -49,6 +79,24 @@ export const EmailChangeConfirmSchema = z.object({
   code: z.string().min(1, 'Verification code is required'),
 });
 
+export const LegalConsentSchema = z.object({
+  acceptTerms: z
+    .boolean()
+    .refine((value) => value === true, {
+      message: 'Terms of Service acceptance is required',
+    }),
+  acceptPrivacy: z
+    .boolean()
+    .refine((value) => value === true, {
+      message: 'Privacy Policy acceptance is required',
+    }),
+  confirmAge: z
+    .boolean()
+    .refine((value) => value === true, {
+      message: 'Age confirmation is required',
+    }),
+});
+
 export type RefreshTokenDto = z.infer<typeof RefreshTokenSchema>;
 export type RegisterDto = z.infer<typeof RegisterSchema>;
 export type LoginDto = z.infer<typeof LoginSchema>;
@@ -59,3 +107,4 @@ export type PasswordResetRequestDto = z.infer<typeof PasswordResetRequestSchema>
 export type PasswordResetConfirmDto = z.infer<typeof PasswordResetConfirmSchema>;
 export type EmailChangeRequestDto = z.infer<typeof EmailChangeRequestSchema>;
 export type EmailChangeConfirmDto = z.infer<typeof EmailChangeConfirmSchema>;
+export type LegalConsentDto = z.infer<typeof LegalConsentSchema>;

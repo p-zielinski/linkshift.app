@@ -18,5 +18,14 @@ export const registerSchema = z.object({
     .string()
     .min(1, 'Organization name is required')
     .max(128, 'Organization name is too long'),
-  plan: z.enum(['FREE', 'STARTER', 'PRO']).default('FREE')
+  plan: z.enum(['FREE', 'STARTER', 'PRO']).default('FREE'),
+  acceptTerms: z.boolean().refine((value) => value === true, {
+    message: 'Accept the Terms of Service to continue'
+  }),
+  acceptPrivacy: z.boolean().refine((value) => value === true, {
+    message: 'Accept the Privacy Policy to continue'
+  }),
+  confirmAge: z.boolean().refine((value) => value === true, {
+    message: 'You must confirm you are at least 16 years old'
+  })
 });

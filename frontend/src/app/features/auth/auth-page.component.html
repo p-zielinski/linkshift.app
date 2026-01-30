@@ -115,6 +115,31 @@
             </mat-radio-group>
           </div>
 
+          <div class="grid gap-2 rounded-[16px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+            <mat-checkbox [formField]="registerForm.acceptTerms">
+              I agree to the
+              <a routerLink="/terms" class="text-app-accent-strong">Terms of Service</a>.
+            </mat-checkbox>
+            @if (registerTermsError(); as error) {
+              <div class="text-[11px] text-red-600">{{ error }}</div>
+            }
+
+            <mat-checkbox [formField]="registerForm.acceptPrivacy">
+              I agree to the
+              <a routerLink="/privacy" class="text-app-accent-strong">Privacy Policy</a>.
+            </mat-checkbox>
+            @if (registerPrivacyError(); as error) {
+              <div class="text-[11px] text-red-600">{{ error }}</div>
+            }
+
+            <mat-checkbox [formField]="registerForm.confirmAge">
+              I confirm that I am at least {{ siteConfig.minAge }} years old.
+            </mat-checkbox>
+            @if (registerAgeError(); as error) {
+              <div class="text-[11px] text-red-600">{{ error }}</div>
+            }
+          </div>
+
           <div class="mt-4 flex justify-end">
             <button
               mat-flat-button

@@ -115,7 +115,7 @@ const SimulationEntrySchema = z.object({
 });
 
 export const SimulateRedirectsSchema = z.object({
-  entries: z.array(SimulationEntrySchema).min(1).max(20),
+  entries: z.array(SimulationEntrySchema).min(1).max(100),
 });
 
 export type CreateRedirectRuleDto = z.infer<typeof CreateRedirectRuleSchema>;

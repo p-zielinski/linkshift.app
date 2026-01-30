@@ -8,6 +8,10 @@ export type User = {
   emailVerifiedAt?: string | null;
   isBlocked?: boolean;
   blockedAt?: string | null;
+  termsAcceptedAt?: string | null;
+  privacyAcceptedAt?: string | null;
+  ageConfirmedAt?: string | null;
+  legalVersion?: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;

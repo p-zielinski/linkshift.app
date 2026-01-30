@@ -239,6 +239,16 @@ export class AuthController {
     return this.authService.confirmEmailChange(userId, body.code);
   }
 
+  @Post('accept-legal')
+  @UseGuards(AuthGuard)
+  async acceptLegal(
+    @User('userId') userId: string,
+    @Body(new ZodPipe(authSchemas.LegalConsentSchema))
+    _body: authSchemas.LegalConsentDto,
+  ) {
+    return this.authService.acceptLegalConsent(userId);
+  }
+
   @Post('logout')
   async logout(
     @Req() request: Request,

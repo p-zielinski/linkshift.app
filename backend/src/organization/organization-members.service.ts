@@ -14,6 +14,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { AuthTokenService } from '../auth/auth-token.service';
 import { CacheManagerService, DataType } from '../cache/cache-manager.service';
+import { LegalService } from '../legal/legal.service';
 
 const INVITE_TTL_MS = 30 * 60 * 1000;
 
@@ -26,6 +27,7 @@ export class OrganizationMembersService {
     private readonly emailService: EmailService,
     private readonly authTokenService: AuthTokenService,
     private readonly cacheManagerService: CacheManagerService,
+    private readonly legalService: LegalService,
   ) {}
 
   async createInvite(params: {
@@ -118,7 +120,14 @@ export class OrganizationMembersService {
     };
   }
 
-  async registerFromInvite(params: { token: string; email: string; password: string }) {
+  async registerFromInvite(params: {
+    token: string;
+    email: string;
+    password: string;
+    acceptTerms: boolean;
+    acceptPrivacy: boolean;
+    confirmAge: boolean;
+  }) {
     const invite = await this.findInviteByToken(params.token);
     if (!invite) {
       return throwHttpException(
@@ -152,6 +161,7 @@ export class OrganizationMembersService {
     }
 
     const passwordHash = await bcrypt.hash(params.password, 10);
+    const legalConsent = this.legalService.buildConsentRecord();
 
     const user = await this.prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
@@ -163,6 +173,7 @@ export class OrganizationMembersService {
           isOwner: false,
           isBlocked: true,
           blockedAt: new Date(),
+          ...legalConsent,
         },
       });
 

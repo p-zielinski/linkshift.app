@@ -2,6 +2,7 @@
 
 import { HttpErrorResponse, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthStore } from '../store/auth.store';
 import { catchError, switchMap, throwError, BehaviorSubject, filter, take, type Observable } from 'rxjs';
 import type { AuthTokens } from '../models/auth.model';
@@ -13,6 +14,7 @@ const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authStore = inject(AuthStore);
+  const router = inject(Router);
   const token = authStore.accessToken();
 
   // 1. Skip Auth for public auth endpoints to avoid infinite loops
@@ -42,8 +44,16 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // 3. Handle 401 Unauthorized errors
   return next(authReq).pipe(
     catchError((error) => {
-      if (error instanceof HttpErrorResponse && error.status === 401) {
-        return handle401Error(authReq, next, authStore);
+      if (error instanceof HttpErrorResponse) {
+        if (error.status === 401) {
+          return handle401Error(authReq, next, authStore);
+        }
+        if (error.status === 403) {
+          const details = (error.error as { details?: string })?.details ?? '';
+          if (details.toLowerCase().includes('legal consent')) {
+            router.navigateByUrl('/legal/consent');
+          }
+        }
       }
       return throwError(() => error);
     })

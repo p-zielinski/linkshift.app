@@ -11,7 +11,8 @@ import type {
   PasswordResetConfirmDto,
   EmailVerificationDto,
   EmailChangeRequestDto,
-  EmailChangeConfirmDto
+  EmailChangeConfirmDto,
+  LegalConsentDto
 } from '../models/auth.dto';
 import { API_CONFIG } from '../config/api-config';
 
@@ -108,6 +109,13 @@ export class AuthApiService {
   confirmEmailChange(payload: EmailChangeConfirmDto): Observable<{ updated: true }> {
     return this.http.post<{ updated: true }>(
       `${this.apiUrl}/email-change/confirm`,
+      payload,
+    );
+  }
+
+  acceptLegalConsent(payload: LegalConsentDto): Observable<{ user: AuthResponse['user'] }> {
+    return this.http.post<{ user: AuthResponse['user'] }>(
+      `${this.apiUrl}/accept-legal`,
       payload,
     );
   }
