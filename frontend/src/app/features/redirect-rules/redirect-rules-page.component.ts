@@ -28,6 +28,10 @@ import { RedirectTestStore } from '../../core/store/redirect-test.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { RedirectTestResultsStore } from '../../core/store/redirect-test-results.store';
 import { RunPendingTestsDialogComponent } from '../tests/run-pending-tests-dialog.component';
+import {
+  RedirectTestFormDialogComponent,
+  type RedirectTestFormPrefill
+} from '../tests/redirect-test-form-dialog.component';
 import type {
   RedirectTest,
   RedirectTestListQuery,
@@ -36,6 +40,7 @@ import type {
 import { extractErrorMessage } from '../../core/store/store-error.utils';
 import { filter, firstValueFrom, take } from 'rxjs';
 import { RedirectRuleFormDialogComponent } from './redirect-rule-form-dialog.component';
+import type { RedirectRuleDialogResult } from './redirect-rule-form-dialog.component';
 import type { RedirectRule } from '../../core/models/redirect-rule.model';
 
 @Component({
@@ -298,9 +303,13 @@ export class RedirectRulesPageComponent {
       }
     });
 
-    dialogRef.afterClosed().subscribe((created) => {
-      if (created) {
+    dialogRef.afterClosed().subscribe((result: RedirectRuleDialogResult | boolean) => {
+      const saved = typeof result === 'boolean' ? result : result?.saved;
+      if (saved) {
         this.refreshListAfterSave();
+      }
+      if (typeof result !== 'boolean' && result?.openTestWizard && result.testPrefill) {
+        this.openTestWizard(result.testPrefill);
       }
     });
   }
@@ -316,7 +325,8 @@ export class RedirectRulesPageComponent {
       }
     });
 
-    dialogRef.afterClosed().subscribe((saved) => {
+    dialogRef.afterClosed().subscribe((result: RedirectRuleDialogResult | boolean) => {
+      const saved = typeof result === 'boolean' ? result : result?.saved;
       if (saved) {
         this.refreshListAfterSave();
       }
@@ -353,6 +363,19 @@ export class RedirectRulesPageComponent {
       disableClose: true,
       data: {
         domainGroupId: this.activeGroupId()
+      }
+    });
+  }
+
+  private openTestWizard(prefill: RedirectTestFormPrefill): void {
+    this.dialog.open(RedirectTestFormDialogComponent, {
+      width: 'calc(100vw - 60px)',
+      maxWidth: 'calc(100vw - 60px)',
+      height: 'calc(100vh - 60px)',
+      maxHeight: 'calc(100vh - 60px)',
+      data: {
+        domainGroupId: prefill.domainGroupId ?? this.activeGroupId(),
+        prefill
       }
     });
   }

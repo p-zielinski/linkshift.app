@@ -19,24 +19,18 @@
       <mat-step [completed]="scopeValid()">
         <ng-template matStepLabel>Request scope</ng-template>
         <div class="mt-4 grid gap-4">
-          @if (isEdit) {
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Domain group</mat-label>
-              <input matInput type="text" [value]="selectedGroupLabel()" disabled />
-              <mat-hint>Domain group is fixed for existing tests.</mat-hint>
-            </mat-form-field>
-            <input type="hidden" [formField]="form.domainGroupId" />
-          } @else {
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Domain group</mat-label>
-              <mat-select [formField]="form.domainGroupId">
-                @for (group of domainGroups(); track group.id) {
-                  <mat-option [value]="group.id">{{ group.name }}</mat-option>
-                }
-              </mat-select>
-              <mat-hint>Select which domain group this test should apply to.</mat-hint>
-            </mat-form-field>
-          }
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Domain group</mat-label>
+            <input matInput type="text" [value]="selectedGroupLabel()" disabled />
+            <mat-hint>
+              @if (isEdit) {
+                Domain group is fixed for existing tests.
+              } @else {
+                Domain group is selected from the Tests or Redirect Rules page.
+              }
+            </mat-hint>
+          </mat-form-field>
+          <input type="hidden" [formField]="form.domainGroupId" />
 
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Hostname</mat-label>

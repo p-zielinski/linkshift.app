@@ -24,6 +24,11 @@ import {
 import type { RedirectRule } from '../../core/models/redirect-rule.model';
 import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
 import { HttpMethod } from '../../core/models/http-method.model';
+import {
+  ensureLeadingSlash,
+  splitPathWithQuery
+} from '../tests/redirect-test.utils';
+import type { RedirectTestFormPrefill } from '../tests/redirect-test-form-dialog.component';
 
 type WizardMode = 'guided' | 'fast';
 type RedirectRuleFormModel = {
@@ -40,6 +45,12 @@ const WIZARD_MODE_KEY = 'redirectRulesWizardMode';
 export type RedirectRuleDialogData = {
   domainGroupId?: string;
   rule?: RedirectRule;
+};
+
+export type RedirectRuleDialogResult = {
+  saved: boolean;
+  openTestWizard?: boolean;
+  testPrefill?: RedirectTestFormPrefill;
 };
 
 @Component({
@@ -115,6 +126,7 @@ export class RedirectRuleFormDialogComponent {
   private readonly submitKey = signal(CREATE_ENTITY_ID);
   private readonly submitErrorSequence = signal(0);
   private readonly submitLoadingSeen = signal(false);
+  private readonly lastSubmittedValue = signal<RedirectRuleFormModel | null>(null);
 
   ruleForm = form(this.ruleModel, (f) => {
     required(f.domainGroupId);
@@ -447,7 +459,17 @@ export class RedirectRuleFormDialogComponent {
 
         if (!hadError) {
           this.redirectTestResultsStore.clearAll();
-          this.dialogRef.close(true);
+          if (!this.isEdit) {
+            const lastValue = this.lastSubmittedValue();
+            const testPrefill = lastValue ? this.buildTestPrefill(lastValue) : undefined;
+            this.dialogRef.close({
+              saved: true,
+              openTestWizard: true,
+              testPrefill
+            });
+            return;
+          }
+          this.dialogRef.close({ saved: true });
         }
       },
       { allowSignalWrites: true }
@@ -500,6 +522,7 @@ export class RedirectRuleFormDialogComponent {
     event?.preventDefault();
     await submit(this.ruleForm, async (formValue) => {
       const value = formValue().value();
+      this.lastSubmittedValue.set(value);
       const payload = {
         source: value.source,
         destination: value.destination,
@@ -533,6 +556,33 @@ export class RedirectRuleFormDialogComponent {
 
   onCancel(): void {
     this.dialogRef.close(false);
+  }
+
+  private buildTestPrefill(model: RedirectRuleFormModel): RedirectTestFormPrefill {
+    const source = model.source.trim();
+    let path = '/';
+    let query = '';
+
+    if (source) {
+      try {
+        const parsed = splitPathWithQuery(source);
+        path = parsed.path;
+        query = parsed.query;
+      } catch {
+        const [rawPath, rawQuery] = source.split('?');
+        path = ensureLeadingSlash(rawPath.trim());
+        query = rawQuery?.trim() ?? '';
+      }
+    }
+
+    return {
+      domainGroupId: model.domainGroupId,
+      path,
+      query,
+      method: model.matchMethod.length === 1 ? model.matchMethod[0] : '',
+      expectedStatusCode: model.statusCode,
+      expectedTarget: model.destination.trim()
+    };
   }
 
   private getFieldError(field: any): string | null {

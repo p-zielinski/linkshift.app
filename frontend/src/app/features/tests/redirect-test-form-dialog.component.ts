@@ -59,9 +59,12 @@ type RedirectTestFormModel = {
   expectedTarget: string;
 };
 
+export type RedirectTestFormPrefill = Partial<RedirectTestFormModel>;
+
 export type RedirectTestDialogData = {
   domainGroupId?: string;
   test?: RedirectTest;
+  prefill?: RedirectTestFormPrefill;
 };
 
 @Component({
@@ -95,6 +98,7 @@ export class RedirectTestFormDialogComponent {
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly domains = this.domainStore.selectList();
   readonly test = this.data?.test ?? null;
+  private readonly prefill = this.data?.prefill ?? {};
   readonly isEdit = !!this.test;
   readonly dialogTitle = this.isEdit ? 'Edit redirect test' : 'Create redirect test';
   readonly submitLabel = this.isEdit ? 'Save' : 'Create';
@@ -107,17 +111,52 @@ export class RedirectTestFormDialogComponent {
     stringifyQuery(this.test?.requestData?.query) || this.initialPathState.query;
 
   formModel = signal<RedirectTestFormModel>({
-    domainGroupId: this.test?.domainGroupId ?? this.data?.domainGroupId ?? '',
-    hostname: this.test?.requestData?.hostname ?? '',
-    path: this.initialPathState.path || '/',
-    query: this.initialQuery,
-    method: this.test?.requestData?.method ?? '',
-    protocol: this.test?.requestData?.protocol ?? '',
-    ip: this.test?.requestData?.ip ?? '',
-    userAgent: this.test?.requestData?.userAgent ?? '',
-    headers: stringifyHeaders(this.test?.requestData?.headers),
-    expectedStatusCode: String(this.test?.expectedResult?.statusCode ?? 302),
-    expectedTarget: this.test?.expectedResult?.target ?? ''
+    domainGroupId:
+      this.test?.domainGroupId ??
+      this.prefill.domainGroupId ??
+      this.data?.domainGroupId ??
+      '',
+    hostname:
+      this.test?.requestData?.hostname ??
+      this.prefill.hostname ??
+      '',
+    path:
+      this.test?.pathWithQuery
+        ? this.initialPathState.path || '/'
+        : this.prefill.path?.trim() || '/',
+    query:
+      this.test?.pathWithQuery
+        ? this.initialQuery
+        : this.prefill.query ?? '',
+    method:
+      this.test?.requestData?.method ??
+      this.prefill.method ??
+      '',
+    protocol:
+      this.test?.requestData?.protocol ??
+      this.prefill.protocol ??
+      '',
+    ip:
+      this.test?.requestData?.ip ??
+      this.prefill.ip ??
+      '',
+    userAgent:
+      this.test?.requestData?.userAgent ??
+      this.prefill.userAgent ??
+      '',
+    headers:
+      stringifyHeaders(this.test?.requestData?.headers) ||
+      this.prefill.headers ||
+      '',
+    expectedStatusCode: String(
+      this.test?.expectedResult?.statusCode ??
+        this.prefill.expectedStatusCode ??
+        302
+    ),
+    expectedTarget:
+      this.test?.expectedResult?.target ??
+      this.prefill.expectedTarget ??
+      ''
   });
 
   form = form(this.formModel, (f) => {
