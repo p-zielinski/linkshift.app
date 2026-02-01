@@ -89,13 +89,11 @@ export class AppShellComponent {
           this.mobileNavOpen.set(false);
         }
       },
-      { allowSignalWrites: true }
     );
   }
 
   onLogout(): void {
-    this.authStore.logout();
-    this.router.navigateByUrl('/auth');
+    this.authStore.logout(() => this.router.navigateByUrl('/auth'));
   }
 
   isDisabled(item: NavItem): boolean {

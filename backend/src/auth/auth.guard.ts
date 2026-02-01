@@ -4,7 +4,11 @@ import { JwtService } from './jwt.service';
 import { ForbiddenError, UnauthorizedError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { throwHttpException } from '../utils';
-import { CacheManagerService, DataType, CachedByProperty } from '../cache/cache-manager.service';
+import {
+  CacheManagerService,
+  DataType,
+  CachedByProperty,
+} from '../cache/cache-manager.service';
 import { LegalService } from '../legal/legal.service';
 
 @Injectable()

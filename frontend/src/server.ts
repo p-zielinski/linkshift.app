@@ -12,6 +12,18 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const app = express();
 app.disable('x-powered-by');
 
+// Define routes that should be excluded from SSR (Client-Side Rendering only)
+const CSR_ROUTES = [
+  '/dashboard',
+  '/profile',
+  '/organization',
+  '/domains',
+  '/domain-groups',
+  '/redirect-rules',
+  '/tests',
+  '/legal/consent',
+];
+
 app.get('/runtime-config.js', (_req, res) => {
   const config = {
     APP_API_BASE_URL: process.env['APP_API_BASE_URL'] ?? 'http://localhost:3000',
@@ -20,12 +32,13 @@ app.get('/runtime-config.js', (_req, res) => {
       process.env['APP_SITE_TAGLINE'] ?? 'Signal-driven redirect automation',
     APP_SUPPORT_EMAIL:
       process.env['APP_SUPPORT_EMAIL'] ?? 'support@redirectcontrol.app',
-    APP_LEGAL_NAME:
-      process.env['APP_LEGAL_NAME'] ?? 'Independent operator',
+    APP_LEGAL_NAME: process.env['APP_LEGAL_NAME'] ?? 'Independent operator',
     APP_LEGAL_ADDRESS:
       process.env['APP_LEGAL_ADDRESS'] ?? 'Available upon request',
     APP_PRIVACY_EMAIL:
-      process.env['APP_PRIVACY_EMAIL'] ?? process.env['APP_SUPPORT_EMAIL'] ?? 'privacy@redirectcontrol.app',
+      process.env['APP_PRIVACY_EMAIL'] ??
+      process.env['APP_SUPPORT_EMAIL'] ??
+      'privacy@redirectcontrol.app',
     APP_MIN_AGE: process.env['APP_MIN_AGE'] ?? '16',
     APP_LEGAL_VERSION: process.env['APP_LEGAL_VERSION'] ?? 'v1',
   };
@@ -66,19 +79,8 @@ app.use((_req, res, next) => {
 
   next();
 });
-const angularApp = new AngularNodeAppEngine();
 
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * auth.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
+const angularApp = new AngularNodeAppEngine();
 
 /**
  * Serve static files from /browser
@@ -90,6 +92,31 @@ app.use(
     redirect: false,
   }),
 );
+
+/**
+ * CSR Fallback:
+ * If the request matches a dashboard route, try to serve index.html directly.
+ * * FIX: added error callback to sendFile. In 'ng serve' (dev mode), index.html
+ * might not exist on disk, causing a crash. If it fails, we fall back to next().
+ */
+app.use((req, res, next) => {
+  if (req.method !== 'GET') {
+    return next();
+  }
+
+  const isCsrRoute = CSR_ROUTES.some((route) => req.path.startsWith(route));
+
+  if (isCsrRoute) {
+    res.sendFile(join(browserDistFolder, 'index.html'), (err) => {
+      if (err) {
+        // If file not found (e.g. in Dev mode), fall back to standard SSR
+        next();
+      }
+    });
+  } else {
+    next();
+  }
+});
 
 /**
  * Handle all other requests by rendering the Angular application.
@@ -104,8 +131,7 @@ app.use((req, res, next) => {
 });
 
 /**
- * Start the server if this module is the main entry point, or it is ran via PM2.
- * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
+ * Start the server
  */
 if (isMainModule(import.meta.url) || process.env['pm_id']) {
   const port = process.env['PORT'] || 4000;
@@ -113,14 +139,10 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
     if (error) {
       throw error;
     }
-
     console.log(`Node Express server listening on http://localhost:${port}`);
   });
 }
 
-/**
- * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
- */
 export const reqHandler = createNodeRequestHandler(app);
 
 function safeOrigin(value: string): string | null {

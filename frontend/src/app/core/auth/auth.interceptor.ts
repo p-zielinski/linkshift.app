@@ -1,7 +1,6 @@
-// src/app/core/auth/auth.interceptor.ts
-
 import { HttpErrorResponse, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformServer } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthStore } from '../store/auth.store';
 import { catchError, switchMap, throwError, BehaviorSubject, filter, take, type Observable } from 'rxjs';
@@ -13,6 +12,7 @@ let isRefreshing = false;
 const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const platformId = inject(PLATFORM_ID);
   const authStore = inject(AuthStore);
   const router = inject(Router);
   const token = authStore.accessToken();
@@ -29,6 +29,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     '/api/v1/auth/password-reset/confirm',
     '/api/v1/auth/invites/lookup'
   ];
+
   if (publicAuthPaths.some((path) => req.url.includes(path))) {
     return next(req);
   }
@@ -45,13 +46,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error) => {
       if (error instanceof HttpErrorResponse) {
-        if (error.status === 401) {
+        // Only attempt token refresh logic in the browser
+        if (error.status === 401 && !isPlatformServer(platformId)) {
           return handle401Error(authReq, next, authStore);
         }
+
         if (error.status === 403) {
           const details = (error.error as { details?: string })?.details ?? '';
           if (details.toLowerCase().includes('legal consent')) {
-            router.navigateByUrl('/legal/consent');
+            // Only navigate if we are in the browser
+            if (!isPlatformServer(platformId)) {
+              router.navigateByUrl('/legal/consent');
+            }
           }
         }
       }
@@ -78,19 +84,16 @@ function handle401Error(request: HttpRequest<unknown>, next: HttpHandlerFn, auth
         const newToken = response.accessToken;
         refreshTokenSubject.next(newToken);
 
-        // Retry the original failed request with the new token
         return next(request.clone({
           setHeaders: { Authorization: `Bearer ${newToken}` }
         }));
       }),
       catchError((err) => {
         isRefreshing = false;
-        // If refresh fails, the AuthStore handles logout internally via tap/catchError
         return throwError(() => err);
       })
     );
   } else {
-    // If refresh is already in progress, wait for it to complete
     return refreshTokenSubject.pipe(
       filter((token): token is string => token !== null),
       take(1),

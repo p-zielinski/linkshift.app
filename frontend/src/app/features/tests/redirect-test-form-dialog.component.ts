@@ -294,8 +294,7 @@ export class RedirectTestFormDialogComponent {
           }
           this.dialogRef.close(true);
         }
-      },
-      { allowSignalWrites: true }
+      }
     );
 
     effect(() => {

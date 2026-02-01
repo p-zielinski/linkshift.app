@@ -95,8 +95,12 @@ export class OrganizationPageComponent {
   readonly inviteTooltip = computed(() => this.inviteDisabledReason());
 
   constructor() {
-    this.membersStore.loadMembers();
-    this.usageStore.loadUsage();
+    effect(() => {
+      if (this.authStore.isAuthenticated()) {
+        this.membersStore.loadMembers();
+        this.usageStore.loadUsage();
+      }
+    });
 
     effect(() => {
       const error = this.error();

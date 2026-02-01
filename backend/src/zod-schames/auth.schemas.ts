@@ -12,10 +12,6 @@ export const LoginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
-export const RefreshTokenSchema = z.object({
-  refreshToken: z.string().min(1, 'Refresh token is required').optional(),
-});
-
 const InviteRegisterBaseSchema = z.object({
   token: z.string().min(1, 'Invite token is required'),
   email: z.email('Invalid email address'),
@@ -66,7 +62,6 @@ export const RegisterSchema =
 export const InviteRegisterSchema =
   InviteRegisterBaseSchema.merge(LegalConsentSchema).strict();
 
-export type RefreshTokenDto = z.infer<typeof RefreshTokenSchema>;
 export type RegisterDto = z.infer<typeof RegisterSchema>;
 export type LoginDto = z.infer<typeof LoginSchema>;
 export type InviteRegisterDto = z.infer<typeof InviteRegisterSchema>;

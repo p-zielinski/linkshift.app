@@ -1,8 +1,6 @@
 import type { Organization } from '../models/organization.model';
 import type { User } from '../models/user.model';
 
-const LEGACY_ACCESS_TOKEN_KEY = 'access_token';
-const LEGACY_REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'user_data';
 const ORGANIZATION_KEY = 'organization_data';
 
@@ -16,8 +14,6 @@ export function loadStoredSession(): StoredAuthSession {
     return { user: null, organization: null };
   }
 
-  cleanupLegacyTokens();
-
   return {
     user: safeParse<User>(localStorage.getItem(USER_KEY)),
     organization: safeParse<Organization>(localStorage.getItem(ORGANIZATION_KEY))
@@ -28,8 +24,6 @@ export function storeSession(session: StoredAuthSession): void {
   if (!canUseStorage()) {
     return;
   }
-
-  cleanupLegacyTokens();
 
   const { user, organization } = session;
   if (user) {
@@ -49,7 +43,6 @@ export function clearStoredSession(): void {
     return;
   }
 
-  cleanupLegacyTokens();
   localStorage.removeItem(USER_KEY);
   localStorage.removeItem(ORGANIZATION_KEY);
 }
@@ -68,9 +61,4 @@ function safeParse<T>(value: string | null): T | null {
 
 function canUseStorage(): boolean {
   return typeof window !== 'undefined' && typeof localStorage !== 'undefined';
-}
-
-function cleanupLegacyTokens(): void {
-  localStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY);
-  localStorage.removeItem(LEGACY_REFRESH_TOKEN_KEY);
 }

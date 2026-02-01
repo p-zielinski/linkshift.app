@@ -51,12 +51,9 @@ export class AuthController {
   async refresh(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
-    @Body(new ZodPipe(authSchemas.RefreshTokenSchema))
-    body: authSchemas.RefreshTokenDto,
   ) {
     try {
-      const refreshToken =
-        body.refreshToken ?? this.getCookie(request, 'refresh_token');
+      const refreshToken = this.getCookie(request, 'refresh_token');
 
       if (!refreshToken) {
         return throwHttpException(
@@ -270,7 +267,7 @@ export class AuthController {
       httpOnly: true,
       secure: this.isProduction,
       sameSite: 'strict',
-      path: '/api/v1/auth/refresh',
+      path: '/api/v1/auth/',
       maxAge: this.refreshCookieMaxAgeMs,
     });
   }
@@ -281,7 +278,7 @@ export class AuthController {
       httpOnly: true,
       secure: this.isProduction,
       sameSite: 'strict',
-      path: '/api/v1/auth/refresh',
+      path: '/api/v1/auth/',
     });
   }
 

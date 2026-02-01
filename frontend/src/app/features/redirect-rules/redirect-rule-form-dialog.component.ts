@@ -471,8 +471,7 @@ export class RedirectRuleFormDialogComponent {
           }
           this.dialogRef.close({ saved: true });
         }
-      },
-      { allowSignalWrites: true }
+      }
     );
   }
 

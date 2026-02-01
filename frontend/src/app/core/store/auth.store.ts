@@ -123,24 +123,30 @@ export const AuthStore = signalStore(
       return api.refresh().pipe(
         tap((tokens) => setTokens(tokens)),
         catchError((error) => {
-          logout();
+          if (error.status === 401) {
+            patchState(store, { accessToken: null, user: null });
+          }
           return throwError(() => error);
         })
       );
     };
 
-    const logout = () => {
-      api.logout().subscribe({
+    const logout = (redirectFnc: () => void) => {
+      api.logout().pipe().subscribe({
+        next: () => {
+          clearStoredSession();
+          patchState(store, {
+            accessToken: null,
+            user: null,
+            organization: null,
+            isLoading: false,
+            error: null
+          });
+          redirectFnc()
+        },
         error: () => undefined,
       });
-      clearStoredSession();
-      patchState(store, {
-        accessToken: null,
-        user: null,
-        organization: null,
-        isLoading: false,
-        error: null
-      });
+
     };
 
     return {

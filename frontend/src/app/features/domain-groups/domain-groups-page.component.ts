@@ -68,9 +68,6 @@ export class DomainGroupsPageComponent {
   });
 
   constructor() {
-    this.domainGroupStore.searchList();
-    this.domainStore.searchList();
-
     effect(() => {
       const error = this.domainGroupStore.lastError();
       if (error) {

@@ -18,7 +18,9 @@ export class AuthTokenService {
     purpose: string,
     payload: AuthTokenPayload,
   ): Promise<string> {
-    const token = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+    const token =
+      crypto.randomUUID().replace(/-/g, '') +
+      crypto.randomUUID().replace(/-/g, '');
     const key = this.buildKey(purpose, token);
     await this.redisService.set(key, payload, this.tokenTtlSeconds);
     return token;
