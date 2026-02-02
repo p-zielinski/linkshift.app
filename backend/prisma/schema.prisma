@@ -142,6 +142,8 @@ model RedirectRule {
   destination   String   // Target URL with variable support
   statusCode    Int      @default(302) // HTTP status code (301 or 302)
   matchMethod   HttpMethod[] @default([]) // Empty array means all methods.
+  isBlocked     Boolean  @default(false)
+  blockedAt     DateTime?
   priority      Int      @default(0) // For rule ordering (higher priority = evaluated first)
   domainGroupId String
   createdAt     DateTime @default(now())
@@ -153,6 +155,7 @@ model RedirectRule {
   @@index([domainGroupId])
   @@index([deletedAt])
   @@index([priority])
+  @@index([isBlocked])
 
     // Enables Prisma cursor pagination aligned with ordering:
     // priority desc, createdAt desc, id desc

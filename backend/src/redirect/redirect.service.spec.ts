@@ -7,6 +7,10 @@ import { PaymentRequiredError } from '@shared/models/error.model';
 import { CacheManagerService } from '../cache/cache-manager.service';
 import { ClsService } from 'nestjs-cls';
 import { throwHttpException } from '../utils';
+import { DomainExtractorService } from '../security/domain-extractor.service';
+import { SafetyScannerService } from '../security/safety-scanner.service';
+import { DomainBlacklistService } from '../security/domain-blacklist.service';
+import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
 
 const mockPrismaService = {
   domain: {
@@ -100,6 +104,34 @@ describe('RedirectService', () => {
             invalidateRedirectContext: jest.fn(),
             getData: jest.fn(),
             checkOrganizationRateLimit: jest.fn(),
+          },
+        },
+        {
+          provide: DomainExtractorService,
+          useValue: {
+            extractDomains: jest.fn().mockReturnValue([]),
+            extractDomainFromUrl: jest.fn().mockReturnValue(null),
+          },
+        },
+        {
+          provide: SafetyScannerService,
+          useValue: {
+            checkDomains: jest.fn().mockResolvedValue(new Map()),
+          },
+        },
+        {
+          provide: DomainBlacklistService,
+          useValue: {
+            isBlacklisted: jest.fn().mockResolvedValue(false),
+            addDomains: jest.fn(),
+          },
+        },
+        {
+          provide: RedirectAnalyticsService,
+          useValue: {
+            trackRuleHit: jest.fn().mockResolvedValue(undefined),
+            getTopRulesForOrganization: jest.fn().mockResolvedValue([]),
+            getTopRulesGlobal: jest.fn().mockResolvedValue([]),
           },
         },
       ],

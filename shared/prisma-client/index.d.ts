@@ -7514,6 +7514,8 @@ export namespace Prisma {
     source: string | null
     destination: string | null
     statusCode: number | null
+    isBlocked: boolean | null
+    blockedAt: Date | null
     priority: number | null
     domainGroupId: string | null
     createdAt: Date | null
@@ -7526,6 +7528,8 @@ export namespace Prisma {
     source: string | null
     destination: string | null
     statusCode: number | null
+    isBlocked: boolean | null
+    blockedAt: Date | null
     priority: number | null
     domainGroupId: string | null
     createdAt: Date | null
@@ -7539,6 +7543,8 @@ export namespace Prisma {
     destination: number
     statusCode: number
     matchMethod: number
+    isBlocked: number
+    blockedAt: number
     priority: number
     domainGroupId: number
     createdAt: number
@@ -7563,6 +7569,8 @@ export namespace Prisma {
     source?: true
     destination?: true
     statusCode?: true
+    isBlocked?: true
+    blockedAt?: true
     priority?: true
     domainGroupId?: true
     createdAt?: true
@@ -7575,6 +7583,8 @@ export namespace Prisma {
     source?: true
     destination?: true
     statusCode?: true
+    isBlocked?: true
+    blockedAt?: true
     priority?: true
     domainGroupId?: true
     createdAt?: true
@@ -7588,6 +7598,8 @@ export namespace Prisma {
     destination?: true
     statusCode?: true
     matchMethod?: true
+    isBlocked?: true
+    blockedAt?: true
     priority?: true
     domainGroupId?: true
     createdAt?: true
@@ -7688,6 +7700,8 @@ export namespace Prisma {
     destination: string
     statusCode: number
     matchMethod: $Enums.HttpMethod[]
+    isBlocked: boolean
+    blockedAt: Date | null
     priority: number
     domainGroupId: string
     createdAt: Date
@@ -7720,6 +7734,8 @@ export namespace Prisma {
     destination?: boolean
     statusCode?: boolean
     matchMethod?: boolean
+    isBlocked?: boolean
+    blockedAt?: boolean
     priority?: boolean
     domainGroupId?: boolean
     createdAt?: boolean
@@ -7734,6 +7750,8 @@ export namespace Prisma {
     destination?: boolean
     statusCode?: boolean
     matchMethod?: boolean
+    isBlocked?: boolean
+    blockedAt?: boolean
     priority?: boolean
     domainGroupId?: boolean
     createdAt?: boolean
@@ -7748,6 +7766,8 @@ export namespace Prisma {
     destination?: boolean
     statusCode?: boolean
     matchMethod?: boolean
+    isBlocked?: boolean
+    blockedAt?: boolean
     priority?: boolean
     domainGroupId?: boolean
     createdAt?: boolean
@@ -7762,6 +7782,8 @@ export namespace Prisma {
     destination?: boolean
     statusCode?: boolean
     matchMethod?: boolean
+    isBlocked?: boolean
+    blockedAt?: boolean
     priority?: boolean
     domainGroupId?: boolean
     createdAt?: boolean
@@ -7769,7 +7791,7 @@ export namespace Prisma {
     deletedAt?: boolean
   }
 
-  export type RedirectRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "source" | "destination" | "statusCode" | "matchMethod" | "priority" | "domainGroupId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["redirectRule"]>
+  export type RedirectRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "source" | "destination" | "statusCode" | "matchMethod" | "isBlocked" | "blockedAt" | "priority" | "domainGroupId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["redirectRule"]>
   export type RedirectRuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
   }
@@ -7791,6 +7813,8 @@ export namespace Prisma {
       destination: string
       statusCode: number
       matchMethod: $Enums.HttpMethod[]
+      isBlocked: boolean
+      blockedAt: Date | null
       priority: number
       domainGroupId: string
       createdAt: Date
@@ -8225,6 +8249,8 @@ export namespace Prisma {
     readonly destination: FieldRef<"RedirectRule", 'String'>
     readonly statusCode: FieldRef<"RedirectRule", 'Int'>
     readonly matchMethod: FieldRef<"RedirectRule", 'HttpMethod[]'>
+    readonly isBlocked: FieldRef<"RedirectRule", 'Boolean'>
+    readonly blockedAt: FieldRef<"RedirectRule", 'DateTime'>
     readonly priority: FieldRef<"RedirectRule", 'Int'>
     readonly domainGroupId: FieldRef<"RedirectRule", 'String'>
     readonly createdAt: FieldRef<"RedirectRule", 'DateTime'>
@@ -11000,6 +11026,8 @@ export namespace Prisma {
     destination: 'destination',
     statusCode: 'statusCode',
     matchMethod: 'matchMethod',
+    isBlocked: 'isBlocked',
+    blockedAt: 'blockedAt',
     priority: 'priority',
     domainGroupId: 'domainGroupId',
     createdAt: 'createdAt',
@@ -11608,6 +11636,8 @@ export namespace Prisma {
     destination?: StringFilter<"RedirectRule"> | string
     statusCode?: IntFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
+    isBlocked?: BoolFilter<"RedirectRule"> | boolean
+    blockedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     priority?: IntFilter<"RedirectRule"> | number
     domainGroupId?: StringFilter<"RedirectRule"> | string
     createdAt?: DateTimeFilter<"RedirectRule"> | Date | string
@@ -11622,6 +11652,8 @@ export namespace Prisma {
     destination?: SortOrder
     statusCode?: SortOrder
     matchMethod?: SortOrder
+    isBlocked?: SortOrder
+    blockedAt?: SortOrderInput | SortOrder
     priority?: SortOrder
     domainGroupId?: SortOrder
     createdAt?: SortOrder
@@ -11640,6 +11672,8 @@ export namespace Prisma {
     destination?: StringFilter<"RedirectRule"> | string
     statusCode?: IntFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
+    isBlocked?: BoolFilter<"RedirectRule"> | boolean
+    blockedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     priority?: IntFilter<"RedirectRule"> | number
     domainGroupId?: StringFilter<"RedirectRule"> | string
     createdAt?: DateTimeFilter<"RedirectRule"> | Date | string
@@ -11654,6 +11688,8 @@ export namespace Prisma {
     destination?: SortOrder
     statusCode?: SortOrder
     matchMethod?: SortOrder
+    isBlocked?: SortOrder
+    blockedAt?: SortOrderInput | SortOrder
     priority?: SortOrder
     domainGroupId?: SortOrder
     createdAt?: SortOrder
@@ -11675,6 +11711,8 @@ export namespace Prisma {
     destination?: StringWithAggregatesFilter<"RedirectRule"> | string
     statusCode?: IntWithAggregatesFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
+    isBlocked?: BoolWithAggregatesFilter<"RedirectRule"> | boolean
+    blockedAt?: DateTimeNullableWithAggregatesFilter<"RedirectRule"> | Date | string | null
     priority?: IntWithAggregatesFilter<"RedirectRule"> | number
     domainGroupId?: StringWithAggregatesFilter<"RedirectRule"> | string
     createdAt?: DateTimeWithAggregatesFilter<"RedirectRule"> | Date | string
@@ -12301,6 +12339,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: boolean
+    blockedAt?: Date | string | null
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -12314,6 +12354,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: boolean
+    blockedAt?: Date | string | null
     priority?: number
     domainGroupId: string
     createdAt?: Date | string
@@ -12327,6 +12369,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: BoolFieldUpdateOperationsInput | boolean
+    blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12340,6 +12384,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: BoolFieldUpdateOperationsInput | boolean
+    blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
     domainGroupId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12353,6 +12399,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: boolean
+    blockedAt?: Date | string | null
     priority?: number
     domainGroupId: string
     createdAt?: Date | string
@@ -12366,6 +12414,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: BoolFieldUpdateOperationsInput | boolean
+    blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12378,6 +12428,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: BoolFieldUpdateOperationsInput | boolean
+    blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
     domainGroupId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -13041,6 +13093,8 @@ export namespace Prisma {
     destination?: SortOrder
     statusCode?: SortOrder
     matchMethod?: SortOrder
+    isBlocked?: SortOrder
+    blockedAt?: SortOrder
     priority?: SortOrder
     domainGroupId?: SortOrder
     createdAt?: SortOrder
@@ -13058,6 +13112,8 @@ export namespace Prisma {
     source?: SortOrder
     destination?: SortOrder
     statusCode?: SortOrder
+    isBlocked?: SortOrder
+    blockedAt?: SortOrder
     priority?: SortOrder
     domainGroupId?: SortOrder
     createdAt?: SortOrder
@@ -13070,6 +13126,8 @@ export namespace Prisma {
     source?: SortOrder
     destination?: SortOrder
     statusCode?: SortOrder
+    isBlocked?: SortOrder
+    blockedAt?: SortOrder
     priority?: SortOrder
     domainGroupId?: SortOrder
     createdAt?: SortOrder
@@ -14823,6 +14881,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: boolean
+    blockedAt?: Date | string | null
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -14835,6 +14895,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: boolean
+    blockedAt?: Date | string | null
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -14973,6 +15035,8 @@ export namespace Prisma {
     destination?: StringFilter<"RedirectRule"> | string
     statusCode?: IntFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
+    isBlocked?: BoolFilter<"RedirectRule"> | boolean
+    blockedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     priority?: IntFilter<"RedirectRule"> | number
     domainGroupId?: StringFilter<"RedirectRule"> | string
     createdAt?: DateTimeFilter<"RedirectRule"> | Date | string
@@ -15780,6 +15844,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: boolean
+    blockedAt?: Date | string | null
     priority?: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -15827,6 +15893,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: BoolFieldUpdateOperationsInput | boolean
+    blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15839,6 +15907,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: BoolFieldUpdateOperationsInput | boolean
+    blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15851,6 +15921,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: BoolFieldUpdateOperationsInput | boolean
+    blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

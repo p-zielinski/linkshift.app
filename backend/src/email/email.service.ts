@@ -209,6 +209,38 @@ export class EmailService {
     });
   }
 
+  async sendRedirectRuleBlockedAlert(params: {
+    email: string;
+    organization: string;
+    ruleId: string;
+    destination: string;
+    unsafeDomains: string[];
+    detectedAt?: Date;
+  }): Promise<void> {
+    const appUrl = this.getAppUrl();
+    const reviewUrl = `${appUrl}/redirect-rules`;
+    const timestamp = params.detectedAt
+      ? this.formatDateTime(params.detectedAt)
+      : this.formatDateTime(new Date());
+    const subject = `Redirect rule blocked for ${params.organization}`;
+    const text = [
+      `We blocked a redirect rule in ${params.organization} after a safety rescan.`,
+      `Rule ID: ${params.ruleId}`,
+      `Destination: ${params.destination}`,
+      `Unsafe domains: ${params.unsafeDomains.join(', ')}`,
+      `Detected at: ${timestamp}`,
+      `Review rules: ${reviewUrl}`,
+      'If this is unexpected, update or remove the rule and verify destination safety.',
+    ].join('\n');
+
+    await this.sendMail({
+      to: params.email,
+      subject,
+      text,
+      html: this.wrapHtml(text),
+    });
+  }
+
   async sendPlanChanged(params: {
     email: string;
     organization: string;
@@ -336,5 +368,9 @@ export class EmailService {
 
   private formatDate(value: Date): string {
     return value.toISOString().split('T')[0];
+  }
+
+  private formatDateTime(value: Date): string {
+    return value.toISOString().replace('T', ' ').split('.')[0] + ' UTC';
   }
 }

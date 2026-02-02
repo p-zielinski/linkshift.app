@@ -20,6 +20,7 @@ describe('RedirectRulesController', () => {
     createRule: jest.fn(),
     updateRule: jest.fn(),
     deleteRule: jest.fn(),
+    getTopRules: jest.fn(),
   };
 
   const mockClsService = {

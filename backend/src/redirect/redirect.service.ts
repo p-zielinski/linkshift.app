@@ -31,10 +31,15 @@ import { Domain, DomainGroup, Organization } from '@shared/prisma-client';
 import {
   BadRequestError,
   ConflictError,
+  InternalServerError,
   NotFoundError,
 } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { QueryResult } from '@shared/models/query-result.model';
+import { DomainExtractorService } from '../security/domain-extractor.service';
+import { SafetyScannerService } from '../security/safety-scanner.service';
+import { DomainBlacklistService } from '../security/domain-blacklist.service';
+import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -51,6 +56,7 @@ const domainWithRelations = Prisma.validator<Prisma.DomainDefaultArgs>()({
         redirectRules: {
           where: {
             deletedAt: null,
+            isBlocked: false,
           },
           orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
         },
@@ -81,6 +87,7 @@ type CacheInvalidationTarget =
   | { type: InvalidationTargetType.DOMAIN_GROUP_ID; value: string };
 
 export interface RedirectRule {
+  id?: string;
   source: string | RegExp;
   destination: string;
   statusCode?: number;
@@ -124,6 +131,10 @@ export class RedirectService {
     private readonly organizationService: OrganizationService,
     private readonly cacheManagerService: CacheManagerService,
     private readonly clsService: ClsService,
+    private readonly domainExtractor: DomainExtractorService,
+    private readonly safetyScannerService: SafetyScannerService,
+    private readonly domainBlacklistService: DomainBlacklistService,
+    private readonly redirectAnalyticsService: RedirectAnalyticsService,
   ) {}
 
   /**
@@ -593,6 +604,63 @@ export class RedirectService {
     });
   }
 
+  async getTopRules(organizationId: string, limit = 50, range: string = 'day') {
+    const boundedLimit = Number.isFinite(limit)
+      ? Math.min(Math.max(limit, 1), 50)
+      : 50;
+
+    const topHits =
+      await this.redirectAnalyticsService.getTopRulesForOrganization(
+        organizationId,
+        boundedLimit,
+        this.resolveTopRulesWindow(range),
+      );
+
+    const ruleIds = topHits.map((entry) => entry.ruleId);
+    if (ruleIds.length === 0) {
+      return { data: [] };
+    }
+
+    const rules = await this.prisma.redirectRule.findMany({
+      where: {
+        id: { in: ruleIds },
+        deletedAt: null,
+        isBlocked: false,
+        domainGroup: { organizationId, deletedAt: null },
+      },
+    });
+
+    const ruleMap = new Map(rules.map((rule) => [rule.id, rule]));
+    const data = topHits
+      .map((entry) => {
+        const rule = ruleMap.get(entry.ruleId);
+        if (!rule) return null;
+        return {
+          rule,
+          hits: entry.hits,
+        };
+      })
+      .filter(
+        (entry): entry is { rule: (typeof rules)[number]; hits: number } =>
+          Boolean(entry),
+      );
+
+    return { data };
+  }
+
+  private resolveTopRulesWindow(range: string): number {
+    const normalized = range?.toLowerCase?.() ?? 'day';
+    switch (normalized) {
+      case 'week':
+        return 24 * 7;
+      case 'month':
+        return 24 * 30;
+      case 'day':
+      default:
+        return 24;
+    }
+  }
+
   async getRuleById(id: string, organizationId: string) {
     const rule = await this.prisma.redirectRule.findFirst({
       where: {
@@ -653,6 +721,11 @@ export class RedirectService {
         }),
       );
     }
+
+    await this.validateDestinationSafety(data.destination, {
+      organizationId,
+      domainGroupId: data.domainGroupId,
+    });
 
     // 4. Create
     const matchMethod = this.normalizeMatchMethods(data.matchMethod);
@@ -718,6 +791,12 @@ export class RedirectService {
       );
     }
 
+    await this.validateDestinationSafety(destinationToValidate, {
+      ruleId: existing.id,
+      organizationId,
+      domainGroupId: existing.domainGroupId,
+    });
+
     // 3. Update
     const updateData: Prisma.RedirectRuleUpdateInput = {
       updatedAt: new Date(),
@@ -779,6 +858,84 @@ export class RedirectService {
       value: rule.domainGroupId,
     });
     return;
+  }
+
+  private async validateDestinationSafety(
+    destination: string,
+    context: { ruleId?: string; organizationId: string; domainGroupId: string },
+  ): Promise<void> {
+    const extractedDomains = this.domainExtractor.extractDomains(destination);
+
+    this.logger.debug(
+      JSON.stringify({
+        event: 'redirect_rule_domain_extract',
+        ruleId: context.ruleId ?? null,
+        organizationId: context.organizationId,
+        domainGroupId: context.domainGroupId,
+        extractedDomains,
+      }),
+    );
+
+    if (extractedDomains.length === 0) {
+      return;
+    }
+
+    let scanResults: Map<string, boolean>;
+    try {
+      scanResults =
+        await this.safetyScannerService.checkDomains(extractedDomains);
+    } catch (error) {
+      this.logger.error(
+        JSON.stringify({
+          event: 'redirect_rule_safety_scan_failed',
+          ruleId: context.ruleId ?? null,
+          organizationId: context.organizationId,
+          domainGroupId: context.domainGroupId,
+          error: error instanceof Error ? error.message : 'unknown_error',
+        }),
+      );
+      return throwHttpException(
+        new InternalServerError({
+          requestId: this.clsService.getId(),
+          details: 'Safety scan failed. Please try again later.',
+        }),
+      );
+    }
+
+    const unsafeDomains = extractedDomains.filter(
+      (domain) => scanResults.get(domain) === false,
+    );
+
+    if (unsafeDomains.length > 0) {
+      this.logger.warn(
+        JSON.stringify({
+          event: 'redirect_rule_blocked_unsafe_domain',
+          ruleId: context.ruleId ?? null,
+          organizationId: context.organizationId,
+          domainGroupId: context.domainGroupId,
+          unsafeDomains,
+          extractedDomains,
+        }),
+      );
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: `Unsafe destination domain detected: ${unsafeDomains.join(
+            ', ',
+          )}`,
+        }),
+      );
+    }
+
+    this.logger.debug(
+      JSON.stringify({
+        event: 'redirect_rule_domains_safe',
+        ruleId: context.ruleId ?? null,
+        organizationId: context.organizationId,
+        domainGroupId: context.domainGroupId,
+        extractedDomains,
+      }),
+    );
   }
 
   static readonly manipulators: Record<string, Manipulator> = {
@@ -883,6 +1040,7 @@ export class RedirectService {
               redirectRules: {
                 where: {
                   deletedAt: null,
+                  isBlocked: false,
                 },
                 orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
               },
@@ -963,6 +1121,55 @@ export class RedirectService {
     // 5. Action: redirect or return 404
     if (match) {
       const statusCode = match.rule.statusCode ?? 302;
+      const targetDomain = this.domainExtractor.extractDomainFromUrl(
+        match.target,
+      );
+
+      if (targetDomain) {
+        try {
+          const isBlacklisted =
+            await this.domainBlacklistService.isBlacklisted(targetDomain);
+          if (isBlacklisted) {
+            this.logger.warn(
+              JSON.stringify({
+                event: 'redirect_blocked_blacklist',
+                ruleId: match.rule.id ?? null,
+                domain: targetDomain,
+                hostname,
+              }),
+            );
+            res.status(403).json({
+              message: 'Destination domain is blocked',
+              error: 'Forbidden',
+              statusCode: 403,
+            });
+            return;
+          }
+        } catch (error) {
+          this.logger.error(
+            JSON.stringify({
+              event: 'redirect_blacklist_check_failed',
+              ruleId: match.rule.id ?? null,
+              domain: targetDomain,
+              error: error instanceof Error ? error.message : 'unknown_error',
+            }),
+          );
+        }
+      }
+
+      if (match.rule.id) {
+        this.redirectAnalyticsService
+          .trackRuleHit(match.rule.id, domain.domainGroup.organizationId)
+          .catch((error) => {
+            this.logger.error(
+              JSON.stringify({
+                event: 'redirect_hit_track_failed',
+                ruleId: match.rule.id ?? null,
+                error: error instanceof Error ? error.message : 'unknown_error',
+              }),
+            );
+          });
+      }
       res.redirect(statusCode, match.target);
       return;
     }
@@ -985,7 +1192,9 @@ export class RedirectService {
   ): Promise<{ results: RedirectSimulationResult[] }> {
     await this.organizationService.checkRedirectionAccess(organizationId);
 
-    const domainGroupIds = [...new Set(entries.map((entry) => entry.domainGroupId))];
+    const domainGroupIds = [
+      ...new Set(entries.map((entry) => entry.domainGroupId)),
+    ];
     const domainGroups = await this.prisma.domainGroup.findMany({
       where: {
         id: { in: domainGroupIds },
@@ -994,7 +1203,10 @@ export class RedirectService {
       },
       include: {
         redirectRules: {
-          where: { deletedAt: null },
+          where: {
+            deletedAt: null,
+            isBlocked: false,
+          } as Prisma.RedirectRuleWhereInput,
           orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
         },
         domains: {
@@ -1112,6 +1324,7 @@ export class RedirectService {
 
   private mapStoredRules(
     rules: {
+      id?: string;
       source: string;
       destination: string;
       statusCode: number;
@@ -1124,6 +1337,7 @@ export class RedirectService {
         const pattern = rule.source.substring(1, lastSlashIndex);
         const flags = rule.source.substring(lastSlashIndex + 1);
         return {
+          id: rule.id,
           source: new RegExp(pattern, flags),
           destination: rule.destination,
           statusCode: rule.statusCode,
@@ -1132,6 +1346,7 @@ export class RedirectService {
       }
 
       return {
+        id: rule.id,
         source: rule.source,
         destination: rule.destination,
         statusCode: rule.statusCode,
@@ -1148,9 +1363,7 @@ export class RedirectService {
       return domains[0];
     }
 
-    const safeId = domainGroupId
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, '-');
+    const safeId = domainGroupId.toLowerCase().replace(/[^a-z0-9-]/g, '-');
     return `group-${safeId}.local`;
   }
 
@@ -1187,7 +1400,9 @@ export class RedirectService {
     } as Request;
   }
 
-  private normalizeHeaders(headers?: Record<string, string>): Record<string, string> {
+  private normalizeHeaders(
+    headers?: Record<string, string>,
+  ): Record<string, string> {
     if (!headers) {
       return {};
     }

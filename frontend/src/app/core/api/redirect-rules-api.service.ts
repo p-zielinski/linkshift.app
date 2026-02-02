@@ -7,7 +7,9 @@ import type {
   UpdateRedirectRuleDto,
   RedirectRuleListQuery,
   RedirectSimulationEntry,
-  RedirectSimulationResponse
+  RedirectSimulationResponse,
+  RedirectRuleTopRange,
+  TopRedirectRulesResponse
 } from '../models/redirect-rule.model';
 import type { QueryResult } from '../models/query-result.model';
 import { buildHttpParams } from './api.utils';
@@ -50,5 +52,10 @@ export class RedirectRulesApiService {
     return this.http.post<RedirectSimulationResponse>(`${this.apiUrl}/simulate`, {
       entries
     });
+  }
+
+  top(range: RedirectRuleTopRange, limit = 50): Observable<TopRedirectRulesResponse> {
+    const params = buildHttpParams({ range, limit });
+    return this.http.get<TopRedirectRulesResponse>(`${this.apiUrl}/top`, { params });
   }
 }

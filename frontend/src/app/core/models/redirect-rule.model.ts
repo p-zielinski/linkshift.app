@@ -38,6 +38,17 @@ export type RedirectRuleListQuery = {
   search?: string;
 };
 
+export type RedirectRuleTopRange = 'day' | 'week' | 'month';
+
+export type TopRedirectRuleEntry = {
+  rule: RedirectRule;
+  hits: number;
+};
+
+export type TopRedirectRulesResponse = {
+  data: TopRedirectRuleEntry[];
+};
+
 export type RedirectSimulationEntry = {
   domainGroupId: string;
   hostname?: string;

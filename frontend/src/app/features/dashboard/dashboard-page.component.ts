@@ -30,6 +30,11 @@ import { BillingApiService } from '../../core/api/billing-api.service';
 import { UpgradeDialogComponent } from '../billing/upgrade-dialog/upgrade-dialog.component';
 import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
+import { RedirectRulesApiService } from '../../core/api/redirect-rules-api.service';
+import type {
+  RedirectRuleTopRange,
+  TopRedirectRuleEntry
+} from '../../core/models/redirect-rule.model';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -57,6 +62,7 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
   private readonly dialog = inject(MatDialog);
   private readonly usageStore = inject(OrganizationUsageStore);
   private readonly clipboard = inject(Clipboard);
+  private readonly redirectRulesApi = inject(RedirectRulesApiService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
@@ -83,6 +89,15 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
   readonly usage = computed(() => this.usageStore.usage());
   readonly usageLoading = computed(() => this.usageStore.isLoading());
   readonly usageError = computed(() => this.usageStore.error());
+  readonly topRules = signal<TopRedirectRuleEntry[]>([]);
+  readonly topRulesLoading = signal(false);
+  readonly topRulesError = signal<string | null>(null);
+  readonly topRange = signal<RedirectRuleTopRange>('day');
+  readonly topRanges = [
+    { value: 'day' as const, label: 'Day' },
+    { value: 'week' as const, label: 'Week' },
+    { value: 'month' as const, label: 'Month' }
+  ];
   readonly domainGroupLimitReached = computed(() => {
     const usage = this.usage();
     if (!usage) {
@@ -162,6 +177,7 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.usageStore.loadUsage();
+    this.loadTopRules();
   }
 
   ngAfterViewInit(): void {
@@ -201,6 +217,31 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       maxWidth: '960px',
       width: 'min(960px, 96vw)',
     });
+  }
+
+  async loadTopRules(): Promise<void> {
+    this.topRulesLoading.set(true);
+    this.topRulesError.set(null);
+    try {
+      const response = await firstValueFrom(
+        this.redirectRulesApi.top(this.topRange(), 50),
+      );
+      this.topRules.set(response.data ?? []);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unable to load top rules.';
+      this.topRulesError.set(message);
+    } finally {
+      this.topRulesLoading.set(false);
+    }
+  }
+
+  setTopRange(range: RedirectRuleTopRange): void {
+    if (this.topRange() === range) {
+      return;
+    }
+    this.topRange.set(range);
+    this.loadTopRules();
   }
 
   copyId(value: string): void {

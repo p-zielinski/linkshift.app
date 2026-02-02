@@ -43,6 +43,21 @@ export class RedirectRulesController {
     );
   }
 
+  @Get('top')
+  @UseGuards(AuthGuard)
+  async topRules(
+    @User('organizationId') organizationId: string,
+    @Query('limit') limit?: string,
+    @Query('range') range?: string,
+  ) {
+    const parsedLimit = limit ? Number(limit) : 50;
+    return this.redirectService.getTopRules(
+      organizationId,
+      parsedLimit,
+      range ?? 'day',
+    );
+  }
+
   @Get(':id')
   @UseGuards(AuthGuard)
   async getById(

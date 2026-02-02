@@ -1,6 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedirectService } from './redirect/redirect.service';
 import { RuleValidatorService } from './rule-validator/rule-validator.service';
 import { PrismaService } from './prisma.service';
@@ -31,10 +31,33 @@ import { EmailService } from './email/email.service';
 import { AuthTokenService } from './auth/auth-token.service';
 import { OrganizationMembersService } from './organization/organization-members.service';
 import { LegalService } from './legal/legal.service';
+import { BullModule } from '@nestjs/bull';
+import { ScheduleModule } from '@nestjs/schedule';
+import { DomainExtractorService } from './security/domain-extractor.service';
+import { SafetyScannerService } from './security/safety-scanner.service';
+import { DomainBlacklistService } from './security/domain-blacklist.service';
+import { RedirectAnalyticsService } from './security/redirect-analytics.service';
+import { SafetyRescanScheduler } from './security/safety-rescan.scheduler';
+import { SafetyRescanProcessor } from './security/safety-rescan.processor';
+import { SAFETY_RESCAN_QUEUE } from './security/security.constants';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    ScheduleModule.forRoot(),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        redis: {
+          host: configService.get<string>('REDIS_HOST'),
+          port: Number(configService.get<string>('REDIS_PORT')),
+          username: configService.get<string>('REDIS_USERNAME'),
+          password: configService.get<string>('REDIS_PASSWORD'),
+        },
+      }),
+    }),
+    BullModule.registerQueue({ name: SAFETY_RESCAN_QUEUE }),
     ClsModule.forRoot({
       global: true,
       middleware: {
@@ -77,6 +100,12 @@ import { LegalService } from './legal/legal.service';
     RedisService,
     CacheManagerIdsService,
     CacheManagerService,
+    DomainExtractorService,
+    SafetyScannerService,
+    DomainBlacklistService,
+    RedirectAnalyticsService,
+    SafetyRescanScheduler,
+    SafetyRescanProcessor,
   ],
 })
 export class AppModule implements NestModule {
