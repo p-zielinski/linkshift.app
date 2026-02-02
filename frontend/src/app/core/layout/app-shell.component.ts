@@ -11,6 +11,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AuthStore } from '../store/auth.store';
 import { DomainStore } from '../store/domain.store';
 import { DomainGroupStore } from '../store/domain-group.store';
+import { DEFAULT_LIST_KEY } from '../store/entity/entity-store.utils';
 import { CheckoutStatusDialogComponent } from '../../features/billing/checkout-status-dialog/checkout-status-dialog.component';
 
 type NavItem = {
@@ -69,6 +70,13 @@ export class AppShellComponent {
 
   readonly navItems = NAV_ITEMS;
   readonly domainGroups = this.domainGroupStore.selectList();
+  readonly domainGroupListResult = this.domainGroupStore.selectListResult(DEFAULT_LIST_KEY);
+  readonly domainGroupsLoading = computed(
+    () => this.domainGroupStore.isLoading()[DEFAULT_LIST_KEY] ?? false
+  );
+  readonly domainGroupsReady = computed(
+    () => this.domainGroupListResult() !== null && !this.domainGroupsLoading()
+  );
   readonly hasDomainGroups = computed(() => this.domainGroups().length > 0);
   readonly isMobile = signal(false);
   readonly mobileNavOpen = signal(false);
@@ -97,7 +105,7 @@ export class AppShellComponent {
   }
 
   isDisabled(item: NavItem): boolean {
-    return !!item.requiresDomainGroups && !this.hasDomainGroups();
+    return !!item.requiresDomainGroups && this.domainGroupsReady() && !this.hasDomainGroups();
   }
 
   toggleMobileNav(): void {

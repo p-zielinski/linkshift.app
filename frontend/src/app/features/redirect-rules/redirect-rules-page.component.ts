@@ -42,6 +42,7 @@ import { filter, firstValueFrom, take } from 'rxjs';
 import { RedirectRuleFormDialogComponent } from './redirect-rule-form-dialog.component';
 import type { RedirectRuleDialogResult } from './redirect-rule-form-dialog.component';
 import type { RedirectRule } from '../../core/models/redirect-rule.model';
+import { AuthStore } from '../../core/store/auth.store';
 
 @Component({
   selector: 'app-redirect-rules-page',
@@ -65,6 +66,7 @@ import type { RedirectRule } from '../../core/models/redirect-rule.model';
   templateUrl: './redirect-rules-page.component.html'
 })
 export class RedirectRulesPageComponent {
+  private readonly authStore = inject(AuthStore);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly redirectRuleStore = inject(RedirectRuleStore);
@@ -206,7 +208,9 @@ export class RedirectRulesPageComponent {
   });
 
   constructor() {
-    this.domainGroupStore.searchList();
+    if (this.authStore.isAuthenticated()) {
+      this.domainGroupStore.searchList();
+    }
 
     effect(() => {
       this.baseFilter();

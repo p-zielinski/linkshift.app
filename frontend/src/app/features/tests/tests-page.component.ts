@@ -27,6 +27,7 @@ import { RedirectRulesApiService } from '../../core/api/redirect-rules-api.servi
 import { buildSimulationEntry } from './redirect-test.utils';
 import { extractErrorMessage } from '../../core/store/store-error.utils';
 import { firstValueFrom } from 'rxjs';
+import { AuthStore } from '../../core/store/auth.store';
 
 @Component({
   selector: 'app-tests-page',
@@ -50,6 +51,7 @@ import { firstValueFrom } from 'rxjs';
   styleUrl: './tests-page.component.css'
 })
 export class TestsPageComponent {
+  private readonly authStore = inject(AuthStore);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly redirectTestStore = inject(RedirectTestStore);
@@ -123,7 +125,9 @@ export class TestsPageComponent {
   readonly hasNextPage = computed(() => !!this.listResult()?.moreStartingAfterId);
 
   constructor() {
-    this.domainGroupStore.searchList();
+    if (this.authStore.isAuthenticated()) {
+      this.domainGroupStore.searchList();
+    }
 
     effect(() => {
       this.baseFilter();

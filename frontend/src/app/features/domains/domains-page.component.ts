@@ -17,6 +17,7 @@ import { DomainStore } from '../../core/store/domain.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { DomainFormDialogComponent } from './domain-form-dialog.component';
 import type { Domain } from '../../core/models/domain.model';
+import { AuthStore } from '../../core/store/auth.store';
 
 @Component({
   selector: 'app-domains-page',
@@ -39,6 +40,7 @@ import type { Domain } from '../../core/models/domain.model';
   templateUrl: './domains-page.component.html'
 })
 export class DomainsPageComponent {
+  private readonly authStore = inject(AuthStore);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly domainStore = inject(DomainStore);
@@ -87,8 +89,10 @@ export class DomainsPageComponent {
   });
 
   constructor() {
-    this.domainStore.searchList();
-    this.domainGroupStore.searchList();
+    if (this.authStore.isAuthenticated()) {
+      this.domainStore.searchList();
+      this.domainGroupStore.searchList();
+    }
 
     effect(() => {
       const error = this.domainStore.lastError();
