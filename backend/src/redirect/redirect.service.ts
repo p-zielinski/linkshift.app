@@ -800,6 +800,8 @@ export class RedirectService {
     // 3. Update
     const updateData: Prisma.RedirectRuleUpdateInput = {
       updatedAt: new Date(),
+      isBlocked: false,
+      blockedAt: null,
     };
 
     if (data.source !== undefined) {

@@ -63,7 +63,8 @@ import { AuthStore } from '../../core/store/auth.store';
     ResourcePillComponent,
     TablePaginatorComponent
   ],
-  templateUrl: './redirect-rules-page.component.html'
+  templateUrl: './redirect-rules-page.component.html',
+  styleUrl: './redirect-rules-page.component.css'
 })
 export class RedirectRulesPageComponent {
   private readonly authStore = inject(AuthStore);
@@ -82,6 +83,7 @@ export class RedirectRulesPageComponent {
     'source',
     'destination',
     'statusCode',
+    'state',
     'group',
     'createdAt',
     'actions'

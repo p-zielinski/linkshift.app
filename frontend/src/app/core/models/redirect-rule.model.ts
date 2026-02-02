@@ -12,6 +12,8 @@ export type RedirectRule = {
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;
+  isBlocked?: boolean;
+  blockedAt?: string | null;
 };
 
 export type CreateRedirectRuleDto = {
