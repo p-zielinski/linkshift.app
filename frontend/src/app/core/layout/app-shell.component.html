@@ -1,9 +1,10 @@
-<mat-sidenav-container class="min-h-screen">
+<mat-sidenav-container class="app-shell min-h-screen">
   <mat-sidenav
     [mode]="isMobile() ? 'over' : 'side'"
     [opened]="!isMobile() || mobileNavOpen()"
     [fixedInViewport]="isMobile()"
-    (backdropClick)="closeMobileNav()"
+    [autoFocus]="isMobile() ? false : 'dialog'"
+    (openedChange)="onSidenavOpenedChange($event)"
   >
     <div
       class="flex h-full w-[280px] flex-col bg-[linear-gradient(160deg,var(--color-app-shell-start)_0%,var(--color-app-shell-mid)_60%,var(--color-app-shell-end)_100%)] px-4 py-6"

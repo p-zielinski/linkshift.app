@@ -224,3 +224,16 @@ body {
   --mdc-text-button-label-text-color: var(--app-accent-strong);
   --mdc-icon-button-icon-color: var(--app-accent-strong);
 }
+
+@media (max-width: 1023px) {
+  /* Prevent SSR side drawer flash on narrow screens before hydration. */
+  .app-shell .mat-drawer.mat-drawer-side {
+    transform: translateX(-100%) !important;
+    visibility: hidden;
+  }
+
+  .app-shell .mat-drawer-content {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}

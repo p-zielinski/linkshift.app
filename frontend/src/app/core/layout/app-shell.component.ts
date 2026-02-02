@@ -1,4 +1,5 @@
-import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -41,6 +42,8 @@ const NAV_ITEMS: NavItem[] = [
   }
 ];
 
+const MOBILE_BREAKPOINT = '(max-width: 1023px)';
+
 @Component({
   selector: 'app-shell',
   standalone: true,
@@ -67,6 +70,7 @@ export class AppShellComponent {
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly destroyRef = inject(DestroyRef);
   private readonly dialog = inject(MatDialog);
+  private readonly platformId = inject(PLATFORM_ID);
 
   readonly navItems = NAV_ITEMS;
   readonly domainGroups = this.domainGroupStore.selectList();
@@ -83,6 +87,9 @@ export class AppShellComponent {
   private readonly lastCheckoutSessionId = signal<string | null>(null);
 
   constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.isMobile.set(this.breakpointObserver.isMatched(MOBILE_BREAKPOINT));
+    }
     effect(() => {
       if (this.authStore.isAuthenticated()) {
         this.domainStore.searchList();
@@ -116,6 +123,12 @@ export class AppShellComponent {
     this.mobileNavOpen.set(false);
   }
 
+  onSidenavOpenedChange(opened: boolean): void {
+    if (this.isMobile()) {
+      this.mobileNavOpen.set(opened);
+    }
+  }
+
   onNavigate(): void {
     if (this.isMobile()) {
       this.closeMobileNav();
@@ -124,7 +137,7 @@ export class AppShellComponent {
 
   private observeViewport(): void {
     this.breakpointObserver
-      .observe('(max-width: 1023px)')
+      .observe(MOBILE_BREAKPOINT)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((state) => {
         this.isMobile.set(state.matches);
