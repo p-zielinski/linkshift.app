@@ -97,6 +97,22 @@ The provided `docker-compose.yml` exposes:
 
 If you use Docker Compose, update `DATABASE_URL` and `REDIS_PORT` accordingly.
 
+## Observability & Monitoring
+Architecture:
+- NestJS emits JSON logs via `nestjs-pino` -> Promtail tails Docker logs -> Loki stores them -> Grafana queries them.
+
+Services:
+- Grafana: `http://localhost:3000` (User: `admin`, Password: `GF_SECURITY_ADMIN_PASSWORD` from `.env`).
+- Dozzle: `http://localhost:8888`.
+
+Testing:
+- Call `GET /debug-sentry` to trigger a deliberate error and verify GlitchTip/Sentry alerts.
+
+Startup:
+```bash
+docker compose up -d
+```
+
 ## Billing flow (high level)
 - Checkout creates a local `BillingCheckoutSession` record.
 - Lemon Squeezy webhooks update subscription status.

@@ -1,8 +1,13 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, InternalServerErrorException } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 
 @Controller()
 export class AppController {
-  constructor(private readonly logger: Logger) {
+  constructor(private readonly logger: Logger) {}
+
+  @Get('debug-sentry')
+  triggerSentryError(): void {
+    this.logger.warn('Sentry debug endpoint triggered');
+    throw new InternalServerErrorException('Test Sentry Integration');
   }
 }
