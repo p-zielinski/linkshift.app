@@ -8,6 +8,7 @@ import {
   OrganizationStatus,
   OrganizationSubscription,
 } from '@shared/models/organization-config.model';
+import { Logger } from 'nestjs-pino';
 
 describe('OrganizationService.getEffectiveSubscription', () => {
   let service: OrganizationService;
@@ -17,6 +18,13 @@ describe('OrganizationService.getEffectiveSubscription', () => {
       {} as PrismaService,
       {} as CacheManagerService,
       { getId: jest.fn() } as unknown as ClsService,
+      {
+        log: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+        debug: jest.fn(),
+        setContext: jest.fn(),
+      } as unknown as Logger,
     );
   });
 

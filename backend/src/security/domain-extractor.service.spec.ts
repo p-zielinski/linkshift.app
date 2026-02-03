@@ -1,10 +1,17 @@
 import { DomainExtractorService } from './domain-extractor.service';
+import { Logger } from 'nestjs-pino';
 
 describe('DomainExtractorService', () => {
   let service: DomainExtractorService;
 
   beforeEach(() => {
-    service = new DomainExtractorService();
+    service = new DomainExtractorService({
+      log: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+      setContext: jest.fn(),
+    } as unknown as Logger);
   });
 
   it('extracts domains from nested conditionals', () => {

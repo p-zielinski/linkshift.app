@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedirectService } from './redirect/redirect.service';
@@ -40,10 +41,66 @@ import { RedirectAnalyticsService } from './security/redirect-analytics.service'
 import { SafetyRescanScheduler } from './security/safety-rescan.scheduler';
 import { SafetyRescanProcessor } from './security/safety-rescan.processor';
 import { SAFETY_RESCAN_QUEUE } from './security/security.constants';
+import { LoggerModule } from 'nestjs-pino';
+import { SentryModule } from '@sentry/nestjs/setup';
+import { SentryExceptionFilter } from './filters/sentry-exception.filter';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    LoggerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const nodeEnv = configService.get<string>('NODE_ENV') ?? 'development';
+        const isProduction = nodeEnv === 'production';
+
+        return {
+          pinoHttp: {
+            level: isProduction ? 'info' : 'debug',
+            transport: isProduction
+              ? undefined
+              : {
+                  target: 'pino-pretty',
+                  options: {
+                    colorize: true,
+                    singleLine: true,
+                    translateTime: 'SYS:standard',
+                    ignore: 'pid,hostname',
+                  },
+                },
+            redact: {
+              paths: [
+                'password',
+                '*.password',
+                'token',
+                '*.token',
+                'authorization',
+                '*.authorization',
+                'secret',
+                '*.secret',
+                'creditCard',
+                '*.creditCard',
+                'req.headers.authorization',
+              ],
+              remove: true,
+            },
+            genReqId: (req, res) => {
+              const header = req.headers['x-request-id'];
+              const requestId = Array.isArray(header)
+                ? header[0]
+                : header ?? createCustomCuid(AppEntity.Request, 10);
+              res.setHeader('X-Request-Id', requestId);
+              return requestId;
+            },
+            customProps: (req) => ({
+              requestId: req.id,
+            }),
+          },
+        };
+      },
+    }),
+    SentryModule.forRoot(),
     ScheduleModule.forRoot(),
     BullModule.forRootAsync({
       imports: [ConfigModule],
@@ -64,7 +121,7 @@ import { SAFETY_RESCAN_QUEUE } from './security/security.constants';
         mount: true,
         generateId: true,
         idGenerator: (req: Request): string =>
-          req.headers['X-Request-Id'] ??
+          req.headers['x-request-id'] ??
           createCustomCuid(AppEntity.Request, 10),
       },
     }),
@@ -106,6 +163,10 @@ import { SAFETY_RESCAN_QUEUE } from './security/security.constants';
     RedirectAnalyticsService,
     SafetyRescanScheduler,
     SafetyRescanProcessor,
+    {
+      provide: APP_FILTER,
+      useClass: SentryExceptionFilter,
+    },
   ],
 })
 export class AppModule implements NestModule {

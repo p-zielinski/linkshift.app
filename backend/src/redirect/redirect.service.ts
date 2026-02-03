@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { PrismaService } from '../prisma.service';
-import { HttpException, Injectable, Logger } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { RuleValidatorService } from '../rule-validator/rule-validator.service';
 import {
   CreateRedirectRuleDto,
@@ -40,6 +40,7 @@ import { DomainExtractorService } from '../security/domain-extractor.service';
 import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
+import { Logger } from 'nestjs-pino';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -123,8 +124,6 @@ const ALLOWED_MATCH_METHODS = new Set<string>(Object.values(HttpMethod));
 
 @Injectable()
 export class RedirectService {
-  private readonly logger = new Logger(RedirectService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly ruleValidator: RuleValidatorService,
@@ -135,7 +134,9 @@ export class RedirectService {
     private readonly safetyScannerService: SafetyScannerService,
     private readonly domainBlacklistService: DomainBlacklistService,
     private readonly redirectAnalyticsService: RedirectAnalyticsService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   /**
    * Invalidates the redirect context cache based on a specific target.
@@ -182,15 +183,16 @@ export class RedirectService {
           ),
         );
 
-        this.logger.debug(
-          `Invalidated redirect context for: ${uniqueHostnames.join(', ')}`,
-        );
+        this.logger.debug('Invalidated redirect context', {
+          hostnames: uniqueHostnames,
+        });
       }
     } catch (error) {
-      this.logger.error(
-        `Cache invalidation failed for ${target.type}:${target.value}`,
-        error instanceof Error ? error.stack : undefined,
-      );
+      this.logger.error('Cache invalidation failed', {
+        targetType: target.type,
+        targetValue: target.value,
+        error: error instanceof Error ? error.message : 'unknown_error',
+      });
     }
   }
 
@@ -868,15 +870,12 @@ export class RedirectService {
   ): Promise<void> {
     const extractedDomains = this.domainExtractor.extractDomains(destination);
 
-    this.logger.debug(
-      JSON.stringify({
-        event: 'redirect_rule_domain_extract',
-        ruleId: context.ruleId ?? null,
-        organizationId: context.organizationId,
-        domainGroupId: context.domainGroupId,
-        extractedDomains,
-      }),
-    );
+    this.logger.debug('Redirect rule domains extracted', {
+      ruleId: context.ruleId ?? null,
+      organizationId: context.organizationId,
+      domainGroupId: context.domainGroupId,
+      extractedDomains,
+    });
 
     if (extractedDomains.length === 0) {
       return;
@@ -887,15 +886,12 @@ export class RedirectService {
       scanResults =
         await this.safetyScannerService.checkDomains(extractedDomains);
     } catch (error) {
-      this.logger.error(
-        JSON.stringify({
-          event: 'redirect_rule_safety_scan_failed',
-          ruleId: context.ruleId ?? null,
-          organizationId: context.organizationId,
-          domainGroupId: context.domainGroupId,
-          error: error instanceof Error ? error.message : 'unknown_error',
-        }),
-      );
+      this.logger.error('Redirect rule safety scan failed', {
+        ruleId: context.ruleId ?? null,
+        organizationId: context.organizationId,
+        domainGroupId: context.domainGroupId,
+        error: error instanceof Error ? error.message : 'unknown_error',
+      });
       return throwHttpException(
         new InternalServerError({
           requestId: this.clsService.getId(),
@@ -909,16 +905,13 @@ export class RedirectService {
     );
 
     if (unsafeDomains.length > 0) {
-      this.logger.warn(
-        JSON.stringify({
-          event: 'redirect_rule_blocked_unsafe_domain',
-          ruleId: context.ruleId ?? null,
-          organizationId: context.organizationId,
-          domainGroupId: context.domainGroupId,
-          unsafeDomains,
-          extractedDomains,
-        }),
-      );
+      this.logger.warn('Redirect rule blocked by unsafe domain', {
+        ruleId: context.ruleId ?? null,
+        organizationId: context.organizationId,
+        domainGroupId: context.domainGroupId,
+        unsafeDomains,
+        extractedDomains,
+      });
       return throwHttpException(
         new BadRequestError({
           requestId: this.clsService.getId(),
@@ -929,15 +922,12 @@ export class RedirectService {
       );
     }
 
-    this.logger.debug(
-      JSON.stringify({
-        event: 'redirect_rule_domains_safe',
-        ruleId: context.ruleId ?? null,
-        organizationId: context.organizationId,
-        domainGroupId: context.domainGroupId,
-        extractedDomains,
-      }),
-    );
+    this.logger.debug('Redirect rule domains safe', {
+      ruleId: context.ruleId ?? null,
+      organizationId: context.organizationId,
+      domainGroupId: context.domainGroupId,
+      extractedDomains,
+    });
   }
 
   static readonly manipulators: Record<string, Manipulator> = {
@@ -1132,14 +1122,11 @@ export class RedirectService {
           const isBlacklisted =
             await this.domainBlacklistService.isBlacklisted(targetDomain);
           if (isBlacklisted) {
-            this.logger.warn(
-              JSON.stringify({
-                event: 'redirect_blocked_blacklist',
-                ruleId: match.rule.id ?? null,
-                domain: targetDomain,
-                hostname,
-              }),
-            );
+            this.logger.warn('Redirect blocked by blacklist', {
+              ruleId: match.rule.id ?? null,
+              domain: targetDomain,
+              hostname,
+            });
             res.status(403).json({
               message: 'Destination domain is blocked',
               error: 'Forbidden',
@@ -1148,14 +1135,11 @@ export class RedirectService {
             return;
           }
         } catch (error) {
-          this.logger.error(
-            JSON.stringify({
-              event: 'redirect_blacklist_check_failed',
-              ruleId: match.rule.id ?? null,
-              domain: targetDomain,
-              error: error instanceof Error ? error.message : 'unknown_error',
-            }),
-          );
+          this.logger.error('Redirect blacklist check failed', {
+            ruleId: match.rule.id ?? null,
+            domain: targetDomain,
+            error: error instanceof Error ? error.message : 'unknown_error',
+          });
         }
       }
 
@@ -1163,13 +1147,10 @@ export class RedirectService {
         this.redirectAnalyticsService
           .trackRuleHit(match.rule.id, domain.domainGroup.organizationId)
           .catch((error) => {
-            this.logger.error(
-              JSON.stringify({
-                event: 'redirect_hit_track_failed',
-                ruleId: match.rule.id ?? null,
-                error: error instanceof Error ? error.message : 'unknown_error',
-              }),
-            );
+            this.logger.error('Redirect hit tracking failed', {
+              ruleId: match.rule.id ?? null,
+              error: error instanceof Error ? error.message : 'unknown_error',
+            });
           });
       }
       res.redirect(statusCode, match.target);
@@ -1580,9 +1561,11 @@ export class RedirectService {
       // 2. Process conditional logic (Traffic splitting, A/B testing, etc.)
       return this.processConditionals(resolvedTarget);
     } catch (error) {
-      this.logger.error(
-        `Error processing rule ${rule.source} -> ${rule.destination}: ${error instanceof Error ? error.message : error}`,
-      );
+      this.logger.error('Error processing redirect rule', {
+        source: rule.source instanceof RegExp ? rule.source.toString() : rule.source,
+        destination: rule.destination,
+        error: error instanceof Error ? error.message : 'unknown_error',
+      });
       // If a rule is malformed or dangerous, return null (skip it) so the server stays alive
       return null;
     }
@@ -1741,7 +1724,7 @@ export class RedirectService {
     const operatorMatch = this.findOperatorPosition(preprocessed);
 
     if (!operatorMatch) {
-      this.logger.debug(`No operator found in condition: ${condition}`);
+      this.logger.debug('No operator found in condition', { condition });
       return false;
     }
 
@@ -1750,9 +1733,11 @@ export class RedirectService {
     const right = this.parseValue(rightPart);
 
     // Temporary debug log
-    this.logger.debug(
-      `Evaluating: ${JSON.stringify(left)} ${operator} ${JSON.stringify(right)}`,
-    );
+    this.logger.debug('Evaluating redirect condition', {
+      left,
+      operator,
+      right,
+    });
 
     switch (operator) {
       case '==':
@@ -1901,9 +1886,10 @@ export class RedirectService {
       }
 
       if (!parsed.isValid()) {
-        this.logger.warn(
-          `Invalid date in rule condition: ${dateStr} (tz: ${tz || 'UTC'})`,
-        );
+        this.logger.warn('Invalid date in rule condition', {
+          date: dateStr,
+          timezone: tz || 'UTC',
+        });
         return NaN;
       }
 
@@ -1979,11 +1965,14 @@ export class RedirectService {
         try {
           return manipulator(acc);
         } catch (e: any) {
-          this.logger.error(`Error applying manipulator ${mod}`, e?.stack);
+          this.logger.error('Error applying manipulator', {
+            manipulator: mod,
+            error: e instanceof Error ? e.message : 'unknown_error',
+          });
           return acc;
         }
       }
-      this.logger.warn(`Unknown manipulator: ${mod}`);
+      this.logger.warn('Unknown manipulator', { manipulator: mod });
       return acc;
     }, initialValue);
   }

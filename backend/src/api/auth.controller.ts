@@ -28,6 +28,7 @@ import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
 import { OrganizationMembersService } from '../organization/organization-members.service';
+import { Logger } from 'nestjs-pino';
 
 @Controller('api/v1/auth')
 export class AuthController {
@@ -39,6 +40,7 @@ export class AuthController {
     private readonly clsService: ClsService,
     private readonly configService: ConfigService,
     private readonly membersService: OrganizationMembersService,
+    private readonly logger: Logger,
   ) {
     const nodeEnv = this.configService.get<string>('NODE_ENV') ?? 'development';
     this.isProduction = nodeEnv === 'production';
@@ -52,6 +54,9 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
+    this.logger.log('Auth refresh requested', {
+      requestId: this.clsService.getId(),
+    });
     try {
       const refreshToken = this.getCookie(request, 'refresh_token');
 
@@ -83,6 +88,9 @@ export class AuthController {
     @Body(new ZodPipe(authSchemas.RegisterSchema))
     body: authSchemas.RegisterDto,
   ) {
+    this.logger.log('Auth register requested', {
+      requestId: this.clsService.getId(),
+    });
     try {
       const result = await this.authService.register(body);
       this.setRefreshCookie(response, result.refreshToken);
@@ -106,6 +114,9 @@ export class AuthController {
     @Body(new ZodPipe(authSchemas.InviteRegisterSchema))
     body: authSchemas.InviteRegisterDto,
   ) {
+    this.logger.log('Auth register-invite requested', {
+      requestId: this.clsService.getId(),
+    });
     try {
       return await this.membersService.registerFromInvite(body);
     } catch (error) {
@@ -139,6 +150,9 @@ export class AuthController {
 
   @Get('invites/lookup')
   async lookupInvite(@Query('token') token?: string) {
+    this.logger.log('Auth invite lookup requested', {
+      requestId: this.clsService.getId(),
+    });
     const invite = await this.membersService.lookupInvite(token ?? '');
     if (!invite) {
       return throwHttpException(
@@ -157,6 +171,9 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
     @Body(new ZodPipe(authSchemas.LoginSchema)) body: authSchemas.LoginDto,
   ) {
+    this.logger.log('Auth login requested', {
+      requestId: this.clsService.getId(),
+    });
     try {
       const clientIp = this.getClientIp(request);
       const result = await this.authService.login(body, clientIp);
@@ -181,12 +198,19 @@ export class AuthController {
     @Body(new ZodPipe(authSchemas.EmailVerificationSchema))
     body: authSchemas.EmailVerificationDto,
   ) {
+    this.logger.log('Auth verify-email requested', {
+      requestId: this.clsService.getId(),
+    });
     return this.authService.verifyEmail(body.token);
   }
 
   @Post('resend-verification')
   @UseGuards(AuthGuard)
   async resendVerification(@User('userId') userId: string) {
+    this.logger.log('Auth resend-verification requested', {
+      requestId: this.clsService.getId(),
+      userId,
+    });
     return this.authService.resendVerification(userId);
   }
 
@@ -195,6 +219,9 @@ export class AuthController {
     @Body(new ZodPipe(authSchemas.PasswordResetRequestSchema))
     body: authSchemas.PasswordResetRequestDto,
   ) {
+    this.logger.log('Auth password reset requested', {
+      requestId: this.clsService.getId(),
+    });
     return this.authService.requestPasswordReset(body.email);
   }
 
@@ -203,6 +230,9 @@ export class AuthController {
     @Body(new ZodPipe(authSchemas.PasswordResetConfirmSchema))
     body: authSchemas.PasswordResetConfirmDto,
   ) {
+    this.logger.log('Auth password reset confirm requested', {
+      requestId: this.clsService.getId(),
+    });
     return this.authService.resetPassword(body.token, body.password);
   }
 
@@ -213,6 +243,10 @@ export class AuthController {
     @Body(new ZodPipe(authSchemas.EmailChangeRequestSchema))
     body: authSchemas.EmailChangeRequestDto,
   ) {
+    this.logger.log('Auth email change requested (unverified)', {
+      requestId: this.clsService.getId(),
+      userId,
+    });
     return this.authService.updateEmailForUnverified(userId, body.newEmail);
   }
 
@@ -223,6 +257,10 @@ export class AuthController {
     @Body(new ZodPipe(authSchemas.EmailChangeRequestSchema))
     body: authSchemas.EmailChangeRequestDto,
   ) {
+    this.logger.log('Auth email change requested', {
+      requestId: this.clsService.getId(),
+      userId,
+    });
     return this.authService.requestEmailChange(userId, body.newEmail);
   }
 
@@ -233,6 +271,10 @@ export class AuthController {
     @Body(new ZodPipe(authSchemas.EmailChangeConfirmSchema))
     body: authSchemas.EmailChangeConfirmDto,
   ) {
+    this.logger.log('Auth email change confirm requested', {
+      requestId: this.clsService.getId(),
+      userId,
+    });
     return this.authService.confirmEmailChange(userId, body.code);
   }
 
@@ -243,6 +285,10 @@ export class AuthController {
     @Body(new ZodPipe(authSchemas.LegalConsentSchema))
     _body: authSchemas.LegalConsentDto,
   ) {
+    this.logger.log('Auth legal consent accepted', {
+      requestId: this.clsService.getId(),
+      userId,
+    });
     return this.authService.acceptLegalConsent(userId);
   }
 
@@ -251,6 +297,9 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
+    this.logger.log('Auth logout requested', {
+      requestId: this.clsService.getId(),
+    });
     const refreshToken = this.getCookie(request, 'refresh_token');
     await this.authService.logout(refreshToken);
     this.clearRefreshCookie(response);

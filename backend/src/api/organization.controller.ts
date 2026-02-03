@@ -10,17 +10,26 @@ import {
   type OrganizationInviteDto,
   type OrganizationMemberStatusDto,
 } from '../zod-schames/organization.schemas';
+import { Logger } from 'nestjs-pino';
+import { ClsService } from 'nestjs-cls';
 
 @Controller('api/v1/organization')
 export class OrganizationController {
   constructor(
     private readonly organizationService: OrganizationService,
     private readonly membersService: OrganizationMembersService,
-  ) {}
+    private readonly clsService: ClsService,
+    private readonly logger: Logger,
+  ) {
+  }
 
   @Get('usage')
   @UseGuards(AuthGuard)
   async getUsage(@User('organizationId') organizationId: string) {
+    this.logger.log('Organization usage requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+    });
     return this.organizationService.getUsageSummary(organizationId);
   }
 
@@ -30,6 +39,11 @@ export class OrganizationController {
     @User('organizationId') organizationId: string,
     @User('userId') userId: string,
   ) {
+    this.logger.log('Organization members list requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      userId,
+    });
     return this.membersService.listMembers({
       organizationId,
       requesterId: userId,
@@ -44,6 +58,11 @@ export class OrganizationController {
     @Body(new ZodPipe(OrganizationInviteSchema))
     body: OrganizationInviteDto,
   ) {
+    this.logger.log('Organization invite requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      userId,
+    });
     return this.membersService.createInvite({
       organizationId,
       inviterId: userId,
@@ -60,6 +79,13 @@ export class OrganizationController {
     @Body(new ZodPipe(OrganizationMemberStatusSchema))
     body: OrganizationMemberStatusDto,
   ) {
+    this.logger.log('Organization member status update requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      userId,
+      memberId,
+      blocked: body.blocked,
+    });
     return this.membersService.updateMemberStatus({
       organizationId,
       requesterId: userId,

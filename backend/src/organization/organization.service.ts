@@ -18,6 +18,7 @@ import {
 } from '../cache/cache-manager.service';
 import { Organization } from '@shared/prisma-client';
 import { throwHttpException } from '../utils';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class OrganizationService {
@@ -25,7 +26,9 @@ export class OrganizationService {
     private readonly prisma: PrismaService,
     private readonly cacheManagerService: CacheManagerService,
     private readonly cls: ClsService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   /**
    * Retrieves the organization's configuration.

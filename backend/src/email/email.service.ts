@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from 'nestjs-pino';
 
 type ZeptoMailSender = {
   address: string;
@@ -15,9 +16,11 @@ type ZeptoMailRecipient = {
 
 @Injectable()
 export class EmailService {
-  private readonly logger = new Logger(EmailService.name);
-
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly logger: Logger,
+  ) {
+  }
 
   async sendVerificationEmail(params: {
     email: string;
@@ -274,9 +277,9 @@ export class EmailService {
     const sender = this.resolveSender();
 
     if (!apiKey || !sender) {
-      this.logger.warn(
-        `Email skipped (missing ZeptoMail config) to ${params.to}`,
-      );
+      this.logger.warn('Email skipped due to missing ZeptoMail config', {
+        to: params.to,
+      });
       return;
     }
 
@@ -302,9 +305,10 @@ export class EmailService {
 
     if (!response.ok) {
       const body = await response.text();
-      this.logger.warn(
-        `ZeptoMail send failed: ${response.status} ${body}`,
-      );
+      this.logger.warn('ZeptoMail send failed', {
+        status: response.status,
+        body,
+      });
       throw new Error('Email delivery failed.');
     }
   }

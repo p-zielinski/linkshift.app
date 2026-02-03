@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { SafetyScannerService } from './safety-scanner.service';
 import { RedisService } from '../redis/redis.service';
 import { SAFETY_L2_TTL_SECONDS } from './security.constants';
+import { Logger } from 'nestjs-pino';
 
 describe('SafetyScannerService', () => {
   let service: SafetyScannerService;
@@ -32,6 +33,16 @@ describe('SafetyScannerService', () => {
               if (key === 'SAFE_BROWSING_CLIENT_VERSION') return '1.2.3';
               return undefined;
             }),
+          },
+        },
+        {
+          provide: Logger,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+            setContext: jest.fn(),
           },
         },
       ],

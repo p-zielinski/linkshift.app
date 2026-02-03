@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { CachedByProperty, DataType } from './cache-manager.service';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class CacheManagerIdsService {
+  constructor(private readonly logger: Logger) {
+  }
+
   getSimpleCacheManageId({
     dataType,
     properties,

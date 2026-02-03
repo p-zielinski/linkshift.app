@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma.service';
 import { CacheManagerService, DataType } from '../cache/cache-manager.service';
 import type { Domain, DomainGroup, Organization } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from 'nestjs-pino';
 
 describe('NgrokDomainAssignerService', () => {
   let prisma: PrismaService;
@@ -72,6 +73,13 @@ describe('NgrokDomainAssignerService', () => {
       prisma,
       cacheManager,
       configService,
+      {
+        log: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+        debug: jest.fn(),
+        setContext: jest.fn(),
+      } as unknown as Logger,
     );
   });
 
@@ -95,9 +103,9 @@ describe('NgrokDomainAssignerService', () => {
 
     await service.assignNgrokDomain();
 
-    expect(warnSpy).toHaveBeenCalledWith(
-      'NGROK_URL is invalid. Provide a full URL like https://xxxx.ngrok.app.',
-    );
+    expect(warnSpy).toHaveBeenCalledWith('NGROK_URL is invalid', {
+      hint: 'Provide a full URL like https://xxxx.ngrok.app',
+    });
   });
 
   it('creates a new domain when none exists', async () => {

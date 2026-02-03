@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class LegalService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly logger: Logger,
+  ) {
+  }
 
   getLegalVersion(): string {
     return this.configService.get<string>('LEGAL_VERSION') ?? 'v1';

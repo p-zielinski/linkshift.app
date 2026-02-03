@@ -17,17 +17,24 @@ import { ZodPipe } from '../pipes/zod.pipe';
 import { NotFoundError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { throwHttpException } from '../utils';
+import { Logger } from 'nestjs-pino';
 
 @Controller('api/v1/domain-groups')
 export class DomainGroupsController {
   constructor(
     private readonly redirectService: RedirectService,
     private readonly clsService: ClsService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   @Get()
   @UseGuards(AuthGuard)
   async list(@User('organizationId') organizationId: string) {
+    this.logger.log('Domain groups list requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+    });
     return this.redirectService.listDomainGroups(organizationId);
   }
 
@@ -37,6 +44,11 @@ export class DomainGroupsController {
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
   ) {
+    this.logger.log('Domain group get requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      domainGroupId: id,
+    });
     try {
       return this.redirectService.getDomainGroupById(id, organizationId);
     } catch (error) {
@@ -61,6 +73,10 @@ export class DomainGroupsController {
     @Body(new ZodPipe(domainGroupSchemas.CreateDomainGroupSchema))
     body: domainGroupSchemas.CreateDomainGroupDto,
   ) {
+    this.logger.log('Domain group create requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+    });
     return this.redirectService.createDomainGroup(organizationId, body);
   }
 
@@ -72,6 +88,11 @@ export class DomainGroupsController {
     @Body(new ZodPipe(domainGroupSchemas.UpdateDomainGroupSchema))
     body: domainGroupSchemas.UpdateDomainGroupDto,
   ) {
+    this.logger.log('Domain group update requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      domainGroupId: id,
+    });
     try {
       return this.redirectService.updateDomainGroup(id, organizationId, body);
     } catch (error) {
@@ -95,6 +116,11 @@ export class DomainGroupsController {
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
   ) {
+    this.logger.log('Domain group delete requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      domainGroupId: id,
+    });
     try {
       await this.redirectService.deleteDomainGroup(id, organizationId);
       return;

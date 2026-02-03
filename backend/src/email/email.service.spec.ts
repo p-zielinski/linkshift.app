@@ -1,8 +1,18 @@
 import { EmailService } from './email.service';
+import { Logger } from 'nestjs-pino';
 
 describe('EmailService', () => {
   const createService = () =>
-    new EmailService({ get: () => '' } as any);
+    new EmailService(
+      { get: () => '' } as any,
+      {
+        log: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+        debug: jest.fn(),
+        setContext: jest.fn(),
+      } as unknown as Logger,
+    );
 
   it('parses sender with name and address', () => {
     const service = createService();

@@ -9,6 +9,7 @@ import {
   HttpException,
 } from '@nestjs/common';
 import * as redirectRuleSchemas from '../zod-schames/redirect-rule.schemas';
+import { Logger } from 'nestjs-pino';
 
 describe('RedirectRulesController', () => {
   let controller: RedirectRulesController;
@@ -38,6 +39,16 @@ describe('RedirectRulesController', () => {
         {
           provide: ClsService,
           useValue: mockClsService,
+        },
+        {
+          provide: Logger,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+            setContext: jest.fn(),
+          },
         },
       ],
     })

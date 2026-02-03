@@ -1,6 +1,7 @@
 import { LoginRateLimitService } from './login-rate-limit.service';
 import { RedisService } from '../redis/redis.service';
 import { ClsService } from 'nestjs-cls';
+import { Logger } from 'nestjs-pino';
 
 describe('LoginRateLimitService', () => {
   let service: LoginRateLimitService;
@@ -15,9 +16,19 @@ describe('LoginRateLimitService', () => {
       del: jest.fn(),
     } as unknown as RedisService;
 
-    service = new LoginRateLimitService(redis, {
-      getId: jest.fn().mockReturnValue('req-id'),
-    } as unknown as ClsService);
+    service = new LoginRateLimitService(
+      redis,
+      {
+        getId: jest.fn().mockReturnValue('req-id'),
+      } as unknown as ClsService,
+      {
+        log: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+        debug: jest.fn(),
+        setContext: jest.fn(),
+      } as unknown as Logger,
+    );
   });
 
   it('does not block when no IP is provided', async () => {

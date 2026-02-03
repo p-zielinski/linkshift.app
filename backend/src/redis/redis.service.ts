@@ -1,12 +1,15 @@
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 import Redis from 'ioredis';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {
   constructor(
     @Inject('REDIS_CLIENT')
     private readonly redis: Redis,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   async set(key: string, value: any, ttl?: number): Promise<void> {
     const serializedValue = JSON.stringify(value);

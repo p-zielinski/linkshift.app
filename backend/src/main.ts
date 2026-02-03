@@ -1,35 +1,30 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import {
-  utilities as nestWinstonModuleUtilities,
-  WinstonModule,
-} from 'nest-winston';
-import * as winston from 'winston';
 import { ZodFilter } from './filters/zod.filter';
 import express from 'express';
 import { ConfigService } from '@nestjs/config';
 import { setCuidFingerprint } from './utils';
+import { Logger } from 'nestjs-pino';
+import { init as initSentry } from '@sentry/nestjs';
 
 async function bootstrap() {
-  const logFormat = winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.ms(),
-    nestWinstonModuleUtilities.format.nestLike('Backend'),
-  );
-  const logger = WinstonModule.createLogger({
-    level: 'debug',
-    transports: [
-      new winston.transports.Console({
-        format: logFormat,
-      }),
-    ],
-  });
-
-  const app = await NestFactory.create(AppModule, { logger });
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const logger = app.get(Logger);
+  app.useLogger(logger);
   const configService = app.get(ConfigService);
   const nodeEnv = configService.get<string>('NODE_ENV') ?? 'development';
   const isProduction = nodeEnv === 'production';
   setCuidFingerprint(configService.get<string>('HOST_ID') ?? undefined);
+  const sentryDsn =
+    configService.get<string>('SENTRY_DSN') ??
+    configService.get<string>('GLITCHTIP_DSN') ??
+    '';
+  if (sentryDsn) {
+    initSentry({
+      dsn: sentryDsn,
+      environment: nodeEnv,
+    });
+  }
 
   const expressApp = app.getHttpAdapter().getInstance();
   if (configService.get<string>('TRUST_PROXY') === 'true') {
@@ -83,10 +78,10 @@ async function bootstrap() {
   const port = Number(configService.get<string>('PORT') ?? 3000);
   await app.listen(port);
 
-  logger.log(`Application port - ${port}`);
+  logger.log('Application port', { port });
   const ngrokUrl = configService.get<string>('NGROK_URL');
   if (ngrokUrl) {
-    logger.log(`Ngrok tunnel available at: ${ngrokUrl}`);
+    logger.log('Ngrok tunnel available', { url: ngrokUrl });
   }
 }
 

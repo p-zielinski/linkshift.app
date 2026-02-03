@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
 import * as crypto from 'crypto';
+import { Logger } from 'nestjs-pino';
 
 export type AuthTokenPayload = {
   userId: string;
@@ -12,7 +13,11 @@ export type AuthTokenPayload = {
 export class AuthTokenService {
   private readonly tokenTtlSeconds = 30 * 60;
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor(
+    private readonly redisService: RedisService,
+    private readonly logger: Logger,
+  ) {
+  }
 
   async createToken(
     purpose: string,

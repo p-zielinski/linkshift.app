@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LRUCache } from 'lru-cache';
+import { Logger } from 'nestjs-pino';
 import { RedisService } from '../redis/redis.service';
 import {
   SAFETY_CACHE_PREFIX,
@@ -12,13 +13,13 @@ type SafetyMatchResponse = {
   matches?: Array<{
     threat?: {
       url?: string;
+      threatType?: string;
     };
   }>;
 };
 
 @Injectable()
 export class SafetyScannerService {
-  private readonly logger = new Logger(SafetyScannerService.name);
   private readonly l1Cache = new LRUCache<string, boolean>({
     max: 5000,
     ttl: SAFETY_L1_TTL_MS,
@@ -27,7 +28,9 @@ export class SafetyScannerService {
   constructor(
     private readonly configService: ConfigService,
     private readonly redisService: RedisService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   async checkDomains(domains: string[]): Promise<Map<string, boolean>> {
     const normalized = [
@@ -142,6 +145,10 @@ export class SafetyScannerService {
 
     const endpoint = `https://safebrowsing.googleapis.com/v5/threatMatches:find?key=${apiKey}`;
 
+    this.logger.debug('Sending batch safety scan request', {
+      domainCount: domains.length,
+    });
+
     let response: Response;
     try {
       response = await fetch(endpoint, {
@@ -150,25 +157,19 @@ export class SafetyScannerService {
         body: JSON.stringify(requestBody),
       });
     } catch (error) {
-      this.logger.error(
-        JSON.stringify({
-          event: 'safety_scan_request_failed',
-          error: error instanceof Error ? error.message : 'unknown_error',
-          domainCount: domains.length,
-        }),
-      );
+      this.logger.error('Safety scan request failed', {
+        error: error instanceof Error ? error.message : 'unknown_error',
+        domainCount: domains.length,
+      });
       throw error;
     }
 
     if (!response.ok) {
       const body = await response.text().catch(() => '');
-      this.logger.error(
-        JSON.stringify({
-          event: 'safety_scan_response_error',
-          status: response.status,
-          body,
-        }),
-      );
+      this.logger.error('Safety scan response error', {
+        status: response.status,
+        body,
+      });
       throw new Error(`Safe Browsing request failed with ${response.status}`);
     }
 
@@ -179,7 +180,13 @@ export class SafetyScannerService {
       const url = match.threat?.url;
       if (!url) continue;
       try {
-        unsafe.add(new URL(url).hostname.toLowerCase());
+        const hostname = new URL(url).hostname.toLowerCase();
+        unsafe.add(hostname);
+        this.logger.warn('Security threat detected', {
+          url,
+          hostname,
+          threatType: match.threat?.threatType ?? 'unknown',
+        });
       } catch {
         continue;
       }

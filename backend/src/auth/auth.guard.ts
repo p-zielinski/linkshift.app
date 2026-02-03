@@ -10,6 +10,7 @@ import {
   CachedByProperty,
 } from '../cache/cache-manager.service';
 import { LegalService } from '../legal/legal.service';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -18,7 +19,9 @@ export class AuthGuard implements CanActivate {
     private readonly clsService: ClsService,
     private readonly cacheManagerService: CacheManagerService,
     private readonly legalService: LegalService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();

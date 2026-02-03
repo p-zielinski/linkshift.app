@@ -19,13 +19,16 @@ import { ZodPipe } from '../pipes/zod.pipe';
 import { BadRequestError, NotFoundError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { throwHttpException } from '../utils';
+import { Logger } from 'nestjs-pino';
 
 @Controller('api/v1/redirect-rules')
 export class RedirectRulesController {
   constructor(
     private readonly redirectService: RedirectService,
     private readonly clsService: ClsService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   @Get()
   @UseGuards(AuthGuard)
@@ -34,6 +37,11 @@ export class RedirectRulesController {
     @Query(new ZodPipe(redirectRuleSchemas.ListRedirectRulesQuerySchema))
     query: redirectRuleSchemas.ListRedirectRulesQueryDto,
   ) {
+    this.logger.log('Redirect rules list requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      domainGroupId: query.domainGroupId,
+    });
     const { domainGroupId, ...pagination } = query;
 
     return this.redirectService.listRules(
@@ -50,6 +58,11 @@ export class RedirectRulesController {
     @Query('limit') limit?: string,
     @Query('range') range?: string,
   ) {
+    this.logger.log('Redirect rules top requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      range: range ?? 'day',
+    });
     const parsedLimit = limit ? Number(limit) : 50;
     return this.redirectService.getTopRules(
       organizationId,
@@ -64,6 +77,11 @@ export class RedirectRulesController {
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
   ) {
+    this.logger.log('Redirect rule get requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      ruleId: id,
+    });
     try {
       return this.redirectService.getRuleById(id, organizationId);
     } catch (error) {
@@ -88,6 +106,11 @@ export class RedirectRulesController {
     @Body(new ZodPipe(redirectRuleSchemas.CreateRedirectRuleSchema))
     body: redirectRuleSchemas.CreateRedirectRuleDto,
   ) {
+    this.logger.log('Redirect rule create requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      domainGroupId: body.domainGroupId,
+    });
     try {
       return this.redirectService.createRule(organizationId, body);
     } catch (error) {
@@ -120,6 +143,11 @@ export class RedirectRulesController {
     @Body(new ZodPipe(redirectRuleSchemas.SimulateRedirectsSchema))
     body: redirectRuleSchemas.SimulateRedirectsDto,
   ) {
+    this.logger.log('Redirect rule simulation requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      entryCount: body.entries?.length ?? 0,
+    });
     return this.redirectService.simulateRedirects(
       organizationId,
       body.entries,
@@ -134,6 +162,11 @@ export class RedirectRulesController {
     @Body(new ZodPipe(redirectRuleSchemas.UpdateRedirectRuleSchema))
     body: redirectRuleSchemas.UpdateRedirectRuleDto,
   ) {
+    this.logger.log('Redirect rule update requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      ruleId: id,
+    });
     try {
       return this.redirectService.updateRule(id, organizationId, body);
     } catch (error) {
@@ -166,6 +199,11 @@ export class RedirectRulesController {
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
   ) {
+    this.logger.log('Redirect rule delete requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      ruleId: id,
+    });
     try {
       return this.redirectService.deleteRule(id, organizationId);
     } catch (error) {

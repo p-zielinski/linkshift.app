@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Process, Processor } from '@nestjs/bull';
 import type { Job } from 'bull';
 import { PrismaService } from '../prisma.service';
@@ -7,21 +7,22 @@ import { SafetyScannerService } from './safety-scanner.service';
 import { DomainBlacklistService } from './domain-blacklist.service';
 import { SAFETY_RESCAN_QUEUE } from './security.constants';
 import { EmailService } from '../email/email.service';
+import { Logger } from 'nestjs-pino';
 
 type RescanJob = { ruleId: string; hits?: number };
 
 @Injectable()
 @Processor(SAFETY_RESCAN_QUEUE)
 export class SafetyRescanProcessor {
-  private readonly logger = new Logger(SafetyRescanProcessor.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly domainExtractor: DomainExtractorService,
     private readonly safetyScannerService: SafetyScannerService,
     private readonly domainBlacklistService: DomainBlacklistService,
     private readonly emailService: EmailService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   @Process('rescan')
   async handleRescan(job: Job<RescanJob>): Promise<void> {
@@ -50,12 +51,9 @@ export class SafetyRescanProcessor {
 
     const domains = this.domainExtractor.extractDomains(rule.destination);
     if (domains.length === 0) {
-      this.logger.debug(
-        JSON.stringify({
-          event: 'safety_rescan_no_domains',
-          ruleId: rule.id,
-        }),
-      );
+      this.logger.debug('Safety rescan skipped (no domains)', {
+        ruleId: rule.id,
+      });
       return;
     }
 
@@ -63,13 +61,10 @@ export class SafetyRescanProcessor {
     try {
       results = await this.safetyScannerService.checkDomains(domains);
     } catch (error) {
-      this.logger.error(
-        JSON.stringify({
-          event: 'safety_rescan_failed',
-          ruleId: rule.id,
-          error: error instanceof Error ? error.message : 'unknown_error',
-        }),
-      );
+      this.logger.error('Safety rescan failed', {
+        ruleId: rule.id,
+        error: error instanceof Error ? error.message : 'unknown_error',
+      });
       throw error;
     }
 
@@ -111,33 +106,24 @@ export class SafetyRescanProcessor {
           detectedAt: new Date(),
         });
       } catch (error) {
-        this.logger.error(
-          JSON.stringify({
-            event: 'security_alert_email_failed',
-            ruleId: rule.id,
-            organizationId: rule.domainGroup.organizationId,
-            error: error instanceof Error ? error.message : 'unknown_error',
-          }),
-        );
-      }
-    } else {
-      this.logger.warn(
-        JSON.stringify({
-          event: 'security_alert_owner_missing',
+        this.logger.error('Security alert email failed', {
           ruleId: rule.id,
           organizationId: rule.domainGroup.organizationId,
-        }),
-      );
+          error: error instanceof Error ? error.message : 'unknown_error',
+        });
+      }
+    } else {
+      this.logger.warn('Security alert owner missing', {
+        ruleId: rule.id,
+        organizationId: rule.domainGroup.organizationId,
+      });
     }
 
-    this.logger.error(
-      JSON.stringify({
-        event: 'security_alert_rule_blocked',
-        ruleId: rule.id,
-        domainGroupId: rule.domainGroupId,
-        unsafeDomains,
-        hits: job.data.hits ?? null,
-      }),
-    );
+    this.logger.warn('Security alert rule blocked', {
+      ruleId: rule.id,
+      domainGroupId: rule.domainGroupId,
+      unsafeDomains,
+      hits: job.data.hits ?? null,
+    });
   }
 }

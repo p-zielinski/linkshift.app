@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { CacheManagerIdsService } from './cache-manager-ids.service';
 import { ClsService } from 'nestjs-cls';
+import { Logger } from 'nestjs-pino';
 
 describe('CacheManagerService', () => {
   let service: CacheManagerService;
@@ -47,6 +48,16 @@ describe('CacheManagerService', () => {
           provide: CacheManagerIdsService,
           useValue: {
             getSimpleCacheManageId: jest.fn().mockReturnValue('mock-cache-key'),
+          },
+        },
+        {
+          provide: Logger,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+            setContext: jest.fn(),
           },
         },
       ],

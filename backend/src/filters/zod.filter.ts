@@ -4,27 +4,24 @@ import qs from 'qs';
 import { ZodError } from 'zod';
 import { fromError } from 'zod-validation-error';
 import { InvalidPayloadError } from '@shared/models/error.model';
+import { Logger } from 'nestjs-pino';
 
 @common.Catch(ZodError)
 export class ZodFilter<T extends ZodError> implements common.ExceptionFilter {
   #isProduction: boolean;
-  #logger: common.LoggerService;
+  #logger: Logger;
 
-  constructor(logger: common.LoggerService, isProduction: boolean) {
+  constructor(logger: Logger, isProduction: boolean) {
     this.#logger = logger;
     this.#isProduction = isProduction;
   }
 
   catch(exception: T, host: common.ArgumentsHost) {
-    if (!this.#isProduction) {
-      this.#logger.debug?.(JSON.stringify(exception));
-    }
     const ctx = host.switchToHttp();
 
     const log = {
       url: ctx.getRequest().url,
       method: ctx.getRequest().method,
-      body: ctx.getRequest().body,
       query: qs.parse(
         _.map(
           ctx.getRequest().query || {},
@@ -32,11 +29,13 @@ export class ZodFilter<T extends ZodError> implements common.ExceptionFilter {
         ).join('&'),
       ),
       params: ctx.getRequest().params,
-      headers: ctx.getRequest().headers,
       status: ctx.getResponse().statusCode,
       errorMessage: exception.message,
     };
-    this.#logger.debug?.(this.#isProduction ? JSON.stringify(log) : log);
+    this.#logger.debug('Zod validation error', {
+      ...log,
+      issues: exception.issues?.length ?? 0,
+    });
 
     const status = 400;
     ctx

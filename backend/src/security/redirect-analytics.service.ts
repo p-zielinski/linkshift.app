@@ -6,12 +6,17 @@ import {
   REDIRECT_HIT_TTL_SECONDS,
   REDIRECT_TOP_TEMP_KEY_PREFIX,
 } from './security.constants';
+import { Logger } from 'nestjs-pino';
 
 type RuleHit = { ruleId: string; hits: number };
 
 @Injectable()
 export class RedirectAnalyticsService {
-  constructor(private readonly redisService: RedisService) {}
+  constructor(
+    private readonly redisService: RedisService,
+    private readonly logger: Logger,
+  ) {
+  }
 
   async trackRuleHit(ruleId: string, organizationId: string): Promise<void> {
     if (!ruleId || !organizationId) return;

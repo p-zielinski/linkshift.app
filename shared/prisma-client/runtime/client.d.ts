@@ -2576,6 +2576,7 @@ declare type SchemaArg = ReadonlyDeep_2<{
     isNullable: boolean;
     isRequired: boolean;
     inputTypes: InputTypeRef[];
+    isParameterizable: boolean;
     requiresOtherFields?: string[];
     deprecation?: Deprecation;
 }>;

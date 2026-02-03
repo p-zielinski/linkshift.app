@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from 'nestjs-pino';
 
 const API_BASE_URL = 'https://api.lemonsqueezy.com/v1';
 
@@ -28,7 +29,10 @@ export class LemonSqueezyService {
   private readonly defaultSuccessUrl: string;
   private readonly defaultCancelUrl: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly logger: Logger,
+  ) {
     this.apiKey = this.configService.get<string>('LEMON_SQUEEZY_API_KEY') ?? '';
     this.storeId =
       this.configService.get<string>('LEMON_SQUEEZY_STORE_ID') ?? '';

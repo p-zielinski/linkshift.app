@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { REDIRECT_ENGINE_LIMITS } from '../constants';
+import { Logger } from 'nestjs-pino';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -15,6 +16,9 @@ export interface ValidationResult {
 
 @Injectable()
 export class RuleValidatorService {
+  constructor(private readonly logger: Logger) {
+  }
+
   private readonly KNOWN_VARIABLES = [
     'domain.fqdn',
     'domain.label',

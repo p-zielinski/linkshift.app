@@ -1,7 +1,8 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { Global, Module, Logger } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import Redis, { RedisOptions } from 'ioredis';
 import { RedisService } from './redis.service';
+import { Logger } from 'nestjs-pino';
 
 @Global()
 @Module({
@@ -39,9 +40,12 @@ import { RedisService } from './redis.service';
           ? '#'.repeat(config.password.length)
           : '';
 
-        logger.debug(
-          `Configuring Redis connection: host=${config.host}, port=${config.port}, user=${config.username}, password=${maskedPassword}`,
-        );
+        logger.debug('Configuring Redis connection', {
+          host: config.host,
+          port: config.port,
+          user: config.username,
+          password: maskedPassword,
+        });
 
         const client = new Redis({
           db: 0,
@@ -53,15 +57,15 @@ import { RedisService } from './redis.service';
         } as RedisOptions);
 
         client.on('connect', () => {
-          logger.debug('Redis is connected');
+          logger.debug('Redis connected');
         });
         client.on('ready', () => {
-          logger.log('Redis cache is ready');
+          logger.log('Redis cache ready');
         });
         client.on('error', (error) => {
-          logger.debug(
-            `Redis is errored${error?.message ? `: ${error.message}` : ''}`,
-          );
+          logger.error('Redis connection error', {
+            error: error?.message ?? 'unknown_error',
+          });
         });
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return

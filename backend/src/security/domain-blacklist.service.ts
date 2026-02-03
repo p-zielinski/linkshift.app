@@ -1,12 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import { RedisService } from '../redis/redis.service';
 import { DOMAIN_BLACKLIST_SET_KEY } from './security.constants';
 
 @Injectable()
 export class DomainBlacklistService {
-  private readonly logger = new Logger(DomainBlacklistService.name);
-
-  constructor(private readonly redisService: RedisService) {}
+  constructor(
+    private readonly redisService: RedisService,
+    private readonly logger: Logger,
+  ) {
+  }
 
   async isBlacklisted(domain: string): Promise<boolean> {
     const normalized = this.normalize(domain);
@@ -26,12 +29,9 @@ export class DomainBlacklistService {
     if (normalized.length === 0) return;
 
     await this.redisService.sadd(DOMAIN_BLACKLIST_SET_KEY, normalized);
-    this.logger.warn(
-      JSON.stringify({
-        event: 'domain_blacklist_add',
-        domains: normalized,
-      }),
-    );
+    this.logger.warn('Domain blacklist updated', {
+      domains: normalized,
+    });
   }
 
   private normalize(value: string): string | null {

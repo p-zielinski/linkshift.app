@@ -1,19 +1,20 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CacheManagerService, DataType } from '../cache/cache-manager.service';
 import { AppEntity, createCustomCuid } from '../utils';
 import type { Domain, DomainGroup, Organization } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class NgrokDomainAssignerService implements OnApplicationBootstrap {
-  private readonly logger = new Logger(NgrokDomainAssignerService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly cacheManager: CacheManagerService,
     private readonly configService: ConfigService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   async onApplicationBootstrap() {
     await this.assignNgrokDomain();
@@ -28,17 +29,17 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
       this.configService.get<string>('NGROK_URL'),
     );
     if (!hostname) {
-      this.logger.warn(
-        'NGROK_URL is invalid. Provide a full URL like https://xxxx.ngrok.app.',
-      );
+      this.logger.warn('NGROK_URL is invalid', {
+        hint: 'Provide a full URL like https://xxxx.ngrok.app',
+      });
       return;
     }
 
     const organization = await this.resolveOrganization();
     if (!organization) {
-      this.logger.warn(
-        'Dev ngrok assignment skipped. Set DEV_NGROK_ORG_ID or DEV_NGROK_ORG_EMAIL to target an organization.',
-      );
+      this.logger.warn('Dev ngrok assignment skipped', {
+        hint: 'Set DEV_NGROK_ORG_ID or DEV_NGROK_ORG_EMAIL',
+      });
       return;
     }
 
@@ -46,9 +47,10 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
 
     const domainGroup = await this.resolveDomainGroup(organization.id);
     if (!domainGroup) {
-      this.logger.warn(
-        `No domain group found for organization ${organization.id}. Create one or set DEV_NGROK_DOMAIN_GROUP_ID.`,
-      );
+      this.logger.warn('No domain group found for organization', {
+        organizationId: organization.id,
+        hint: 'Create one or set DEV_NGROK_DOMAIN_GROUP_ID',
+      });
       return;
     }
 
@@ -58,9 +60,10 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
 
     if (existing && existing.deletedAt === null) {
       if (existing.domainGroupId === domainGroup.id) {
-        this.logger.log(
-          `Ngrok domain already assigned: ${hostname} -> ${domainGroup.id}`,
-        );
+        this.logger.log('Ngrok domain already assigned', {
+          hostname,
+          domainGroupId: domainGroup.id,
+        });
         return;
       }
 
@@ -69,9 +72,9 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
         organization.id,
       );
       if (!sameOrg) {
-        this.logger.warn(
-          `Ngrok domain ${hostname} already belongs to another organization.`,
-        );
+        this.logger.warn('Ngrok domain belongs to another organization', {
+          hostname,
+        });
         return;
       }
 
@@ -81,9 +84,10 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
       });
 
       await this.afterDomainChange(hostname, updated);
-      this.logger.log(
-        `Ngrok domain reassigned: ${hostname} -> ${domainGroup.id}`,
-      );
+      this.logger.log('Ngrok domain reassigned', {
+        hostname,
+        domainGroupId: domainGroup.id,
+      });
       return;
     }
 
@@ -96,7 +100,10 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
     });
 
     await this.afterDomainChange(hostname, created);
-    this.logger.log(`Ngrok domain assigned: ${hostname} -> ${domainGroup.id}`);
+    this.logger.log('Ngrok domain assigned', {
+      hostname,
+      domainGroupId: domainGroup.id,
+    });
   }
 
   private isEnabled(): boolean {
@@ -174,9 +181,10 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
       await this.afterDomainChange(domain.name, updated);
     }
 
-    this.logger.log(
-      `Removed ${domains.length} previous ngrok domain(s) for organization ${organizationId}.`,
-    );
+    this.logger.log('Removed previous ngrok domains for organization', {
+      organizationId,
+      count: domains.length,
+    });
   }
 
   private async isDomainInOrganization(

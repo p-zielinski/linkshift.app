@@ -11,6 +11,7 @@ import { DomainExtractorService } from '../security/domain-extractor.service';
 import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
+import { Logger } from 'nestjs-pino';
 
 const mockPrismaService = {
   domain: {
@@ -132,6 +133,16 @@ describe('RedirectService', () => {
             trackRuleHit: jest.fn().mockResolvedValue(undefined),
             getTopRulesForOrganization: jest.fn().mockResolvedValue([]),
             getTopRulesGlobal: jest.fn().mockResolvedValue([]),
+          },
+        },
+        {
+          provide: Logger,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+            setContext: jest.fn(),
           },
         },
       ],
@@ -410,9 +421,11 @@ describe('RedirectService', () => {
       const result = service.getRedirect(req, rules);
 
       expect(result).toBeNull();
-      expect(loggerSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Maximum recursion depth exceeded'),
-      );
+      expect(loggerSpy).toHaveBeenCalledWith('Error processing redirect rule', {
+        source: '*',
+        destination: deepRule,
+        error: 'Maximum recursion depth exceeded in redirect rule.',
+      });
 
       loggerSpy.mockRestore();
     });
@@ -563,7 +576,9 @@ describe('RedirectService', () => {
       const result = service.getRedirect(req, rules);
 
       expect(result).toBe('test');
-      expect(warnSpy).toHaveBeenCalledWith('Unknown manipulator: fake_method');
+      expect(warnSpy).toHaveBeenCalledWith('Unknown manipulator', {
+        manipulator: 'fake_method',
+      });
     });
 
     it('should handle missing variables gracefully', async () => {
@@ -604,10 +619,10 @@ describe('RedirectService', () => {
       const result = service.getRedirect(req, rules);
 
       expect(result).toBe('safe');
-      expect(loggerSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error applying manipulator broken'),
-        expect.any(String),
-      );
+      expect(loggerSpy).toHaveBeenCalledWith('Error applying manipulator', {
+        manipulator: 'broken',
+        error: 'Boom',
+      });
 
       delete (RedirectService as any).manipulators.broken;
       loggerSpy.mockRestore();
@@ -637,14 +652,12 @@ describe('RedirectService', () => {
 
       // Case 1: Random < 30 (e.g., 29)
       // Math.random is called twice: once for extractVariables and once for random().
-      randomSpy.mockReturnValueOnce(0.1); // extractVariables call
       randomSpy.mockReturnValueOnce(0.29); // random(0,100) -> 29
       const req1 = createMockRequest('http://test.com');
       const result1 = await service.getRedirect(req1, rules);
       expect(result1).toBe('https://google.com');
 
       // Case 2: Random >= 30 (e.g., 50)
-      randomSpy.mockReturnValueOnce(0.1); // extractVariables call
       randomSpy.mockReturnValueOnce(0.5); // random(0,100) -> 50
       const req2 = createMockRequest('http://test.com');
       const result2 = await service.getRedirect(req2, rules);

@@ -15,6 +15,7 @@ import * as crypto from 'crypto';
 import { AuthTokenService } from '../auth/auth-token.service';
 import { CacheManagerService, DataType } from '../cache/cache-manager.service';
 import { LegalService } from '../legal/legal.service';
+import { Logger } from 'nestjs-pino';
 
 const INVITE_TTL_MS = 30 * 60 * 1000;
 
@@ -28,7 +29,9 @@ export class OrganizationMembersService {
     private readonly authTokenService: AuthTokenService,
     private readonly cacheManagerService: CacheManagerService,
     private readonly legalService: LegalService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   async createInvite(params: {
     organizationId: string;

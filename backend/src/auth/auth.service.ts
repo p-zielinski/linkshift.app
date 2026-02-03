@@ -19,6 +19,7 @@ import { LoginRateLimitService } from './login-rate-limit.service';
 import { EmailService } from '../email/email.service';
 import { AuthTokenService } from './auth-token.service';
 import { LegalService } from '../legal/legal.service';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +33,9 @@ export class AuthService {
     private readonly emailService: EmailService,
     private readonly authTokenService: AuthTokenService,
     private readonly legalService: LegalService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   async register(data: RegisterDto) {
     const normalizedEmail = data.email.trim().toLowerCase();

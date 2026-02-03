@@ -3,6 +3,7 @@ import { RedisService } from '../redis/redis.service';
 import { TooManyRequestsError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { throwHttpException } from '../utils';
+import { Logger } from 'nestjs-pino';
 
 type BlockStep = {
   threshold: number;
@@ -22,7 +23,9 @@ export class LoginRateLimitService {
   constructor(
     private readonly redis: RedisService,
     private readonly clsService: ClsService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   async assertNotBlocked(ip: string | null): Promise<void> {
     if (!ip) {

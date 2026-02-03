@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import { RedisService } from '../redis/redis.service';
 import { CacheManagerIdsService } from './cache-manager-ids.service';
 import { PrismaService } from '../prisma.service';
@@ -110,8 +111,6 @@ function roughSizeOfObject(object: any): number {
 
 @Injectable()
 export class CacheManagerService {
-  private readonly logger = new Logger(CacheManagerService.name);
-
   private readonly MAX_CACHE_SIZE_BYTES = 350 * 1024 * 1024;
 
   // L1 Local Cache (In-Memory) configuration
@@ -129,7 +128,9 @@ export class CacheManagerService {
     private readonly redisService: RedisService,
     private readonly cacheManagerIdsService: CacheManagerIdsService,
     private readonly clsService: ClsService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   /**
    * Checks if the organization has exceeded its request limit.
@@ -151,7 +152,10 @@ export class CacheManagerService {
     // 1. Check L1 Cache (Optimization)
     // If we already know this org is blocked for this minute, reject immediately without hitting Redis.
     if (this.localCache.has(blockKey)) {
-      this.logger.debug(`L1 Cache HIT for ${organizationId}`);
+      this.logger.debug('L1 cache hit for organization rate limit', {
+        organizationId,
+        cacheKey: blockKey,
+      });
       return this.throwLimitError();
     }
 
@@ -233,7 +237,10 @@ export class CacheManagerService {
 
     // 1. Try L1 Local Cache (LRU)
     if (this.localCache.has(key)) {
-      this.logger.debug(`L1 Cache HIT for ${hostname}`);
+      this.logger.debug('L1 cache hit for redirect context', {
+        hostname,
+        cacheKey: key,
+      });
       return this.localCache.get(key) as DomainWithRelationsContext | null;
     }
 

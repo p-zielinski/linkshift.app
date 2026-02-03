@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { REDIRECT_ENGINE_LIMITS } from '../constants';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class DomainExtractorService {
+  constructor(private readonly logger: Logger) {
+  }
+
   extractDomains(destination: string): string[] {
     if (!destination) return [];
 
@@ -123,6 +127,9 @@ export class DomainExtractorService {
         if (char === '(') balance++;
         else if (char === ')') balance--;
         else if (char === ':' && balance === 0) {
+          if (template.substring(i + 1, i + 3) === '//') {
+            continue;
+          }
           colonIndex = i;
           break;
         }

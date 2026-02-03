@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import {
   OrganizationConfiguration,
@@ -16,6 +16,7 @@ import { LemonSqueezyService } from './lemon-squeezy.service';
 import { AppEntity, createCustomCuid } from '../utils';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../email/email.service';
+import { Logger } from 'nestjs-pino';
 
 type LemonWebhookPayload = {
   meta?: {
@@ -30,7 +31,6 @@ type LemonWebhookPayload = {
 
 @Injectable()
 export class BillingService {
-  private readonly logger = new Logger(BillingService.name);
   private readonly variantIds: {
     starter?: string | null;
     pro?: string | null;
@@ -44,6 +44,7 @@ export class BillingService {
     private readonly lemon: LemonSqueezyService,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
+    private readonly logger: Logger,
   ) {
     this.variantIds = {
       starter: this.configService.get<string>(
@@ -197,7 +198,7 @@ export class BillingService {
     const subscriptionId = payload.data?.id ?? null;
 
     if (!eventName.includes('subscription')) {
-      this.logger.debug(`Ignoring Lemon Squeezy event: ${eventName}`);
+      this.logger.debug('Ignoring Lemon Squeezy event', { eventName });
       return;
     }
 
@@ -219,7 +220,7 @@ export class BillingService {
       organizationId ?? (await this.findOrganizationIdByEmail(email));
 
     if (!orgId) {
-      this.logger.warn(`Webhook ${eventName} missing organization mapping.`);
+      this.logger.warn('Webhook missing organization mapping', { eventName });
       return;
     }
 
@@ -322,7 +323,9 @@ export class BillingService {
     });
 
     if (!organization) {
-      this.logger.warn(`Organization ${organizationId} not found for billing.`);
+      this.logger.warn('Organization not found for billing', {
+        organizationId,
+      });
       return null;
     }
 
@@ -479,11 +482,9 @@ export class BillingService {
         });
       }
     } catch (error) {
-      this.logger.warn(
-        `Billing email notification failed: ${
-          error instanceof Error ? error.message : 'unknown error'
-        }`,
-      );
+      this.logger.warn('Billing email notification failed', {
+        error: error instanceof Error ? error.message : 'unknown_error',
+      });
     }
   }
 
@@ -644,9 +645,9 @@ export class BillingService {
     });
 
     if (!session) {
-      this.logger.warn(
-        `Checkout session ${params.checkoutSessionId} not found.`,
-      );
+      this.logger.warn('Checkout session not found', {
+        checkoutSessionId: params.checkoutSessionId,
+      });
       return;
     }
 

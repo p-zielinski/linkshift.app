@@ -1,13 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RuleValidatorService } from './rule-validator.service';
 import { REDIRECT_ENGINE_LIMITS } from '../constants';
+import { Logger } from 'nestjs-pino';
 
 describe('RuleValidatorService', () => {
   let service: RuleValidatorService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RuleValidatorService],
+      providers: [
+        RuleValidatorService,
+        {
+          provide: Logger,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+            warn: jest.fn(),
+            debug: jest.fn(),
+            setContext: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<RuleValidatorService>(RuleValidatorService);

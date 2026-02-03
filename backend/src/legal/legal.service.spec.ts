@@ -1,10 +1,20 @@
 import { LegalService } from './legal.service';
+import { Logger } from 'nestjs-pino';
 
 describe('LegalService', () => {
   const createService = (version = 'v1') =>
-    new LegalService({
-      get: jest.fn().mockReturnValue(version),
-    } as any);
+    new LegalService(
+      {
+        get: jest.fn().mockReturnValue(version),
+      } as any,
+      {
+        log: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+        debug: jest.fn(),
+        setContext: jest.fn(),
+      } as unknown as Logger,
+    );
 
   it('returns false when any consent field is missing', () => {
     const service = createService('v1');

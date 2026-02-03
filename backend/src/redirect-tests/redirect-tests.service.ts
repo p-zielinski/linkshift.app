@@ -11,6 +11,7 @@ import type {
   CreateRedirectTestDto,
   UpdateRedirectTestDto,
 } from '../zod-schames/redirect-test.schemas';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class RedirectTestsService {
@@ -19,7 +20,9 @@ export class RedirectTestsService {
     private readonly organizationService: OrganizationService,
     private readonly cacheManagerService: CacheManagerService,
     private readonly clsService: ClsService,
-  ) {}
+    private readonly logger: Logger,
+  ) {
+  }
 
   async listTests(
     organizationId: string,
