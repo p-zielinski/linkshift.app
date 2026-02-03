@@ -102,7 +102,7 @@ Architecture:
 - NestJS emits JSON logs via `nestjs-pino` -> Promtail tails Docker logs -> Loki stores them -> Grafana queries them.
 
 Services:
-- Grafana: `http://localhost:3000` (User: `admin`, Password: `GF_SECURITY_ADMIN_PASSWORD` from `.env`).
+- Grafana: `http://localhost:4000` (User: `admin`, Password: `GF_SECURITY_ADMIN_PASSWORD` from `.env`).
 - Dozzle: `http://localhost:8888`.
 
 Testing:
