@@ -30,13 +30,25 @@ export class SentryExceptionFilter extends BaseExceptionFilter {
         ? request?.headers?.['x-request-id'][0]
         : request?.headers?.['x-request-id']);
 
-    this.logger.error('Unhandled exception', {
-      err: exception,
-      status,
-      requestId,
-      method: request?.method,
-      path: request?.url,
-    });
+    const path = request?.url;
+    const method = request?.method;
+    const isFaviconRequest = method === 'GET' && path === '/favicon.ico';
+
+    if (!isFaviconRequest) {
+      const logPayload = {
+        err: exception,
+        status,
+        requestId,
+        method,
+        path,
+      };
+
+      if (status >= 500) {
+        this.logger.error('Unhandled exception', logPayload);
+      } else {
+        this.logger.warn('Request error', logPayload);
+      }
+    }
 
     if (!(exception instanceof HttpException) || status >= 500) {
       Sentry.captureException(exception);
