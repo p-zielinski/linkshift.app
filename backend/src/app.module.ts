@@ -44,6 +44,7 @@ import { SAFETY_RESCAN_QUEUE } from './security/security.constants';
 import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { SentryExceptionFilter } from './filters/sentry-exception.filter';
+import { DockerService } from './docker/docker.service';
 
 @Module({
   imports: [
@@ -163,6 +164,7 @@ import { SentryExceptionFilter } from './filters/sentry-exception.filter';
     RedirectAnalyticsService,
     SafetyRescanScheduler,
     SafetyRescanProcessor,
+    DockerService,
     {
       provide: APP_FILTER,
       useClass: SentryExceptionFilter,

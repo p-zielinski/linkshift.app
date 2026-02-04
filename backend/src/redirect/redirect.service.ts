@@ -41,6 +41,7 @@ import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
 import { Logger } from 'nestjs-pino';
+import { DockerService } from '../docker/docker.service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -134,6 +135,7 @@ export class RedirectService {
     private readonly safetyScannerService: SafetyScannerService,
     private readonly domainBlacklistService: DomainBlacklistService,
     private readonly redirectAnalyticsService: RedirectAnalyticsService,
+    private readonly dockerService: DockerService,
     private readonly logger: Logger,
   ) {
   }
@@ -303,6 +305,7 @@ export class RedirectService {
       type: InvalidationTargetType.HOSTNAME,
       value: domain.name,
     });
+    void this.dockerService.updateTraefikAppHostRule('domain_create');
     return domain;
   }
 
@@ -399,6 +402,7 @@ export class RedirectService {
         value: existing.name,
       });
     }
+    void this.dockerService.updateTraefikAppHostRule('domain_update');
     return domain;
   }
 
@@ -429,6 +433,7 @@ export class RedirectService {
       type: InvalidationTargetType.HOSTNAME,
       value: existing.name,
     });
+    void this.dockerService.updateTraefikAppHostRule('domain_delete');
     return;
   }
 

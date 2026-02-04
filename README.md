@@ -98,9 +98,12 @@ The provided `docker-compose.yml` exposes:
 If you use Docker Compose, update `DATABASE_URL` and `REDIS_PORT` accordingly.
 
 ## Docker Swarm (Stack Deployment)
-This repository includes a Swarm-ready stack file (`docker-stack.yml`) that
-adds Traefik, backend, frontend, and the observability services. It is intended
-for continuous deployment with prebuilt images.
+We deploy **two stacks** to keep Traefik stable during app updates:
+- **Infra stack**: Traefik + Postgres + Redis + Loki/Promtail + Grafana + Dozzle
+- **App stack**: Backend + Frontend
+
+Both stacks connect to the same external overlay network so Traefik can route
+to the app without restarting when you deploy the app stack.
 
 ### 1) Build and push images (registry login required)
 Login to your registry (example: GHCR):
@@ -130,9 +133,15 @@ source deploy/stack.env
 set +a
 ```
 
-### 3) Create Docker secrets (sensitive keys)
-Swarm reads secrets from its internal store and mounts them into containers.
-These secrets are loaded by the backend entrypoint at runtime.
+### 3) Create the shared Swarm network
+Create the external overlay network once (manager node):
+```bash
+docker network create --driver overlay --attachable ${TRAEFIK_SWARM_NETWORK}
+```
+
+### 4) Create Docker secrets (sensitive keys)
+Swarm stores secrets internally and mounts them into containers. Backend loads
+them at runtime via `backend/docker-entrypoint.sh`.
 
 Required secrets (create once on the Swarm manager):
 ```bash
@@ -152,39 +161,55 @@ printf "zeptomail-api-key" | docker secret create zeptomail_api_key -
 printf "safe-browsing-api-key" | docker secret create safe_browsing_api_key -
 ```
 
-### 4) Initialize Swarm and deploy
+### 5) Initialize Swarm and deploy
 Initialize Swarm on the manager node (run once):
 ```bash
 docker swarm init
 ```
 
-Deploy the stack and pass registry credentials to Swarm:
+Deploy infra stack (Traefik + data + observability):
 ```bash
-docker stack deploy -c docker-stack.yml --with-registry-auth ${STACK_NAME}
+docker stack deploy -c docker-stack.infra.yml --with-registry-auth ${INFRA_STACK_NAME}
+```
+
+Deploy app stack (backend + frontend):
+```bash
+docker stack deploy -c docker-stack.app.yml --with-registry-auth ${APP_STACK_NAME}
 ```
 
 Check status:
 ```bash
-docker stack services ${STACK_NAME}
-docker stack ps ${STACK_NAME}
+docker stack services ${INFRA_STACK_NAME}
+docker stack services ${APP_STACK_NAME}
 ```
 
-### 5) Routing notes (Traefik)
-The stack uses host-based routing. Set DNS (or `/etc/hosts`) for:
+### 6) Routing notes (Traefik)
+Set DNS (or `/etc/hosts`) for:
 - `FRONTEND_HOST` (app)
 - `BACKEND_HOST` (api)
 - `GRAFANA_HOST` (grafana)
 - `DOZZLE_HOST` (dozzle)
 
-For local testing, you can add entries like:
+For local testing, add:
 ```
 127.0.0.1 app.localhost api.localhost grafana.localhost dozzle.localhost
 ```
 
+### 7) Dynamic domain updates (Traefik labels)
+Backend can update Traefik router rules when domains change:
+- Enable with `TRAEFIK_UPDATE_ENABLED=true`.
+- Set `TRAEFIK_TARGET_SERVICE` to the Swarm service name
+  (e.g. `${APP_STACK_NAME}_backend`).
+- Set `TRAEFIK_BASE_HOSTS` to include your API host.
+
+This requires mounting `/var/run/docker.sock` into the backend container
+and running in production mode. Expect a short rolling update when the rule
+changes.
+
 ## Secret management notes
-- Use `docker login` to authenticate with your registry, then deploy with
-  `--with-registry-auth` so Swarm can pull private images.
-- Use `docker secret ls` and `docker secret rm <name>` to manage secrets.
+- Use `docker login` and deploy with `--with-registry-auth` so Swarm can pull
+  private images.
+- Manage secrets with `docker secret ls` and `docker secret rm <name>`.
 - Backend secrets are mounted at `/run/secrets/*` and loaded by
   `backend/docker-entrypoint.sh`.
 

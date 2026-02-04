@@ -12,6 +12,7 @@ import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
 import { Logger } from 'nestjs-pino';
+import { DockerService } from '../docker/docker.service';
 
 const mockPrismaService = {
   domain: {
@@ -133,6 +134,12 @@ describe('RedirectService', () => {
             trackRuleHit: jest.fn().mockResolvedValue(undefined),
             getTopRulesForOrganization: jest.fn().mockResolvedValue([]),
             getTopRulesGlobal: jest.fn().mockResolvedValue([]),
+          },
+        },
+        {
+          provide: DockerService,
+          useValue: {
+            updateTraefikAppHostRule: jest.fn().mockResolvedValue(undefined),
           },
         },
         {
