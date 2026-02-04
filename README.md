@@ -97,6 +97,97 @@ The provided `docker-compose.yml` exposes:
 
 If you use Docker Compose, update `DATABASE_URL` and `REDIS_PORT` accordingly.
 
+## Docker Swarm (Stack Deployment)
+This repository includes a Swarm-ready stack file (`docker-stack.yml`) that
+adds Traefik, backend, frontend, and the observability services. It is intended
+for continuous deployment with prebuilt images.
+
+### 1) Build and push images (registry login required)
+Login to your registry (example: GHCR):
+```bash
+docker login ghcr.io
+```
+
+Build and push images from the repo root:
+```bash
+docker build -f backend/Dockerfile -t ghcr.io/your-org/redirect-backend:latest .
+docker build -f frontend/Dockerfile -t ghcr.io/your-org/redirect-frontend:latest .
+
+docker push ghcr.io/your-org/redirect-backend:latest
+docker push ghcr.io/your-org/redirect-frontend:latest
+```
+
+### 2) Prepare the stack environment
+Copy the env template and set values for your domains and runtime config:
+```bash
+cp deploy/stack.env.example deploy/stack.env
+```
+
+Export it for `docker stack deploy`:
+```bash
+set -a
+source deploy/stack.env
+set +a
+```
+
+### 3) Create Docker secrets (sensitive keys)
+Swarm reads secrets from its internal store and mounts them into containers.
+These secrets are loaded by the backend entrypoint at runtime.
+
+Required secrets (create once on the Swarm manager):
+```bash
+printf "postgres-password" | docker secret create postgres_password -
+printf "redis-password" | docker secret create redis_password -
+printf "postgresql://postgres:postgres-password@postgres:5432/redirect?schema=public" | docker secret create database_url -
+printf "jwt-secret" | docker secret create jwt_secret -
+printf "jwt-refresh-secret" | docker secret create jwt_refresh_secret -
+printf "sentry-dsn" | docker secret create sentry_dsn -
+```
+
+Billing + email + safe browsing secrets (if enabled):
+```bash
+printf "lemon-api-key" | docker secret create lemon_squeezy_api_key -
+printf "lemon-webhook-secret" | docker secret create lemon_squeezy_webhook_secret -
+printf "zeptomail-api-key" | docker secret create zeptomail_api_key -
+printf "safe-browsing-api-key" | docker secret create safe_browsing_api_key -
+```
+
+### 4) Initialize Swarm and deploy
+Initialize Swarm on the manager node (run once):
+```bash
+docker swarm init
+```
+
+Deploy the stack and pass registry credentials to Swarm:
+```bash
+docker stack deploy -c docker-stack.yml --with-registry-auth ${STACK_NAME}
+```
+
+Check status:
+```bash
+docker stack services ${STACK_NAME}
+docker stack ps ${STACK_NAME}
+```
+
+### 5) Routing notes (Traefik)
+The stack uses host-based routing. Set DNS (or `/etc/hosts`) for:
+- `FRONTEND_HOST` (app)
+- `BACKEND_HOST` (api)
+- `GRAFANA_HOST` (grafana)
+- `DOZZLE_HOST` (dozzle)
+
+For local testing, you can add entries like:
+```
+127.0.0.1 app.localhost api.localhost grafana.localhost dozzle.localhost
+```
+
+## Secret management notes
+- Use `docker login` to authenticate with your registry, then deploy with
+  `--with-registry-auth` so Swarm can pull private images.
+- Use `docker secret ls` and `docker secret rm <name>` to manage secrets.
+- Backend secrets are mounted at `/run/secrets/*` and loaded by
+  `backend/docker-entrypoint.sh`.
+
 ## Observability & Monitoring
 Architecture:
 - NestJS emits JSON logs via `nestjs-pino` -> Promtail tails Docker logs -> Loki stores them -> Grafana queries them.
