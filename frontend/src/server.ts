@@ -6,6 +6,7 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import { join } from 'node:path';
+require('dotenv').config()
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -41,14 +42,11 @@ app.get('/runtime-config.js', (_req, res) => {
       'privacy@redirectcontrol.app',
     APP_MIN_AGE: process.env['APP_MIN_AGE'] ?? '16',
     APP_LEGAL_VERSION: process.env['APP_LEGAL_VERSION'] ?? 'v1',
+    APP_DOMAIN_TARGET_IP: process.env['APP_DOMAIN_TARGET_IP'] ?? '',
   };
 
   res.type('application/javascript');
-  res.send(
-    Object.entries(config)
-      .map(([key, value]) => `window.${key} = ${JSON.stringify(value)};`)
-      .join('\n'),
-  );
+  res.send(`window.APP_CONFIG = ${JSON.stringify(config)};`);
 });
 
 app.use((_req, res, next) => {

@@ -3,10 +3,16 @@
     title="Domains"
     subtitle="Registered hostnames available for redirect routing."
   >
-    <button mat-flat-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      <span>Add domain</span>
-    </button>
+    <div class="flex items-center gap-2">
+      <button mat-stroked-button color="primary" (click)="openSetupDialog()">
+        <mat-icon>help</mat-icon>
+        <span>Domain setup</span>
+      </button>
+      <button mat-flat-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        <span>Add domain</span>
+      </button>
+    </div>
   </app-page-header>
 
   <div class="mb-4 grid gap-4 rounded-[18px] border border-app-border-soft bg-app-surface p-4">

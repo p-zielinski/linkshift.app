@@ -1,4 +1,5 @@
-import { InjectionToken } from '@angular/core';
+import { InjectionToken, inject } from '@angular/core';
+import { APP_CONFIG } from './app-runtime-config';
 
 export type SiteConfig = {
   name: string;
@@ -25,28 +26,18 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
 export const SITE_CONFIG = new InjectionToken<SiteConfig>('SITE_CONFIG', {
   providedIn: 'root',
   factory: () => {
-    const globalConfig = globalThis as {
-      APP_SITE_NAME?: string;
-      APP_SITE_TAGLINE?: string;
-      APP_SUPPORT_EMAIL?: string;
-      APP_LEGAL_NAME?: string;
-      APP_LEGAL_ADDRESS?: string;
-      APP_PRIVACY_EMAIL?: string;
-      APP_MIN_AGE?: string | number;
-      APP_LEGAL_VERSION?: string;
-    };
-
-    const minAge = Number(globalConfig.APP_MIN_AGE ?? DEFAULT_SITE_CONFIG.minAge);
+    const appConfig = inject(APP_CONFIG);
+    const minAge = Number(appConfig.APP_MIN_AGE ?? DEFAULT_SITE_CONFIG.minAge);
 
     return {
-      name: globalConfig.APP_SITE_NAME ?? DEFAULT_SITE_CONFIG.name,
-      tagline: globalConfig.APP_SITE_TAGLINE ?? DEFAULT_SITE_CONFIG.tagline,
-      supportEmail: globalConfig.APP_SUPPORT_EMAIL ?? DEFAULT_SITE_CONFIG.supportEmail,
-      legalName: globalConfig.APP_LEGAL_NAME ?? DEFAULT_SITE_CONFIG.legalName,
-      legalAddress: globalConfig.APP_LEGAL_ADDRESS ?? DEFAULT_SITE_CONFIG.legalAddress,
-      privacyEmail: globalConfig.APP_PRIVACY_EMAIL ?? DEFAULT_SITE_CONFIG.privacyEmail,
+      name: appConfig.APP_SITE_NAME ?? DEFAULT_SITE_CONFIG.name,
+      tagline: appConfig.APP_SITE_TAGLINE ?? DEFAULT_SITE_CONFIG.tagline,
+      supportEmail: appConfig.APP_SUPPORT_EMAIL ?? DEFAULT_SITE_CONFIG.supportEmail,
+      legalName: appConfig.APP_LEGAL_NAME ?? DEFAULT_SITE_CONFIG.legalName,
+      legalAddress: appConfig.APP_LEGAL_ADDRESS ?? DEFAULT_SITE_CONFIG.legalAddress,
+      privacyEmail: appConfig.APP_PRIVACY_EMAIL ?? DEFAULT_SITE_CONFIG.privacyEmail,
       minAge: Number.isNaN(minAge) ? DEFAULT_SITE_CONFIG.minAge : minAge,
-      legalVersion: globalConfig.APP_LEGAL_VERSION ?? DEFAULT_SITE_CONFIG.legalVersion,
+      legalVersion: appConfig.APP_LEGAL_VERSION ?? DEFAULT_SITE_CONFIG.legalVersion,
     };
   }
 });

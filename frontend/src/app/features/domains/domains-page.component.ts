@@ -18,6 +18,7 @@ import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { DomainFormDialogComponent } from './domain-form-dialog.component';
 import type { Domain } from '../../core/models/domain.model';
 import { AuthStore } from '../../core/store/auth.store';
+import { DomainSetupDialogComponent } from './domain-setup-dialog.component';
 
 @Component({
   selector: 'app-domains-page',
@@ -137,10 +138,16 @@ export class DomainsPageComponent {
   }
 
   openCreateDialog(): void {
-    this.dialog.open(DomainFormDialogComponent, {
+    const dialogRef = this.dialog.open(DomainFormDialogComponent, {
       width: '480px',
       data: {
         domainGroupId: this.activeGroupId() || undefined
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((created) => {
+      if (created) {
+        this.openSetupDialog();
       }
     });
   }
@@ -190,5 +197,11 @@ export class DomainsPageComponent {
   onPageLimitChange(limit: number): void {
     this.pageLimit.set(limit);
     this.page.set(1);
+  }
+
+  openSetupDialog(): void {
+    this.dialog.open(DomainSetupDialogComponent, {
+      width: '480px'
+    });
   }
 }
