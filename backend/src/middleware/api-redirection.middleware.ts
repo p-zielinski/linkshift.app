@@ -10,8 +10,7 @@ export class ApiRedirectionMiddleware implements NestMiddleware {
     private readonly configService: ConfigService,
     private readonly redirectService: RedirectService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
     if (req.hostname === this.configService.get('API_HOSTNAME')) {

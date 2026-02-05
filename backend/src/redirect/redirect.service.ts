@@ -137,8 +137,7 @@ export class RedirectService {
     private readonly redirectAnalyticsService: RedirectAnalyticsService,
     private readonly dockerService: DockerService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   /**
    * Invalidates the redirect context cache based on a specific target.
@@ -1301,7 +1300,12 @@ export class RedirectService {
     const variables = this.extractVariables(req, url);
 
     for (const rule of rules) {
-      const result = this.processRule(rule, req.path, req.method, variables);
+      const result = this.processRule(
+        rule,
+        req.originalUrl,
+        req.method,
+        variables,
+      );
       if (result) {
         return { target: result, rule };
       }
@@ -1567,7 +1571,8 @@ export class RedirectService {
       return this.processConditionals(resolvedTarget);
     } catch (error) {
       this.logger.error('Error processing redirect rule', {
-        source: rule.source instanceof RegExp ? rule.source.toString() : rule.source,
+        source:
+          rule.source instanceof RegExp ? rule.source.toString() : rule.source,
         destination: rule.destination,
         error: error instanceof Error ? error.message : 'unknown_error',
       });
