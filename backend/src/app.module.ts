@@ -34,7 +34,7 @@ import { OrganizationMembersService } from './organization/organization-members.
 import { LegalService } from './legal/legal.service';
 import { BullModule } from '@nestjs/bull';
 import { ScheduleModule } from '@nestjs/schedule';
-import { DomainExtractorService } from './security/domain-extractor.service';
+import { DestinationExtractorService } from './security/destination-extractor.service';
 import { SafetyScannerService } from './security/safety-scanner.service';
 import { DomainBlacklistService } from './security/domain-blacklist.service';
 import { RedirectAnalyticsService } from './security/redirect-analytics.service';
@@ -158,7 +158,7 @@ import { DockerService } from './docker/docker.service';
     RedisService,
     CacheManagerIdsService,
     CacheManagerService,
-    DomainExtractorService,
+    DestinationExtractorService,
     SafetyScannerService,
     DomainBlacklistService,
     RedirectAnalyticsService,

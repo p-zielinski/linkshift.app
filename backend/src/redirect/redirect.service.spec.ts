@@ -7,7 +7,7 @@ import { PaymentRequiredError } from '@shared/models/error.model';
 import { CacheManagerService } from '../cache/cache-manager.service';
 import { ClsService } from 'nestjs-cls';
 import { throwHttpException } from '../utils';
-import { DomainExtractorService } from '../security/domain-extractor.service';
+import { DestinationExtractorService } from '../security/destination-extractor.service';
 import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
@@ -109,16 +109,16 @@ describe('RedirectService', () => {
           },
         },
         {
-          provide: DomainExtractorService,
+          provide: DestinationExtractorService,
           useValue: {
-            extractDomains: jest.fn().mockReturnValue([]),
-            extractDomainFromUrl: jest.fn().mockReturnValue(null),
+            extractUrls: jest.fn().mockReturnValue([]),
+            extractUrl: jest.fn().mockReturnValue(null),
           },
         },
         {
           provide: SafetyScannerService,
           useValue: {
-            checkDomains: jest.fn().mockResolvedValue(new Map()),
+            checkUrls: jest.fn().mockResolvedValue(new Map()),
           },
         },
         {

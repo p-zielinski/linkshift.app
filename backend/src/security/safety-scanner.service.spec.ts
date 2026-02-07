@@ -66,7 +66,7 @@ describe('SafetyScannerService', () => {
   });
 
   it('flags unsafe domains and caches results', async () => {
-    const results = await service.checkDomains([
+    const results = await service.checkUrls([
       'bad.example.com',
       'good.example.com',
     ]);
@@ -84,5 +84,48 @@ describe('SafetyScannerService', () => {
       true,
       SAFETY_L2_TTL_SECONDS,
     );
+  });
+
+  it('builds candidate urls for safebrowsing', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ matches: [] }),
+    });
+
+    await service.checkUrls(['testsafebrowsing.appspot.com/s/malware.html']);
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    const entries = body.threatInfo.threatEntries.map((entry: any) => entry.url);
+
+    expect(entries.sort()).toEqual(
+      [
+        'https://testsafebrowsing.appspot.com/s/malware.html',
+        'http://testsafebrowsing.appspot.com/s/malware.html',
+        'https://testsafebrowsing.appspot.com/',
+        'http://testsafebrowsing.appspot.com/',
+      ].sort(),
+    );
+  });
+
+  it('chunks requests and deduplicates threat entries', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ matches: [] }),
+    });
+
+    const urls = Array.from({ length: 130 }, (_, index) => {
+      return `example-${index}.com/path`;
+    });
+    urls.push('example-0.com/path');
+
+    await service.checkUrls(urls);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    const firstBody = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    const secondBody = JSON.parse(fetchMock.mock.calls[1][1].body as string);
+
+    expect(firstBody.threatInfo.threatEntries).toHaveLength(500);
+    expect(secondBody.threatInfo.threatEntries).toHaveLength(20);
   });
 });

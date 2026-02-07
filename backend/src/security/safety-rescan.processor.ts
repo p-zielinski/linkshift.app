@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Process, Processor } from '@nestjs/bull';
 import type { Job } from 'bull';
 import { PrismaService } from '../prisma.service';
-import { DomainExtractorService } from './domain-extractor.service';
+import { DestinationExtractorService } from './destination-extractor.service';
 import { SafetyScannerService } from './safety-scanner.service';
 import { DomainBlacklistService } from './domain-blacklist.service';
 import { SAFETY_RESCAN_QUEUE } from './security.constants';
@@ -16,7 +16,7 @@ type RescanJob = { ruleId: string; hits?: number };
 export class SafetyRescanProcessor {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly domainExtractor: DomainExtractorService,
+    private readonly destinationExtractor: DestinationExtractorService,
     private readonly safetyScannerService: SafetyScannerService,
     private readonly domainBlacklistService: DomainBlacklistService,
     private readonly emailService: EmailService,
@@ -48,8 +48,8 @@ export class SafetyRescanProcessor {
       return;
     }
 
-    const domains = this.domainExtractor.extractUrls(rule.destination);
-    if (domains.length === 0) {
+    const extractedUrls = this.destinationExtractor.extractUrls(rule.destination);
+    if (extractedUrls.length === 0) {
       this.logger.debug('Safety rescan skipped (no domains)', {
         ruleId: rule.id,
       });
@@ -58,7 +58,7 @@ export class SafetyRescanProcessor {
 
     let results: Map<string, boolean>;
     try {
-      results = await this.safetyScannerService.checkDomains(domains);
+      results = await this.safetyScannerService.checkUrls(extractedUrls);
     } catch (error) {
       this.logger.error('Safety rescan failed', {
         ruleId: rule.id,
@@ -67,11 +67,11 @@ export class SafetyRescanProcessor {
       throw error;
     }
 
-    const unsafeDomains = domains.filter(
-      (domain) => results.get(domain) === false,
+    const unsafeUrls = extractedUrls.filter(
+      (url) => results.get(url) === false,
     );
 
-    if (unsafeDomains.length === 0) {
+    if (unsafeUrls.length === 0) {
       return;
     }
 
@@ -83,7 +83,7 @@ export class SafetyRescanProcessor {
       },
     });
 
-    await this.domainBlacklistService.addDomains(unsafeDomains);
+    await this.domainBlacklistService.addDomains(unsafeUrls);
 
     const owner = await this.prisma.user.findFirst({
       where: {
@@ -101,7 +101,7 @@ export class SafetyRescanProcessor {
           organization: rule.domainGroup.organization?.name ?? 'Organization',
           ruleId: rule.id,
           destination: rule.destination,
-          unsafeDomains,
+          unsafeDomains: unsafeUrls,
           detectedAt: new Date(),
         });
       } catch (error) {
@@ -121,7 +121,7 @@ export class SafetyRescanProcessor {
     this.logger.warn('Security alert rule blocked', {
       ruleId: rule.id,
       domainGroupId: rule.domainGroupId,
-      unsafeDomains,
+      unsafeDomains: unsafeUrls,
       hits: job.data.hits ?? null,
     });
   }

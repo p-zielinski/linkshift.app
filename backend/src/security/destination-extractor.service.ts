@@ -3,7 +3,7 @@ import { REDIRECT_ENGINE_LIMITS } from '../constants';
 import { Logger } from 'nestjs-pino';
 
 @Injectable()
-export class DomainExtractorService {
+export class DestinationExtractorService {
   constructor(private readonly logger: Logger) {}
 
   extractUrls(destination: string): string[] {
@@ -100,19 +100,47 @@ export class DomainExtractorService {
     let colonIndex = -1;
     let inSingleQuote = false;
     let inDoubleQuote = false;
+    let inRegex = false;
+    let lastRegexEscape = false;
+    let lastNonSpaceChar = '';
+    let prevNonSpaceChar = '';
 
     for (let i = 0; i < template.length; i++) {
       const char = template[i];
+      const nextChar = template[i + 1];
       if (char === "'" && !inDoubleQuote) inSingleQuote = !inSingleQuote;
       else if (char === '"' && !inSingleQuote) inDoubleQuote = !inDoubleQuote;
 
       if (!inSingleQuote && !inDoubleQuote) {
+        if (inRegex) {
+          if (char === '/' && !lastRegexEscape) {
+            inRegex = false;
+          }
+          lastRegexEscape = char === '\\' && !lastRegexEscape;
+        } else if (
+          char === '/' &&
+          lastNonSpaceChar !== '' &&
+          !(/\w/.test(lastNonSpaceChar)) &&
+          !(lastNonSpaceChar === '/' && prevNonSpaceChar === ':') &&
+          !(lastNonSpaceChar === ':' && nextChar === '/')
+        ) {
+          inRegex = true;
+          lastRegexEscape = false;
+        }
+      }
+
+      if (!inSingleQuote && !inDoubleQuote && !inRegex) {
         if (char === '(') balance++;
         else if (char === ')') balance--;
         else if (char === '?' && balance === 0) {
           questionMarkIndex = i;
           break;
         }
+      }
+
+      if (!/\s/.test(char)) {
+        prevNonSpaceChar = lastNonSpaceChar;
+        lastNonSpaceChar = char;
       }
     }
 
@@ -121,21 +149,48 @@ export class DomainExtractorService {
     balance = 0;
     inSingleQuote = false;
     inDoubleQuote = false;
+    inRegex = false;
+    lastRegexEscape = false;
+    lastNonSpaceChar = '';
+    prevNonSpaceChar = '';
     for (let i = questionMarkIndex + 1; i < template.length; i++) {
       const char = template[i];
+      const nextChar = template[i + 1];
       if (char === "'" && !inDoubleQuote) inSingleQuote = !inSingleQuote;
       else if (char === '"' && !inSingleQuote) inDoubleQuote = !inDoubleQuote;
 
       if (!inSingleQuote && !inDoubleQuote) {
+        if (inRegex) {
+          if (char === '/' && !lastRegexEscape) {
+            inRegex = false;
+          }
+          lastRegexEscape = char === '\\' && !lastRegexEscape;
+        } else if (
+          char === '/' &&
+          lastNonSpaceChar !== '' &&
+          !(/\w/.test(lastNonSpaceChar)) &&
+          !(lastNonSpaceChar === '/' && prevNonSpaceChar === ':') &&
+          !(lastNonSpaceChar === ':' && nextChar === '/')
+        ) {
+          inRegex = true;
+          lastRegexEscape = false;
+        }
+      }
+
+      if (!inSingleQuote && !inDoubleQuote && !inRegex) {
         if (char === '(') balance++;
         else if (char === ')') balance--;
         else if (char === ':' && balance === 0) {
-          if (template.substring(i + 1, i + 3) === '//') {
-            continue;
+          if (template.substring(i + 1, i + 3) !== '//') {
+            colonIndex = i;
+            break;
           }
-          colonIndex = i;
-          break;
         }
+      }
+
+      if (!/\s/.test(char)) {
+        prevNonSpaceChar = lastNonSpaceChar;
+        lastNonSpaceChar = char;
       }
     }
 

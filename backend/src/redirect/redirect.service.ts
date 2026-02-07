@@ -36,7 +36,7 @@ import {
 } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { QueryResult } from '@shared/models/query-result.model';
-import { DomainExtractorService } from '../security/domain-extractor.service';
+import { DestinationExtractorService } from '../security/destination-extractor.service';
 import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
@@ -131,7 +131,7 @@ export class RedirectService {
     private readonly organizationService: OrganizationService,
     private readonly cacheManagerService: CacheManagerService,
     private readonly clsService: ClsService,
-    private readonly domainExtractor: DomainExtractorService,
+    private readonly destinationExtractor: DestinationExtractorService,
     private readonly safetyScannerService: SafetyScannerService,
     private readonly domainBlacklistService: DomainBlacklistService,
     private readonly redirectAnalyticsService: RedirectAnalyticsService,
@@ -872,23 +872,23 @@ export class RedirectService {
     destination: string,
     context: { ruleId?: string; organizationId: string; domainGroupId: string },
   ): Promise<void> {
-    const extractedDomains = this.domainExtractor.extractUrls(destination);
+    const extractedUrls = this.destinationExtractor.extractUrls(destination);
 
     this.logger.debug('Redirect rule domains extracted', {
       ruleId: context.ruleId ?? null,
       organizationId: context.organizationId,
       domainGroupId: context.domainGroupId,
-      extractedDomains,
+      extractedDomains: extractedUrls,
     });
 
-    if (extractedDomains.length === 0) {
+    if (extractedUrls.length === 0) {
       return;
     }
 
     let scanResults: Map<string, boolean>;
     try {
       scanResults =
-        await this.safetyScannerService.checkDomains(extractedDomains);
+        await this.safetyScannerService.checkUrls(extractedUrls);
     } catch (error) {
       this.logger.error('Redirect rule safety scan failed', {
         ruleId: context.ruleId ?? null,
@@ -904,22 +904,22 @@ export class RedirectService {
       );
     }
 
-    const unsafeDomains = extractedDomains.filter(
-      (domain) => scanResults.get(domain) === false,
+    const unsafeUrls = extractedUrls.filter(
+      (url) => scanResults.get(url) === false,
     );
 
-    if (unsafeDomains.length > 0) {
+    if (unsafeUrls.length > 0) {
       this.logger.warn('Redirect rule blocked by unsafe domain', {
         ruleId: context.ruleId ?? null,
         organizationId: context.organizationId,
         domainGroupId: context.domainGroupId,
-        unsafeDomains,
-        extractedDomains,
+        unsafeDomains: unsafeUrls,
+        extractedDomains: extractedUrls,
       });
       return throwHttpException(
         new BadRequestError({
           requestId: this.clsService.getId(),
-          details: `Unsafe destination domain detected: ${unsafeDomains.join(
+          details: `Unsafe destination domain detected: ${unsafeUrls.join(
             ', ',
           )}`,
         }),
@@ -930,7 +930,7 @@ export class RedirectService {
       ruleId: context.ruleId ?? null,
       organizationId: context.organizationId,
       domainGroupId: context.domainGroupId,
-      extractedDomains,
+      extractedDomains: extractedUrls,
     });
   }
 
@@ -1117,7 +1117,7 @@ export class RedirectService {
     // 5. Action: redirect or return 404
     if (match) {
       const statusCode = match.rule.statusCode ?? 302;
-      const targetDomain = this.domainExtractor.extractUrl(match.target);
+      const targetDomain = this.destinationExtractor.extractUrl(match.target);
 
       if (targetDomain) {
         try {
