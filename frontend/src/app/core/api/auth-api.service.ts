@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
-import type { AuthResponse, AuthTokens } from '../models/auth.model';
+import type { AuthResponse, AuthSession, AuthTokens } from '../models/auth.model';
 import type {
   LoginDto,
   RegisterDto,
@@ -52,6 +52,12 @@ export class AuthApiService {
 
   refresh(payload: RefreshTokenDto = {}): Observable<AuthTokens> {
     return this.http.post<AuthTokens>(`${this.apiUrl}/refresh`, payload, {
+      withCredentials: true,
+    });
+  }
+
+  getSession(): Observable<AuthSession> {
+    return this.http.get<AuthSession>(`${this.apiUrl}/session`, {
       withCredentials: true,
     });
   }

@@ -34,8 +34,7 @@ export class AuthService {
     private readonly authTokenService: AuthTokenService,
     private readonly legalService: LegalService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async register(data: RegisterDto) {
     const normalizedEmail = data.email.trim().toLowerCase();
@@ -263,6 +262,37 @@ export class AuthService {
     });
   }
 
+  async getSession(userId: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+      include: { organization: true },
+    });
+
+    if (!user) {
+      return throwHttpException(
+        new UnauthorizedError({
+          requestId: this.clsService.getId(),
+          details: 'User not found',
+        }),
+      );
+    }
+
+    if (user.isBlocked) {
+      return throwHttpException(
+        new ForbiddenError({
+          requestId: this.clsService.getId(),
+          details: 'Account is blocked by the organization owner.',
+        }),
+      );
+    }
+
+    const { passwordHash, ...userWithoutPassword } = user;
+    return {
+      user: userWithoutPassword,
+      organization: user.organization,
+    };
+  }
+
   async logout(refreshToken: string | null) {
     if (!refreshToken) {
       return;
@@ -364,7 +394,10 @@ export class AuthService {
   async requestPasswordReset(email: string) {
     const normalizedEmail = email.trim().toLowerCase();
     const user = await this.prisma.user.findFirst({
-      where: { email: { equals: normalizedEmail, mode: 'insensitive' }, deletedAt: null },
+      where: {
+        email: { equals: normalizedEmail, mode: 'insensitive' },
+        deletedAt: null,
+      },
     });
 
     if (!user) {
@@ -451,7 +484,10 @@ export class AuthService {
 
     const normalizedEmail = email.trim().toLowerCase();
     const existingUser = await this.prisma.user.findFirst({
-      where: { email: { equals: normalizedEmail, mode: 'insensitive' }, deletedAt: null },
+      where: {
+        email: { equals: normalizedEmail, mode: 'insensitive' },
+        deletedAt: null,
+      },
     });
     if (existingUser) {
       return throwHttpException(
@@ -516,7 +552,10 @@ export class AuthService {
 
     const normalizedEmail = email.trim().toLowerCase();
     const existingUser = await this.prisma.user.findFirst({
-      where: { email: { equals: normalizedEmail, mode: 'insensitive' }, deletedAt: null },
+      where: {
+        email: { equals: normalizedEmail, mode: 'insensitive' },
+        deletedAt: null,
+      },
     });
     if (existingUser) {
       return throwHttpException(

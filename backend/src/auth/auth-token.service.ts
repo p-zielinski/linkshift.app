@@ -16,8 +16,7 @@ export class AuthTokenService {
   constructor(
     private readonly redisService: RedisService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async createToken(
     purpose: string,

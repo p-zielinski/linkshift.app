@@ -1,4 +1,5 @@
 version: "3.3"
+
 services:
   redis:
     container_name: redis-p5
@@ -11,6 +12,7 @@ services:
       - 6767
     volumes:
       - ./data/redis/:/data/
+
   postgres:
     container_name: postgres-p5
     image: postgres:17.7
@@ -23,6 +25,20 @@ services:
       - 5454
     volumes:
       - ./data/postgres/:/var/lib/postgresql/data/:cached
+
+  pgadmin:
+    container_name: pgadmin-p5
+    image: dpage/pgadmin4:latest
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - 5050:80
+    volumes:
+      - ./data/pgadmin:/var/lib/pgadmin
+    depends_on:
+      - postgres
+
   loki:
     image: grafana/loki:latest
     ports:
@@ -31,6 +47,7 @@ services:
     volumes:
       - ./config/loki.yaml:/etc/loki/local-config.yaml
       - ./data/loki:/loki
+
   promtail:
     image: grafana/promtail:latest
     command: -config.file=/etc/promtail/config.yml
@@ -40,6 +57,7 @@ services:
       - ./config/promtail.yaml:/etc/promtail/config.yml
     depends_on:
       - loki
+
   grafana:
     image: grafana/grafana:latest
     ports:
@@ -50,6 +68,7 @@ services:
       - ./data/grafana:/var/lib/grafana
     depends_on:
       - loki
+
   dozzle:
     image: amir20/dozzle:latest
     ports:

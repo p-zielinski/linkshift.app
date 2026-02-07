@@ -1,9 +1,22 @@
-import { HttpErrorResponse, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import {
+  HttpErrorResponse,
+  HttpHandlerFn,
+  HttpInterceptorFn,
+  HttpRequest,
+} from '@angular/common/http';
 import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformServer } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthStore } from '../store/auth.store';
-import { catchError, switchMap, throwError, BehaviorSubject, filter, take, type Observable } from 'rxjs';
+import {
+  catchError,
+  switchMap,
+  throwError,
+  BehaviorSubject,
+  filter,
+  take,
+  type Observable,
+} from 'rxjs';
 import type { AuthTokens } from '../models/auth.model';
 
 // Flag to indicate if a refresh operation is currently in progress
@@ -27,7 +40,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     '/api/v1/auth/verify-email',
     '/api/v1/auth/password-reset/request',
     '/api/v1/auth/password-reset/confirm',
-    '/api/v1/auth/invites/lookup'
+    '/api/v1/auth/invites/lookup',
   ];
 
   if (publicAuthPaths.some((path) => req.url.includes(path))) {
@@ -38,7 +51,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   let authReq = req;
   if (token) {
     authReq = req.clone({
-      setHeaders: { Authorization: `Bearer ${token}` }
+      setHeaders: { Authorization: `Bearer ${token}` },
     });
   }
 
@@ -62,7 +75,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         }
       }
       return throwError(() => error);
-    })
+    }),
   );
 };
 
@@ -73,7 +86,11 @@ type AuthStoreLike = {
   refreshTokens: () => Observable<AuthTokens>;
 };
 
-function handle401Error(request: HttpRequest<unknown>, next: HttpHandlerFn, authStore: AuthStoreLike) {
+function handle401Error(
+  request: HttpRequest<unknown>,
+  next: HttpHandlerFn,
+  authStore: AuthStoreLike,
+) {
   if (!isRefreshing) {
     isRefreshing = true;
     refreshTokenSubject.next(null);
@@ -84,24 +101,28 @@ function handle401Error(request: HttpRequest<unknown>, next: HttpHandlerFn, auth
         const newToken = response.accessToken;
         refreshTokenSubject.next(newToken);
 
-        return next(request.clone({
-          setHeaders: { Authorization: `Bearer ${newToken}` }
-        }));
+        return next(
+          request.clone({
+            setHeaders: { Authorization: `Bearer ${newToken}` },
+          }),
+        );
       }),
       catchError((err) => {
         isRefreshing = false;
         return throwError(() => err);
-      })
+      }),
     );
   } else {
     return refreshTokenSubject.pipe(
       filter((token): token is string => token !== null),
       take(1),
       switchMap((token) => {
-        return next(request.clone({
-          setHeaders: { Authorization: `Bearer ${token}` }
-        }));
-      })
+        return next(
+          request.clone({
+            setHeaders: { Authorization: `Bearer ${token}` },
+          }),
+        );
+      }),
     );
   }
 }

@@ -82,6 +82,16 @@ export class AuthController {
     }
   }
 
+  @Get('session')
+  @UseGuards(AuthGuard)
+  async getSession(@User('userId') userId: string) {
+    this.logger.log('Auth session requested', {
+      requestId: this.clsService.getId(),
+      userId,
+    });
+    return this.authService.getSession(userId);
+  }
+
   @Post('register')
   async register(
     @Res({ passthrough: true }) response: Response,

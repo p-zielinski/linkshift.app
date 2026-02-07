@@ -1,7 +1,7 @@
 import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformServer } from '@angular/common';
 import { type CanActivateFn, type CanMatchFn, Router } from '@angular/router';
-import { catchError, map, of } from 'rxjs';
+import { catchError, map, of, switchMap } from 'rxjs';
 import { AuthStore } from '../store/auth.store';
 
 /**
@@ -24,10 +24,11 @@ export const authGuard: CanActivateFn = () => {
   }
 
   return authStore.refreshTokens().pipe(
+    switchMap(() => authStore.fetchSession()),
     map(() => true),
     catchError(() => {
       return of(router.parseUrl('/auth'));
-    })
+    }),
   );
 };
 
@@ -51,7 +52,8 @@ export const guestGuard: CanMatchFn = () => {
   }
 
   return authStore.refreshTokens().pipe(
+    switchMap(() => authStore.fetchSession()),
     map(() => router.parseUrl('/dashboard')),
-    catchError(() => of(true))
+    catchError(() => of(true)),
   );
 };

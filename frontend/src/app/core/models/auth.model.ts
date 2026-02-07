@@ -12,3 +12,8 @@ export type AuthResponse = {
   organization: Organization;
   checkoutUrl?: string | null;
 };
+
+export type AuthSession = {
+  user: User;
+  organization: Organization;
+};

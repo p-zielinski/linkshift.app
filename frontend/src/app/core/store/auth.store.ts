@@ -1,7 +1,7 @@
 import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { catchError, finalize, tap, throwError, type Observable } from 'rxjs';
-import type { AuthResponse, AuthTokens } from '../models/auth.model';
+import type { AuthResponse, AuthSession, AuthTokens } from '../models/auth.model';
 import type { LoginDto, RegisterDto } from '../models/auth.dto';
 import type { Organization } from '../models/organization.model';
 import type { User } from '../models/user.model';
@@ -69,6 +69,17 @@ export const AuthStore = signalStore(
       });
     };
 
+    const setSessionProfile = (payload: AuthSession) => {
+      patchState(store, {
+        user: payload.user,
+        organization: payload.organization
+      });
+      storeSession({
+        user: payload.user,
+        organization: payload.organization
+      });
+    };
+
     const updateUser = (partial: Partial<User>) => {
       const current = store.user();
       if (!current) {
@@ -131,6 +142,18 @@ export const AuthStore = signalStore(
       );
     };
 
+    const fetchSession = (): Observable<AuthSession> => {
+      return api.getSession().pipe(
+        tap((session) => setSessionProfile(session)),
+        catchError((error) => {
+          if (error.status === 401) {
+            patchState(store, { accessToken: null, user: null, organization: null });
+          }
+          return throwError(() => error);
+        })
+      );
+    };
+
     const logout = (redirectFnc: () => void) => {
       api.logout().pipe().subscribe({
         next: () => {
@@ -153,6 +176,7 @@ export const AuthStore = signalStore(
       login,
       register,
       refreshTokens,
+      fetchSession,
       logout,
       updateUser,
       clearError: () => patchState(store, { error: null })

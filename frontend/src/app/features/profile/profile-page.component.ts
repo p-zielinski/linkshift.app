@@ -30,10 +30,10 @@ const emailSchema = z.string().email('Invalid email address');
     MatInputModule,
     MatSnackBarModule,
     FormField,
-    PageHeaderComponent
+    PageHeaderComponent,
   ],
   templateUrl: './profile-page.component.html',
-  styleUrl: './profile-page.component.css'
+  styleUrl: './profile-page.component.css',
 })
 export class ProfilePageComponent {
   private readonly authStore = inject(AuthStore);
@@ -42,7 +42,10 @@ export class ProfilePageComponent {
   readonly siteConfig = inject(SITE_CONFIG);
 
   readonly user = computed(() => this.authStore.user());
-  readonly isVerified = computed(() => !!this.user()?.emailVerifiedAt);
+  readonly isVerified = computed(() => {
+    console.log(this.user());
+    return !!this.user()?.emailVerifiedAt;
+  });
   readonly email = computed(() => this.user()?.email ?? '');
   readonly needsLegalUpdate = computed(() => needsLegalConsent(this.user(), this.siteConfig));
 
@@ -51,7 +54,7 @@ export class ProfilePageComponent {
 
   readonly emailFormModel = signal({
     newEmail: '',
-    code: ''
+    code: '',
   });
 
   readonly emailForm = form(this.emailFormModel, (f) => {
@@ -105,7 +108,7 @@ export class ProfilePageComponent {
         await firstValueFrom(this.authApi.updateEmailForUnverified({ newEmail }));
         this.authStore.updateUser({ email: newEmail, emailVerifiedAt: null });
         this.snackBar.open('Email updated. Check your inbox to verify.', 'Dismiss', {
-          duration: 4000
+          duration: 4000,
         });
         return;
       }
@@ -113,7 +116,7 @@ export class ProfilePageComponent {
       await firstValueFrom(this.authApi.requestEmailChange({ newEmail }));
       this.changeCodeSent.set(true);
       this.snackBar.open('Verification code sent to the new email.', 'Dismiss', {
-        duration: 4000
+        duration: 4000,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Email update failed.';
