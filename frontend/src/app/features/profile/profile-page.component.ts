@@ -1,5 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,12 +40,13 @@ export class ProfilePageComponent {
   private readonly authApi = inject(AuthApiService);
   private readonly snackBar = inject(MatSnackBar);
   readonly siteConfig = inject(SITE_CONFIG);
+  private readonly platformId = inject(PLATFORM_ID);
 
   readonly user = computed(() => this.authStore.user());
   readonly isVerified = computed(() => {
-    console.log(this.user());
     return !!this.user()?.emailVerifiedAt;
   });
+  readonly isBrowser = computed(() => isPlatformBrowser(this.platformId));
   readonly email = computed(() => this.user()?.email ?? '');
   readonly needsLegalUpdate = computed(() => needsLegalConsent(this.user(), this.siteConfig));
 

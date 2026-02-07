@@ -20,7 +20,7 @@
         </span>
       </div>
 
-      @if (!isVerified()) {
+      @if (isBrowser() && !isVerified()) {
         <div class="mt-4 rounded-[14px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
           Verify your email to unlock account changes and security actions.
         </div>
