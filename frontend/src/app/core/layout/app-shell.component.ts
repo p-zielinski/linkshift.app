@@ -1,6 +1,20 @@
-import { Component, DestroyRef, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  PLATFORM_ID,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet,
+} from '@angular/router';
 import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -14,6 +28,7 @@ import { DomainStore } from '../store/domain.store';
 import { DomainGroupStore } from '../store/domain-group.store';
 import { DEFAULT_LIST_KEY } from '../store/entity/entity-store.utils';
 import { CheckoutStatusDialogComponent } from '../../features/billing/checkout-status-dialog/checkout-status-dialog.component';
+import { LogoComponent } from '../../shared/components/logo/logo.component';
 
 type NavItem = {
   label: string;
@@ -32,14 +47,14 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Redirect Rules',
     route: '/redirect-rules',
     icon: 'swap_horiz',
-    requiresDomainGroups: true
+    requiresDomainGroups: true,
   },
   {
     label: 'Tests',
     route: '/tests',
     icon: 'science',
-    requiresDomainGroups: true
-  }
+    requiresDomainGroups: true,
+  },
 ];
 
 const MOBILE_BREAKPOINT = '(max-width: 1023px)';
@@ -57,9 +72,10 @@ const MOBILE_BREAKPOINT = '(max-width: 1023px)';
     MatListModule,
     MatTooltipModule,
     LayoutModule,
-    MatDialogModule
+    MatDialogModule,
+    LogoComponent,
   ],
-  templateUrl: './app-shell.component.html'
+  templateUrl: './app-shell.component.html',
 })
 export class AppShellComponent {
   readonly authStore = inject(AuthStore);
@@ -76,10 +92,10 @@ export class AppShellComponent {
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly domainGroupListResult = this.domainGroupStore.selectListResult(DEFAULT_LIST_KEY);
   readonly domainGroupsLoading = computed(
-    () => this.domainGroupStore.isLoading()[DEFAULT_LIST_KEY] ?? false
+    () => this.domainGroupStore.isLoading()[DEFAULT_LIST_KEY] ?? false,
   );
   readonly domainGroupsReady = computed(
-    () => this.domainGroupListResult() !== null && !this.domainGroupsLoading()
+    () => this.domainGroupListResult() !== null && !this.domainGroupsLoading(),
   );
   readonly hasDomainGroups = computed(() => this.domainGroups().length > 0);
   readonly isMobile = signal(false);
@@ -98,13 +114,11 @@ export class AppShellComponent {
     });
     this.observeViewport();
     this.observeCheckoutSessions();
-    effect(
-      () => {
-        if (!this.isMobile()) {
-          this.mobileNavOpen.set(false);
-        }
-      },
-    );
+    effect(() => {
+      if (!this.isMobile()) {
+        this.mobileNavOpen.set(false);
+      }
+    });
   }
 
   onLogout(): void {
@@ -145,26 +159,24 @@ export class AppShellComponent {
   }
 
   private observeCheckoutSessions(): void {
-    this.route.queryParamMap
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((params) => {
-        const sessionId = params.get('checkout_session');
-        if (!sessionId || this.lastCheckoutSessionId() === sessionId) {
-          return;
-        }
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const sessionId = params.get('checkout_session');
+      if (!sessionId || this.lastCheckoutSessionId() === sessionId) {
+        return;
+      }
 
-        this.lastCheckoutSessionId.set(sessionId);
-        this.dialog.open(CheckoutStatusDialogComponent, {
-          data: { sessionId },
-          width: 'min(520px, 92vw)',
-          maxWidth: '92vw',
-        });
-
-        this.router.navigate([], {
-          queryParams: { checkout_session: null },
-          queryParamsHandling: 'merge',
-          replaceUrl: true,
-        });
+      this.lastCheckoutSessionId.set(sessionId);
+      this.dialog.open(CheckoutStatusDialogComponent, {
+        data: { sessionId },
+        width: 'min(520px, 92vw)',
+        maxWidth: '92vw',
       });
+
+      this.router.navigate([], {
+        queryParams: { checkout_session: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    });
   }
 }

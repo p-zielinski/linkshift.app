@@ -1,0 +1,22 @@
+.logo-mark {
+  display: inline-flex;
+  align-items: center;
+}
+
+.logo-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  margin-right: -2px;
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--app-text);
+}
+
+.logo-app {
+  color: var(--app-accent);
+}

@@ -1,0 +1,12 @@
+<svg viewBox="0 0 512 512" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <mask id="brainMask">
+      <rect x="0" y="0" width="512" height="512" fill="white" />
+    </mask>
+  </defs>
+  <path
+    d="M 108 140 L 83 160 Q 68 160 68 145 Q 78 80 135 45 Q 150 40 165 45 Q 222 80 232 145 Q 232 160 217 160 L 192 140 L 192 318 Q 192 358 232 358 L 320 358 L 300 333 Q 300 318 315 318 Q 380 328 415 385 Q 420 400 415 415 Q 380 472 315 482 Q 300 482 300 467 L 320 442 L 138 442 Q 108 442 108 412 L 108 140 Z"
+    fill="#c03762"
+    mask="url(#brainMask)">
+  </path>
+</svg>

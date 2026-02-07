@@ -13,7 +13,7 @@ export type SiteConfig = {
 };
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  name: 'Redirect Control',
+  name: 'LinkSwitch.app',
   tagline: 'Signal-driven redirect automation',
   supportEmail: 'support@redirectcontrol.app',
   legalName: 'Independent operator',
@@ -39,5 +39,5 @@ export const SITE_CONFIG = new InjectionToken<SiteConfig>('SITE_CONFIG', {
       minAge: Number.isNaN(minAge) ? DEFAULT_SITE_CONFIG.minAge : minAge,
       legalVersion: appConfig.APP_LEGAL_VERSION ?? DEFAULT_SITE_CONFIG.legalVersion,
     };
-  }
+  },
 });

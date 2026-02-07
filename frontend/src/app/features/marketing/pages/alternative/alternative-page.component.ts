@@ -8,8 +8,14 @@ import { SeoService } from '../../../../core/seo/seo.service';
 import { SITE_CONFIG } from '../../../../core/config/site-config';
 import { MarketingHeroComponent } from '../../components/marketing-hero/marketing-hero.component';
 import { MarketingSectionComponent } from '../../components/marketing-section/marketing-section.component';
-import { MarketingFeatureGridComponent, MarketingFeature } from '../../components/marketing-feature-grid/marketing-feature-grid.component';
-import { MarketingExampleCardComponent, MarketingRuleExample } from '../../components/marketing-example-card/marketing-example-card.component';
+import {
+  MarketingFeatureGridComponent,
+  MarketingFeature,
+} from '../../components/marketing-feature-grid/marketing-feature-grid.component';
+import {
+  MarketingExampleCardComponent,
+  MarketingRuleExample,
+} from '../../components/marketing-example-card/marketing-example-card.component';
 import { MarketingCtaComponent } from '../../components/marketing-cta/marketing-cta.component';
 
 const ALTERNATIVES: Record<string, AlternativeContent> = {
@@ -23,30 +29,30 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       'Domain groups as a first-class object',
       'Regex sources with capture groups',
       'Template variables and modifiers',
-      'Conditional routing by request context'
+      'Conditional routing by request context',
     ],
     heroPanelTitle: 'Switching checklist',
     heroPanelItems: [
       {
         icon: 'layers',
         title: 'Map domains to groups',
-        description: 'Define groups that match brands, regions, or environments.'
+        description: 'Define groups that match brands, regions, or environments.',
       },
       {
         icon: 'public',
         title: 'Attach all active domains',
-        description: 'Each domain inherits the same redirect rule set.'
+        description: 'Each domain inherits the same redirect rule set.',
       },
       {
         icon: 'swap_horiz',
         title: 'Translate existing rules',
-        description: 'Keep regex capture groups and placeholder variables.'
+        description: 'Keep regex capture groups and placeholder variables.',
       },
       {
         icon: 'verified',
         title: 'Validate and publish',
-        description: 'Use ordering and conditions to avoid conflicts.'
-      }
+        description: 'Use ordering and conditions to avoid conflicts.',
+      },
     ],
     heroPanelNote: 'Rules live with the group, so edits propagate instantly to every domain.',
     comparisonTitle: 'Why teams move beyond simple redirect lists',
@@ -59,8 +65,8 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         bullets: [
           'Single rule inventory per group',
           'Shared priority ordering',
-          'No duplicated configuration'
-        ]
+          'No duplicated configuration',
+        ],
       },
       {
         title: 'Readable rule language',
@@ -68,8 +74,8 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         bullets: [
           'Regex sources with capture groups',
           'Placeholders like {path} and {query.*}',
-          'Modifiers such as :url_encode'
-        ]
+          'Modifiers such as :url_encode',
+        ],
       },
       {
         title: 'Operational safety',
@@ -77,9 +83,9 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         bullets: [
           'Conditions based on method or time',
           'Validation of variables and regex groups',
-          'Consistent domain-level context'
-        ]
-      }
+          'Consistent domain-level context',
+        ],
+      },
     ],
     featuresTitle: 'Capabilities designed for complex inventories',
     featuresSubtitle: 'Built to scale from a handful of redirects to thousands.',
@@ -87,23 +93,23 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         icon: 'rule',
         title: 'Regex and literal sources',
-        description: 'Use /pattern/flags or literal paths depending on the workload.'
+        description: 'Use /pattern/flags or literal paths depending on the workload.',
       },
       {
         icon: 'data_object',
         title: 'Context placeholders',
-        description: 'Insert {domain.fqdn}, {segments.*}, or {query.*} into destinations.'
+        description: 'Insert {domain.fqdn}, {segments.*}, or {query.*} into destinations.',
       },
       {
         icon: 'lan',
         title: 'Group-level routing',
-        description: 'One rule set applies to all domains in a group by default.'
+        description: 'One rule set applies to all domains in a group by default.',
       },
       {
         icon: 'query_stats',
         title: 'Priority-aware execution',
-        description: 'Order rules deliberately and keep routing outcomes deterministic.'
-      }
+        description: 'Order rules deliberately and keep routing outcomes deterministic.',
+      },
     ],
     examplesTitle: 'Examples that mirror real traffic',
     examplesSubtitle: 'Use capture groups, placeholders, and conditions together.',
@@ -113,14 +119,14 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         description: 'Carry the capture group and origin domain into the target.',
         source: '/^\\/promo\\/(\\d+)$/',
         destination: 'https://app.example.com/campaign/$1?from={domain.fqdn}',
-        note: 'Works across every domain attached to the group.'
+        note: 'Works across every domain attached to the group.',
       },
       {
         title: 'Preserve query parameters',
         description: 'Move traffic while keeping source attribution intact.',
         source: '/^\\/go\\/(.*)$/',
         destination: 'https://store.example.com/$1?utm={query.utm:url_encode}',
-        note: 'Modifiers ensure values are safe inside URLs.'
+        note: 'Modifiers ensure values are safe inside URLs.',
       },
       {
         title: 'Time-based support routing',
@@ -128,15 +134,16 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         source: '/^\\/support\\/(.*)$/',
         destination:
           'time() < datetime("2024-12-01") ? https://support.example.com/$1 : https://support.global.example.com/$1',
-        note: 'Conditions use operators like ==, !=, <=, >=, ~=, and includes.'
-      }
+        note: 'Conditions use operators like ==, !=, <=, >=, ~=, and includes.',
+      },
     ],
     ctaTitle: 'Move your redirect inventory into domain groups',
-    ctaDescription: 'Create an account and model your routing rules with full context and validation.',
+    ctaDescription:
+      'Create an account and model your routing rules with full context and validation.',
     ctaNote: '30-day satisfaction guarantee. Refunds available with no explanation required.',
     seoTitle: 'Redirect.pizza alternative for domain groups',
     seoDescription:
-      'Compare Redirect Control with Redirect.pizza. Use domain groups, regex sources, placeholders, and conditional routing to manage large redirect inventories.'
+      'Compare LinkSwitch.app with Redirect.pizza. Use domain groups, regex sources, placeholders, and conditional routing to manage large redirect inventories.',
   },
   'redirect-proxy': {
     slug: 'redirect-proxy',
@@ -148,25 +155,25 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       'No edge scripts to maintain',
       'Domain groups keep rules aligned',
       'Conditional routing by method or time',
-      'Placeholders and modifiers for precision'
+      'Placeholders and modifiers for precision',
     ],
     heroPanelTitle: 'Operational advantages',
     heroPanelItems: [
       {
         icon: 'code',
         title: 'Readable rules',
-        description: 'Keep the logic in one place instead of scattered proxy configs.'
+        description: 'Keep the logic in one place instead of scattered proxy configs.',
       },
       {
         icon: 'track_changes',
         title: 'Predictable outcomes',
-        description: 'Ordered rules prevent hidden proxy conflicts.'
+        description: 'Ordered rules prevent hidden proxy conflicts.',
       },
       {
         icon: 'corporate_fare',
         title: 'Multi-domain readiness',
-        description: 'Attach multiple domains and inherit the same logic instantly.'
-      }
+        description: 'Attach multiple domains and inherit the same logic instantly.',
+      },
     ],
     heroPanelNote: 'Domain groups remove the need to duplicate rules per host.',
     comparisonTitle: 'Why teams replace proxy-based redirect stacks',
@@ -176,18 +183,26 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         title: 'Centralized ownership',
         description: 'Keep redirect logic in the product instead of distributed edge config files.',
-        bullets: ['Single place to review rules', 'Consistent validation', 'Less operational drift']
+        bullets: [
+          'Single place to review rules',
+          'Consistent validation',
+          'Less operational drift',
+        ],
       },
       {
         title: 'Context-aware routing',
         description: 'Use request context directly in destinations and conditions.',
-        bullets: ['{path} and {segments.*}', '{query.*} placeholders', 'method and scheme checks']
+        bullets: ['{path} and {segments.*}', '{query.*} placeholders', 'method and scheme checks'],
       },
       {
         title: 'Simplified changes',
         description: 'Publish rule updates without redeploying proxy infrastructure.',
-        bullets: ['Rules updated in UI', 'Group-level propagation', 'Immediate validation feedback']
-      }
+        bullets: [
+          'Rules updated in UI',
+          'Group-level propagation',
+          'Immediate validation feedback',
+        ],
+      },
     ],
     featuresTitle: 'Purpose-built redirect modeling',
     featuresSubtitle: 'Replace proxy scripts with explicit redirect rules.',
@@ -195,23 +210,23 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         icon: 'schema',
         title: 'Structured domain groups',
-        description: 'Keep rules tied to a group instead of duplicated across domains.'
+        description: 'Keep rules tied to a group instead of duplicated across domains.',
       },
       {
         icon: 'manage_search',
         title: 'Regex capture groups',
-        description: 'Use $1, $2, and more to build dynamic destinations.'
+        description: 'Use $1, $2, and more to build dynamic destinations.',
       },
       {
         icon: 'tune',
         title: 'Output modifiers',
-        description: 'Apply :to_lower_case, :url_encode, and other transformations.'
+        description: 'Apply :to_lower_case, :url_encode, and other transformations.',
       },
       {
         icon: 'security',
         title: 'Validation guardrails',
-        description: 'Rules are validated for variable correctness and URL structure.'
-      }
+        description: 'Rules are validated for variable correctness and URL structure.',
+      },
     ],
     examplesTitle: 'Proxy logic without proxy code',
     examplesSubtitle: 'Use context variables to direct traffic safely.',
@@ -222,22 +237,22 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         source: '/^\\/api\\/v1\\/(.*)$/',
         destination:
           'method == "POST" ? https://api.example.com/write/$1 : https://api.example.com/read/$1',
-        note: 'Conditions evaluate request method without code deployments.'
+        note: 'Conditions evaluate request method without code deployments.',
       },
       {
         title: 'Segment capture',
         description: 'Use segment placeholders to keep nested paths.',
         source: '/^\\/docs\\/(.*)$/',
         destination: 'https://docs.example.com/{segments.0}?source={domain.fqdn}',
-        note: 'Segments and domain variables stay consistent across environments.'
-      }
+        note: 'Segments and domain variables stay consistent across environments.',
+      },
     ],
     ctaTitle: 'Replace proxy scripts with structured rules',
     ctaDescription: 'Create an account and keep routing logic visible, auditable, and grouped.',
     ctaNote: '30-day satisfaction guarantee. Refunds available with no explanation required.',
     seoTitle: 'Redirect proxy alternative for structured rules',
     seoDescription:
-      'Switch from proxy-based redirects to a domain-group model with regex sources, placeholders, and conditional routing.'
+      'Switch from proxy-based redirects to a domain-group model with regex sources, placeholders, and conditional routing.',
   },
   'managed-redirects': {
     slug: 'managed-redirects',
@@ -249,25 +264,25 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       'Self-serve control with guardrails',
       'Domain groups unify rule ownership',
       'Condition-based routing',
-      'Transparent rule syntax'
+      'Transparent rule syntax',
     ],
     heroPanelTitle: 'What you gain',
     heroPanelItems: [
       {
         icon: 'inventory',
         title: 'Full visibility',
-        description: 'Every rule is visible, ordered, and tied to a domain group.'
+        description: 'Every rule is visible, ordered, and tied to a domain group.',
       },
       {
         icon: 'handshake',
         title: 'Team-ready workflow',
-        description: 'Organize domains and rules without external tickets.'
+        description: 'Organize domains and rules without external tickets.',
       },
       {
         icon: 'playlist_add_check',
         title: 'Rule validation',
-        description: 'Variables, regex, and URL formats are checked automatically.'
-      }
+        description: 'Variables, regex, and URL formats are checked automatically.',
+      },
     ],
     heroPanelNote: 'Keep the flexibility of managed redirects with the clarity of explicit rules.',
     comparisonTitle: 'Managed service outcomes with internal control',
@@ -277,18 +292,22 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         title: 'Transparent rule inventory',
         description: 'Rules are visible and structured, not hidden behind support queues.',
-        bullets: ['Consistent naming', 'Clear ordering', 'Shared governance']
+        bullets: ['Consistent naming', 'Clear ordering', 'Shared governance'],
       },
       {
         title: 'Context-driven logic',
         description: 'Use request context to handle complex routing needs.',
-        bullets: ['method-aware routing', 'query and path placeholders', 'method and scheme checks']
+        bullets: [
+          'method-aware routing',
+          'query and path placeholders',
+          'method and scheme checks',
+        ],
       },
       {
         title: 'Ready for scale',
         description: 'Expand domain groups without rewriting existing rules.',
-        bullets: ['Attach domains instantly', 'Group-level limits', 'Fast rule updates']
-      }
+        bullets: ['Attach domains instantly', 'Group-level limits', 'Fast rule updates'],
+      },
     ],
     featuresTitle: 'Built for redirect teams',
     featuresSubtitle: 'Keep speed and control while staying organized.',
@@ -296,23 +315,23 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         icon: 'hub',
         title: 'Domain group ownership',
-        description: 'Assign domains to a group and manage a shared rule set.'
+        description: 'Assign domains to a group and manage a shared rule set.',
       },
       {
         icon: 'terminal',
         title: 'Expressive rule syntax',
-        description: 'Regex sources, placeholders, and modifiers keep logic compact.'
+        description: 'Regex sources, placeholders, and modifiers keep logic compact.',
       },
       {
         icon: 'policy',
         title: 'Guardrails included',
-        description: 'Rules are validated against variable and URL constraints.'
+        description: 'Rules are validated against variable and URL constraints.',
       },
       {
         icon: 'settings_suggest',
         title: 'Future-ready structure',
-        description: 'Add new domains or groups without rebuilding your redirects.'
-      }
+        description: 'Add new domains or groups without rebuilding your redirects.',
+      },
     ],
     examplesTitle: 'Structured routing examples',
     examplesSubtitle: 'Keep logic readable while handling complex paths.',
@@ -322,23 +341,23 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         description: 'Include domain metadata in the destination.',
         source: '/^\\/status$/',
         destination: 'https://status.example.com/?env={domain.subdomains.0}',
-        note: 'Use {domain.subdomains.*} for multi-level environments.'
+        note: 'Use {domain.subdomains.*} for multi-level environments.',
       },
       {
         title: 'Path preservation',
         description: 'Carry full path data with a single rule.',
         source: '/^\\/blog\\/(.*)$/',
         destination: 'https://content.example.com/$1?source={path}',
-        note: 'Combine regex groups with path placeholders as needed.'
-      }
+        note: 'Combine regex groups with path placeholders as needed.',
+      },
     ],
     ctaTitle: 'Keep managed redirects, stay in control',
     ctaDescription: 'Start modeling your redirect groups with full visibility and validation.',
     ctaNote: '30-day satisfaction guarantee. Refunds available with no explanation required.',
     seoTitle: 'Managed redirects alternative with domain groups',
     seoDescription:
-      'Organize managed redirects with domain groups, regex sources, placeholders, and conditional routing.'
-  }
+      'Organize managed redirects with domain groups, regex sources, placeholders, and conditional routing.',
+  },
 };
 
 type AlternativeCard = {
@@ -389,10 +408,10 @@ type AlternativeContent = {
     MarketingSectionComponent,
     MarketingFeatureGridComponent,
     MarketingExampleCardComponent,
-    MarketingCtaComponent
+    MarketingCtaComponent,
   ],
   templateUrl: './alternative-page.component.html',
-  styleUrl: './alternative-page.component.css'
+  styleUrl: './alternative-page.component.css',
 })
 export class AlternativePageComponent {
   private readonly route = inject(ActivatedRoute);
@@ -411,7 +430,7 @@ export class AlternativePageComponent {
         title: `${this.siteConfig.name} | ${next.seoTitle}`,
         description: next.seoDescription,
         canonicalPath: `/alternatives/${next.slug}`,
-        keywords: 'redirect alternatives, domain group redirects, regex redirects, redirect rules'
+        keywords: 'redirect alternatives, domain group redirects, regex redirects, redirect rules',
       });
     });
   }

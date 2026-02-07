@@ -12,13 +12,7 @@ type ContactTopic = 'Bug report' | 'Feature request' | 'Custom plan';
 @Component({
   selector: 'app-contact-page',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatCardModule,
-    MatIconModule,
-    MarketingSectionComponent,
-  ],
+  imports: [CommonModule, MatButtonModule, MatCardModule, MatIconModule, MarketingSectionComponent],
   templateUrl: './contact-page.component.html',
   styleUrl: './contact-page.component.css',
 })
@@ -35,22 +29,19 @@ export class ContactPageComponent implements OnInit {
   }> = [
     {
       title: 'Bug report',
-      description:
-        'Share steps, expected behavior, and the impact so we can reproduce it fast.',
+      description: 'Share steps, expected behavior, and the impact so we can reproduce it fast.',
       icon: 'bug_report',
       subject: 'Bug report',
     },
     {
       title: 'Feature request',
-      description:
-        'Tell us the workflow you want to unlock and how you measure success.',
+      description: 'Tell us the workflow you want to unlock and how you measure success.',
       icon: 'lightbulb',
       subject: 'Feature request',
     },
     {
       title: 'Custom plan',
-      description:
-        'Send traffic volume, domain count, and governance needs for a tailored quote.',
+      description: 'Send traffic volume, domain count, and governance needs for a tailored quote.',
       icon: 'tune',
       subject: 'Custom plan inquiry',
     },
@@ -59,8 +50,7 @@ export class ContactPageComponent implements OnInit {
   ngOnInit(): void {
     this.seo.updateTags({
       title: `${this.siteConfig.name} | Contact`,
-      description:
-        'Report bugs, suggest features, or request a custom plan for Redirect Control.',
+      description: 'Report bugs, suggest features, or request a custom plan for LinkSwitch.',
       canonicalPath: '/contact',
       keywords: 'contact, bug report, feature request, custom plan',
     });
