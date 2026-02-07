@@ -1,5 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, inject, PLATFORM_ID, signal } from '@angular/core';
+import { CommonModule, isPlatformServer } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,16 +25,17 @@ const emailSchema = z.string().email('Invalid email address');
     MatButtonModule,
     MatSnackBarModule,
     FormField,
-    RouterLink
+    RouterLink,
   ],
   templateUrl: './reset-password-page.component.html',
-  styleUrl: './reset-password-page.component.css'
+  styleUrl: './reset-password-page.component.css',
 })
 export class ResetPasswordPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly authApi = inject(AuthApiService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly platformId = inject(PLATFORM_ID);
 
   readonly token = signal<string | null>(null);
   readonly hasToken = computed(() => !!this.token());
@@ -66,6 +67,10 @@ export class ResetPasswordPageComponent {
   readonly confirmError = computed(() => this.getFieldError(this.resetForm.confirmPassword()));
 
   constructor() {
+    if (isPlatformServer(this.platformId)) {
+      return;
+    }
+
     const queryToken = this.route.snapshot.queryParamMap.get('token');
     this.token.set(queryToken);
   }
@@ -81,7 +86,7 @@ export class ResetPasswordPageComponent {
       const email = this.requestModel().email.trim();
       await firstValueFrom(this.authApi.requestPasswordReset({ email }));
       this.snackBar.open('Check your email for a reset link.', 'Dismiss', {
-        duration: 4000
+        duration: 4000,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Reset request failed.';
@@ -107,7 +112,7 @@ export class ResetPasswordPageComponent {
       const password = this.resetModel().password;
       await firstValueFrom(this.authApi.confirmPasswordReset({ token, password }));
       this.snackBar.open('Password updated. Please log in.', 'Dismiss', {
-        duration: 4000
+        duration: 4000,
       });
       await this.router.navigateByUrl('/auth');
     } catch (error) {
