@@ -195,6 +195,14 @@ describe('RuleValidatorService', () => {
       expect(result.isValid).toBe(true);
     });
 
+    it('should handle https in ternary branches', () => {
+      const result = service.validate(
+        '*',
+        "path == '/a' ? https://a.example.com : https://b.example.com/path",
+      );
+      expect(result.isValid).toBe(true);
+    });
+
     it('should validate logic recursively (check leaves)', () => {
       // Logic valid, but leaf "broken" is invalid URL
       const result = service.validate(
