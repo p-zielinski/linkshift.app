@@ -872,7 +872,7 @@ export class RedirectService {
     destination: string,
     context: { ruleId?: string; organizationId: string; domainGroupId: string },
   ): Promise<void> {
-    const extractedDomains = this.domainExtractor.extractDomains(destination);
+    const extractedDomains = this.domainExtractor.extractUrls(destination);
 
     this.logger.debug('Redirect rule domains extracted', {
       ruleId: context.ruleId ?? null,
@@ -1117,9 +1117,7 @@ export class RedirectService {
     // 5. Action: redirect or return 404
     if (match) {
       const statusCode = match.rule.statusCode ?? 302;
-      const targetDomain = this.domainExtractor.extractDomainFromUrl(
-        match.target,
-      );
+      const targetDomain = this.domainExtractor.extractUrl(match.target);
 
       if (targetDomain) {
         try {

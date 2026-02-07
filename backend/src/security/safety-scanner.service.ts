@@ -11,9 +11,11 @@ import {
 
 type SafetyMatchResponse = {
   matches?: Array<{
-    threat?: {
-      url?: string;
-      threatType?: string;
+    threatType: string;
+    platformType: string;
+    threatEntryType: string;
+    threat: {
+      url: string;
     };
   }>;
 };
@@ -29,14 +31,13 @@ export class SafetyScannerService {
     private readonly configService: ConfigService,
     private readonly redisService: RedisService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async checkDomains(domains: string[]): Promise<Map<string, boolean>> {
     const normalized = [
       ...new Set(
         domains
-          .map((domain) => this.normalizeDomain(domain))
+          .map((domain) => this.normalizeUrls(domain))
           .filter((domain): domain is string => Boolean(domain)),
       ),
     ];
@@ -93,14 +94,15 @@ export class SafetyScannerService {
     return results;
   }
 
-  private normalizeDomain(value: string): string | null {
+  private normalizeUrls(value: string): string | null {
     if (!value) return null;
     const trimmed = value.trim().toLowerCase();
     if (!trimmed) return null;
 
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
       try {
-        return new URL(trimmed).hostname.toLowerCase();
+        const url = new URL(trimmed);
+        return `${url.hostname}${url.pathname}`.toLowerCase();
       } catch {
         return null;
       }
@@ -113,7 +115,51 @@ export class SafetyScannerService {
     return `${SAFETY_CACHE_PREFIX}${domain}`;
   }
 
-  private async fetchUnsafeDomains(domains: string[]): Promise<Set<string>> {
+  private toUrl(value: string): URL | null {
+    try {
+      return new URL(value);
+    } catch {
+      try {
+        return new URL(`https://${value}`);
+      } catch {
+        return null;
+      }
+    }
+  }
+
+  private async fetchUnsafeDomains(urls: string[]): Promise<Set<string>> {
+    const { threatEntries, threatUrls } = urls.reduce<{
+      threatEntries: any[];
+      threatUrls: Map<string, string[]>;
+    }>(
+      (acc, cur) => {
+        const parsed = this.toUrl(cur);
+        if (!parsed) return acc;
+
+        const path =
+          parsed.pathname && parsed.pathname !== '' ? parsed.pathname : '/';
+        const fullPath = parsed.search ? `${path}${parsed.search}` : path;
+        const candidates = [
+          `https://${parsed.host}${fullPath}`,
+          `http://${parsed.host}${fullPath}`,
+          `https://${parsed.host}/`,
+          `http://${parsed.host}/`,
+        ];
+        candidates.forEach((candidate) => {
+          acc.threatUrls.set(candidate, [
+            ...(acc.threatUrls.get(candidate) ?? []),
+            cur,
+          ]);
+          acc.threatEntries.push({ url: candidate });
+        });
+        return acc;
+      },
+      {
+        threatEntries: [],
+        threatUrls: new Map(),
+      },
+    );
+
     const apiKey = this.configService.get<string>('SAFE_BROWSING_API_KEY');
     if (!apiKey) {
       throw new Error('SAFE_BROWSING_API_KEY is not configured');
@@ -137,16 +183,14 @@ export class SafetyScannerService {
         ],
         platformTypes: ['ANY_PLATFORM'],
         threatEntryTypes: ['URL'],
-        threatEntries: domains.map((domain) => ({
-          url: `https://${domain}`,
-        })),
+        threatEntries,
       },
     };
 
-    const endpoint = `https://safebrowsing.googleapis.com/v5/threatMatches:find?key=${apiKey}`;
+    const endpoint = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${apiKey}`;
 
     this.logger.debug('Sending batch safety scan request', {
-      domainCount: domains.length,
+      urlsCount: urls.length,
     });
 
     let response: Response;
@@ -159,7 +203,7 @@ export class SafetyScannerService {
     } catch (error) {
       this.logger.error('Safety scan request failed', {
         error: error instanceof Error ? error.message : 'unknown_error',
-        domainCount: domains.length,
+        urlsCount: urls.length,
       });
       throw error;
     }
@@ -174,18 +218,20 @@ export class SafetyScannerService {
     }
 
     const data = (await response.json()) as SafetyMatchResponse;
+
     const unsafe = new Set<string>();
 
     for (const match of data.matches ?? []) {
       const url = match.threat?.url;
       if (!url) continue;
+      threatUrls.get(url)?.forEach((url) => unsafe.add(url));
       try {
         const hostname = new URL(url).hostname.toLowerCase();
         unsafe.add(hostname);
         this.logger.warn('Security threat detected', {
           url,
           hostname,
-          threatType: match.threat?.threatType ?? 'unknown',
+          threatType: 'unknown',
         });
       } catch {
         continue;

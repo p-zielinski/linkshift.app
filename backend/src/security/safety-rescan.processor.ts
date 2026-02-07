@@ -21,8 +21,7 @@ export class SafetyRescanProcessor {
     private readonly domainBlacklistService: DomainBlacklistService,
     private readonly emailService: EmailService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   @Process('rescan')
   async handleRescan(job: Job<RescanJob>): Promise<void> {
@@ -49,7 +48,7 @@ export class SafetyRescanProcessor {
       return;
     }
 
-    const domains = this.domainExtractor.extractDomains(rule.destination);
+    const domains = this.domainExtractor.extractUrls(rule.destination);
     if (domains.length === 0) {
       this.logger.debug('Safety rescan skipped (no domains)', {
         ruleId: rule.id,

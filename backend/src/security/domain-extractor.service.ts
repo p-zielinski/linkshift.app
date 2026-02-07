@@ -4,26 +4,25 @@ import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class DomainExtractorService {
-  constructor(private readonly logger: Logger) {
-  }
+  constructor(private readonly logger: Logger) {}
 
-  extractDomains(destination: string): string[] {
+  extractUrls(destination: string): string[] {
     if (!destination) return [];
 
     const targets = this.collectDestinations(destination, 0);
-    const domains = new Set<string>();
+    const urls = new Set<string>();
 
     for (const target of targets) {
-      const domain = this.extractDomainFromUrl(target);
-      if (domain) {
-        domains.add(domain);
+      const url = this.extractUrl(target);
+      if (url) {
+        urls.add(url);
       }
     }
 
-    return [...domains];
+    return [...urls];
   }
 
-  extractDomainFromUrl(target: string): string | null {
+  extractUrl(target: string): string | null {
     const trimmed = target?.trim();
     if (!trimmed) return null;
 
@@ -31,7 +30,11 @@ export class DomainExtractorService {
     if (!rawHostMatch) return null;
 
     const rawHost = rawHostMatch[1];
-    if (rawHost.includes('{') || rawHost.includes('}') || rawHost.includes('$')) {
+    if (
+      rawHost.includes('{') ||
+      rawHost.includes('}') ||
+      rawHost.includes('$')
+    ) {
       return null;
     }
 
@@ -45,7 +48,7 @@ export class DomainExtractorService {
 
     try {
       const url = new URL(mock);
-      return url.hostname.toLowerCase();
+      return `${url.hostname}${url.pathname}`.toLowerCase();
     } catch {
       return null;
     }
@@ -139,7 +142,9 @@ export class DomainExtractorService {
     if (colonIndex === -1) return null;
 
     const condition = template.substring(0, questionMarkIndex).trim();
-    const truePart = template.substring(questionMarkIndex + 1, colonIndex).trim();
+    const truePart = template
+      .substring(questionMarkIndex + 1, colonIndex)
+      .trim();
     const falsePart = template.substring(colonIndex + 1).trim();
 
     return { condition, truePart, falsePart };
