@@ -16,13 +16,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../core/store/auth.store';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { loginSchema, registerSchema } from './auth.schemas';
-import { OrganizationPlan } from '@shared/models/organization-config.model';
+import {
+  BillingInterval,
+  OrganizationPlan,
+} from '@shared/models/organization-config.model';
 import { SITE_CONFIG } from '../../core/config/site-config';
+import { BillingPlansStore } from '../../core/store/billing-plans.store';
 
 @Component({
   selector: 'app-auth-page',
@@ -38,6 +43,7 @@ import { SITE_CONFIG } from '../../core/config/site-config';
     MatSnackBarModule,
     MatRadioModule,
     MatCheckboxModule,
+    MatButtonToggleModule,
     FormField,
     RouterLink
   ],
@@ -49,6 +55,7 @@ export class AuthPageComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
   readonly siteConfig = inject(SITE_CONFIG);
+  private readonly billingPlansStore = inject(BillingPlansStore);
 
   loginModel = signal({
     email: '',
@@ -61,6 +68,7 @@ export class AuthPageComponent {
     password: '',
     confirmPassword: '',
     plan: OrganizationPlan.FREE,
+    billingInterval: 'MONTHLY' as BillingInterval,
     acceptTerms: false,
     acceptPrivacy: false,
     confirmAge: false
@@ -79,10 +87,12 @@ export class AuthPageComponent {
     required(f.password);
     required(f.confirmPassword);
     required(f.plan);
+    required(f.billingInterval);
     applyZodField(f.organizationName, registerSchema.shape.organizationName);
     applyZodField(f.email, registerSchema.shape.email);
     applyZodField(f.password, registerSchema.shape.password);
     applyZodField(f.plan, registerSchema.shape.plan);
+    applyZodField(f.billingInterval, registerSchema.shape.billingInterval);
     applyZodField(f.acceptTerms, registerSchema.shape.acceptTerms);
     applyZodField(f.acceptPrivacy, registerSchema.shape.acceptPrivacy);
     applyZodField(f.confirmAge, registerSchema.shape.confirmAge);
@@ -108,28 +118,44 @@ export class AuthPageComponent {
   registerPrivacyError = computed(() => this.getFieldError(this.registerForm.acceptPrivacy()));
   registerAgeError = computed(() => this.getFieldError(this.registerForm.confirmAge()));
 
-  readonly plans = [
-    {
-      id: OrganizationPlan.FREE,
-      title: 'Free',
-      price: '0 EUR',
-      note: '1 domain group • 1 domain • 15 rules • 1 seat • 10 redirects/min'
-    },
-    {
-      id: OrganizationPlan.STARTER,
-      title: 'Starter',
-      price: '10 EUR',
-      note: '1 domain group • 10 domains • 250 rules • 3 seats • 50 redirects/min'
-    },
-    {
-      id: OrganizationPlan.PRO,
-      title: 'Pro',
-      price: '29 EUR',
-      note: '2 domain groups • 15 domains • 500 rules • 5 seats • 100 redirects/min'
+  private readonly pricingByPlan = computed(() => {
+    const map = new Map<string, { amount: number; currency: string }>();
+    for (const entry of this.billingPlansStore.plans()) {
+      map.set(`${entry.plan}:${entry.interval}`, {
+        amount: entry.amount,
+        currency: entry.currency,
+      });
     }
-  ];
+    return map;
+  });
+
+  readonly plans = computed(() => {
+    const interval = this.registerModel().billingInterval ?? 'MONTHLY';
+    return [
+      {
+        id: OrganizationPlan.FREE,
+        title: 'Free',
+        price: '0 EUR',
+        note: '1 domain group • 1 domain • 15 rules • 1 seat • 10 redirects/min'
+      },
+      {
+        id: OrganizationPlan.STARTER,
+        title: 'Basic',
+        price: this.formatPlanPrice(OrganizationPlan.STARTER, interval),
+        note: '1 domain group • 10 domains • 250 rules • 3 seats • 50 redirects/min'
+      },
+      {
+        id: OrganizationPlan.PRO,
+        title: 'Pro',
+        price: this.formatPlanPrice(OrganizationPlan.PRO, interval),
+        note: '2 domain groups • 15 domains • 500 rules • 5 seats • 100 redirects/min'
+      }
+    ];
+  });
 
   constructor() {
+    this.billingPlansStore.loadPlans();
+
     effect(() => {
       const error = this.authStore.error();
       if (!error) {
@@ -188,5 +214,21 @@ export class AuthPageComponent {
     }
 
     return errors[0].message ?? 'Invalid value';
+  }
+
+  private formatPlanPrice(
+    plan: OrganizationPlan,
+    interval: BillingInterval,
+  ): string {
+    const pricing = this.pricingByPlan().get(`${plan}:${interval}`);
+    if (!pricing) {
+      return 'Contact us';
+    }
+    const normalized =
+      Math.round(pricing.amount) === pricing.amount
+        ? pricing.amount.toFixed(0)
+        : pricing.amount.toFixed(2);
+    const suffix = interval === 'YEARLY' ? 'year' : 'month';
+    return `${normalized} ${pricing.currency} / ${suffix}`;
   }
 }

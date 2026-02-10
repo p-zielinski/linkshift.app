@@ -11,6 +11,7 @@ import {
   CheckoutSessionResponse,
   CheckoutSessionStatus,
 } from '../../../core/api/billing-api.service';
+import { formatPlanLabel } from '../../../core/utils/plan-label';
 
 type CheckoutStatusDialogData = {
   sessionId: string;
@@ -43,6 +44,7 @@ export class CheckoutStatusDialogComponent {
   readonly updatedAt = signal<string | null>(null);
   readonly isLoading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly planLabel = computed(() => formatPlanLabel(this.plan()));
 
   readonly statusMessage = computed(() => {
     switch (this.status()) {

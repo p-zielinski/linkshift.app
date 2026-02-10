@@ -3,13 +3,17 @@ export type LoginDto = {
   password: string;
 };
 
-import { OrganizationPlan } from '@shared/models/organization-config.model';
+import {
+  BillingInterval,
+  OrganizationPlan,
+} from '@shared/models/organization-config.model';
 
 export type RegisterDto = {
   email: string;
   password: string;
   organizationName: string;
   plan?: OrganizationPlan;
+  billingInterval?: BillingInterval;
   acceptTerms: boolean;
   acceptPrivacy: boolean;
   confirmAge: boolean;

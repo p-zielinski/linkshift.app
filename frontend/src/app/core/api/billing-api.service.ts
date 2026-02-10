@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
 import { API_CONFIG } from '../config/api-config';
-import { OrganizationPlan } from '@shared/models/organization-config.model';
+import { BillingInterval, OrganizationPlan } from '@shared/models/organization-config.model';
 
 type CheckoutResponse = {
   checkoutUrl: string;
@@ -28,6 +28,32 @@ export type CheckoutSessionResponse = {
   completedAt?: string | null;
 };
 
+export type PlanLimits = {
+  maxDomainGroups: number;
+  maxDomainsPerGroup: number;
+  maxTotalDomains: number;
+  maxRulesPerGroup: number;
+  maxTotalRules: number;
+  maxTestsPerGroup: number;
+  maxTotalTests: number;
+  maxUsers: number;
+  redirectionLimitPerMinute: number;
+};
+
+export type BillingPlanPrice = {
+  plan: OrganizationPlan;
+  interval: BillingInterval;
+  amount: number;
+  currency: string;
+  variantId: string;
+};
+
+export type BillingPlanCatalog = {
+  plans: BillingPlanPrice[];
+  limits: Record<OrganizationPlan, PlanLimits>;
+  updatedAt: string;
+};
+
 @Injectable({
   providedIn: 'root',
 })
@@ -36,14 +62,22 @@ export class BillingApiService {
   private readonly apiConfig = inject(API_CONFIG);
   private readonly apiUrl = `${this.apiConfig.baseUrl}/api/v1/billing`;
 
-  createCheckout(plan: OrganizationPlan): Observable<CheckoutResponse> {
+  createCheckout(
+    plan: OrganizationPlan,
+    interval?: BillingInterval,
+  ): Observable<CheckoutResponse> {
     return this.http.post<CheckoutResponse>(`${this.apiUrl}/checkout`, {
       plan,
+      interval,
     });
   }
 
   getCustomerPortal(): Observable<PortalResponse> {
     return this.http.get<PortalResponse>(`${this.apiUrl}/portal`);
+  }
+
+  getPlans(): Observable<BillingPlanCatalog> {
+    return this.http.get<BillingPlanCatalog>(`${this.apiUrl}/plans`);
   }
 
   getCheckoutSession(sessionId: string): Observable<CheckoutSessionResponse> {

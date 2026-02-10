@@ -21,6 +21,19 @@ type LemonSqueezySubscriptionResponse = {
   };
 };
 
+type LemonSqueezyVariant = {
+  id?: string;
+  attributes?: Record<string, any>;
+};
+
+type LemonSqueezyVariantResponse = {
+  data?: LemonSqueezyVariant;
+};
+
+type LemonSqueezyVariantListResponse = {
+  data?: LemonSqueezyVariant[];
+};
+
 @Injectable()
 export class LemonSqueezyService {
   private readonly apiKey: string;
@@ -104,6 +117,24 @@ export class LemonSqueezyService {
   async getSubscription(subscriptionId: string) {
     return this.request<LemonSqueezySubscriptionResponse>(
       `/subscriptions/${subscriptionId}`,
+      { method: 'GET' },
+    );
+  }
+
+  async getVariant(variantId: string) {
+    return this.request<LemonSqueezyVariantResponse>(
+      `/variants/${variantId}`,
+      { method: 'GET' },
+    );
+  }
+
+  async listVariants(productId: string) {
+    const params = new URLSearchParams({
+      'filter[product_id]': productId,
+      'page[size]': '100',
+    });
+    return this.request<LemonSqueezyVariantListResponse>(
+      `/variants?${params.toString()}`,
       { method: 'GET' },
     );
   }

@@ -51,19 +51,28 @@ export function getPlanLimits(plan: OrganizationPlan): PlanLimits {
 }
 
 export type VariantIdMap = {
-  starter?: string | null;
-  pro?: string | null;
+  starterMonthly?: string | null;
+  starterYearly?: string | null;
+  proMonthly?: string | null;
+  proYearly?: string | null;
 };
 
 export function getVariantIdForPlan(
   plan: OrganizationPlan,
+  interval: OrganizationSubscription['interval'],
   variants: VariantIdMap,
 ): string | null {
   if (plan === OrganizationPlan.STARTER) {
-    return variants.starter ?? null;
+    if (interval === 'YEARLY') {
+      return variants.starterYearly ?? null;
+    }
+    return variants.starterMonthly ?? null;
   }
   if (plan === OrganizationPlan.PRO) {
-    return variants.pro ?? null;
+    if (interval === 'YEARLY') {
+      return variants.proYearly ?? null;
+    }
+    return variants.proMonthly ?? null;
   }
   return null;
 }

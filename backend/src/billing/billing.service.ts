@@ -5,10 +5,12 @@ import {
   OrganizationPlan,
   OrganizationStatus,
   OrganizationSubscription,
+  BillingInterval,
 } from '@shared/models/organization-config.model';
 import { CacheManagerService, DataType } from '../cache/cache-manager.service';
 import {
   CHECKOUT_PLANS,
+  PlanLimits,
   getPlanLimits,
   getVariantIdForPlan,
 } from './billing.config';
@@ -29,14 +31,33 @@ type LemonWebhookPayload = {
   };
 };
 
+type BillingPlanPrice = {
+  plan: OrganizationPlan;
+  interval: BillingInterval;
+  amount: number;
+  currency: string;
+  variantId: string;
+};
+
+type BillingPlanCatalog = {
+  plans: BillingPlanPrice[];
+  limits: Record<OrganizationPlan, PlanLimits>;
+  updatedAt: string;
+};
+
 @Injectable()
 export class BillingService {
   private readonly variantIds: {
-    starter?: string | null;
-    pro?: string | null;
+    starterMonthly?: string | null;
+    starterYearly?: string | null;
+    proMonthly?: string | null;
+    proYearly?: string | null;
   };
+  private readonly productId: string | null;
   private readonly defaultSuccessUrl: string;
   private readonly defaultCancelUrl: string;
+  private readonly planCatalogCacheKey = 'BILLING_PLANS_CATALOG_V1';
+  private readonly planCatalogTtlSeconds = 15 * 60;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -47,11 +68,24 @@ export class BillingService {
     private readonly logger: Logger,
   ) {
     this.variantIds = {
-      starter: this.configService.get<string>(
-        'LEMON_SQUEEZY_VARIANT_STARTER_ID',
+      starterMonthly:
+        this.configService.get<string>(
+          'LEMON_SQUEEZY_VARIANT_BASIC_MONTHLY_ID',
+        ) ??
+        this.configService.get<string>('LEMON_SQUEEZY_VARIANT_STARTER_ID'),
+      starterYearly: this.configService.get<string>(
+        'LEMON_SQUEEZY_VARIANT_BASIC_YEARLY_ID',
       ),
-      pro: this.configService.get<string>('LEMON_SQUEEZY_VARIANT_PRO_ID'),
+      proMonthly:
+        this.configService.get<string>(
+          'LEMON_SQUEEZY_VARIANT_PRO_MONTHLY_ID',
+        ) ?? this.configService.get<string>('LEMON_SQUEEZY_VARIANT_PRO_ID'),
+      proYearly: this.configService.get<string>(
+        'LEMON_SQUEEZY_VARIANT_PRO_YEARLY_ID',
+      ),
     };
+    this.productId =
+      this.configService.get<string>('LEMON_SQUEEZY_PRODUCT_ID') ?? null;
     this.defaultSuccessUrl =
       this.configService.get<string>('LEMON_SQUEEZY_SUCCESS_URL') ?? '';
     this.defaultCancelUrl =
@@ -62,6 +96,7 @@ export class BillingService {
     organizationId: string;
     userId: string;
     plan: OrganizationPlan;
+    interval?: BillingInterval;
     successUrl?: string;
     cancelUrl?: string;
   }) {
@@ -69,9 +104,16 @@ export class BillingService {
       throw new Error(`Plan ${params.plan} is not purchasable via checkout.`);
     }
 
-    const variantId = getVariantIdForPlan(params.plan, this.variantIds);
+    const interval = params.interval ?? 'MONTHLY';
+    const variantId = getVariantIdForPlan(
+      params.plan,
+      interval,
+      this.variantIds,
+    );
     if (!variantId) {
-      throw new Error(`Missing Lemon Squeezy variant for ${params.plan}.`);
+      throw new Error(
+        `Missing Lemon Squeezy variant for ${params.plan} (${interval}).`,
+      );
     }
 
     const [organization, user] = await Promise.all([
@@ -110,6 +152,7 @@ export class BillingService {
         metadata: {
           organizationName: organization.name,
           email: user.email,
+          interval,
         },
       },
     });
@@ -123,6 +166,7 @@ export class BillingService {
           organizationId: organization.id,
           userId: user.id,
           plan: params.plan,
+          interval,
           organizationName: organization.name,
           email: user.email,
           checkoutSessionId,
@@ -184,6 +228,67 @@ export class BillingService {
     return portalUrl;
   }
 
+  async getPlanCatalog(): Promise<BillingPlanCatalog> {
+    const cached =
+      await this.cacheManagerService.getCustomCache<BillingPlanCatalog>(
+        this.planCatalogCacheKey,
+      );
+    if (cached) {
+      return cached;
+    }
+
+    const planVariants = this.getPlanVariantDefinitions();
+    const variantIds = planVariants
+      .map((entry) => entry.variantId)
+      .filter((entry): entry is string => !!entry);
+    const variants = await this.fetchPlanVariants(variantIds);
+    const plans: BillingPlanPrice[] = [];
+
+    for (const entry of planVariants) {
+      if (!entry.variantId) {
+        this.logger.warn('Missing variant configuration', {
+          plan: entry.plan,
+          interval: entry.interval,
+        });
+        continue;
+      }
+      const variant = variants.get(entry.variantId);
+      if (!variant) {
+        this.logger.warn('Variant not returned from Lemon Squeezy', {
+          variantId: entry.variantId,
+        });
+        continue;
+      }
+
+      const pricing = this.extractVariantPricing(variant);
+      plans.push({
+        plan: entry.plan,
+        interval: entry.interval,
+        amount: pricing.amount,
+        currency: pricing.currency,
+        variantId: entry.variantId,
+      });
+    }
+
+    const catalog: BillingPlanCatalog = {
+      plans,
+      limits: {
+        [OrganizationPlan.FREE]: getPlanLimits(OrganizationPlan.FREE),
+        [OrganizationPlan.STARTER]: getPlanLimits(OrganizationPlan.STARTER),
+        [OrganizationPlan.PRO]: getPlanLimits(OrganizationPlan.PRO),
+      },
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.cacheManagerService.setCustomCache(
+      this.planCatalogCacheKey,
+      catalog,
+      this.planCatalogTtlSeconds,
+    );
+
+    return catalog;
+  }
+
   async handleWebhook(
     rawBody: Buffer,
     signature: string | undefined,
@@ -227,23 +332,26 @@ export class BillingService {
     const plan = this.resolvePlan(customData.plan, attributes.variant_id);
     const status = this.resolveStatus(attributes.status, eventName);
 
-    const subscriptionUpdate = await this.updateOrganizationSubscription(orgId, {
-      plan,
-      status,
-      providerSubscriptionId: subscriptionId,
-      providerCustomerId: attributes.customer_id ?? null,
-      providerOrderId: attributes.order_id ?? null,
-      providerVariantId: attributes.variant_id ?? null,
-      activeFrom: this.parseDate(attributes.created_at),
-      activeUntil: this.parseDate(attributes.ends_at),
-      amount: this.parseAmount(
-        attributes.price ?? attributes.unit_price ?? attributes.renewal_price,
-      ),
-      currency: attributes.currency ?? attributes.currency_code ?? 'EUR',
-      interval: this.mapInterval(
-        attributes.billing_interval ?? attributes.interval,
-      ),
-    });
+    const subscriptionUpdate = await this.updateOrganizationSubscription(
+      orgId,
+      {
+        plan,
+        status,
+        providerSubscriptionId: subscriptionId,
+        providerCustomerId: attributes.customer_id ?? null,
+        providerOrderId: attributes.order_id ?? null,
+        providerVariantId: attributes.variant_id ?? null,
+        activeFrom: this.parseDate(attributes.created_at),
+        activeUntil: this.parseDate(attributes.ends_at),
+        amount: this.parseAmount(
+          attributes.price ?? attributes.unit_price ?? attributes.renewal_price,
+        ),
+        currency: attributes.currency ?? attributes.currency_code ?? 'EUR',
+        interval: this.mapInterval(
+          attributes.billing_interval ?? attributes.interval,
+        ),
+      },
+    );
 
     if (subscriptionUpdate) {
       const renewsAt = this.parseDate(attributes.renews_at);
@@ -264,9 +372,7 @@ export class BillingService {
     }
 
     const checkoutSessionId =
-      customData.checkoutSessionId ??
-      customData.checkout_session_id ??
-      null;
+      customData.checkoutSessionId ?? customData.checkout_session_id ?? null;
 
     if (checkoutSessionId) {
       await this.updateCheckoutSessionFromWebhook({
@@ -410,13 +516,16 @@ export class BillingService {
     }
 
     const normalizedEvent = params.eventName.toLowerCase();
+    const nextPlanLabel = this.formatPlanLabel(params.next.plan);
+    const previousPlanLabel = this.formatPlanLabel(params.previous.plan);
     const planChanged = params.previous.plan !== params.next.plan;
     const statusBecameActive =
       params.previous.status !== OrganizationStatus.ACTIVE &&
       params.next.status === OrganizationStatus.ACTIVE;
     const isUpdateEvent =
       normalizedEvent.includes('subscription_updated') ||
-      normalizedEvent.includes('subscription_change');
+      normalizedEvent.includes('subscription_change') ||
+      normalizedEvent.includes('subscription_plan_changed');
 
     try {
       if (
@@ -427,7 +536,7 @@ export class BillingService {
         await this.emailService.sendSubscriptionActivated({
           email: params.email,
           organization: params.organizationName,
-          plan: params.next.plan,
+          plan: nextPlanLabel,
           amount: params.amount,
           currency: params.currency,
           interval: params.interval,
@@ -441,7 +550,7 @@ export class BillingService {
         await this.emailService.sendSubscriptionRenewal({
           email: params.email,
           organization: params.organizationName,
-          plan: params.next.plan,
+          plan: nextPlanLabel,
           amount: params.amount,
           currency: params.currency,
           interval: params.interval,
@@ -456,7 +565,7 @@ export class BillingService {
         await this.emailService.sendSubscriptionPaymentFailed({
           email: params.email,
           organization: params.organizationName,
-          plan: params.next.plan,
+          plan: nextPlanLabel,
         });
       }
 
@@ -468,7 +577,7 @@ export class BillingService {
         await this.emailService.sendSubscriptionCanceled({
           email: params.email,
           organization: params.organizationName,
-          plan: params.next.plan,
+          plan: nextPlanLabel,
           endsAt: params.endsAt,
         });
       }
@@ -477,8 +586,8 @@ export class BillingService {
         await this.emailService.sendPlanChanged({
           email: params.email,
           organization: params.organizationName,
-          fromPlan: params.previous.plan,
-          toPlan: params.next.plan,
+          fromPlan: previousPlanLabel,
+          toPlan: nextPlanLabel,
         });
       }
     } catch (error) {
@@ -588,6 +697,85 @@ export class BillingService {
     return null;
   }
 
+  private getPlanVariantDefinitions(): Array<{
+    plan: OrganizationPlan;
+    interval: BillingInterval;
+    variantId: string | null;
+  }> {
+    return [
+      {
+        plan: OrganizationPlan.STARTER,
+        interval: 'MONTHLY',
+        variantId: this.variantIds.starterMonthly ?? null,
+      },
+      {
+        plan: OrganizationPlan.STARTER,
+        interval: 'YEARLY',
+        variantId: this.variantIds.starterYearly ?? null,
+      },
+      {
+        plan: OrganizationPlan.PRO,
+        interval: 'MONTHLY',
+        variantId: this.variantIds.proMonthly ?? null,
+      },
+      {
+        plan: OrganizationPlan.PRO,
+        interval: 'YEARLY',
+        variantId: this.variantIds.proYearly ?? null,
+      },
+    ];
+  }
+
+  private async fetchPlanVariants(
+    variantIds: string[],
+  ): Promise<Map<string, { id?: string; attributes?: Record<string, any> }>> {
+    const uniqueIds = Array.from(new Set(variantIds));
+    const variantsById = new Map<
+      string,
+      { id?: string; attributes?: Record<string, any> }
+    >();
+
+    if (this.productId) {
+      const response = await this.lemon.listVariants(this.productId);
+      const items = response.data ?? [];
+      for (const item of items) {
+        if (item?.id) {
+          variantsById.set(String(item.id), item);
+        }
+      }
+      return variantsById;
+    }
+
+    await Promise.all(
+      uniqueIds.map(async (variantId) => {
+        const response = await this.lemon.getVariant(variantId);
+        if (response.data) {
+          variantsById.set(String(response.data.id ?? variantId), response.data);
+        }
+      }),
+    );
+
+    return variantsById;
+  }
+
+  private extractVariantPricing(variant: {
+    id?: string;
+    attributes?: Record<string, any>;
+  }): { amount: number; currency: string; interval: BillingInterval } {
+    const attributes = variant.attributes ?? {};
+    const amount = this.parseAmount(
+      attributes.price ?? attributes.unit_price ?? attributes.renewal_price,
+    );
+    const currency =
+      attributes.currency ?? attributes.currency_code ?? 'EUR';
+    const interval = this.mapInterval(
+      attributes.billing_interval ??
+        attributes.interval_unit ??
+        attributes.interval,
+    ) as BillingInterval;
+    return { amount, currency, interval };
+  }
+
   private resolvePlan(
     plan: string | null | undefined,
     variantId: string | number | null | undefined,
@@ -601,10 +789,18 @@ export class BillingService {
     }
 
     const variantIdStr = variantId ? String(variantId) : null;
-    if (variantIdStr && variantIdStr === this.variantIds.starter) {
+    if (
+      variantIdStr &&
+      (variantIdStr === this.variantIds.starterMonthly ||
+        variantIdStr === this.variantIds.starterYearly)
+    ) {
       return OrganizationPlan.STARTER;
     }
-    if (variantIdStr && variantIdStr === this.variantIds.pro) {
+    if (
+      variantIdStr &&
+      (variantIdStr === this.variantIds.proMonthly ||
+        variantIdStr === this.variantIds.proYearly)
+    ) {
       return OrganizationPlan.PRO;
     }
 
@@ -733,6 +929,19 @@ export class BillingService {
     }
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  private formatPlanLabel(plan: OrganizationPlan): string {
+    if (plan === OrganizationPlan.STARTER) {
+      return 'Basic';
+    }
+    if (plan === OrganizationPlan.PRO) {
+      return 'Pro';
+    }
+    if (plan === OrganizationPlan.FREE) {
+      return 'Free';
+    }
+    return String(plan);
   }
 
   private parseAmount(value: unknown): number {

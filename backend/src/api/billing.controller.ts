@@ -43,6 +43,7 @@ export class BillingController {
       organizationId,
       userId,
       plan: body.plan,
+      interval: body.interval,
       successUrl: body.successUrl,
       cancelUrl: body.cancelUrl,
     });
@@ -71,6 +72,11 @@ export class BillingController {
       checkoutSessionId: id,
     });
     return this.billingService.getCheckoutSessionStatus(organizationId, id);
+  }
+
+  @Get('plans')
+  async getPlans() {
+    return this.billingService.getPlanCatalog();
   }
 
   @Post('webhooks/lemon-squeezy')

@@ -4,6 +4,26 @@
   gap: 20px;
 }
 
+.billing-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.toggle-group {
+  border-radius: 999px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  background: #ffffff;
+  padding: 4px;
+}
+
+.toggle-label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
 .pricing-card,
 .pricing-card.mat-mdc-card {
   position: relative;
@@ -113,6 +133,11 @@
 }
 
 @media (max-width: 640px) {
+  .billing-toggle {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
   .plan-header {
     flex-direction: column;
     gap: 8px;

@@ -73,6 +73,20 @@
   margin-top: 4px;
 }
 
+.interval-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.interval-toggle-group {
+  border-radius: 999px;
+  border: 1px solid var(--color-app-outline);
+  background: var(--color-app-surface);
+  padding: 4px;
+}
+
 .plan-grid {
   display: grid;
   gap: 12px;

@@ -35,6 +35,7 @@ import type {
   RedirectRuleTopRange,
   TopRedirectRuleEntry
 } from '../../core/models/redirect-rule.model';
+import { formatPlanLabel } from '../../core/utils/plan-label';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -256,6 +257,10 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       verticalPosition: 'bottom',
       panelClass: copied ? ['bg-emerald-600', 'text-white'] : ['bg-red-600', 'text-white'],
     });
+  }
+
+  planLabel(plan: string): string {
+    return formatPlanLabel(plan);
   }
 
   private scheduleOverflowCheck(): void {

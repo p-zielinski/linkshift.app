@@ -6,8 +6,14 @@ export const CheckoutPlanSchema = z.enum([
   OrganizationPlan.PRO,
 ]);
 
+export const CheckoutIntervalSchema = z.enum([
+  'MONTHLY',
+  'YEARLY',
+]);
+
 export const CreateCheckoutSchema = z.object({
   plan: CheckoutPlanSchema,
+  interval: CheckoutIntervalSchema.optional(),
   successUrl: z.string().url().optional(),
   cancelUrl: z.string().url().optional(),
 });

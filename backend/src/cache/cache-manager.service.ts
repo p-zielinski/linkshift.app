@@ -475,4 +475,25 @@ export class CacheManagerService {
     }
     return result;
   }
+
+  async getCustomCache<T>(key: string): Promise<T | undefined> {
+    if (this.localCache.has(key)) {
+      return this.localCache.get(key) as T;
+    }
+
+    const cached = await this.redisService.get<T>(key);
+    if (cached !== undefined) {
+      this.localCache.set(key, cached);
+    }
+    return cached;
+  }
+
+  async setCustomCache<T>(
+    key: string,
+    value: T,
+    ttlSeconds: number,
+  ): Promise<void> {
+    this.localCache.set(key, value, { ttl: ttlSeconds * 1000 });
+    await this.redisService.set(key, value, ttlSeconds);
+  }
 }

@@ -4,6 +4,8 @@ export enum OrganizationPlan {
   PRO = 'PRO',
 }
 
+export type BillingInterval = 'MONTHLY' | 'YEARLY';
+
 export enum OrganizationStatus {
   ACTIVE = 'ACTIVE',
   SUSPENDED = 'SUSPENDED',

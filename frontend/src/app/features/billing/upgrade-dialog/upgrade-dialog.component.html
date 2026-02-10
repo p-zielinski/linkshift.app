@@ -22,6 +22,7 @@
     [actionMode]="'select'"
     [currentPlan]="data.currentPlan"
     [customLink]="'/contact'"
+    [planBlockReasons]="planBlockReasons()"
     (planSelected)="onPlanSelected($event)"
     (customRequested)="onCustomRequested()"
   ></app-pricing-plans>
