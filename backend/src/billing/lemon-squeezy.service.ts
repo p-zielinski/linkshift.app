@@ -73,7 +73,7 @@ export class LemonSqueezyService {
         attributes: {
           product_options: {
             redirect_url: params.successUrl || this.defaultSuccessUrl,
-            name: `LinkSwitch.app subscription`,
+            name: `LinkShift.app subscription`,
             enabled_variants: enabledVariants,
           },
           checkout_data: {

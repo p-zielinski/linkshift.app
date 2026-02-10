@@ -594,6 +594,32 @@ export class BillingService {
     const planName =
       customPlan?.name ?? customData.planName ?? customData.plan_name ?? null;
 
+    const pricingFallback = variantIdStr
+      ? await this.resolvePricingFromVariant({
+          variantId: variantIdStr,
+          customPlan,
+        })
+      : null;
+    const rawAmount = this.parseAmount(
+      attributes.price ?? attributes.unit_price ?? attributes.renewal_price,
+    );
+    const intervalValue = attributes.billing_interval ?? attributes.interval;
+    const resolvedInterval = intervalValue
+      ? this.mapInterval(intervalValue)
+      : pricingFallback?.interval ??
+        this.resolveIntervalFromVariantId(variantIdStr, customPlan) ??
+        'MONTHLY';
+
+    const resolvedAmount =
+      rawAmount > 0 || plan === OrganizationPlan.FREE
+        ? rawAmount
+        : pricingFallback?.amount ?? rawAmount;
+    const resolvedCurrency =
+      attributes.currency ??
+      attributes.currency_code ??
+      pricingFallback?.currency ??
+      'EUR';
+
     const subscriptionUpdate = await this.updateOrganizationSubscription(
       orgId,
       {
@@ -607,13 +633,9 @@ export class BillingService {
         providerVariantId: attributes.variant_id ?? null,
         activeFrom: this.parseDate(attributes.created_at),
         activeUntil: this.parseDate(attributes.ends_at),
-        amount: this.parseAmount(
-          attributes.price ?? attributes.unit_price ?? attributes.renewal_price,
-        ),
-        currency: attributes.currency ?? attributes.currency_code ?? 'EUR',
-        interval: this.mapInterval(
-          attributes.billing_interval ?? attributes.interval,
-        ),
+        amount: resolvedAmount,
+        currency: resolvedCurrency,
+        interval: resolvedInterval,
         limits,
       },
     );
@@ -1102,6 +1124,66 @@ export class BillingService {
         variantId: this.variantIds.proYearly ?? null,
       },
     ];
+  }
+
+  private resolveIntervalFromVariantId(
+    variantId: string | null,
+    customPlan: { monthlyVariantId?: string | null; yearlyVariantId?: string | null } | null,
+  ): BillingInterval | null {
+    if (!variantId) {
+      return null;
+    }
+
+    if (customPlan) {
+      if (variantId === customPlan.yearlyVariantId) {
+        return 'YEARLY';
+      }
+      if (variantId === customPlan.monthlyVariantId) {
+        return 'MONTHLY';
+      }
+    }
+
+    const match = this.getPlanVariantDefinitions().find(
+      (entry) => entry.variantId === variantId,
+    );
+    return match?.interval ?? null;
+  }
+
+  private async resolvePricingFromVariant(params: {
+    variantId: string;
+    customPlan: { monthlyVariantId?: string | null; yearlyVariantId?: string | null } | null;
+  }): Promise<{ amount: number; currency: string; interval: BillingInterval } | null> {
+    if (!params.variantId) {
+      return null;
+    }
+
+    if (params.customPlan) {
+      const variants = await this.fetchPlanVariants([params.variantId]);
+      const variant = variants.get(params.variantId);
+      if (variant) {
+        return this.extractVariantPricing(variant);
+      }
+    }
+
+    const catalog = await this.getPlanCatalog();
+    const catalogEntry = catalog.plans.find(
+      (entry) => entry.variantId === params.variantId,
+    );
+    if (catalogEntry) {
+      return {
+        amount: catalogEntry.amount,
+        currency: catalogEntry.currency,
+        interval: catalogEntry.interval,
+      };
+    }
+
+    const variants = await this.fetchPlanVariants([params.variantId]);
+    const variant = variants.get(params.variantId);
+    if (variant) {
+      return this.extractVariantPricing(variant);
+    }
+
+    return null;
   }
 
   private async fetchPlanVariants(

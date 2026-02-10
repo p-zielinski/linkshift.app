@@ -17,6 +17,13 @@ export class ApiRedirectionMiddleware implements NestMiddleware {
       return next();
     }
 
+    if (
+      req.originalUrl === '/api/v1/billing/webhooks/lemon-squeezy' &&
+      req.method === 'POST'
+    ) {
+      return next();
+    }
+
     await this.redirectService.applyRedirect(req, res);
   }
 }

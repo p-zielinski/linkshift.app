@@ -252,6 +252,11 @@ VALUES (
 );
 ```
 
+Tip: you can run the insert directly via `psql`:
+```bash
+psql "$DATABASE_URL" -c "INSERT INTO \"CustomPlan\" (\"id\",\"organizationId\",\"name\",\"description\",\"monthlyVariantId\",\"yearlyVariantId\",\"limits\",\"createdAt\",\"updatedAt\") VALUES ('cpl_custom_001','org_123','Enterprise','Higher limits for the enterprise rollout','1299001','1299002','{\"maxDomainGroups\":5,\"maxDomainsPerGroup\":50,\"maxTotalDomains\":50,\"maxRulesPerGroup\":2000,\"maxTotalRules\":2000,\"maxTestsPerGroup\":4000,\"maxTotalTests\":4000,\"maxUsers\":20,\"redirectionLimitPerMinute\":500}'::jsonb,NOW(),NOW());"
+```
+
 ### Purchase flow
 1) Log in as a user in the organization that owns the custom plan.
 2) Open the upgrade dialog (Dashboard → Upgrade).

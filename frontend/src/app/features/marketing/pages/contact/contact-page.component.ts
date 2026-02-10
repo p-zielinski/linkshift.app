@@ -50,7 +50,7 @@ export class ContactPageComponent implements OnInit {
   ngOnInit(): void {
     this.seo.updateTags({
       title: `${this.siteConfig.name} | Contact`,
-      description: 'Report bugs, suggest features, or request a custom plan for LinkSwitch.',
+      description: 'Report bugs, suggest features, or request a custom plan for LinkShift.',
       canonicalPath: '/contact',
       keywords: 'contact, bug report, feature request, custom plan',
     });

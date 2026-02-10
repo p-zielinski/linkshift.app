@@ -28,7 +28,7 @@ const CSR_ROUTES = [
 app.get('/runtime-config.js', (_req, res) => {
   const config = {
     APP_API_BASE_URL: process.env['APP_API_BASE_URL'] ?? 'http://localhost:3000',
-    APP_SITE_NAME: process.env['APP_SITE_NAME'] ?? 'LinkSwitch.app',
+    APP_SITE_NAME: process.env['APP_SITE_NAME'] ?? 'LinkShift.app',
     APP_SITE_TAGLINE: process.env['APP_SITE_TAGLINE'] ?? 'Signal-driven redirect automation',
     APP_SUPPORT_EMAIL: process.env['APP_SUPPORT_EMAIL'] ?? 'support@redirectcontrol.app',
     APP_LEGAL_NAME: process.env['APP_LEGAL_NAME'] ?? 'Independent operator',

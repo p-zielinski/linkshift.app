@@ -143,7 +143,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
     ctaNote: '30-day satisfaction guarantee. Refunds available with no explanation required.',
     seoTitle: 'Redirect.pizza alternative for domain groups',
     seoDescription:
-      'Compare LinkSwitch.app with Redirect.pizza. Use domain groups, regex sources, placeholders, and conditional routing to manage large redirect inventories.',
+      'Compare LinkShift.app with Redirect.pizza. Use domain groups, regex sources, placeholders, and conditional routing to manage large redirect inventories.',
   },
   'redirect-proxy': {
     slug: 'redirect-proxy',

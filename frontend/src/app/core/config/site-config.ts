@@ -13,7 +13,7 @@ export type SiteConfig = {
 };
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  name: 'LinkSwitch.app',
+  name: 'LinkShift.app',
   tagline: 'Signal-driven redirect automation',
   supportEmail: 'support@redirectcontrol.app',
   legalName: 'Independent operator',
