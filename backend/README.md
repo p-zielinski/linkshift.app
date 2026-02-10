@@ -25,7 +25,7 @@ Payload:
   email: string;            // Valid email format
   password: string;         // Min. 8 characters
   organizationName: string; // Min. 1 character
-  plan?: 'FREE' | 'STARTER' | 'PRO';
+  plan?: 'FREE' | 'BASIC' | 'PRO';
 }
 ```
 

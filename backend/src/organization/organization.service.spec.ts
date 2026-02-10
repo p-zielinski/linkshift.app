@@ -76,7 +76,7 @@ describe('OrganizationService.getEffectiveSubscription', () => {
   it('downgrades canceled subscriptions once activeUntil is in the past', () => {
     const config = new OrganizationConfiguration({
       activeSubscription: new OrganizationSubscription({
-        plan: OrganizationPlan.STARTER,
+        plan: OrganizationPlan.BASIC,
         status: OrganizationStatus.CANCELED,
         activeUntil: new Date(Date.now() - 60_000),
       }),
@@ -106,7 +106,7 @@ describe('OrganizationService.getEffectiveSubscription', () => {
   it('keeps active subscriptions without activeUntil', () => {
     const config = new OrganizationConfiguration({
       activeSubscription: new OrganizationSubscription({
-        plan: OrganizationPlan.STARTER,
+        plan: OrganizationPlan.BASIC,
         status: OrganizationStatus.ACTIVE,
         activeUntil: null,
       }),
@@ -114,7 +114,7 @@ describe('OrganizationService.getEffectiveSubscription', () => {
 
     const result = service.getEffectiveSubscription(config);
 
-    expect(result.plan).toBe(OrganizationPlan.STARTER);
+    expect(result.plan).toBe(OrganizationPlan.BASIC);
     expect(result.status).toBe(OrganizationStatus.ACTIVE);
   });
 });

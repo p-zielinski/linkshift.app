@@ -1,6 +1,6 @@
 export enum OrganizationPlan {
   FREE = 'FREE',
-  STARTER = 'STARTER',
+  BASIC = 'BASIC',
   PRO = 'PRO',
   CUSTOM = 'CUSTOM',
 }
@@ -52,6 +52,9 @@ export class OrganizationSubscription {
   constructor(partial?: Partial<OrganizationSubscription>) {
     if (partial) {
       Object.assign(this, partial);
+      if (this.plan === ('BASIC' as OrganizationPlan)) {
+        this.plan = OrganizationPlan.BASIC;
+      }
       if (partial.limits) {
         this.limits = {
           ...this.limits,

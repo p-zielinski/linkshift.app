@@ -4,7 +4,7 @@ const RegisterBaseSchema = z.object({
   email: z.email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   organizationName: z.string().min(1, 'Organization name is required'),
-  plan: z.enum(['FREE', 'STARTER', 'PRO']).optional(),
+  plan: z.enum(['FREE', 'BASIC', 'PRO']).optional(),
   billingInterval: z.enum(['MONTHLY', 'YEARLY']).optional(),
 });
 

@@ -55,13 +55,13 @@ export class UpgradeDialogComponent {
 
     const reasons: PlanBlockReasons = {};
     if (this.data.currentPlan === OrganizationPlan.PRO) {
-      const targetLimits = limits[OrganizationPlan.STARTER];
+      const targetLimits = limits[OrganizationPlan.BASIC];
       if (!targetLimits) {
         return reasons;
       }
       const overages = this.getOverageDetails(usage, targetLimits);
       if (overages.length > 0) {
-        reasons[OrganizationPlan.STARTER] =
+        reasons[OrganizationPlan.BASIC] =
           `Reduce usage to downgrade: ${overages.join(', ')}.`;
       }
     }
@@ -94,15 +94,18 @@ export class UpgradeDialogComponent {
   }
 
   async onPlanSelected(selection: PricingPlanSelection): Promise<void> {
-    const { plan, interval } = selection;
+    const { plan, variantId } = selection;
     if (
-      plan !== OrganizationPlan.STARTER &&
+      plan !== OrganizationPlan.BASIC &&
       plan !== OrganizationPlan.PRO &&
       plan !== OrganizationPlan.CUSTOM
     ) {
       return;
     }
     if (plan === OrganizationPlan.CUSTOM && !selection.customPlanId) {
+      return;
+    }
+    if (!variantId) {
       return;
     }
 
@@ -113,10 +116,10 @@ export class UpgradeDialogComponent {
           ? await firstValueFrom(
               this.billingApi.createCustomPlanCheckout(
                 selection.customPlanId,
-                interval,
+                variantId,
               ),
             )
-          : await firstValueFrom(this.billingApi.createCheckout(plan, interval));
+          : await firstValueFrom(this.billingApi.createCheckout(variantId));
       window.location.href = response.checkoutUrl;
     } catch (error) {
       const message =

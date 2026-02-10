@@ -166,17 +166,23 @@ export class AppShellComponent {
       }
 
       this.lastCheckoutSessionId.set(sessionId);
-      this.dialog.open(CheckoutStatusDialogComponent, {
+      const dialogRef = this.dialog.open(CheckoutStatusDialogComponent, {
         data: { sessionId },
         width: 'min(520px, 92vw)',
         maxWidth: '92vw',
+        closeOnNavigation: false,
       });
 
-      this.router.navigate([], {
-        queryParams: { checkout_session: null },
-        queryParamsHandling: 'merge',
-        replaceUrl: true,
-      });
+      dialogRef
+        .afterClosed()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.router.navigate([], {
+            queryParams: { checkout_session: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true,
+          });
+        });
     });
   }
 }

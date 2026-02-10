@@ -92,7 +92,7 @@ export class BillingService {
       starterMonthly:
         this.configService.get<string>(
           'LEMON_SQUEEZY_VARIANT_BASIC_MONTHLY_ID',
-        ) ?? this.configService.get<string>('LEMON_SQUEEZY_VARIANT_STARTER_ID'),
+        ) ?? this.configService.get<string>('LEMON_SQUEEZY_VARIANT_BASIC_ID'),
       starterYearly: this.configService.get<string>(
         'LEMON_SQUEEZY_VARIANT_BASIC_YEARLY_ID',
       ),
@@ -108,8 +108,6 @@ export class BillingService {
       this.configService.get<string>('LEMON_SQUEEZY_PRODUCT_ID') ?? null;
     this.defaultSuccessUrl =
       this.configService.get<string>('LEMON_SQUEEZY_SUCCESS_URL') ?? '';
-    this.defaultCancelUrl =
-      this.configService.get<string>('LEMON_SQUEEZY_CANCEL_URL') ?? '';
   }
 
   async createCheckout(params: {
@@ -136,80 +134,71 @@ export class BillingService {
       );
     }
 
-    const [organization, user] = await Promise.all([
-      this.prisma.organization.findUnique({
-        where: { id: params.organizationId },
-      }),
-      this.prisma.user.findUnique({
-        where: { id: params.userId },
-      }),
-    ]);
+    const variantIds = this.getPlanVariantIds(params.plan);
 
-    if (!organization || !user) {
-      throw new Error('Organization or user not found for checkout.');
-    }
-
-    const checkoutSessionId = createCustomCuid(AppEntity.CheckoutSession, 20);
-    const baseSuccessUrl = params.successUrl ?? this.defaultSuccessUrl;
-
-    const successUrl = this.appendCheckoutSessionId(
-      baseSuccessUrl,
-      checkoutSessionId,
-    );
-
-    await this.prisma.billingCheckoutSession.create({
-      data: {
-        id: checkoutSessionId,
-        organizationId: organization.id,
-        userId: user.id,
+    return this.createCheckoutInternal({
+      organizationId: params.organizationId,
+      userId: params.userId,
+      plan: params.plan,
+      interval,
+      variantId,
+      variantIds,
+      customData: {
         plan: params.plan,
-        status: 'PENDING',
-        metadata: {
-          organizationName: organization.name,
-          email: user.email,
-          interval,
-        },
+        interval,
       },
+      successUrl: params.successUrl,
     });
+  }
 
-    try {
-      const checkout = await this.lemon.createCheckout({
-        variantId,
-        customerEmail: user.email,
-        organizationName: organization.name,
+  async createCheckoutByVariant(params: {
+    organizationId: string;
+    userId: string;
+    variantId: string;
+    successUrl?: string;
+  }) {
+    const standard = this.resolveStandardPlanForVariant(params.variantId);
+    if (standard) {
+      return this.createCheckoutInternal({
+        organizationId: params.organizationId,
+        userId: params.userId,
+        plan: standard.plan,
+        interval: standard.interval,
+        variantId: standard.variantId,
+        variantIds: standard.variantIds,
         customData: {
-          organizationId: organization.id,
-          userId: user.id,
-          plan: params.plan,
-          interval,
-          organizationName: organization.name,
-          email: user.email,
-          checkoutSessionId,
+          plan: standard.plan,
+          interval: standard.interval,
         },
-        successUrl: successUrl || undefined,
+        successUrl: params.successUrl,
       });
-
-      if (checkout.checkoutId) {
-        await this.prisma.billingCheckoutSession.update({
-          where: { id: checkoutSessionId },
-          data: { providerCheckoutId: checkout.checkoutId },
-        });
-      }
-
-      return {
-        ...checkout,
-        checkoutSessionId,
-      };
-    } catch (error) {
-      await this.prisma.billingCheckoutSession.update({
-        where: { id: checkoutSessionId },
-        data: {
-          status: 'FAILED',
-          completedAt: new Date(),
-        },
-      });
-      throw error;
     }
+
+    const customPlan = await this.findCustomPlanByVariant({
+      organizationId: params.organizationId,
+      variantId: params.variantId,
+    });
+    if (!customPlan) {
+      throw new Error('Unknown Lemon Squeezy variant for checkout.');
+    }
+
+    return this.createCheckoutInternal({
+      organizationId: params.organizationId,
+      userId: params.userId,
+      plan: OrganizationPlan.CUSTOM,
+      planName: customPlan.name,
+      customPlanId: customPlan.id,
+      interval: customPlan.interval,
+      variantId: customPlan.variantId,
+      variantIds: customPlan.variantIds,
+      customData: {
+        plan: OrganizationPlan.CUSTOM,
+        interval: customPlan.interval,
+        customPlanId: customPlan.id,
+        planName: customPlan.name,
+      },
+      successUrl: params.successUrl,
+    });
   }
 
   async getCustomerPortalUrl(organizationId: string): Promise<string> {
@@ -288,7 +277,7 @@ export class BillingService {
       plans,
       limits: {
         [OrganizationPlan.FREE]: getPlanLimits(OrganizationPlan.FREE),
-        [OrganizationPlan.STARTER]: getPlanLimits(OrganizationPlan.STARTER),
+        [OrganizationPlan.BASIC]: getPlanLimits(OrganizationPlan.BASIC),
         [OrganizationPlan.PRO]: getPlanLimits(OrganizationPlan.PRO),
       },
       updatedAt: new Date().toISOString(),
@@ -374,7 +363,7 @@ export class BillingService {
     organizationId: string;
     userId: string;
     customPlanId: string;
-    interval?: BillingInterval;
+    variantId: string;
     successUrl?: string;
     cancelUrl?: string;
   }) {
@@ -389,17 +378,52 @@ export class BillingService {
       throw new Error('Custom plan not found for organization.');
     }
 
-    const interval = params.interval ?? 'MONTHLY';
-    const variantId =
-      interval === 'YEARLY'
-        ? customPlan.yearlyVariantId
-        : customPlan.monthlyVariantId;
-    if (!variantId) {
-      throw new Error(
-        `Missing Lemon Squeezy variant for custom plan (${interval}).`,
-      );
+    const variantId = params.variantId;
+    const interval =
+      variantId === customPlan.yearlyVariantId ? 'YEARLY' : 'MONTHLY';
+    if (
+      variantId !== customPlan.monthlyVariantId &&
+      variantId !== customPlan.yearlyVariantId
+    ) {
+      throw new Error('Variant does not belong to custom plan.');
     }
 
+    const variantIds = [
+      customPlan.monthlyVariantId,
+      customPlan.yearlyVariantId,
+    ].filter((entry): entry is string => !!entry);
+
+    return this.createCheckoutInternal({
+      organizationId: params.organizationId,
+      userId: params.userId,
+      plan: OrganizationPlan.CUSTOM,
+      planName: customPlan.name,
+      customPlanId: customPlan.id,
+      interval,
+      variantId,
+      variantIds,
+      customData: {
+        plan: OrganizationPlan.CUSTOM,
+        interval,
+        customPlanId: customPlan.id,
+        planName: customPlan.name,
+      },
+      successUrl: params.successUrl,
+    });
+  }
+
+  private async createCheckoutInternal(params: {
+    organizationId: string;
+    userId: string;
+    plan: OrganizationPlan;
+    planName?: string | null;
+    customPlanId?: string | null;
+    interval: BillingInterval;
+    variantId: string;
+    variantIds: string[];
+    customData: Record<string, any>;
+    successUrl?: string;
+  }) {
     const [organization, user] = await Promise.all([
       this.prisma.organization.findUnique({
         where: { id: params.organizationId },
@@ -415,44 +439,43 @@ export class BillingService {
 
     const checkoutSessionId = createCustomCuid(AppEntity.CheckoutSession, 20);
     const baseSuccessUrl = params.successUrl ?? this.defaultSuccessUrl;
-    const baseCancelUrl = params.cancelUrl ?? this.defaultCancelUrl;
 
     const successUrl = this.appendCheckoutSessionId(
       baseSuccessUrl,
       checkoutSessionId,
     );
-
     await this.prisma.billingCheckoutSession.create({
       data: {
         id: checkoutSessionId,
         organizationId: organization.id,
         userId: user.id,
-        plan: OrganizationPlan.CUSTOM,
+        plan: params.plan,
         status: 'PENDING',
         metadata: {
           organizationName: organization.name,
           email: user.email,
-          interval,
-          customPlanId: customPlan.id,
+          interval: params.interval,
+          customPlanId: params.customPlanId ?? null,
+          planName: params.planName ?? null,
         },
       },
     });
 
     try {
       const checkout = await this.lemon.createCheckout({
-        variantId,
+        variantId: params.variantId,
+        variantIds: params.variantIds,
         customerEmail: user.email,
         organizationName: organization.name,
         customData: {
           organizationId: organization.id,
           userId: user.id,
-          plan: OrganizationPlan.CUSTOM,
-          interval,
-          customPlanId: customPlan.id,
-          planName: customPlan.name,
+          plan: params.plan,
+          interval: params.interval,
           organizationName: organization.name,
           email: user.email,
           checkoutSessionId,
+          ...params.customData,
         },
         successUrl: successUrl || undefined,
       });
@@ -954,6 +977,104 @@ export class BillingService {
     return null;
   }
 
+  private getPlanVariantIds(plan: OrganizationPlan): string[] {
+    if (plan === OrganizationPlan.BASIC) {
+      return [
+        this.variantIds.starterMonthly,
+        this.variantIds.starterYearly,
+        this.variantIds.proMonthly,
+        this.variantIds.proYearly,
+      ].filter((entry): entry is string => !!entry);
+    }
+    if (plan === OrganizationPlan.PRO) {
+      return [this.variantIds.proMonthly, this.variantIds.proYearly].filter(
+        (entry): entry is string => !!entry,
+      );
+    }
+    return [];
+  }
+
+  private resolveStandardPlanForVariant(variantId: string): {
+    plan: OrganizationPlan;
+    interval: BillingInterval;
+    variantId: string;
+    variantIds: string[];
+  } | null {
+    if (variantId === this.variantIds.starterMonthly) {
+      return {
+        plan: OrganizationPlan.BASIC,
+        interval: 'MONTHLY',
+        variantId,
+        variantIds: this.getPlanVariantIds(OrganizationPlan.BASIC),
+      };
+    }
+    if (variantId === this.variantIds.starterYearly) {
+      return {
+        plan: OrganizationPlan.BASIC,
+        interval: 'YEARLY',
+        variantId,
+        variantIds: this.getPlanVariantIds(OrganizationPlan.BASIC),
+      };
+    }
+    if (variantId === this.variantIds.proMonthly) {
+      return {
+        plan: OrganizationPlan.PRO,
+        interval: 'MONTHLY',
+        variantId,
+        variantIds: this.getPlanVariantIds(OrganizationPlan.PRO),
+      };
+    }
+    if (variantId === this.variantIds.proYearly) {
+      return {
+        plan: OrganizationPlan.PRO,
+        interval: 'YEARLY',
+        variantId,
+        variantIds: this.getPlanVariantIds(OrganizationPlan.PRO),
+      };
+    }
+    return null;
+  }
+
+  private async findCustomPlanByVariant(params: {
+    organizationId: string;
+    variantId: string;
+  }): Promise<{
+    id: string;
+    name: string;
+    interval: BillingInterval;
+    variantId: string;
+    variantIds: string[];
+  } | null> {
+    const customPlan = await this.prisma.customPlan.findFirst({
+      where: {
+        organizationId: params.organizationId,
+        deletedAt: null,
+        OR: [
+          { monthlyVariantId: params.variantId },
+          { yearlyVariantId: params.variantId },
+        ],
+      },
+    });
+    if (!customPlan) {
+      return null;
+    }
+
+    const interval =
+      params.variantId === customPlan.yearlyVariantId ? 'YEARLY' : 'MONTHLY';
+    const variantIds = [
+      customPlan.monthlyVariantId,
+      customPlan.yearlyVariantId,
+    ].filter((entry): entry is string => !!entry);
+
+    return {
+      id: customPlan.id,
+      name: customPlan.name,
+      interval,
+      variantId: params.variantId,
+      variantIds,
+    };
+  }
+
   private getPlanVariantDefinitions(): Array<{
     plan: OrganizationPlan;
     interval: BillingInterval;
@@ -961,12 +1082,12 @@ export class BillingService {
   }> {
     return [
       {
-        plan: OrganizationPlan.STARTER,
+        plan: OrganizationPlan.BASIC,
         interval: 'MONTHLY',
         variantId: this.variantIds.starterMonthly ?? null,
       },
       {
-        plan: OrganizationPlan.STARTER,
+        plan: OrganizationPlan.BASIC,
         interval: 'YEARLY',
         variantId: this.variantIds.starterYearly ?? null,
       },
@@ -1056,8 +1177,11 @@ export class BillingService {
     variantId: string | number | null | undefined,
   ): OrganizationPlan {
     const normalized = (plan ?? '').toString().toUpperCase();
-    if (normalized === String(OrganizationPlan.STARTER)) {
-      return OrganizationPlan.STARTER;
+    if (normalized === String(OrganizationPlan.BASIC)) {
+      return OrganizationPlan.BASIC;
+    }
+    if (normalized === 'STARTER') {
+      return OrganizationPlan.BASIC;
     }
     if (normalized === String(OrganizationPlan.PRO)) {
       return OrganizationPlan.PRO;
@@ -1069,7 +1193,7 @@ export class BillingService {
       (variantIdStr === this.variantIds.starterMonthly ||
         variantIdStr === this.variantIds.starterYearly)
     ) {
-      return OrganizationPlan.STARTER;
+      return OrganizationPlan.BASIC;
     }
     if (
       variantIdStr &&
@@ -1213,7 +1337,7 @@ export class BillingService {
     if (planName) {
       return planName;
     }
-    if (plan === OrganizationPlan.STARTER) {
+    if (plan === OrganizationPlan.BASIC) {
       return 'Basic';
     }
     if (plan === OrganizationPlan.PRO) {

@@ -73,7 +73,6 @@ Billing (Lemon Squeezy):
 - `LEMON_SQUEEZY_PRODUCT_ID`: Optional product ID to speed up variant price lookups.
 - `LEMON_SQUEEZY_WEBHOOK_SECRET`: Webhook signing secret.
 - `LEMON_SQUEEZY_SUCCESS_URL`: Base redirect URL after checkout.
-- `LEMON_SQUEEZY_CANCEL_URL`: Base redirect URL when checkout is canceled.
   The app appends `checkout_session=<id>` to both URLs automatically.
 - `LEMON_SQUEEZY_VARIANT_BASIC_MONTHLY_ID`: Variant ID for the Basic (monthly) plan.
 - `LEMON_SQUEEZY_VARIANT_BASIC_YEARLY_ID`: Variant ID for the Basic (yearly) plan.

@@ -53,17 +53,20 @@ export class LemonSqueezyService {
       this.configService.get<string>('LEMON_SQUEEZY_WEBHOOK_SECRET') ?? '';
     this.defaultSuccessUrl =
       this.configService.get<string>('LEMON_SQUEEZY_SUCCESS_URL') ?? '';
-    this.defaultCancelUrl =
-      this.configService.get<string>('LEMON_SQUEEZY_CANCEL_URL') ?? '';
   }
 
   async createCheckout(params: {
     variantId: string;
+    variantIds?: string[];
     customerEmail: string;
     organizationName: string;
-    customData: Record<string, string>;
+    customData: Record<string, any>;
     successUrl?: string;
   }): Promise<{ checkoutUrl: string; checkoutId: string | null }> {
+    const enabledVariants =
+      params.variantIds && params.variantIds.length > 0
+        ? params.variantIds
+        : [params.variantId];
     const payload = {
       data: {
         type: 'checkouts',
@@ -71,7 +74,7 @@ export class LemonSqueezyService {
           product_options: {
             redirect_url: params.successUrl || this.defaultSuccessUrl,
             name: `LinkSwitch.app subscription`,
-            enabled_variants: [params.variantId],
+            enabled_variants: enabledVariants,
           },
           checkout_data: {
             email: params.customerEmail,

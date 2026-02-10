@@ -20,7 +20,7 @@ export const PLAN_LIMITS: Record<
     maxUsers: 1,
     redirectionLimitPerMinute: 10,
   },
-  [OrganizationPlan.STARTER]: {
+  [OrganizationPlan.BASIC]: {
     maxDomainGroups: 1,
     maxDomainsPerGroup: 10,
     maxTotalDomains: 10,
@@ -45,7 +45,7 @@ export const PLAN_LIMITS: Record<
 };
 
 export const CHECKOUT_PLANS: OrganizationPlan[] = [
-  OrganizationPlan.STARTER,
+  OrganizationPlan.BASIC,
   OrganizationPlan.PRO,
 ];
 
@@ -67,7 +67,7 @@ export function getVariantIdForPlan(
   interval: OrganizationSubscription['interval'],
   variants: VariantIdMap,
 ): string | null {
-  if (plan === OrganizationPlan.STARTER) {
+  if (plan === OrganizationPlan.BASIC) {
     if (interval === 'YEARLY') {
       return variants.starterYearly ?? null;
     }

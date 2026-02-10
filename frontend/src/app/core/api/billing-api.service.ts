@@ -82,13 +82,9 @@ export class BillingApiService {
   private readonly apiConfig = inject(API_CONFIG);
   private readonly apiUrl = `${this.apiConfig.baseUrl}/api/v1/billing`;
 
-  createCheckout(
-    plan: OrganizationPlan,
-    interval?: BillingInterval,
-  ): Observable<CheckoutResponse> {
+  createCheckout(variantId: string): Observable<CheckoutResponse> {
     return this.http.post<CheckoutResponse>(`${this.apiUrl}/checkout`, {
-      plan,
-      interval,
+      variantId,
     });
   }
 
@@ -106,11 +102,11 @@ export class BillingApiService {
 
   createCustomPlanCheckout(
     customPlanId: string,
-    interval?: BillingInterval,
+    variantId: string,
   ): Observable<CheckoutResponse> {
     return this.http.post<CheckoutResponse>(
       `${this.apiUrl}/custom-plans/${customPlanId}/checkout`,
-      { interval },
+      { variantId },
     );
   }
 

@@ -40,6 +40,8 @@ type PricingPlan = PricingPlanBase & {
 export type PricingPlanSelection = {
   plan: OrganizationPlan;
   interval: BillingInterval;
+  variantId: string;
+  customPlanId?: string;
 };
 
 const PRICING_PLANS: PricingPlanBase[] = [
@@ -65,7 +67,7 @@ const PRICING_PLANS: PricingPlanBase[] = [
     ctaLink: '/auth',
   },
   {
-    key: OrganizationPlan.STARTER,
+    key: OrganizationPlan.BASIC,
     name: 'Basic',
     description: 'For growing teams standardizing redirects across regions.',
     limits: [
@@ -253,7 +255,7 @@ export class PricingPlansComponent {
     if (plan === 'CUSTOM') {
       return false;
     }
-    if (plan !== OrganizationPlan.STARTER && plan !== OrganizationPlan.PRO) {
+    if (plan !== OrganizationPlan.BASIC && plan !== OrganizationPlan.PRO) {
       return false;
     }
     return !this.isPlanBlocked(plan);
@@ -269,9 +271,14 @@ export class PricingPlansComponent {
     if (this.isPlanBlocked(plan)) {
       return;
     }
+    const pricing = this.getPlanPrice(plan, this.billingInterval());
+    if (!pricing) {
+      return;
+    }
     this.planSelected.emit({
       plan,
       interval: this.billingInterval(),
+      variantId: pricing.variantId,
     });
   }
 
@@ -293,7 +300,7 @@ export class PricingPlansComponent {
     if (plan === 'CUSTOM' || plan === OrganizationPlan.FREE) {
       return null;
     }
-    if (plan !== OrganizationPlan.STARTER && plan !== OrganizationPlan.PRO) {
+    if (plan !== OrganizationPlan.BASIC && plan !== OrganizationPlan.PRO) {
       return null;
     }
     return (
@@ -398,10 +405,14 @@ export class PricingPlansComponent {
     if (this.isCustomPlanBlocked(planId, pricing)) {
       return;
     }
+    if (!pricing) {
+      return;
+    }
     this.planSelected.emit({
       plan: OrganizationPlan.CUSTOM,
       interval: this.billingInterval(),
       customPlanId: planId,
+      variantId: pricing.variantId,
     });
   }
 }

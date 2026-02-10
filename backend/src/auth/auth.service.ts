@@ -99,7 +99,7 @@ export class AuthService {
       OrganizationPlan.FREE) as OrganizationPlan;
     const selectedInterval = data.billingInterval ?? 'MONTHLY';
     const shouldCreateCheckout =
-      selectedPlan === OrganizationPlan.STARTER ||
+      selectedPlan === OrganizationPlan.BASIC ||
       selectedPlan === OrganizationPlan.PRO;
 
     const checkout = shouldCreateCheckout

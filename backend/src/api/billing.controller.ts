@@ -22,8 +22,7 @@ export class BillingController {
     private readonly billingService: BillingService,
     private readonly clsService: ClsService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   @Post('checkout')
   @UseGuards(AuthGuard)
@@ -37,15 +36,13 @@ export class BillingController {
       requestId: this.clsService.getId(),
       organizationId,
       userId,
-      plan: body.plan,
+      variantId: body.variantId,
     });
-    return this.billingService.createCheckout({
+    return this.billingService.createCheckoutByVariant({
       organizationId,
       userId,
-      plan: body.plan,
-      interval: body.interval,
+      variantId: body.variantId,
       successUrl: body.successUrl,
-      cancelUrl: body.cancelUrl,
     });
   }
 
@@ -93,7 +90,7 @@ export class BillingController {
       organizationId,
       userId,
       customPlanId,
-      interval: body.interval,
+      variantId: body.variantId,
       successUrl: body.successUrl,
       cancelUrl: body.cancelUrl,
     });

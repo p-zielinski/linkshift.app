@@ -8,7 +8,7 @@ export function formatPlanLabel(
     return planName;
   }
   switch (plan) {
-    case OrganizationPlan.STARTER:
+    case OrganizationPlan.BASIC:
       return 'Basic';
     case OrganizationPlan.PRO:
       return 'Pro';
@@ -17,6 +17,6 @@ export function formatPlanLabel(
     case OrganizationPlan.CUSTOM:
       return 'Custom';
     default:
-      return plan ? String(plan) : '';
+      return plan === 'STARTER' ? 'Basic' : plan ? String(plan) : '';
   }
 }

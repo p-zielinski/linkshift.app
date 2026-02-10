@@ -139,9 +139,9 @@ export class AuthPageComponent {
         note: '1 domain group • 1 domain • 15 rules • 1 seat • 10 redirects/min'
       },
       {
-        id: OrganizationPlan.STARTER,
+        id: OrganizationPlan.BASIC,
         title: 'Basic',
-        price: this.formatPlanPrice(OrganizationPlan.STARTER, interval),
+        price: this.formatPlanPrice(OrganizationPlan.BASIC, interval),
         note: '1 domain group • 10 domains • 250 rules • 3 seats • 50 redirects/min'
       },
       {

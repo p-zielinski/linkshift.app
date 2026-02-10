@@ -11,6 +11,7 @@ import {
   CheckoutSessionResponse,
   CheckoutSessionStatus,
 } from '../../../core/api/billing-api.service';
+import { AuthStore } from '../../../core/store/auth.store';
 import { formatPlanLabel } from '../../../core/utils/plan-label';
 
 type CheckoutStatusDialogData = {
@@ -31,12 +32,14 @@ type CheckoutStatusDialogData = {
 })
 export class CheckoutStatusDialogComponent {
   private readonly billingApi = inject(BillingApiService);
+  private readonly authStore = inject(AuthStore);
   private readonly dialogRef = inject(
     MatDialogRef<CheckoutStatusDialogComponent>,
   );
   private readonly data = inject<CheckoutStatusDialogData>(MAT_DIALOG_DATA);
   private readonly destroyRef = inject(DestroyRef);
   private readonly stopPolling$ = new Subject<void>();
+  private sessionRefreshTriggered = false;
 
   readonly sessionId = this.data.sessionId;
   readonly status = signal<CheckoutSessionStatus>('PENDING');
@@ -117,9 +120,24 @@ export class CheckoutStatusDialogComponent {
         this.plan.set(session.plan);
         this.updatedAt.set(session.updatedAt);
 
+        if (session.status === 'PAID') {
+          this.refreshSessionOnce();
+        }
+
         if (session.status !== 'PENDING') {
           this.stopPolling$.next();
         }
       });
+  }
+
+  private refreshSessionOnce(): void {
+    if (this.sessionRefreshTriggered) {
+      return;
+    }
+    this.sessionRefreshTriggered = true;
+    this.authStore
+      .fetchSession()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ error: () => undefined });
   }
 }
