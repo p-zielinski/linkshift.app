@@ -85,6 +85,11 @@
   font-weight: 700;
 }
 
+.price-savings {
+  margin-top: 4px;
+  font-weight: 600;
+}
+
 .plan-limits {
   display: flex;
   flex-wrap: wrap;
@@ -130,6 +135,16 @@
 
 .pricing-grid.compact .pricing-card {
   padding: 20px;
+}
+
+.custom-section {
+  margin-top: 24px;
+  display: grid;
+  gap: 12px;
+}
+
+.custom-grid .pricing-card {
+  border-style: dashed;
 }
 
 @media (max-width: 640px) {

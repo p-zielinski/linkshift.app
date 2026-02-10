@@ -74,6 +74,31 @@ export class BillingController {
     return this.billingService.getCheckoutSessionStatus(organizationId, id);
   }
 
+  @Get('custom-plans')
+  @UseGuards(AuthGuard)
+  async getCustomPlans(@User('organizationId') organizationId: string) {
+    return this.billingService.getCustomPlanCatalog(organizationId);
+  }
+
+  @Post('custom-plans/:id/checkout')
+  @UseGuards(AuthGuard)
+  async createCustomPlanCheckout(
+    @User('organizationId') organizationId: string,
+    @User('userId') userId: string,
+    @Param('id') customPlanId: string,
+    @Body(new ZodPipe(billingSchemas.CustomPlanCheckoutSchema))
+    body: billingSchemas.CustomPlanCheckoutDto,
+  ) {
+    return this.billingService.createCustomPlanCheckout({
+      organizationId,
+      userId,
+      customPlanId,
+      interval: body.interval,
+      successUrl: body.successUrl,
+      cancelUrl: body.cancelUrl,
+    });
+  }
+
   @Get('plans')
   async getPlans() {
     return this.billingService.getPlanCatalog();

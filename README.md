@@ -70,12 +70,15 @@ Auth:
 Billing (Lemon Squeezy):
 - `LEMON_SQUEEZY_API_KEY`: API token.
 - `LEMON_SQUEEZY_STORE_ID`: Store identifier.
+- `LEMON_SQUEEZY_PRODUCT_ID`: Optional product ID to speed up variant price lookups.
 - `LEMON_SQUEEZY_WEBHOOK_SECRET`: Webhook signing secret.
 - `LEMON_SQUEEZY_SUCCESS_URL`: Base redirect URL after checkout.
 - `LEMON_SQUEEZY_CANCEL_URL`: Base redirect URL when checkout is canceled.
   The app appends `checkout_session=<id>` to both URLs automatically.
-- `LEMON_SQUEEZY_VARIANT_STARTER_ID`: Variant ID for the Starter plan.
-- `LEMON_SQUEEZY_VARIANT_PRO_ID`: Variant ID for the Pro plan.
+- `LEMON_SQUEEZY_VARIANT_BASIC_MONTHLY_ID`: Variant ID for the Basic (monthly) plan.
+- `LEMON_SQUEEZY_VARIANT_BASIC_YEARLY_ID`: Variant ID for the Basic (yearly) plan.
+- `LEMON_SQUEEZY_VARIANT_PRO_MONTHLY_ID`: Variant ID for the Pro (monthly) plan.
+- `LEMON_SQUEEZY_VARIANT_PRO_YEARLY_ID`: Variant ID for the Pro (yearly) plan.
 
 Ngrok (local dev only):
 - `NGROK_AUTH_TOKEN`: Ngrok auth token used by `start:dev`.
@@ -198,6 +201,67 @@ For local testing, add:
 ### 7) Dynamic domain updates (Traefik labels)
 Backend can update Traefik router rules when domains change:
 - Enable with `TRAEFIK_UPDATE_ENABLED=true`.
+
+## Custom plans (per organization)
+Custom plans are stored in Postgres and are visible only to the owning organization.
+They show up inside the upgrade dialog and can be purchased like any other plan.
+
+### Table schema
+Custom plans live in the `CustomPlan` table with these fields:
+- `id`: Custom plan ID (string).
+- `organizationId`: Owning organization ID.
+- `name`: Plan display name shown in the UI.
+- `description`: Optional short description.
+- `monthlyVariantId`: Lemon Squeezy variant ID for monthly billing.
+- `yearlyVariantId`: Lemon Squeezy variant ID for yearly billing.
+- `limits`: JSON payload matching `PlanLimits` in `backend/src/billing/billing.config.ts`.
+
+### Create a custom plan (manual)
+Insert a record with limits tailored to the organization. Example:
+```sql
+INSERT INTO "CustomPlan" (
+  "id",
+  "organizationId",
+  "name",
+  "description",
+  "monthlyVariantId",
+  "yearlyVariantId",
+  "limits",
+  "createdAt",
+  "updatedAt"
+)
+VALUES (
+  'cpl_custom_001',
+  'org_123',
+  'Enterprise',
+  'Higher limits for the enterprise rollout',
+  '1299001',
+  '1299002',
+  '{
+     "maxDomainGroups": 5,
+     "maxDomainsPerGroup": 50,
+     "maxTotalDomains": 50,
+     "maxRulesPerGroup": 2000,
+     "maxTotalRules": 2000,
+     "maxTestsPerGroup": 4000,
+     "maxTotalTests": 4000,
+     "maxUsers": 20,
+     "redirectionLimitPerMinute": 500
+   }'::jsonb,
+  NOW(),
+  NOW()
+);
+```
+
+### Purchase flow
+1) Log in as a user in the organization that owns the custom plan.
+2) Open the upgrade dialog (Dashboard → Upgrade).
+3) Choose the custom plan card and select monthly or yearly billing.
+
+The checkout payload includes `customPlanId` so webhooks map the subscription
+back to the plan and apply the custom limits.
+Custom plan catalogs are cached for ~10 minutes, so allow a short delay after
+inserting a new record.
 - Set `TRAEFIK_TARGET_SERVICE` to the Swarm service name
   (e.g. `${APP_STACK_NAME}_backend`).
 - Set `TRAEFIK_BASE_HOSTS` to include your API host.

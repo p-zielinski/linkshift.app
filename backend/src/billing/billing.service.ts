@@ -41,7 +41,27 @@ type BillingPlanPrice = {
 
 type BillingPlanCatalog = {
   plans: BillingPlanPrice[];
-  limits: Record<OrganizationPlan, PlanLimits>;
+  limits: Partial<Record<OrganizationPlan, PlanLimits>>;
+  updatedAt: string;
+};
+
+type CustomPlanPricing = {
+  amount: number;
+  currency: string;
+  variantId: string;
+};
+
+type CustomPlanCatalogItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  limits: PlanLimits;
+  monthly: CustomPlanPricing | null;
+  yearly: CustomPlanPricing | null;
+};
+
+type CustomPlanCatalog = {
+  plans: CustomPlanCatalogItem[];
   updatedAt: string;
 };
 
@@ -58,6 +78,7 @@ export class BillingService {
   private readonly defaultCancelUrl: string;
   private readonly planCatalogCacheKey = 'BILLING_PLANS_CATALOG_V1';
   private readonly planCatalogTtlSeconds = 15 * 60;
+  private readonly customPlanCatalogTtlSeconds = 10 * 60;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -71,8 +92,7 @@ export class BillingService {
       starterMonthly:
         this.configService.get<string>(
           'LEMON_SQUEEZY_VARIANT_BASIC_MONTHLY_ID',
-        ) ??
-        this.configService.get<string>('LEMON_SQUEEZY_VARIANT_STARTER_ID'),
+        ) ?? this.configService.get<string>('LEMON_SQUEEZY_VARIANT_STARTER_ID'),
       starterYearly: this.configService.get<string>(
         'LEMON_SQUEEZY_VARIANT_BASIC_YEARLY_ID',
       ),
@@ -131,14 +151,9 @@ export class BillingService {
 
     const checkoutSessionId = createCustomCuid(AppEntity.CheckoutSession, 20);
     const baseSuccessUrl = params.successUrl ?? this.defaultSuccessUrl;
-    const baseCancelUrl = params.cancelUrl ?? this.defaultCancelUrl;
 
     const successUrl = this.appendCheckoutSessionId(
       baseSuccessUrl,
-      checkoutSessionId,
-    );
-    const cancelUrl = this.appendCheckoutSessionId(
-      baseCancelUrl,
       checkoutSessionId,
     );
 
@@ -172,7 +187,6 @@ export class BillingService {
           checkoutSessionId,
         },
         successUrl: successUrl || undefined,
-        cancelUrl: cancelUrl || undefined,
       });
 
       if (checkout.checkoutId) {
@@ -289,6 +303,183 @@ export class BillingService {
     return catalog;
   }
 
+  async getCustomPlanCatalog(
+    organizationId: string,
+  ): Promise<CustomPlanCatalog> {
+    const cacheKey = `BILLING_CUSTOM_PLANS:${organizationId}`;
+    const cached =
+      await this.cacheManagerService.getCustomCache<CustomPlanCatalog>(
+        cacheKey,
+      );
+    if (cached) {
+      return cached;
+    }
+
+    const customPlans = await this.prisma.customPlan.findMany({
+      where: { organizationId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (customPlans.length === 0) {
+      const emptyCatalog: CustomPlanCatalog = {
+        plans: [],
+        updatedAt: new Date().toISOString(),
+      };
+      await this.cacheManagerService.setCustomCache(
+        cacheKey,
+        emptyCatalog,
+        this.customPlanCatalogTtlSeconds,
+      );
+      return emptyCatalog;
+    }
+
+    const variantIds = customPlans
+      .flatMap((plan) => [plan.monthlyVariantId, plan.yearlyVariantId])
+      .filter((entry): entry is string => !!entry);
+    const variants = await this.fetchPlanVariants(variantIds);
+
+    const plans: CustomPlanCatalogItem[] = customPlans.map((plan) => {
+      const monthlyPricing = plan.monthlyVariantId
+        ? this.extractCustomPlanPricing(variants, plan.monthlyVariantId)
+        : null;
+      const yearlyPricing = plan.yearlyVariantId
+        ? this.extractCustomPlanPricing(variants, plan.yearlyVariantId)
+        : null;
+
+      return {
+        id: plan.id,
+        name: plan.name,
+        description: plan.description ?? null,
+        limits: plan.limits as PlanLimits,
+        monthly: monthlyPricing,
+        yearly: yearlyPricing,
+      };
+    });
+
+    const catalog: CustomPlanCatalog = {
+      plans,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.cacheManagerService.setCustomCache(
+      cacheKey,
+      catalog,
+      this.customPlanCatalogTtlSeconds,
+    );
+
+    return catalog;
+  }
+
+  async createCustomPlanCheckout(params: {
+    organizationId: string;
+    userId: string;
+    customPlanId: string;
+    interval?: BillingInterval;
+    successUrl?: string;
+    cancelUrl?: string;
+  }) {
+    const customPlan = await this.prisma.customPlan.findFirst({
+      where: {
+        id: params.customPlanId,
+        organizationId: params.organizationId,
+        deletedAt: null,
+      },
+    });
+    if (!customPlan) {
+      throw new Error('Custom plan not found for organization.');
+    }
+
+    const interval = params.interval ?? 'MONTHLY';
+    const variantId =
+      interval === 'YEARLY'
+        ? customPlan.yearlyVariantId
+        : customPlan.monthlyVariantId;
+    if (!variantId) {
+      throw new Error(
+        `Missing Lemon Squeezy variant for custom plan (${interval}).`,
+      );
+    }
+
+    const [organization, user] = await Promise.all([
+      this.prisma.organization.findUnique({
+        where: { id: params.organizationId },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: params.userId },
+      }),
+    ]);
+
+    if (!organization || !user) {
+      throw new Error('Organization or user not found for checkout.');
+    }
+
+    const checkoutSessionId = createCustomCuid(AppEntity.CheckoutSession, 20);
+    const baseSuccessUrl = params.successUrl ?? this.defaultSuccessUrl;
+    const baseCancelUrl = params.cancelUrl ?? this.defaultCancelUrl;
+
+    const successUrl = this.appendCheckoutSessionId(
+      baseSuccessUrl,
+      checkoutSessionId,
+    );
+
+    await this.prisma.billingCheckoutSession.create({
+      data: {
+        id: checkoutSessionId,
+        organizationId: organization.id,
+        userId: user.id,
+        plan: OrganizationPlan.CUSTOM,
+        status: 'PENDING',
+        metadata: {
+          organizationName: organization.name,
+          email: user.email,
+          interval,
+          customPlanId: customPlan.id,
+        },
+      },
+    });
+
+    try {
+      const checkout = await this.lemon.createCheckout({
+        variantId,
+        customerEmail: user.email,
+        organizationName: organization.name,
+        customData: {
+          organizationId: organization.id,
+          userId: user.id,
+          plan: OrganizationPlan.CUSTOM,
+          interval,
+          customPlanId: customPlan.id,
+          planName: customPlan.name,
+          organizationName: organization.name,
+          email: user.email,
+          checkoutSessionId,
+        },
+        successUrl: successUrl || undefined,
+      });
+
+      if (checkout.checkoutId) {
+        await this.prisma.billingCheckoutSession.update({
+          where: { id: checkoutSessionId },
+          data: { providerCheckoutId: checkout.checkoutId },
+        });
+      }
+
+      return {
+        ...checkout,
+        checkoutSessionId,
+      };
+    } catch (error) {
+      await this.prisma.billingCheckoutSession.update({
+        where: { id: checkoutSessionId },
+        data: {
+          status: 'FAILED',
+          completedAt: new Date(),
+        },
+      });
+      throw error;
+    }
+  }
+
   async handleWebhook(
     rawBody: Buffer,
     signature: string | undefined,
@@ -329,13 +520,63 @@ export class BillingService {
       return;
     }
 
-    const plan = this.resolvePlan(customData.plan, attributes.variant_id);
+    const customPlanId =
+      customData.customPlanId ?? customData.custom_plan_id ?? null;
+    const variantIdStr = attributes.variant_id
+      ? String(attributes.variant_id)
+      : null;
+    const customPlan = customPlanId
+      ? await this.prisma.customPlan.findFirst({
+          where: {
+            id: String(customPlanId),
+            organizationId: orgId,
+            deletedAt: null,
+          },
+        })
+      : variantIdStr
+        ? await this.prisma.customPlan.findFirst({
+            where: {
+              organizationId: orgId,
+              deletedAt: null,
+              OR: [
+                { monthlyVariantId: variantIdStr },
+                { yearlyVariantId: variantIdStr },
+              ],
+            },
+          })
+        : null;
+
+    const requestedCustom =
+      (customData.plan ?? '').toString().toUpperCase() ===
+      OrganizationPlan.CUSTOM;
+    if (requestedCustom && !customPlan) {
+      this.logger.warn('Custom plan missing for webhook payload', {
+        eventName,
+        organizationId: orgId,
+        customPlanId,
+        variantId: variantIdStr,
+      });
+      return;
+    }
+
+    const plan = customPlan
+      ? OrganizationPlan.CUSTOM
+      : this.resolvePlan(customData.plan, attributes.variant_id);
     const status = this.resolveStatus(attributes.status, eventName);
+    const limits = customPlan
+      ? (customPlan.limits as PlanLimits)
+      : getPlanLimits(
+          plan as Exclude<OrganizationPlan, OrganizationPlan.CUSTOM>,
+        );
+    const planName =
+      customPlan?.name ?? customData.planName ?? customData.plan_name ?? null;
 
     const subscriptionUpdate = await this.updateOrganizationSubscription(
       orgId,
       {
         plan,
+        planName,
+        customPlanId: customPlan?.id ?? null,
         status,
         providerSubscriptionId: subscriptionId,
         providerCustomerId: attributes.customer_id ?? null,
@@ -350,6 +591,7 @@ export class BillingService {
         interval: this.mapInterval(
           attributes.billing_interval ?? attributes.interval,
         ),
+        limits,
       },
     );
 
@@ -408,6 +650,8 @@ export class BillingService {
     organizationId: string,
     details: {
       plan: OrganizationPlan;
+      planName: string | null;
+      customPlanId: string | null;
       status: OrganizationStatus;
       providerSubscriptionId: string | null;
       providerCustomerId: string | null;
@@ -418,6 +662,7 @@ export class BillingService {
       amount: number;
       currency: string;
       interval: OrganizationSubscription['interval'];
+      limits: PlanLimits;
     },
   ): Promise<{
     previous: OrganizationSubscription;
@@ -441,13 +686,19 @@ export class BillingService {
     const previous = config.activeSubscription;
     const nextSubscription = new OrganizationSubscription({
       plan: details.plan,
+      planName: details.planName ?? null,
+      customPlanId: details.customPlanId ?? null,
       status: details.status,
       activeFrom: details.activeFrom ?? previous.activeFrom,
       activeUntil: details.activeUntil,
       amount: details.amount ?? previous.amount,
       currency: details.currency ?? previous.currency,
       interval: details.interval ?? previous.interval,
-      limits: getPlanLimits(details.plan),
+      limits:
+        details.limits ??
+        getPlanLimits(
+          details.plan as Exclude<OrganizationPlan, OrganizationPlan.CUSTOM>,
+        ),
       provider: 'LEMON_SQUEEZY',
       providerSubscriptionId: details.providerSubscriptionId,
       providerCustomerId: details.providerCustomerId,
@@ -516,8 +767,14 @@ export class BillingService {
     }
 
     const normalizedEvent = params.eventName.toLowerCase();
-    const nextPlanLabel = this.formatPlanLabel(params.next.plan);
-    const previousPlanLabel = this.formatPlanLabel(params.previous.plan);
+    const nextPlanLabel = this.formatPlanLabel(
+      params.next.plan,
+      params.next.planName ?? null,
+    );
+    const previousPlanLabel = this.formatPlanLabel(
+      params.previous.plan,
+      params.previous.planName ?? null,
+    );
     const planChanged = params.previous.plan !== params.next.plan;
     const statusBecameActive =
       params.previous.status !== OrganizationStatus.ACTIVE &&
@@ -750,7 +1007,10 @@ export class BillingService {
       uniqueIds.map(async (variantId) => {
         const response = await this.lemon.getVariant(variantId);
         if (response.data) {
-          variantsById.set(String(response.data.id ?? variantId), response.data);
+          variantsById.set(
+            String(response.data.id ?? variantId),
+            response.data,
+          );
         }
       }),
     );
@@ -766,14 +1026,29 @@ export class BillingService {
     const amount = this.parseAmount(
       attributes.price ?? attributes.unit_price ?? attributes.renewal_price,
     );
-    const currency =
-      attributes.currency ?? attributes.currency_code ?? 'EUR';
+    const currency = attributes.currency ?? attributes.currency_code ?? 'EUR';
     const interval = this.mapInterval(
       attributes.billing_interval ??
         attributes.interval_unit ??
         attributes.interval,
     ) as BillingInterval;
     return { amount, currency, interval };
+  }
+
+  private extractCustomPlanPricing(
+    variants: Map<string, { id?: string; attributes?: Record<string, any> }>,
+    variantId: string,
+  ): CustomPlanPricing | null {
+    const variant = variants.get(String(variantId));
+    if (!variant) {
+      return null;
+    }
+    const pricing = this.extractVariantPricing(variant);
+    return {
+      amount: pricing.amount,
+      currency: pricing.currency,
+      variantId: String(variantId),
+    };
   }
 
   private resolvePlan(
@@ -931,7 +1206,13 @@ export class BillingService {
     return Number.isNaN(date.getTime()) ? null : date;
   }
 
-  private formatPlanLabel(plan: OrganizationPlan): string {
+  private formatPlanLabel(
+    plan: OrganizationPlan,
+    planName?: string | null,
+  ): string {
+    if (planName) {
+      return planName;
+    }
     if (plan === OrganizationPlan.STARTER) {
       return 'Basic';
     }
@@ -940,6 +1221,9 @@ export class BillingService {
     }
     if (plan === OrganizationPlan.FREE) {
       return 'Free';
+    }
+    if (plan === OrganizationPlan.CUSTOM) {
+      return 'Custom';
     }
     return String(plan);
   }

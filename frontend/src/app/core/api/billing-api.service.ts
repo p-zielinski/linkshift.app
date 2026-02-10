@@ -50,7 +50,27 @@ export type BillingPlanPrice = {
 
 export type BillingPlanCatalog = {
   plans: BillingPlanPrice[];
-  limits: Record<OrganizationPlan, PlanLimits>;
+  limits: Partial<Record<OrganizationPlan, PlanLimits>>;
+  updatedAt: string;
+};
+
+export type CustomPlanPricing = {
+  amount: number;
+  currency: string;
+  variantId: string;
+};
+
+export type CustomPlanCatalogItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  limits: PlanLimits;
+  monthly: CustomPlanPricing | null;
+  yearly: CustomPlanPricing | null;
+};
+
+export type CustomPlanCatalog = {
+  plans: CustomPlanCatalogItem[];
   updatedAt: string;
 };
 
@@ -78,6 +98,20 @@ export class BillingApiService {
 
   getPlans(): Observable<BillingPlanCatalog> {
     return this.http.get<BillingPlanCatalog>(`${this.apiUrl}/plans`);
+  }
+
+  getCustomPlans(): Observable<CustomPlanCatalog> {
+    return this.http.get<CustomPlanCatalog>(`${this.apiUrl}/custom-plans`);
+  }
+
+  createCustomPlanCheckout(
+    customPlanId: string,
+    interval?: BillingInterval,
+  ): Observable<CheckoutResponse> {
+    return this.http.post<CheckoutResponse>(
+      `${this.apiUrl}/custom-plans/${customPlanId}/checkout`,
+      { interval },
+    );
   }
 
   getCheckoutSession(sessionId: string): Observable<CheckoutSessionResponse> {

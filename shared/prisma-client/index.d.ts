@@ -53,6 +53,11 @@ export type RedirectTest = $Result.DefaultSelection<Prisma.$RedirectTestPayload>
  * 
  */
 export type BillingCheckoutSession = $Result.DefaultSelection<Prisma.$BillingCheckoutSessionPayload>
+/**
+ * Model CustomPlan
+ * 
+ */
+export type CustomPlan = $Result.DefaultSelection<Prisma.$CustomPlanPayload>
 
 /**
  * Enums
@@ -287,6 +292,16 @@ export class PrismaClient<
     * ```
     */
   get billingCheckoutSession(): Prisma.BillingCheckoutSessionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.customPlan`: Exposes CRUD operations for the **CustomPlan** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CustomPlans
+    * const customPlans = await prisma.customPlan.findMany()
+    * ```
+    */
+  get customPlan(): Prisma.CustomPlanDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -728,7 +743,8 @@ export namespace Prisma {
     Domain: 'Domain',
     RedirectRule: 'RedirectRule',
     RedirectTest: 'RedirectTest',
-    BillingCheckoutSession: 'BillingCheckoutSession'
+    BillingCheckoutSession: 'BillingCheckoutSession',
+    CustomPlan: 'CustomPlan'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -744,7 +760,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "organization" | "user" | "organizationInvite" | "domainGroup" | "domain" | "redirectRule" | "redirectTest" | "billingCheckoutSession"
+      modelProps: "organization" | "user" | "organizationInvite" | "domainGroup" | "domain" | "redirectRule" | "redirectTest" | "billingCheckoutSession" | "customPlan"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1340,6 +1356,80 @@ export namespace Prisma {
           }
         }
       }
+      CustomPlan: {
+        payload: Prisma.$CustomPlanPayload<ExtArgs>
+        fields: Prisma.CustomPlanFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CustomPlanFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CustomPlanFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanPayload>
+          }
+          findFirst: {
+            args: Prisma.CustomPlanFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CustomPlanFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanPayload>
+          }
+          findMany: {
+            args: Prisma.CustomPlanFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanPayload>[]
+          }
+          create: {
+            args: Prisma.CustomPlanCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanPayload>
+          }
+          createMany: {
+            args: Prisma.CustomPlanCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CustomPlanCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanPayload>[]
+          }
+          delete: {
+            args: Prisma.CustomPlanDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanPayload>
+          }
+          update: {
+            args: Prisma.CustomPlanUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanPayload>
+          }
+          deleteMany: {
+            args: Prisma.CustomPlanDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CustomPlanUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CustomPlanUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanPayload>[]
+          }
+          upsert: {
+            args: Prisma.CustomPlanUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CustomPlanPayload>
+          }
+          aggregate: {
+            args: Prisma.CustomPlanAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCustomPlan>
+          }
+          groupBy: {
+            args: Prisma.CustomPlanGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CustomPlanGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CustomPlanCountArgs<ExtArgs>
+            result: $Utils.Optional<CustomPlanCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1456,6 +1546,7 @@ export namespace Prisma {
     redirectRule?: RedirectRuleOmit
     redirectTest?: RedirectTestOmit
     billingCheckoutSession?: BillingCheckoutSessionOmit
+    customPlan?: CustomPlanOmit
   }
 
   /* Types for Logging */
@@ -1539,6 +1630,7 @@ export namespace Prisma {
     users: number
     domainGroups: number
     checkoutSessions: number
+    customPlans: number
     redirectTests: number
     invites: number
   }
@@ -1547,6 +1639,7 @@ export namespace Prisma {
     users?: boolean | OrganizationCountOutputTypeCountUsersArgs
     domainGroups?: boolean | OrganizationCountOutputTypeCountDomainGroupsArgs
     checkoutSessions?: boolean | OrganizationCountOutputTypeCountCheckoutSessionsArgs
+    customPlans?: boolean | OrganizationCountOutputTypeCountCustomPlansArgs
     redirectTests?: boolean | OrganizationCountOutputTypeCountRedirectTestsArgs
     invites?: boolean | OrganizationCountOutputTypeCountInvitesArgs
   }
@@ -1581,6 +1674,13 @@ export namespace Prisma {
    */
   export type OrganizationCountOutputTypeCountCheckoutSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: BillingCheckoutSessionWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountCustomPlansArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomPlanWhereInput
   }
 
   /**
@@ -1862,6 +1962,7 @@ export namespace Prisma {
     users?: boolean | Organization$usersArgs<ExtArgs>
     domainGroups?: boolean | Organization$domainGroupsArgs<ExtArgs>
     checkoutSessions?: boolean | Organization$checkoutSessionsArgs<ExtArgs>
+    customPlans?: boolean | Organization$customPlansArgs<ExtArgs>
     redirectTests?: boolean | Organization$redirectTestsArgs<ExtArgs>
     invites?: boolean | Organization$invitesArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
@@ -1899,6 +2000,7 @@ export namespace Prisma {
     users?: boolean | Organization$usersArgs<ExtArgs>
     domainGroups?: boolean | Organization$domainGroupsArgs<ExtArgs>
     checkoutSessions?: boolean | Organization$checkoutSessionsArgs<ExtArgs>
+    customPlans?: boolean | Organization$customPlansArgs<ExtArgs>
     redirectTests?: boolean | Organization$redirectTestsArgs<ExtArgs>
     invites?: boolean | Organization$invitesArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
@@ -1912,6 +2014,7 @@ export namespace Prisma {
       users: Prisma.$UserPayload<ExtArgs>[]
       domainGroups: Prisma.$DomainGroupPayload<ExtArgs>[]
       checkoutSessions: Prisma.$BillingCheckoutSessionPayload<ExtArgs>[]
+      customPlans: Prisma.$CustomPlanPayload<ExtArgs>[]
       redirectTests: Prisma.$RedirectTestPayload<ExtArgs>[]
       invites: Prisma.$OrganizationInvitePayload<ExtArgs>[]
     }
@@ -2319,6 +2422,7 @@ export namespace Prisma {
     users<T extends Organization$usersArgs<ExtArgs> = {}>(args?: Subset<T, Organization$usersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     domainGroups<T extends Organization$domainGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$domainGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DomainGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     checkoutSessions<T extends Organization$checkoutSessionsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$checkoutSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BillingCheckoutSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    customPlans<T extends Organization$customPlansArgs<ExtArgs> = {}>(args?: Subset<T, Organization$customPlansArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     redirectTests<T extends Organization$redirectTestsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$redirectTestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     invites<T extends Organization$invitesArgs<ExtArgs> = {}>(args?: Subset<T, Organization$invitesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationInvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
@@ -2813,6 +2917,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: BillingCheckoutSessionScalarFieldEnum | BillingCheckoutSessionScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.customPlans
+   */
+  export type Organization$customPlansArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanInclude<ExtArgs> | null
+    where?: CustomPlanWhereInput
+    orderBy?: CustomPlanOrderByWithRelationInput | CustomPlanOrderByWithRelationInput[]
+    cursor?: CustomPlanWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CustomPlanScalarFieldEnum | CustomPlanScalarFieldEnum[]
   }
 
   /**
@@ -10934,6 +11062,1125 @@ export namespace Prisma {
 
 
   /**
+   * Model CustomPlan
+   */
+
+  export type AggregateCustomPlan = {
+    _count: CustomPlanCountAggregateOutputType | null
+    _min: CustomPlanMinAggregateOutputType | null
+    _max: CustomPlanMaxAggregateOutputType | null
+  }
+
+  export type CustomPlanMinAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    name: string | null
+    description: string | null
+    monthlyVariantId: string | null
+    yearlyVariantId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type CustomPlanMaxAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    name: string | null
+    description: string | null
+    monthlyVariantId: string | null
+    yearlyVariantId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type CustomPlanCountAggregateOutputType = {
+    id: number
+    organizationId: number
+    name: number
+    description: number
+    monthlyVariantId: number
+    yearlyVariantId: number
+    limits: number
+    createdAt: number
+    updatedAt: number
+    deletedAt: number
+    _all: number
+  }
+
+
+  export type CustomPlanMinAggregateInputType = {
+    id?: true
+    organizationId?: true
+    name?: true
+    description?: true
+    monthlyVariantId?: true
+    yearlyVariantId?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type CustomPlanMaxAggregateInputType = {
+    id?: true
+    organizationId?: true
+    name?: true
+    description?: true
+    monthlyVariantId?: true
+    yearlyVariantId?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type CustomPlanCountAggregateInputType = {
+    id?: true
+    organizationId?: true
+    name?: true
+    description?: true
+    monthlyVariantId?: true
+    yearlyVariantId?: true
+    limits?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+    _all?: true
+  }
+
+  export type CustomPlanAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomPlan to aggregate.
+     */
+    where?: CustomPlanWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomPlans to fetch.
+     */
+    orderBy?: CustomPlanOrderByWithRelationInput | CustomPlanOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CustomPlanWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomPlans from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomPlans.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CustomPlans
+    **/
+    _count?: true | CustomPlanCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CustomPlanMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CustomPlanMaxAggregateInputType
+  }
+
+  export type GetCustomPlanAggregateType<T extends CustomPlanAggregateArgs> = {
+        [P in keyof T & keyof AggregateCustomPlan]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCustomPlan[P]>
+      : GetScalarType<T[P], AggregateCustomPlan[P]>
+  }
+
+
+
+
+  export type CustomPlanGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CustomPlanWhereInput
+    orderBy?: CustomPlanOrderByWithAggregationInput | CustomPlanOrderByWithAggregationInput[]
+    by: CustomPlanScalarFieldEnum[] | CustomPlanScalarFieldEnum
+    having?: CustomPlanScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CustomPlanCountAggregateInputType | true
+    _min?: CustomPlanMinAggregateInputType
+    _max?: CustomPlanMaxAggregateInputType
+  }
+
+  export type CustomPlanGroupByOutputType = {
+    id: string
+    organizationId: string
+    name: string
+    description: string | null
+    monthlyVariantId: string | null
+    yearlyVariantId: string | null
+    limits: JsonValue
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date | null
+    _count: CustomPlanCountAggregateOutputType | null
+    _min: CustomPlanMinAggregateOutputType | null
+    _max: CustomPlanMaxAggregateOutputType | null
+  }
+
+  type GetCustomPlanGroupByPayload<T extends CustomPlanGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CustomPlanGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CustomPlanGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CustomPlanGroupByOutputType[P]>
+            : GetScalarType<T[P], CustomPlanGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CustomPlanSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    name?: boolean
+    description?: boolean
+    monthlyVariantId?: boolean
+    yearlyVariantId?: boolean
+    limits?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customPlan"]>
+
+  export type CustomPlanSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    name?: boolean
+    description?: boolean
+    monthlyVariantId?: boolean
+    yearlyVariantId?: boolean
+    limits?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customPlan"]>
+
+  export type CustomPlanSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    name?: boolean
+    description?: boolean
+    monthlyVariantId?: boolean
+    yearlyVariantId?: boolean
+    limits?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["customPlan"]>
+
+  export type CustomPlanSelectScalar = {
+    id?: boolean
+    organizationId?: boolean
+    name?: boolean
+    description?: boolean
+    monthlyVariantId?: boolean
+    yearlyVariantId?: boolean
+    limits?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+  }
+
+  export type CustomPlanOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "monthlyVariantId" | "yearlyVariantId" | "limits" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["customPlan"]>
+  export type CustomPlanInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+  export type CustomPlanIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+  export type CustomPlanIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+
+  export type $CustomPlanPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CustomPlan"
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      organizationId: string
+      name: string
+      description: string | null
+      monthlyVariantId: string | null
+      yearlyVariantId: string | null
+      limits: Prisma.JsonValue
+      createdAt: Date
+      updatedAt: Date
+      deletedAt: Date | null
+    }, ExtArgs["result"]["customPlan"]>
+    composites: {}
+  }
+
+  type CustomPlanGetPayload<S extends boolean | null | undefined | CustomPlanDefaultArgs> = $Result.GetResult<Prisma.$CustomPlanPayload, S>
+
+  type CustomPlanCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CustomPlanFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CustomPlanCountAggregateInputType | true
+    }
+
+  export interface CustomPlanDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CustomPlan'], meta: { name: 'CustomPlan' } }
+    /**
+     * Find zero or one CustomPlan that matches the filter.
+     * @param {CustomPlanFindUniqueArgs} args - Arguments to find a CustomPlan
+     * @example
+     * // Get one CustomPlan
+     * const customPlan = await prisma.customPlan.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CustomPlanFindUniqueArgs>(args: SelectSubset<T, CustomPlanFindUniqueArgs<ExtArgs>>): Prisma__CustomPlanClient<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CustomPlan that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CustomPlanFindUniqueOrThrowArgs} args - Arguments to find a CustomPlan
+     * @example
+     * // Get one CustomPlan
+     * const customPlan = await prisma.customPlan.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CustomPlanFindUniqueOrThrowArgs>(args: SelectSubset<T, CustomPlanFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CustomPlanClient<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomPlan that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanFindFirstArgs} args - Arguments to find a CustomPlan
+     * @example
+     * // Get one CustomPlan
+     * const customPlan = await prisma.customPlan.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CustomPlanFindFirstArgs>(args?: SelectSubset<T, CustomPlanFindFirstArgs<ExtArgs>>): Prisma__CustomPlanClient<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CustomPlan that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanFindFirstOrThrowArgs} args - Arguments to find a CustomPlan
+     * @example
+     * // Get one CustomPlan
+     * const customPlan = await prisma.customPlan.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CustomPlanFindFirstOrThrowArgs>(args?: SelectSubset<T, CustomPlanFindFirstOrThrowArgs<ExtArgs>>): Prisma__CustomPlanClient<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CustomPlans that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CustomPlans
+     * const customPlans = await prisma.customPlan.findMany()
+     * 
+     * // Get first 10 CustomPlans
+     * const customPlans = await prisma.customPlan.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const customPlanWithIdOnly = await prisma.customPlan.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CustomPlanFindManyArgs>(args?: SelectSubset<T, CustomPlanFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CustomPlan.
+     * @param {CustomPlanCreateArgs} args - Arguments to create a CustomPlan.
+     * @example
+     * // Create one CustomPlan
+     * const CustomPlan = await prisma.customPlan.create({
+     *   data: {
+     *     // ... data to create a CustomPlan
+     *   }
+     * })
+     * 
+     */
+    create<T extends CustomPlanCreateArgs>(args: SelectSubset<T, CustomPlanCreateArgs<ExtArgs>>): Prisma__CustomPlanClient<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CustomPlans.
+     * @param {CustomPlanCreateManyArgs} args - Arguments to create many CustomPlans.
+     * @example
+     * // Create many CustomPlans
+     * const customPlan = await prisma.customPlan.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CustomPlanCreateManyArgs>(args?: SelectSubset<T, CustomPlanCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CustomPlans and returns the data saved in the database.
+     * @param {CustomPlanCreateManyAndReturnArgs} args - Arguments to create many CustomPlans.
+     * @example
+     * // Create many CustomPlans
+     * const customPlan = await prisma.customPlan.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CustomPlans and only return the `id`
+     * const customPlanWithIdOnly = await prisma.customPlan.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CustomPlanCreateManyAndReturnArgs>(args?: SelectSubset<T, CustomPlanCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CustomPlan.
+     * @param {CustomPlanDeleteArgs} args - Arguments to delete one CustomPlan.
+     * @example
+     * // Delete one CustomPlan
+     * const CustomPlan = await prisma.customPlan.delete({
+     *   where: {
+     *     // ... filter to delete one CustomPlan
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CustomPlanDeleteArgs>(args: SelectSubset<T, CustomPlanDeleteArgs<ExtArgs>>): Prisma__CustomPlanClient<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CustomPlan.
+     * @param {CustomPlanUpdateArgs} args - Arguments to update one CustomPlan.
+     * @example
+     * // Update one CustomPlan
+     * const customPlan = await prisma.customPlan.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CustomPlanUpdateArgs>(args: SelectSubset<T, CustomPlanUpdateArgs<ExtArgs>>): Prisma__CustomPlanClient<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CustomPlans.
+     * @param {CustomPlanDeleteManyArgs} args - Arguments to filter CustomPlans to delete.
+     * @example
+     * // Delete a few CustomPlans
+     * const { count } = await prisma.customPlan.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CustomPlanDeleteManyArgs>(args?: SelectSubset<T, CustomPlanDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomPlans.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CustomPlans
+     * const customPlan = await prisma.customPlan.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CustomPlanUpdateManyArgs>(args: SelectSubset<T, CustomPlanUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CustomPlans and returns the data updated in the database.
+     * @param {CustomPlanUpdateManyAndReturnArgs} args - Arguments to update many CustomPlans.
+     * @example
+     * // Update many CustomPlans
+     * const customPlan = await prisma.customPlan.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CustomPlans and only return the `id`
+     * const customPlanWithIdOnly = await prisma.customPlan.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CustomPlanUpdateManyAndReturnArgs>(args: SelectSubset<T, CustomPlanUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CustomPlan.
+     * @param {CustomPlanUpsertArgs} args - Arguments to update or create a CustomPlan.
+     * @example
+     * // Update or create a CustomPlan
+     * const customPlan = await prisma.customPlan.upsert({
+     *   create: {
+     *     // ... data to create a CustomPlan
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CustomPlan we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CustomPlanUpsertArgs>(args: SelectSubset<T, CustomPlanUpsertArgs<ExtArgs>>): Prisma__CustomPlanClient<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CustomPlans.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanCountArgs} args - Arguments to filter CustomPlans to count.
+     * @example
+     * // Count the number of CustomPlans
+     * const count = await prisma.customPlan.count({
+     *   where: {
+     *     // ... the filter for the CustomPlans we want to count
+     *   }
+     * })
+    **/
+    count<T extends CustomPlanCountArgs>(
+      args?: Subset<T, CustomPlanCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CustomPlanCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CustomPlan.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CustomPlanAggregateArgs>(args: Subset<T, CustomPlanAggregateArgs>): Prisma.PrismaPromise<GetCustomPlanAggregateType<T>>
+
+    /**
+     * Group by CustomPlan.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CustomPlanGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CustomPlanGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CustomPlanGroupByArgs['orderBy'] }
+        : { orderBy?: CustomPlanGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CustomPlanGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCustomPlanGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CustomPlan model
+   */
+  readonly fields: CustomPlanFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CustomPlan.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CustomPlanClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CustomPlan model
+   */
+  interface CustomPlanFieldRefs {
+    readonly id: FieldRef<"CustomPlan", 'String'>
+    readonly organizationId: FieldRef<"CustomPlan", 'String'>
+    readonly name: FieldRef<"CustomPlan", 'String'>
+    readonly description: FieldRef<"CustomPlan", 'String'>
+    readonly monthlyVariantId: FieldRef<"CustomPlan", 'String'>
+    readonly yearlyVariantId: FieldRef<"CustomPlan", 'String'>
+    readonly limits: FieldRef<"CustomPlan", 'Json'>
+    readonly createdAt: FieldRef<"CustomPlan", 'DateTime'>
+    readonly updatedAt: FieldRef<"CustomPlan", 'DateTime'>
+    readonly deletedAt: FieldRef<"CustomPlan", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CustomPlan findUnique
+   */
+  export type CustomPlanFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomPlan to fetch.
+     */
+    where: CustomPlanWhereUniqueInput
+  }
+
+  /**
+   * CustomPlan findUniqueOrThrow
+   */
+  export type CustomPlanFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomPlan to fetch.
+     */
+    where: CustomPlanWhereUniqueInput
+  }
+
+  /**
+   * CustomPlan findFirst
+   */
+  export type CustomPlanFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomPlan to fetch.
+     */
+    where?: CustomPlanWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomPlans to fetch.
+     */
+    orderBy?: CustomPlanOrderByWithRelationInput | CustomPlanOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomPlans.
+     */
+    cursor?: CustomPlanWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomPlans from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomPlans.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomPlans.
+     */
+    distinct?: CustomPlanScalarFieldEnum | CustomPlanScalarFieldEnum[]
+  }
+
+  /**
+   * CustomPlan findFirstOrThrow
+   */
+  export type CustomPlanFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomPlan to fetch.
+     */
+    where?: CustomPlanWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomPlans to fetch.
+     */
+    orderBy?: CustomPlanOrderByWithRelationInput | CustomPlanOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CustomPlans.
+     */
+    cursor?: CustomPlanWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomPlans from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomPlans.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CustomPlans.
+     */
+    distinct?: CustomPlanScalarFieldEnum | CustomPlanScalarFieldEnum[]
+  }
+
+  /**
+   * CustomPlan findMany
+   */
+  export type CustomPlanFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanInclude<ExtArgs> | null
+    /**
+     * Filter, which CustomPlans to fetch.
+     */
+    where?: CustomPlanWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CustomPlans to fetch.
+     */
+    orderBy?: CustomPlanOrderByWithRelationInput | CustomPlanOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CustomPlans.
+     */
+    cursor?: CustomPlanWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CustomPlans from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CustomPlans.
+     */
+    skip?: number
+    distinct?: CustomPlanScalarFieldEnum | CustomPlanScalarFieldEnum[]
+  }
+
+  /**
+   * CustomPlan create
+   */
+  export type CustomPlanCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CustomPlan.
+     */
+    data: XOR<CustomPlanCreateInput, CustomPlanUncheckedCreateInput>
+  }
+
+  /**
+   * CustomPlan createMany
+   */
+  export type CustomPlanCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CustomPlans.
+     */
+    data: CustomPlanCreateManyInput | CustomPlanCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CustomPlan createManyAndReturn
+   */
+  export type CustomPlanCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * The data used to create many CustomPlans.
+     */
+    data: CustomPlanCreateManyInput | CustomPlanCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomPlan update
+   */
+  export type CustomPlanUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CustomPlan.
+     */
+    data: XOR<CustomPlanUpdateInput, CustomPlanUncheckedUpdateInput>
+    /**
+     * Choose, which CustomPlan to update.
+     */
+    where: CustomPlanWhereUniqueInput
+  }
+
+  /**
+   * CustomPlan updateMany
+   */
+  export type CustomPlanUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CustomPlans.
+     */
+    data: XOR<CustomPlanUpdateManyMutationInput, CustomPlanUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomPlans to update
+     */
+    where?: CustomPlanWhereInput
+    /**
+     * Limit how many CustomPlans to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomPlan updateManyAndReturn
+   */
+  export type CustomPlanUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * The data used to update CustomPlans.
+     */
+    data: XOR<CustomPlanUpdateManyMutationInput, CustomPlanUncheckedUpdateManyInput>
+    /**
+     * Filter which CustomPlans to update
+     */
+    where?: CustomPlanWhereInput
+    /**
+     * Limit how many CustomPlans to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CustomPlan upsert
+   */
+  export type CustomPlanUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CustomPlan to update in case it exists.
+     */
+    where: CustomPlanWhereUniqueInput
+    /**
+     * In case the CustomPlan found by the `where` argument doesn't exist, create a new CustomPlan with this data.
+     */
+    create: XOR<CustomPlanCreateInput, CustomPlanUncheckedCreateInput>
+    /**
+     * In case the CustomPlan was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CustomPlanUpdateInput, CustomPlanUncheckedUpdateInput>
+  }
+
+  /**
+   * CustomPlan delete
+   */
+  export type CustomPlanDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanInclude<ExtArgs> | null
+    /**
+     * Filter which CustomPlan to delete.
+     */
+    where: CustomPlanWhereUniqueInput
+  }
+
+  /**
+   * CustomPlan deleteMany
+   */
+  export type CustomPlanDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CustomPlans to delete
+     */
+    where?: CustomPlanWhereInput
+    /**
+     * Limit how many CustomPlans to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CustomPlan without action
+   */
+  export type CustomPlanDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CustomPlan
+     */
+    select?: CustomPlanSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CustomPlan
+     */
+    omit?: CustomPlanOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CustomPlanInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -11069,6 +12316,22 @@ export namespace Prisma {
   };
 
   export type BillingCheckoutSessionScalarFieldEnum = (typeof BillingCheckoutSessionScalarFieldEnum)[keyof typeof BillingCheckoutSessionScalarFieldEnum]
+
+
+  export const CustomPlanScalarFieldEnum: {
+    id: 'id',
+    organizationId: 'organizationId',
+    name: 'name',
+    description: 'description',
+    monthlyVariantId: 'monthlyVariantId',
+    yearlyVariantId: 'yearlyVariantId',
+    limits: 'limits',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+  };
+
+  export type CustomPlanScalarFieldEnum = (typeof CustomPlanScalarFieldEnum)[keyof typeof CustomPlanScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -11245,6 +12508,7 @@ export namespace Prisma {
     users?: UserListRelationFilter
     domainGroups?: DomainGroupListRelationFilter
     checkoutSessions?: BillingCheckoutSessionListRelationFilter
+    customPlans?: CustomPlanListRelationFilter
     redirectTests?: RedirectTestListRelationFilter
     invites?: OrganizationInviteListRelationFilter
   }
@@ -11259,6 +12523,7 @@ export namespace Prisma {
     users?: UserOrderByRelationAggregateInput
     domainGroups?: DomainGroupOrderByRelationAggregateInput
     checkoutSessions?: BillingCheckoutSessionOrderByRelationAggregateInput
+    customPlans?: CustomPlanOrderByRelationAggregateInput
     redirectTests?: RedirectTestOrderByRelationAggregateInput
     invites?: OrganizationInviteOrderByRelationAggregateInput
   }
@@ -11276,6 +12541,7 @@ export namespace Prisma {
     users?: UserListRelationFilter
     domainGroups?: DomainGroupListRelationFilter
     checkoutSessions?: BillingCheckoutSessionListRelationFilter
+    customPlans?: CustomPlanListRelationFilter
     redirectTests?: RedirectTestListRelationFilter
     invites?: OrganizationInviteListRelationFilter
   }, "id">
@@ -11892,6 +13158,86 @@ export namespace Prisma {
     metadata?: JsonNullableWithAggregatesFilter<"BillingCheckoutSession">
   }
 
+  export type CustomPlanWhereInput = {
+    AND?: CustomPlanWhereInput | CustomPlanWhereInput[]
+    OR?: CustomPlanWhereInput[]
+    NOT?: CustomPlanWhereInput | CustomPlanWhereInput[]
+    id?: StringFilter<"CustomPlan"> | string
+    organizationId?: StringFilter<"CustomPlan"> | string
+    name?: StringFilter<"CustomPlan"> | string
+    description?: StringNullableFilter<"CustomPlan"> | string | null
+    monthlyVariantId?: StringNullableFilter<"CustomPlan"> | string | null
+    yearlyVariantId?: StringNullableFilter<"CustomPlan"> | string | null
+    limits?: JsonFilter<"CustomPlan">
+    createdAt?: DateTimeFilter<"CustomPlan"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomPlan"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"CustomPlan"> | Date | string | null
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+  }
+
+  export type CustomPlanOrderByWithRelationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    monthlyVariantId?: SortOrderInput | SortOrder
+    yearlyVariantId?: SortOrderInput | SortOrder
+    limits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    organization?: OrganizationOrderByWithRelationInput
+  }
+
+  export type CustomPlanWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CustomPlanWhereInput | CustomPlanWhereInput[]
+    OR?: CustomPlanWhereInput[]
+    NOT?: CustomPlanWhereInput | CustomPlanWhereInput[]
+    organizationId?: StringFilter<"CustomPlan"> | string
+    name?: StringFilter<"CustomPlan"> | string
+    description?: StringNullableFilter<"CustomPlan"> | string | null
+    monthlyVariantId?: StringNullableFilter<"CustomPlan"> | string | null
+    yearlyVariantId?: StringNullableFilter<"CustomPlan"> | string | null
+    limits?: JsonFilter<"CustomPlan">
+    createdAt?: DateTimeFilter<"CustomPlan"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomPlan"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"CustomPlan"> | Date | string | null
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+  }, "id">
+
+  export type CustomPlanOrderByWithAggregationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    monthlyVariantId?: SortOrderInput | SortOrder
+    yearlyVariantId?: SortOrderInput | SortOrder
+    limits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    _count?: CustomPlanCountOrderByAggregateInput
+    _max?: CustomPlanMaxOrderByAggregateInput
+    _min?: CustomPlanMinOrderByAggregateInput
+  }
+
+  export type CustomPlanScalarWhereWithAggregatesInput = {
+    AND?: CustomPlanScalarWhereWithAggregatesInput | CustomPlanScalarWhereWithAggregatesInput[]
+    OR?: CustomPlanScalarWhereWithAggregatesInput[]
+    NOT?: CustomPlanScalarWhereWithAggregatesInput | CustomPlanScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CustomPlan"> | string
+    organizationId?: StringWithAggregatesFilter<"CustomPlan"> | string
+    name?: StringWithAggregatesFilter<"CustomPlan"> | string
+    description?: StringNullableWithAggregatesFilter<"CustomPlan"> | string | null
+    monthlyVariantId?: StringNullableWithAggregatesFilter<"CustomPlan"> | string | null
+    yearlyVariantId?: StringNullableWithAggregatesFilter<"CustomPlan"> | string | null
+    limits?: JsonWithAggregatesFilter<"CustomPlan">
+    createdAt?: DateTimeWithAggregatesFilter<"CustomPlan"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CustomPlan"> | Date | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"CustomPlan"> | Date | string | null
+  }
+
   export type OrganizationCreateInput = {
     id: string
     name: string
@@ -11902,6 +13248,7 @@ export namespace Prisma {
     users?: UserCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
   }
@@ -11916,6 +13263,7 @@ export namespace Prisma {
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
   }
@@ -11930,6 +13278,7 @@ export namespace Prisma {
     users?: UserUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
   }
@@ -11944,6 +13293,7 @@ export namespace Prisma {
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
   }
@@ -12622,6 +13972,96 @@ export namespace Prisma {
     metadata?: NullableJsonNullValueInput | InputJsonValue
   }
 
+  export type CustomPlanCreateInput = {
+    id: string
+    name: string
+    description?: string | null
+    monthlyVariantId?: string | null
+    yearlyVariantId?: string | null
+    limits: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    organization: OrganizationCreateNestedOneWithoutCustomPlansInput
+  }
+
+  export type CustomPlanUncheckedCreateInput = {
+    id: string
+    organizationId: string
+    name: string
+    description?: string | null
+    monthlyVariantId?: string | null
+    yearlyVariantId?: string | null
+    limits: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type CustomPlanUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    yearlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    limits?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    organization?: OrganizationUpdateOneRequiredWithoutCustomPlansNestedInput
+  }
+
+  export type CustomPlanUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    yearlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    limits?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CustomPlanCreateManyInput = {
+    id: string
+    organizationId: string
+    name: string
+    description?: string | null
+    monthlyVariantId?: string | null
+    yearlyVariantId?: string | null
+    limits: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type CustomPlanUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    yearlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    limits?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CustomPlanUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    yearlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    limits?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -12700,6 +14140,12 @@ export namespace Prisma {
     none?: BillingCheckoutSessionWhereInput
   }
 
+  export type CustomPlanListRelationFilter = {
+    every?: CustomPlanWhereInput
+    some?: CustomPlanWhereInput
+    none?: CustomPlanWhereInput
+  }
+
   export type RedirectTestListRelationFilter = {
     every?: RedirectTestWhereInput
     some?: RedirectTestWhereInput
@@ -12726,6 +14172,10 @@ export namespace Prisma {
   }
 
   export type BillingCheckoutSessionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CustomPlanOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -13302,6 +14752,43 @@ export namespace Prisma {
     _max?: NestedEnumBillingCheckoutStatusFilter<$PrismaModel>
   }
 
+  export type CustomPlanCountOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    monthlyVariantId?: SortOrder
+    yearlyVariantId?: SortOrder
+    limits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type CustomPlanMaxOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    monthlyVariantId?: SortOrder
+    yearlyVariantId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type CustomPlanMinOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    monthlyVariantId?: SortOrder
+    yearlyVariantId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
   export type UserCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<UserCreateWithoutOrganizationInput, UserUncheckedCreateWithoutOrganizationInput> | UserCreateWithoutOrganizationInput[] | UserUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: UserCreateOrConnectWithoutOrganizationInput | UserCreateOrConnectWithoutOrganizationInput[]
@@ -13321,6 +14808,13 @@ export namespace Prisma {
     connectOrCreate?: BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput | BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput[]
     createMany?: BillingCheckoutSessionCreateManyOrganizationInputEnvelope
     connect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+  }
+
+  export type CustomPlanCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<CustomPlanCreateWithoutOrganizationInput, CustomPlanUncheckedCreateWithoutOrganizationInput> | CustomPlanCreateWithoutOrganizationInput[] | CustomPlanUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: CustomPlanCreateOrConnectWithoutOrganizationInput | CustomPlanCreateOrConnectWithoutOrganizationInput[]
+    createMany?: CustomPlanCreateManyOrganizationInputEnvelope
+    connect?: CustomPlanWhereUniqueInput | CustomPlanWhereUniqueInput[]
   }
 
   export type RedirectTestCreateNestedManyWithoutOrganizationInput = {
@@ -13356,6 +14850,13 @@ export namespace Prisma {
     connectOrCreate?: BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput | BillingCheckoutSessionCreateOrConnectWithoutOrganizationInput[]
     createMany?: BillingCheckoutSessionCreateManyOrganizationInputEnvelope
     connect?: BillingCheckoutSessionWhereUniqueInput | BillingCheckoutSessionWhereUniqueInput[]
+  }
+
+  export type CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<CustomPlanCreateWithoutOrganizationInput, CustomPlanUncheckedCreateWithoutOrganizationInput> | CustomPlanCreateWithoutOrganizationInput[] | CustomPlanUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: CustomPlanCreateOrConnectWithoutOrganizationInput | CustomPlanCreateOrConnectWithoutOrganizationInput[]
+    createMany?: CustomPlanCreateManyOrganizationInputEnvelope
+    connect?: CustomPlanWhereUniqueInput | CustomPlanWhereUniqueInput[]
   }
 
   export type RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput = {
@@ -13426,6 +14927,20 @@ export namespace Prisma {
     deleteMany?: BillingCheckoutSessionScalarWhereInput | BillingCheckoutSessionScalarWhereInput[]
   }
 
+  export type CustomPlanUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<CustomPlanCreateWithoutOrganizationInput, CustomPlanUncheckedCreateWithoutOrganizationInput> | CustomPlanCreateWithoutOrganizationInput[] | CustomPlanUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: CustomPlanCreateOrConnectWithoutOrganizationInput | CustomPlanCreateOrConnectWithoutOrganizationInput[]
+    upsert?: CustomPlanUpsertWithWhereUniqueWithoutOrganizationInput | CustomPlanUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: CustomPlanCreateManyOrganizationInputEnvelope
+    set?: CustomPlanWhereUniqueInput | CustomPlanWhereUniqueInput[]
+    disconnect?: CustomPlanWhereUniqueInput | CustomPlanWhereUniqueInput[]
+    delete?: CustomPlanWhereUniqueInput | CustomPlanWhereUniqueInput[]
+    connect?: CustomPlanWhereUniqueInput | CustomPlanWhereUniqueInput[]
+    update?: CustomPlanUpdateWithWhereUniqueWithoutOrganizationInput | CustomPlanUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: CustomPlanUpdateManyWithWhereWithoutOrganizationInput | CustomPlanUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: CustomPlanScalarWhereInput | CustomPlanScalarWhereInput[]
+  }
+
   export type RedirectTestUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<RedirectTestCreateWithoutOrganizationInput, RedirectTestUncheckedCreateWithoutOrganizationInput> | RedirectTestCreateWithoutOrganizationInput[] | RedirectTestUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: RedirectTestCreateOrConnectWithoutOrganizationInput | RedirectTestCreateOrConnectWithoutOrganizationInput[]
@@ -13494,6 +15009,20 @@ export namespace Prisma {
     update?: BillingCheckoutSessionUpdateWithWhereUniqueWithoutOrganizationInput | BillingCheckoutSessionUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: BillingCheckoutSessionUpdateManyWithWhereWithoutOrganizationInput | BillingCheckoutSessionUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: BillingCheckoutSessionScalarWhereInput | BillingCheckoutSessionScalarWhereInput[]
+  }
+
+  export type CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<CustomPlanCreateWithoutOrganizationInput, CustomPlanUncheckedCreateWithoutOrganizationInput> | CustomPlanCreateWithoutOrganizationInput[] | CustomPlanUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: CustomPlanCreateOrConnectWithoutOrganizationInput | CustomPlanCreateOrConnectWithoutOrganizationInput[]
+    upsert?: CustomPlanUpsertWithWhereUniqueWithoutOrganizationInput | CustomPlanUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: CustomPlanCreateManyOrganizationInputEnvelope
+    set?: CustomPlanWhereUniqueInput | CustomPlanWhereUniqueInput[]
+    disconnect?: CustomPlanWhereUniqueInput | CustomPlanWhereUniqueInput[]
+    delete?: CustomPlanWhereUniqueInput | CustomPlanWhereUniqueInput[]
+    connect?: CustomPlanWhereUniqueInput | CustomPlanWhereUniqueInput[]
+    update?: CustomPlanUpdateWithWhereUniqueWithoutOrganizationInput | CustomPlanUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: CustomPlanUpdateManyWithWhereWithoutOrganizationInput | CustomPlanUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: CustomPlanScalarWhereInput | CustomPlanScalarWhereInput[]
   }
 
   export type RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput = {
@@ -13903,6 +15432,20 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCheckoutSessionsInput, UserUpdateWithoutCheckoutSessionsInput>, UserUncheckedUpdateWithoutCheckoutSessionsInput>
   }
 
+  export type OrganizationCreateNestedOneWithoutCustomPlansInput = {
+    create?: XOR<OrganizationCreateWithoutCustomPlansInput, OrganizationUncheckedCreateWithoutCustomPlansInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutCustomPlansInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutCustomPlansNestedInput = {
+    create?: XOR<OrganizationCreateWithoutCustomPlansInput, OrganizationUncheckedCreateWithoutCustomPlansInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutCustomPlansInput
+    upsert?: OrganizationUpsertWithoutCustomPlansInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutCustomPlansInput, OrganizationUpdateWithoutCustomPlansInput>, OrganizationUncheckedUpdateWithoutCustomPlansInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -14258,6 +15801,40 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type CustomPlanCreateWithoutOrganizationInput = {
+    id: string
+    name: string
+    description?: string | null
+    monthlyVariantId?: string | null
+    yearlyVariantId?: string | null
+    limits: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type CustomPlanUncheckedCreateWithoutOrganizationInput = {
+    id: string
+    name: string
+    description?: string | null
+    monthlyVariantId?: string | null
+    yearlyVariantId?: string | null
+    limits: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type CustomPlanCreateOrConnectWithoutOrganizationInput = {
+    where: CustomPlanWhereUniqueInput
+    create: XOR<CustomPlanCreateWithoutOrganizationInput, CustomPlanUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type CustomPlanCreateManyOrganizationInputEnvelope = {
+    data: CustomPlanCreateManyOrganizationInput | CustomPlanCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type RedirectTestCreateWithoutOrganizationInput = {
     id: string
     pathWithQuery: string
@@ -14423,6 +16000,38 @@ export namespace Prisma {
     metadata?: JsonNullableFilter<"BillingCheckoutSession">
   }
 
+  export type CustomPlanUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: CustomPlanWhereUniqueInput
+    update: XOR<CustomPlanUpdateWithoutOrganizationInput, CustomPlanUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<CustomPlanCreateWithoutOrganizationInput, CustomPlanUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type CustomPlanUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: CustomPlanWhereUniqueInput
+    data: XOR<CustomPlanUpdateWithoutOrganizationInput, CustomPlanUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type CustomPlanUpdateManyWithWhereWithoutOrganizationInput = {
+    where: CustomPlanScalarWhereInput
+    data: XOR<CustomPlanUpdateManyMutationInput, CustomPlanUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
+  export type CustomPlanScalarWhereInput = {
+    AND?: CustomPlanScalarWhereInput | CustomPlanScalarWhereInput[]
+    OR?: CustomPlanScalarWhereInput[]
+    NOT?: CustomPlanScalarWhereInput | CustomPlanScalarWhereInput[]
+    id?: StringFilter<"CustomPlan"> | string
+    organizationId?: StringFilter<"CustomPlan"> | string
+    name?: StringFilter<"CustomPlan"> | string
+    description?: StringNullableFilter<"CustomPlan"> | string | null
+    monthlyVariantId?: StringNullableFilter<"CustomPlan"> | string | null
+    yearlyVariantId?: StringNullableFilter<"CustomPlan"> | string | null
+    limits?: JsonFilter<"CustomPlan">
+    createdAt?: DateTimeFilter<"CustomPlan"> | Date | string
+    updatedAt?: DateTimeFilter<"CustomPlan"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"CustomPlan"> | Date | string | null
+  }
+
   export type RedirectTestUpsertWithWhereUniqueWithoutOrganizationInput = {
     where: RedirectTestWhereUniqueInput
     update: XOR<RedirectTestUpdateWithoutOrganizationInput, RedirectTestUncheckedUpdateWithoutOrganizationInput>
@@ -14495,6 +16104,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
   }
@@ -14508,6 +16118,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
   }
@@ -14609,6 +16220,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
   }
@@ -14622,6 +16234,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
   }
@@ -14668,6 +16281,7 @@ export namespace Prisma {
     users?: UserCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
   }
 
@@ -14681,6 +16295,7 @@ export namespace Prisma {
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
@@ -14753,6 +16368,7 @@ export namespace Prisma {
     users?: UserUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
   }
 
@@ -14766,6 +16382,7 @@ export namespace Prisma {
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
@@ -14827,6 +16444,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
   }
@@ -14840,6 +16458,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
   }
@@ -14965,6 +16584,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
   }
@@ -14978,6 +16598,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
   }
@@ -15190,6 +16811,7 @@ export namespace Prisma {
     users?: UserCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
   }
 
@@ -15203,6 +16825,7 @@ export namespace Prisma {
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
     checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
@@ -15259,6 +16882,7 @@ export namespace Prisma {
     users?: UserUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
   }
 
@@ -15272,6 +16896,7 @@ export namespace Prisma {
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
     checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
@@ -15317,6 +16942,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
   }
@@ -15330,6 +16956,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
     domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
   }
@@ -15402,6 +17029,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
   }
@@ -15415,6 +17043,7 @@ export namespace Prisma {
     configuration?: NullableJsonNullValueInput | InputJsonValue
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
     domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
   }
@@ -15468,6 +17097,78 @@ export namespace Prisma {
     createdInvites?: OrganizationInviteUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
+  export type OrganizationCreateWithoutCustomPlansInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserCreateNestedManyWithoutOrganizationInput
+    domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
+    checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
+    redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
+    invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutCustomPlansInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
+    domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
+    checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
+    invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutCustomPlansInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutCustomPlansInput, OrganizationUncheckedCreateWithoutCustomPlansInput>
+  }
+
+  export type OrganizationUpsertWithoutCustomPlansInput = {
+    update: XOR<OrganizationUpdateWithoutCustomPlansInput, OrganizationUncheckedUpdateWithoutCustomPlansInput>
+    create: XOR<OrganizationCreateWithoutCustomPlansInput, OrganizationUncheckedCreateWithoutCustomPlansInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutCustomPlansInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutCustomPlansInput, OrganizationUncheckedUpdateWithoutCustomPlansInput>
+  }
+
+  export type OrganizationUpdateWithoutCustomPlansInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserUpdateManyWithoutOrganizationNestedInput
+    domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
+    checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
+    redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
+    invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutCustomPlansInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
+    domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
+    checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
+    invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
   export type UserCreateManyOrganizationInput = {
     id: string
     email: string
@@ -15505,6 +17206,18 @@ export namespace Prisma {
     updatedAt?: Date | string
     completedAt?: Date | string | null
     metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type CustomPlanCreateManyOrganizationInput = {
+    id: string
+    name: string
+    description?: string | null
+    monthlyVariantId?: string | null
+    yearlyVariantId?: string | null
+    limits: JsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
   }
 
   export type RedirectTestCreateManyOrganizationInput = {
@@ -15655,6 +17368,42 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     metadata?: NullableJsonNullValueInput | InputJsonValue
+  }
+
+  export type CustomPlanUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    yearlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    limits?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CustomPlanUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    yearlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    limits?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type CustomPlanUncheckedUpdateManyWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    monthlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    yearlyVariantId?: NullableStringFieldUpdateOperationsInput | string | null
+    limits?: JsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type RedirectTestUpdateWithoutOrganizationInput = {

@@ -18,4 +18,11 @@ export const CreateCheckoutSchema = z.object({
   cancelUrl: z.string().url().optional(),
 });
 
+export const CustomPlanCheckoutSchema = z.object({
+  interval: CheckoutIntervalSchema.optional(),
+  successUrl: z.string().url().optional(),
+  cancelUrl: z.string().url().optional(),
+});
+
 export type CreateCheckoutDto = z.infer<typeof CreateCheckoutSchema>;
+export type CustomPlanCheckoutDto = z.infer<typeof CustomPlanCheckoutSchema>;

@@ -259,8 +259,8 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     });
   }
 
-  planLabel(plan: string): string {
-    return formatPlanLabel(plan);
+  planLabel(plan: string, planName?: string | null): string {
+    return formatPlanLabel(plan, planName);
   }
 
   private scheduleOverflowCheck(): void {

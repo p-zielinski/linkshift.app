@@ -23,6 +23,8 @@
     [currentPlan]="data.currentPlan"
     [customLink]="'/contact'"
     [planBlockReasons]="planBlockReasons()"
+    [customPlans]="customPlansStore.plans()"
+    [customPlanBlockReasons]="customPlanBlockReasons()"
     (planSelected)="onPlanSelected($event)"
     (customRequested)="onCustomRequested()"
   ></app-pricing-plans>

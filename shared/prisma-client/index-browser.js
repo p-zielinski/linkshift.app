@@ -220,6 +220,19 @@ exports.Prisma.BillingCheckoutSessionScalarFieldEnum = {
   metadata: 'metadata'
 };
 
+exports.Prisma.CustomPlanScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  description: 'description',
+  monthlyVariantId: 'monthlyVariantId',
+  yearlyVariantId: 'yearlyVariantId',
+  limits: 'limits',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -275,7 +288,8 @@ exports.Prisma.ModelName = {
   Domain: 'Domain',
   RedirectRule: 'RedirectRule',
   RedirectTest: 'RedirectTest',
-  BillingCheckoutSession: 'BillingCheckoutSession'
+  BillingCheckoutSession: 'BillingCheckoutSession',
+  CustomPlan: 'CustomPlan'
 };
 
 /**

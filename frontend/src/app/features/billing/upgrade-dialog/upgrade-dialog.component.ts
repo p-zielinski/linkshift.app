@@ -13,6 +13,7 @@ import { OrganizationPlan } from '@shared/models/organization-config.model';
 import { BillingPlansStore } from '../../../core/store/billing-plans.store';
 import { OrganizationUsageStore } from '../../../core/store/organization-usage.store';
 import type { OrganizationUsage } from '../../../core/models/organization-usage.model';
+import { CustomPlansStore } from '../../../core/store/custom-plans.store';
 
 export type UpgradeDialogData = {
   currentPlan: OrganizationPlan;
@@ -41,6 +42,7 @@ export class UpgradeDialogComponent {
   private readonly router = inject(Router);
   private readonly billingPlansStore = inject(BillingPlansStore);
   private readonly usageStore = inject(OrganizationUsageStore);
+  readonly customPlansStore = inject(CustomPlansStore);
   readonly data = inject<UpgradeDialogData>(MAT_DIALOG_DATA);
   readonly busy = signal(false);
 
@@ -54,6 +56,9 @@ export class UpgradeDialogComponent {
     const reasons: PlanBlockReasons = {};
     if (this.data.currentPlan === OrganizationPlan.PRO) {
       const targetLimits = limits[OrganizationPlan.STARTER];
+      if (!targetLimits) {
+        return reasons;
+      }
       const overages = this.getOverageDetails(usage, targetLimits);
       if (overages.length > 0) {
         reasons[OrganizationPlan.STARTER] =
@@ -64,22 +69,54 @@ export class UpgradeDialogComponent {
     return reasons;
   });
 
+  readonly customPlanBlockReasons = computed(() => {
+    const usage = this.usageStore.usage();
+    const plans = this.customPlansStore.plans();
+    if (!usage || plans.length === 0) {
+      return {};
+    }
+
+    const reasons: Record<string, string> = {};
+    for (const plan of plans) {
+      const overages = this.getOverageDetails(usage, plan.limits);
+      if (overages.length > 0) {
+        reasons[plan.id] =
+          `Reduce usage to downgrade: ${overages.join(', ')}.`;
+      }
+    }
+    return reasons;
+  });
+
   constructor() {
     this.billingPlansStore.loadPlans();
     this.usageStore.loadUsage();
+    this.customPlansStore.loadPlans();
   }
 
   async onPlanSelected(selection: PricingPlanSelection): Promise<void> {
     const { plan, interval } = selection;
-    if (plan !== OrganizationPlan.STARTER && plan !== OrganizationPlan.PRO) {
+    if (
+      plan !== OrganizationPlan.STARTER &&
+      plan !== OrganizationPlan.PRO &&
+      plan !== OrganizationPlan.CUSTOM
+    ) {
+      return;
+    }
+    if (plan === OrganizationPlan.CUSTOM && !selection.customPlanId) {
       return;
     }
 
     this.busy.set(true);
     try {
-      const response = await firstValueFrom(
-        this.billingApi.createCheckout(plan, interval),
-      );
+      const response =
+        plan === OrganizationPlan.CUSTOM && selection.customPlanId
+          ? await firstValueFrom(
+              this.billingApi.createCustomPlanCheckout(
+                selection.customPlanId,
+                interval,
+              ),
+            )
+          : await firstValueFrom(this.billingApi.createCheckout(plan, interval));
       window.location.href = response.checkoutUrl;
     } catch (error) {
       const message =

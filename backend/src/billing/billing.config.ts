@@ -5,7 +5,10 @@ import {
 
 export type PlanLimits = OrganizationSubscription['limits'];
 
-export const PLAN_LIMITS: Record<OrganizationPlan, PlanLimits> = {
+export const PLAN_LIMITS: Record<
+  Exclude<OrganizationPlan, OrganizationPlan.CUSTOM>,
+  PlanLimits
+> = {
   [OrganizationPlan.FREE]: {
     maxDomainGroups: 1,
     maxDomainsPerGroup: 1,
@@ -46,7 +49,9 @@ export const CHECKOUT_PLANS: OrganizationPlan[] = [
   OrganizationPlan.PRO,
 ];
 
-export function getPlanLimits(plan: OrganizationPlan): PlanLimits {
+export function getPlanLimits(
+  plan: Exclude<OrganizationPlan, OrganizationPlan.CUSTOM>,
+): PlanLimits {
   return PLAN_LIMITS[plan] ?? PLAN_LIMITS[OrganizationPlan.FREE];
 }
 

@@ -11,7 +11,12 @@ import {
   OrganizationPlan,
 } from '@shared/models/organization-config.model';
 import { BillingPlansStore } from '../../../../core/store/billing-plans.store';
-import type { BillingPlanPrice } from '../../../../core/api/billing-api.service';
+import type {
+  BillingPlanPrice,
+  CustomPlanCatalogItem,
+  CustomPlanPricing,
+  PlanLimits,
+} from '../../../../core/api/billing-api.service';
 
 type PricingPlanBase = {
   key: OrganizationPlan | 'CUSTOM';
@@ -28,6 +33,7 @@ type PricingPlanBase = {
 type PricingPlan = PricingPlanBase & {
   price: string;
   priceNote: string;
+  savingsNote?: string | null;
   unavailable?: boolean;
 };
 
@@ -149,6 +155,8 @@ export class PricingPlansComponent {
   readonly customLink = input<string>('/contact');
   readonly planBlockReasons =
     input<Partial<Record<OrganizationPlan, string>> | null>(null);
+  readonly customPlans = input<CustomPlanCatalogItem[]>([]);
+  readonly customPlanBlockReasons = input<Record<string, string> | null>(null);
   readonly planSelected = output<PricingPlanSelection>();
   readonly customRequested = output<void>();
   readonly billingInterval = signal<BillingInterval>('MONTHLY');
@@ -187,6 +195,7 @@ export class PricingPlansComponent {
           ...plan,
           price: 'Contact us',
           priceNote: 'pricing unavailable',
+          savingsNote: null,
           unavailable: true,
         };
       }
@@ -195,6 +204,26 @@ export class PricingPlansComponent {
         ...plan,
         price: this.formatPrice(pricing.amount, pricing.currency),
         priceNote,
+        savingsNote: this.getSavingsNote(plan.key, pricing.currency),
+      };
+    });
+  });
+
+  readonly customPlanCards = computed(() => {
+    const interval = this.billingInterval();
+    const priceNote = interval === 'YEARLY' ? 'per year' : 'per month';
+    return this.customPlans().map((plan) => {
+      const pricing =
+        interval === 'YEARLY' ? plan.yearly : plan.monthly;
+      return {
+        ...plan,
+        pricing,
+        price: pricing
+          ? this.formatPrice(pricing.amount, pricing.currency)
+          : 'Contact us',
+        priceNote: pricing ? priceNote : 'pricing unavailable',
+        savingsNote: this.getCustomPlanSavingsNote(plan, pricing?.currency),
+        limits: this.formatCustomPlanLimits(plan.limits),
       };
     });
   });
@@ -282,6 +311,23 @@ export class PricingPlansComponent {
     return !!this.getPlanBlockedReason(plan);
   }
 
+  getCustomPlanBlockedReason(
+    customPlanId: string,
+    pricing: CustomPlanPricing | null,
+  ): string | null {
+    if (!pricing) {
+      return 'Plan not available for this billing interval.';
+    }
+    return this.customPlanBlockReasons()?.[customPlanId] ?? null;
+  }
+
+  isCustomPlanBlocked(
+    customPlanId: string,
+    pricing: CustomPlanPricing | null,
+  ): boolean {
+    return !!this.getCustomPlanBlockedReason(customPlanId, pricing);
+  }
+
   private getPlanPrice(
     plan: OrganizationPlan,
     interval: BillingInterval,
@@ -296,5 +342,66 @@ export class PricingPlansComponent {
     const normalized =
       Math.round(amount) === amount ? amount.toFixed(0) : amount.toFixed(2);
     return `${normalized} ${currency}`;
+  }
+
+  private getSavingsNote(
+    plan: OrganizationPlan,
+    currency: string,
+  ): string | null {
+    if (this.billingInterval() !== 'YEARLY') {
+      return null;
+    }
+    const monthly = this.getPlanPrice(plan, 'MONTHLY');
+    const yearly = this.getPlanPrice(plan, 'YEARLY');
+    if (!monthly || !yearly) {
+      return null;
+    }
+    const savings = monthly.amount * 12 - yearly.amount;
+    if (savings <= 0) {
+      return null;
+    }
+    return `Save ${this.formatPrice(savings, currency)} per year`;
+  }
+
+  private getCustomPlanSavingsNote(
+    plan: CustomPlanCatalogItem,
+    currency?: string,
+  ): string | null {
+    if (this.billingInterval() !== 'YEARLY') {
+      return null;
+    }
+    if (!plan.monthly || !plan.yearly) {
+      return null;
+    }
+    const savings = plan.monthly.amount * 12 - plan.yearly.amount;
+    if (savings <= 0) {
+      return null;
+    }
+    return `Save ${this.formatPrice(savings, currency ?? plan.yearly.currency)} per year`;
+  }
+
+  private formatCustomPlanLimits(limits: PlanLimits): string[] {
+    return [
+      `${limits.maxDomainGroups} domain group${limits.maxDomainGroups === 1 ? '' : 's'}`,
+      `${limits.maxTotalDomains} domain${limits.maxTotalDomains === 1 ? '' : 's'}`,
+      `${limits.maxTotalRules} rule${limits.maxTotalRules === 1 ? '' : 's'}`,
+      `${limits.maxTotalTests} test${limits.maxTotalTests === 1 ? '' : 's'}`,
+      `${limits.maxUsers} seat${limits.maxUsers === 1 ? '' : 's'}`,
+      `${limits.redirectionLimitPerMinute} redirects/min`,
+    ];
+  }
+
+  selectCustomPlan(planId: string, pricing: CustomPlanPricing | null): void {
+    if (this.actionMode() !== 'select') {
+      return;
+    }
+    if (this.isCustomPlanBlocked(planId, pricing)) {
+      return;
+    }
+    this.planSelected.emit({
+      plan: OrganizationPlan.CUSTOM,
+      interval: this.billingInterval(),
+      customPlanId: planId,
+    });
   }
 }

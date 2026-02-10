@@ -63,32 +63,35 @@ export class LemonSqueezyService {
     organizationName: string;
     customData: Record<string, string>;
     successUrl?: string;
-    cancelUrl?: string;
   }): Promise<{ checkoutUrl: string; checkoutId: string | null }> {
     const payload = {
       data: {
         type: 'checkouts',
         attributes: {
+          product_options: {
+            redirect_url: params.successUrl || this.defaultSuccessUrl,
+            name: `LinkSwitch.app subscription`,
+            enabled_variants: [params.variantId],
+          },
           checkout_data: {
             email: params.customerEmail,
             custom: params.customData,
           },
           checkout_options: {
-            redirect_url: params.successUrl || this.defaultSuccessUrl,
-            cancel_url: params.cancelUrl || this.defaultCancelUrl,
+            embed: false,
           },
         },
         relationships: {
           store: {
             data: {
               type: 'stores',
-              id: this.storeId,
+              id: this.storeId.toString(),
             },
           },
           variant: {
             data: {
               type: 'variants',
-              id: params.variantId,
+              id: params.variantId.toString(),
             },
           },
         },
@@ -122,10 +125,9 @@ export class LemonSqueezyService {
   }
 
   async getVariant(variantId: string) {
-    return this.request<LemonSqueezyVariantResponse>(
-      `/variants/${variantId}`,
-      { method: 'GET' },
-    );
+    return this.request<LemonSqueezyVariantResponse>(`/variants/${variantId}`, {
+      method: 'GET',
+    });
   }
 
   async listVariants(productId: string) {
@@ -155,10 +157,7 @@ export class LemonSqueezyService {
     );
   }
 
-  private async request<T>(
-    path: string,
-    init: RequestInit,
-  ): Promise<T> {
+  private async request<T>(path: string, init: RequestInit): Promise<T> {
     if (!this.apiKey) {
       throw new Error('LEMON_SQUEEZY_API_KEY is not configured.');
     }
