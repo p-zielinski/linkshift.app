@@ -22,14 +22,22 @@
       } @else {
         <mat-icon
           class="text-[24px]"
-          [class.text-emerald-600]="status() === 'PAID'"
-          [class.text-red-600]="status() !== 'PAID'"
+          [class.text-emerald-600]="status() === 'PAID' && !sessionNotFound()"
+          [class.text-red-600]="status() !== 'PAID' || sessionNotFound()"
         >
-          {{ status() === 'PAID' ? 'check_circle' : 'error' }}
+          {{
+            sessionNotFound()
+              ? 'search_off'
+              : status() === 'PAID'
+                ? 'check_circle'
+                : 'error'
+          }}
         </mat-icon>
       }
       <div class="grid gap-1">
-        <div class="text-sm font-semibold">Checkout status</div>
+        <div class="text-sm font-semibold">
+          {{ sessionNotFound() ? 'Session not found' : 'Checkout status' }}
+        </div>
         <div class="text-[13px] text-app-muted">
           Session: <span class="font-mono">{{ sessionId }}</span>
         </div>

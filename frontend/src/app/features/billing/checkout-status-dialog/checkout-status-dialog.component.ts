@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subject, catchError, of, switchMap, takeUntil, timer } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   BillingApiService,
   CheckoutSessionResponse,
@@ -40,6 +41,7 @@ export class CheckoutStatusDialogComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly stopPolling$ = new Subject<void>();
   private sessionRefreshTriggered = false;
+  readonly sessionNotFound = signal(false);
 
   readonly sessionId = this.data.sessionId;
   readonly status = signal<CheckoutSessionStatus>('PENDING');
@@ -50,6 +52,9 @@ export class CheckoutStatusDialogComponent {
   readonly planLabel = computed(() => formatPlanLabel(this.plan()));
 
   readonly statusMessage = computed(() => {
+    if (this.sessionNotFound()) {
+      return 'Checkout session does not exist.';
+    }
     switch (this.status()) {
       case 'PAID':
         return 'Payment confirmed. Your subscription is now active.';
@@ -65,6 +70,9 @@ export class CheckoutStatusDialogComponent {
   });
 
   readonly statusTone = computed(() => {
+    if (this.sessionNotFound()) {
+      return 'bg-red-50 text-red-700';
+    }
     switch (this.status()) {
       case 'PAID':
         return 'bg-emerald-50 text-emerald-700';
@@ -78,7 +86,7 @@ export class CheckoutStatusDialogComponent {
   });
 
   readonly showSpinner = computed(
-    () => this.status() === 'PENDING' || this.isLoading(),
+    () => !this.sessionNotFound() && (this.status() === 'PENDING' || this.isLoading()),
   );
 
   constructor() {
@@ -96,6 +104,13 @@ export class CheckoutStatusDialogComponent {
         switchMap(() =>
           this.billingApi.getCheckoutSession(this.sessionId).pipe(
             catchError((error) => {
+              if (error instanceof HttpErrorResponse && error.status === 404) {
+                this.sessionNotFound.set(true);
+                this.error.set(null);
+                this.isLoading.set(false);
+                this.stopPolling$.next();
+                return of(null);
+              }
               const message =
                 error instanceof Error
                   ? error.message
