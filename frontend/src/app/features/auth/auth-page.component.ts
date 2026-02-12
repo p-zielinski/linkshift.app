@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
   form,
@@ -17,7 +17,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../core/store/auth.store';
 import { applyZodField } from '../../core/forms/zod-validators';
@@ -28,6 +28,7 @@ import {
 } from '@shared/models/organization-config.model';
 import { SITE_CONFIG } from '../../core/config/site-config';
 import { BillingPlansStore } from '../../core/store/billing-plans.store';
+import { APP_CONFIG } from '../../core/config/app-runtime-config';
 
 @Component({
   selector: 'app-auth-page',
@@ -56,6 +57,8 @@ export class AuthPageComponent {
   private readonly router = inject(Router);
   readonly siteConfig = inject(SITE_CONFIG);
   private readonly billingPlansStore = inject(BillingPlansStore);
+  private readonly appConfig = inject(APP_CONFIG);
+  private readonly platformId = inject(PLATFORM_ID);
 
   loginModel = signal({
     email: '',
@@ -118,6 +121,16 @@ export class AuthPageComponent {
   registerPrivacyError = computed(() => this.getFieldError(this.registerForm.acceptPrivacy()));
   registerAgeError = computed(() => this.getFieldError(this.registerForm.confirmAge()));
 
+  private readonly registerReady = signal(true);
+  readonly authGateEnabled = computed(() => {
+    return (this.appConfig.APP_AUTH_GATE_ENABLED ?? 'false')
+      .toString()
+      .toLowerCase() === 'true';
+  });
+  readonly canAccessAuth = computed(
+    () => !this.authGateEnabled() || this.registerReady(),
+  );
+
   private readonly pricingByPlan = computed(() => {
     const map = new Map<string, { amount: number; currency: string }>();
     for (const entry of this.billingPlansStore.plans()) {
@@ -154,6 +167,14 @@ export class AuthPageComponent {
   });
 
   constructor() {
+    if (this.authGateEnabled()) {
+      this.registerReady.set(false);
+      if (isPlatformBrowser(this.platformId)) {
+        const flag = localStorage.getItem('register_ready');
+        this.registerReady.set(flag === 'true');
+      }
+    }
+
     this.billingPlansStore.loadPlans();
 
     effect(() => {

@@ -11,6 +11,7 @@ export type AppRuntimeConfig = {
   APP_MIN_AGE: string;
   APP_LEGAL_VERSION: string;
   APP_DOMAIN_TARGET_IP: string;
+  APP_AUTH_GATE_ENABLED: string;
 };
 
 export const DEFAULT_APP_RUNTIME_CONFIG: AppRuntimeConfig = {
@@ -24,6 +25,7 @@ export const DEFAULT_APP_RUNTIME_CONFIG: AppRuntimeConfig = {
   APP_MIN_AGE: '16',
   APP_LEGAL_VERSION: 'v1',
   APP_DOMAIN_TARGET_IP: '',
+  APP_AUTH_GATE_ENABLED: 'false',
 };
 
 export const resolveAppRuntimeConfig = (

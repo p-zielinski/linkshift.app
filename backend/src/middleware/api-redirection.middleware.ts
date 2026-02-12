@@ -10,7 +10,16 @@ export class ApiRedirectionMiddleware implements NestMiddleware {
     private readonly configService: ConfigService,
     private readonly redirectService: RedirectService,
     private readonly logger: Logger,
-  ) {}
+  ) {
+    this.isProduction =
+      (this.configService.get<string>('NODE_ENV') ?? 'development') ===
+      'production';
+    this.logger.debug('ApiRedirectionMiddleware initialized', {
+      isProduction: this.isProduction,
+    });
+  }
+
+  private readonly isProduction: boolean;
 
   async use(req: Request, res: Response, next: NextFunction) {
     if (req.hostname === this.configService.get('API_HOSTNAME')) {
@@ -18,6 +27,7 @@ export class ApiRedirectionMiddleware implements NestMiddleware {
     }
 
     if (
+      !this.isProduction &&
       req.originalUrl === '/api/v1/billing/webhooks/lemon-squeezy' &&
       req.method === 'POST'
     ) {

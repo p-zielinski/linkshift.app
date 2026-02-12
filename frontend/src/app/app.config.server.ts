@@ -21,6 +21,7 @@ const serverConfig: ApplicationConfig = {
           APP_MIN_AGE: process.env['APP_MIN_AGE'],
           APP_LEGAL_VERSION: process.env['APP_LEGAL_VERSION'],
           APP_DOMAIN_TARGET_IP: process.env['APP_DOMAIN_TARGET_IP'],
+          APP_AUTH_GATE_ENABLED: process.env['APP_AUTH_GATE_ENABLED'],
         })
         inject(TransferState).set(APP_CONFIG_KEY, config);
         return config;
