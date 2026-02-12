@@ -2,3 +2,4 @@
 .idea
 /data/
 .env
+/backup-db/node_modules/

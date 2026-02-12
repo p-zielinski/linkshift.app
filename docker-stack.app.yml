@@ -84,6 +84,31 @@ services:
         - traefik.http.routers.backend.tls.certresolver=default
         - traefik.http.services.backend.loadbalancer.server.port=3000
 
+  db-backup:
+    image: ghcr.io/p-zielinski/project4-db-backup:${GIT_COMMIT_HASH:-latest}
+    networks:
+      - inter-stack
+    secrets:
+      - db-password
+      - backblaze-application-key-id
+      - backblaze-application-key
+    environment:
+      - HOST_ID=eu1
+      - DATABASE=core
+      - DB_HOST=postgres.project4_inter-stack-network
+      - DB_USER=postgres
+      - DB_PASSWORD_FILE=/run/secrets/db-password
+      - DB_PORT=5432
+      - NODE_ENV=production
+      - BACKBLAZE_APPLICATION_KEY_ID_FILE=/run/secrets/backblaze-application-key-id
+      - BACKBLAZE_APPLICATION_KEY_FILE=/run/secrets/backblaze-application-key
+    deploy:
+      resources:
+        limits:
+          memory: 500M
+          cpus: "0.50"
+      replicas: 1
+
 networks:
   inter-stack:
     external: true
@@ -107,4 +132,10 @@ secrets:
   zeptomail_api_key:
     external: true
   safe_browsing_api_key:
+    external: true
+  db-password:
+    external: true
+  backblaze-application-key-id:
+    external: true
+  backblaze-application-key:
     external: true
