@@ -24,4 +24,8 @@ load_secret "lemon_squeezy_webhook_secret" "LEMON_SQUEEZY_WEBHOOK_SECRET"
 load_secret "zeptomail_api_key" "ZEPTOMAIL_API_KEY"
 load_secret "safe_browsing_api_key" "SAFE_BROWSING_API_KEY"
 
+if [ -x "./node_modules/.bin/prisma" ] && [ -n "${DATABASE_URL:-}" ]; then
+  ./node_modules/.bin/prisma migrate deploy
+fi
+
 exec "$@"

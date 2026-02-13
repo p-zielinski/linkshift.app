@@ -1,4 +1,4 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { of } from 'rxjs';
 import { CheckoutStatusDialogComponent } from './checkout-status-dialog.component';
@@ -30,7 +30,8 @@ class MockBillingApiService {
 }
 
 describe('CheckoutStatusDialogComponent', () => {
-  it('stops polling after a terminal status', fakeAsync(() => {
+  it('stops polling after a terminal status', async () => {
+    vi.useFakeTimers();
     TestBed.configureTestingModule({
       imports: [CheckoutStatusDialogComponent],
       providers: [
@@ -45,16 +46,17 @@ describe('CheckoutStatusDialogComponent', () => {
     const api = TestBed.inject(BillingApiService) as unknown as MockBillingApiService;
 
     fixture.detectChanges();
-    tick();
+    await vi.advanceTimersByTimeAsync(0);
 
     expect(api.callCount).toBe(1);
     expect(component.status()).toBe('PENDING');
 
-    tick(3000);
+    await vi.advanceTimersByTimeAsync(3000);
     expect(api.callCount).toBe(2);
     expect(component.status()).toBe('PAID');
 
-    tick(6000);
+    await vi.advanceTimersByTimeAsync(6000);
     expect(api.callCount).toBe(2);
-  }));
+    vi.useRealTimers();
+  });
 });

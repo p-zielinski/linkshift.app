@@ -324,3 +324,27 @@ export FRONTEND_IMAGE=ghcr.io/your-org/redirect-frontend:<tag>
 
 docker stack deploy -c docker-stack.app.yml ${APP_STACK_NAME}
 ```
+
+## GitHub Actions (deploy on merge to main)
+The workflow `.github/workflows/deploy.yml` builds and pushes backend, frontend, and db-backup images, then deploys both stacks.
+
+Required GitHub Actions secrets:
+- `STACK_ENV` — contents of your deploy env file (same format as `deploy/stack.env`).
+- `INFRA_STACK_NAME` — infra stack name (e.g. `redirect-infra`).
+- `APP_STACK_NAME` — app stack name (e.g. `redirect-app`).
+- `DEPLOY_HOST` — IP or hostname of the Swarm manager.
+- `DEPLOY_USER` — SSH user for deployment.
+- `DEPLOY_SSH_PRIVATE_KEY` — SSH private key for deployment.
+- `DEPLOY_REGISTRY_USER` — registry username for the server to pull images.
+- `DEPLOY_REGISTRY_PASS` — registry token/password for the server to pull images.
+
+Notes:
+- The workflow overwrites `BACKEND_IMAGE`, `FRONTEND_IMAGE`, and `GIT_COMMIT_HASH` in `STACK_ENV` at deploy time.
+- If your db-backup image name differs, update the tags in `.github/workflows/deploy.yml`.
+
+## Prisma migrations on backend startup
+The backend entrypoint runs Prisma migrations automatically if `DATABASE_URL` is set:
+
+```
+./node_modules/.bin/prisma migrate deploy
+```

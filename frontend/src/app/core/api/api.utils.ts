@@ -12,6 +12,15 @@ export function buildHttpParams(params?: QueryParams): HttpParams {
     if (value === null || value === undefined) {
       return;
     }
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (item === null || item === undefined) {
+          return;
+        }
+        httpParams = httpParams.append(key, String(item));
+      });
+      return;
+    }
     httpParams = httpParams.append(key, String(value));
   });
 
