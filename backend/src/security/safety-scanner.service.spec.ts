@@ -28,9 +28,7 @@ describe('SafetyScannerService', () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn((key: string) => {
-              if (key === 'SAFE_BROWSING_API_KEY') return 'test-key';
-              if (key === 'SAFE_BROWSING_CLIENT_ID') return 'test-client';
-              if (key === 'SAFE_BROWSING_CLIENT_VERSION') return '1.2.3';
+              if (key === 'WEB_RISK_API_KEY') return 'test-key';
               return undefined;
             }),
           },
@@ -51,11 +49,15 @@ describe('SafetyScannerService', () => {
     service = module.get(SafetyScannerService);
 
     originalFetch = global.fetch;
-    fetchMock = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        matches: [{ threat: { url: 'https://bad.example.com/phish' } }],
-      }),
+    fetchMock = jest.fn().mockImplementation((input: string) => {
+      const url = new URL(input);
+      const uri = url.searchParams.get('uri') ?? '';
+      const isBad = uri.includes('bad.example.com');
+      return Promise.resolve({
+        ok: true,
+        json: async () =>
+          isBad ? { threat: { threatTypes: ['MALWARE'] } } : {},
+      });
     });
     global.fetch = fetchMock as unknown as typeof fetch;
   });
@@ -73,7 +75,7 @@ describe('SafetyScannerService', () => {
 
     expect(results.get('bad.example.com')).toBe(false);
     expect(results.get('good.example.com')).toBe(true);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(redisService.set).toHaveBeenCalledWith(
       'safety:domain:bad.example.com',
       false,
@@ -86,18 +88,20 @@ describe('SafetyScannerService', () => {
     );
   });
 
-  it('builds candidate urls for safebrowsing', async () => {
+  it('builds candidate urls for Web Risk', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ matches: [] }),
+      json: async () => ({}),
     });
 
     await service.checkUrls(['testsafebrowsing.appspot.com/s/malware.html']);
 
-    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
-    const entries = body.threatInfo.threatEntries.map((entry: any) => entry.url);
+    const uris = fetchMock.mock.calls.map((call) => {
+      const requestUrl = new URL(call[0] as string);
+      return requestUrl.searchParams.get('uri');
+    });
 
-    expect(entries.sort()).toEqual(
+    expect(uris.sort()).toEqual(
       [
         'https://testsafebrowsing.appspot.com/s/malware.html',
         'http://testsafebrowsing.appspot.com/s/malware.html',
@@ -107,10 +111,10 @@ describe('SafetyScannerService', () => {
     );
   });
 
-  it('chunks requests and deduplicates threat entries', async () => {
+  it('deduplicates candidate urls', async () => {
     fetchMock.mockResolvedValue({
       ok: true,
-      json: async () => ({ matches: [] }),
+      json: async () => ({}),
     });
 
     const urls = Array.from({ length: 130 }, (_, index) => {
@@ -120,12 +124,15 @@ describe('SafetyScannerService', () => {
 
     await service.checkUrls(urls);
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(520);
 
-    const firstBody = JSON.parse(fetchMock.mock.calls[0][1].body as string);
-    const secondBody = JSON.parse(fetchMock.mock.calls[1][1].body as string);
+    const uniqueUris = new Set(
+      fetchMock.mock.calls.map((call) => {
+        const requestUrl = new URL(call[0] as string);
+        return requestUrl.searchParams.get('uri');
+      }),
+    );
 
-    expect(firstBody.threatInfo.threatEntries).toHaveLength(500);
-    expect(secondBody.threatInfo.threatEntries).toHaveLength(20);
+    expect(uniqueUris.size).toBe(520);
   });
 });

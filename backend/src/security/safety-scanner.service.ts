@@ -9,15 +9,11 @@ import {
   SAFETY_L2_TTL_SECONDS,
 } from './security.constants';
 
-type SafetyMatchResponse = {
-  matches?: Array<{
-    threatType: string;
-    platformType: string;
-    threatEntryType: string;
-    threat: {
-      url: string;
-    };
-  }>;
+type WebRiskSearchResponse = {
+  threat?: {
+    threatTypes?: string[];
+    expireTime?: string;
+  };
 };
 
 @Injectable()
@@ -147,10 +143,7 @@ export class SafetyScannerService {
       ];
 
       candidates.forEach((candidate) => {
-        threatUrls.set(candidate, [
-          ...(threatUrls.get(candidate) ?? []),
-          cur,
-        ]);
+        threatUrls.set(candidate, [...(threatUrls.get(candidate) ?? []), cur]);
         if (!uniqueCandidates.has(candidate)) {
           uniqueCandidates.add(candidate);
           threatEntries.push({ url: candidate });
@@ -158,94 +151,88 @@ export class SafetyScannerService {
       });
     }
 
-    const apiKey = this.configService.get<string>('SAFE_BROWSING_API_KEY');
+    const apiKey = this.configService.get<string>('WEB_RISK_API_KEY');
     if (!apiKey) {
-      throw new Error('SAFE_BROWSING_API_KEY is not configured');
+      throw new Error('WEB_RISK_API_KEY is not configured');
     }
 
-    const requestBody = {
-      client: {
-        clientId:
-          this.configService.get<string>('SAFE_BROWSING_CLIENT_ID') ??
-          'redirect-saas',
-        clientVersion:
-          this.configService.get<string>('SAFE_BROWSING_CLIENT_VERSION') ??
-          '1.0.0',
-      },
-      threatInfo: {
-        threatTypes: [
-          'MALWARE',
-          'SOCIAL_ENGINEERING',
-          'UNWANTED_SOFTWARE',
-          'POTENTIALLY_HARMFUL_APPLICATION',
-        ],
-        platformTypes: ['ANY_PLATFORM'],
-        threatEntryTypes: ['URL'],
-        threatEntries,
-      },
-    };
+    const configuredThreatTypes = this.configService.get<string>(
+      'WEB_RISK_THREAT_TYPES',
+    );
+    const defaultThreatTypes = [
+      'MALWARE',
+      'SOCIAL_ENGINEERING',
+      'UNWANTED_SOFTWARE',
+    ];
+    const threatTypes = configuredThreatTypes
+      ? configuredThreatTypes
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean)
+      : defaultThreatTypes;
+    if (threatTypes.length === 0) {
+      threatTypes.push(...defaultThreatTypes);
+    }
 
-    const endpoint = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${apiKey}`;
+    const endpoint = 'https://webrisk.googleapis.com/v1/uris:search';
 
-    this.logger.debug('Sending batch safety scan request', {
+    this.logger.debug('Sending Web Risk scan requests', {
       urlsCount: urls.length,
+      candidatesCount: threatEntries.length,
     });
 
     const unsafe = new Set<string>();
 
-    const chunkSize = 500;
+    const chunkSize = 200;
     for (let i = 0; i < threatEntries.length; i += chunkSize) {
       const chunk = threatEntries.slice(i, i + chunkSize);
-      const chunkBody = {
-        ...requestBody,
-        threatInfo: {
-          ...requestBody.threatInfo,
-          threatEntries: chunk,
-        },
-      };
+      const requests = chunk.map(async ({ url }) => {
+        const requestUrl = new URL(endpoint);
+        requestUrl.searchParams.set('uri', url);
+        threatTypes.forEach((type) =>
+          requestUrl.searchParams.append('threatTypes', type),
+        );
+        requestUrl.searchParams.set('key', apiKey);
 
-      let response: Response;
-      try {
-        response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(chunkBody),
-        });
-      } catch (error) {
-        this.logger.error('Safety scan request failed', {
-          error: error instanceof Error ? error.message : 'unknown_error',
-          urlsCount: urls.length,
-        });
-        throw error;
-      }
+        let response: Response;
+        try {
+          response = await fetch(requestUrl.toString(), { method: 'GET' });
+        } catch (error) {
+          this.logger.error('Web Risk request failed', {
+            error: error instanceof Error ? error.message : 'unknown_error',
+            url,
+          });
+          throw error;
+        }
 
-      if (!response.ok) {
-        const body = await response.text().catch(() => '');
-        this.logger.error('Safety scan response error', {
-          status: response.status,
-          body,
-        });
-        throw new Error(`Safe Browsing request failed with ${response.status}`);
-      }
+        if (!response.ok) {
+          const body = await response.text().catch(() => '');
+          this.logger.error('Web Risk response error', {
+            status: response.status,
+            body,
+            url,
+          });
+          throw new Error(`Web Risk request failed with ${response.status}`);
+        }
 
-      const data = (await response.json()) as SafetyMatchResponse;
+        const data = (await response.json()) as WebRiskSearchResponse;
+        if (!data.threat?.threatTypes?.length) return;
 
-      for (const match of data.matches ?? []) {
-        const url = match.threat?.url;
-        if (!url) continue;
-        threatUrls.get(url)?.forEach((url) => unsafe.add(url));
+        threatUrls.get(url)?.forEach((original) => unsafe.add(original));
         try {
           const hostname = new URL(url).hostname.toLowerCase();
           unsafe.add(hostname);
           this.logger.warn('Security threat detected', {
             url,
             hostname,
-            threatType: 'unknown',
+            threatTypes: data.threat.threatTypes,
           });
         } catch {
-          continue;
+          return;
         }
-      }
+      });
+
+      await Promise.all(requests);
     }
 
     return unsafe;
