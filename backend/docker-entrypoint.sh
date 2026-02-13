@@ -22,7 +22,7 @@ load_secret "sentry_dsn" "SENTRY_DSN"
 load_secret "lemon_squeezy_api_key" "LEMON_SQUEEZY_API_KEY"
 load_secret "lemon_squeezy_webhook_secret" "LEMON_SQUEEZY_WEBHOOK_SECRET"
 load_secret "zeptomail_api_key" "ZEPTOMAIL_API_KEY"
-load_secret "safe_browsing_api_key" "SAFE_BROWSING_API_KEY"
+load_secret "web_risk_api_key" "WEB_RISK_API_KEY"
 
 if [ -x "./node_modules/.bin/prisma" ] && [ -n "${DATABASE_URL:-}" ]; then
   ./node_modules/.bin/prisma migrate deploy

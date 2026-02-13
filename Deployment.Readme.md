@@ -30,7 +30,7 @@ Edit `deploy/stack.env` and set:
 - Hosts (frontend/backend/grafana/dozzle)
 - Traefik settings
 - App settings
-- `VPN_ALLOWED_CIDR` and `TRAEFIK_ADMIN_USERS` for admin tools
+- `VPN_ALLOWED_CIDR` for admin tools
 
 Note:
 - Internal service ports remain `5432` (Postgres) and `6379` (Redis).
@@ -54,6 +54,8 @@ Infra stack secrets:
 ```bash
 printf "postgres-password" | docker secret create postgres_password -
 printf "redis-password" | docker secret create redis_password -
+printf "grafana-admin-password" | docker secret create grafana_admin_password -
+printf "admin:$apr1$replace-with-htpasswd-hash" | docker secret create traefik_admin_users -
 ```
 
 App stack secrets:
@@ -65,13 +67,13 @@ printf "sentry-dsn" | docker secret create sentry_dsn -
 printf "lemon-key" | docker secret create lemon_squeezy_api_key -
 printf "lemon-webhook" | docker secret create lemon_squeezy_webhook_secret -
 printf "zeptomail-key" | docker secret create zeptomail_api_key -
-printf "safe-browsing" | docker secret create safe_browsing_api_key -
+printf "web-risk-browsing-api-key" | docker secret create web_risk_api_key -
 ```
 
 Database URL secret for the backend (internal port 5432):
 
 ```bash
-printf "postgresql://postgres:postgres-password@postgres:5432/redirect?schema=public" | docker secret create database_url -
+printf "postgresql://postgres:postgres-password@postgres:5432/linkshift?schema=public" | docker secret create database_url -
 ```
 
 db-backup secrets:
@@ -197,16 +199,35 @@ Example Traefik labels for VPN allowlist + basic auth:
 ```yaml
 labels:
   - traefik.http.middlewares.vpn-allowlist.ipwhitelist.sourcerange=10.8.0.0/24
-  - traefik.http.middlewares.admin-auth.basicauth.users=admin:$apr1$replace-with-htpasswd-hash
+  - traefik.http.middlewares.admin-auth.basicauth.usersfile=/run/secrets/traefik_admin_users
   - traefik.http.routers.grafana.middlewares=vpn-allowlist,admin-auth
   - traefik.http.routers.dozzle.middlewares=vpn-allowlist,admin-auth
 ```
 
-Generate the `TRAEFIK_ADMIN_USERS` value (Apache MD5):
+Generate the `traefik_admin_users` secret value (Apache MD5):
 
 ```bash
 printf "admin:$(openssl passwd -apr1 'your-strong-password')"
 ```
+
+## Dozzle simple auth
+Dozzle uses the `simple` auth provider and reads users from:
+
+```
+config/dozzle.users.yml
+```
+
+Expected format:
+
+```yaml
+users:
+  admin:
+    email: admin@example.com
+    name: Admin
+    password: change-me
+```
+
+Update the `password` there before deploying and redeploy the infra stack.
 
 If you need direct Loki access for troubleshooting, use a short-lived SSH tunnel:
 
@@ -238,7 +259,7 @@ Loki retention is time-based, not size-based. A hard cap comes from the disk siz
 
 Actions to stay under ~30 GB:
 - Keep the dedicated `/mnt/loki` partition at 30 GB.
-- Start with `retention_period: 168h` (7 days) and adjust based on real usage.
+- Start with `retention_period: 96h` (4 days) and adjust based on real usage.
 - Reduce log volume at the source (Promtail filtering or app log levels).
 
 To tune retention after a few days:
@@ -248,8 +269,8 @@ sudo du -sh /mnt/loki
 ```
 
 Example adjustment if usage is too high:
-- If `/mnt/loki` is ~20 GB after 7 days, keep 7 days.
-- If `/mnt/loki` is ~30 GB after 4 days, set `retention_period: 96h`.
+- If `/mnt/loki` is ~10 GB after 4 days, keep 4 days.
+- If `/mnt/loki` is ~20 GB after 4 days, set `retention_period: 96h`.
 
 ## VPN cost guidance (cheap)
 Cheapest and simplest is usually a small self-hosted WireGuard server:

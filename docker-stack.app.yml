@@ -45,8 +45,6 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       REDIS_USERNAME: default
-      SAFE_BROWSING_CLIENT_ID: ${SAFE_BROWSING_CLIENT_ID}
-      SAFE_BROWSING_CLIENT_VERSION: ${SAFE_BROWSING_CLIENT_VERSION}
       LEMON_SQUEEZY_STORE_ID: ${LEMON_SQUEEZY_STORE_ID}
       LEMON_SQUEEZY_SUCCESS_URL: ${LEMON_SQUEEZY_SUCCESS_URL}
       LEMON_SQUEEZY_VARIANT_STARTER_ID: ${LEMON_SQUEEZY_VARIANT_STARTER_ID}
@@ -68,7 +66,7 @@ services:
       - lemon_squeezy_api_key
       - lemon_squeezy_webhook_secret
       - zeptomail_api_key
-      - safe_browsing_api_key
+      - web_risk_api_key
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -131,7 +129,7 @@ secrets:
     external: true
   zeptomail_api_key:
     external: true
-  safe_browsing_api_key:
+  web_risk_api_key:
     external: true
   db-password:
     external: true

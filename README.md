@@ -68,10 +68,10 @@ Auth:
   Refresh tokens are stored in an HttpOnly cookie.
 
 Billing (Lemon Squeezy):
-- `LEMON_SQUEEZY_API_KEY`: API token.
+- `LEMON_SQUEEZY_API_KEY`: API token (in Swarm, use secret `lemon_squeezy_api_key`).
 - `LEMON_SQUEEZY_STORE_ID`: Store identifier.
 - `LEMON_SQUEEZY_PRODUCT_ID`: Optional product ID to speed up variant price lookups.
-- `LEMON_SQUEEZY_WEBHOOK_SECRET`: Webhook signing secret.
+- `LEMON_SQUEEZY_WEBHOOK_SECRET`: Webhook signing secret (in Swarm, use secret `lemon_squeezy_webhook_secret`).
 - `LEMON_SQUEEZY_SUCCESS_URL`: Base redirect URL after checkout.
   The app appends `checkout_session=<id>` to both URLs automatically.
 - `LEMON_SQUEEZY_VARIANT_BASIC_MONTHLY_ID`: Variant ID for the Basic (monthly) plan.
@@ -149,7 +149,7 @@ Required secrets (create once on the Swarm manager):
 ```bash
 printf "postgres-password" | docker secret create postgres_password -
 printf "redis-password" | docker secret create redis_password -
-printf "postgresql://postgres:postgres-password@postgres:5432/redirect?schema=public" | docker secret create database_url -
+printf "postgresql://postgres:postgres-password@postgres:5432/linkshift?schema=public" | docker secret create database_url -
 printf "jwt-secret" | docker secret create jwt_secret -
 printf "jwt-refresh-secret" | docker secret create jwt_refresh_secret -
 printf "sentry-dsn" | docker secret create sentry_dsn -
@@ -160,7 +160,7 @@ Billing + email + safe browsing secrets (if enabled):
 printf "lemon-api-key" | docker secret create lemon_squeezy_api_key -
 printf "lemon-webhook-secret" | docker secret create lemon_squeezy_webhook_secret -
 printf "zeptomail-api-key" | docker secret create zeptomail_api_key -
-printf "safe-browsing-api-key" | docker secret create safe_browsing_api_key -
+printf "web-risk-browsing-api-key" | docker secret create web_risk_api_key -
 ```
 
 ### 5) Initialize Swarm and deploy
