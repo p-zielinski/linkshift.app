@@ -1,47 +1,62 @@
 name: CI
 
 on:
+  push:
+    branches: [ master, main ]
   pull_request:
-    branches:
-      - main
+    branches: [ master, main ]
 
 jobs:
   backend-tests:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
-      - name: Setup Node
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: '24'
+          cache: 'npm'
           cache-dependency-path: backend/package-lock.json
+
       - name: Install dependencies
         run: npm ci
-      - name: Run tests
+        working-directory: backend
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: backend
+
+      - name: Run npm test
         run: npm test
+        working-directory: backend
 
   frontend-tests:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
-      - name: Setup Node
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: '24'
+          cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
-      - name: Install dependencies
+
+      - name: Install backend dependencies (for shared types)
         run: npm ci
-      - name: Run tests (headless)
-        env:
-          CI: true
-        run: npm run test -- --watch=false
+        working-directory: backend
+
+      - name: Generate Prisma Shared Client
+        run: npx prisma generate
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Run frontend tests
+        run: npm test
+        working-directory: frontend
