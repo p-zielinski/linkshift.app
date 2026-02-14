@@ -1,5 +1,5 @@
 # Use Node.js LTS image
-FROM node:22.16.0-slim
+FROM node:24.12.0-slim
 
 # Install PostgreSQL 17 client tools
 RUN apt-get update && \
