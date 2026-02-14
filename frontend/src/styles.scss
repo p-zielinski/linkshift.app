@@ -1,0 +1,239 @@
+/* Global styles and theme setup */
+
+@use "@angular/material" as mat;
+
+@include mat.core();
+
+$dark-text: rgba(0, 0, 0, 0.87);
+$light-text: #ffffff;
+
+$raspberry-palette: (
+  50: #fbe9f0,
+  100: #f6c7d8,
+  200: #ef9ab8,
+  300: #e76e99,
+  400: #e15484,
+  500: #c03762,
+  600: #ae3258,
+  700: #8f2045,
+  800: #7a1b3c,
+  900: #5a132c,
+  A100: #ffd6e4,
+  A200: #ff9bbd,
+  A400: #f05a8b,
+  A700: #d83f73,
+  contrast: (
+    50: $dark-text,
+    100: $dark-text,
+    200: $dark-text,
+    300: $dark-text,
+    400: $light-text,
+    500: $light-text,
+    600: $light-text,
+    700: $light-text,
+    800: $light-text,
+    900: $light-text,
+    A100: $dark-text,
+    A200: $dark-text,
+    A400: $light-text,
+    A700: $light-text,
+  )
+);
+
+$primary: mat.m2-define-palette($raspberry-palette, 500, 300, 700);
+$accent: mat.m2-define-palette($raspberry-palette, 400, 200, 600);
+$warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+$theme: mat.m2-define-light-theme((
+  color: (
+    primary: $primary,
+    accent: $accent,
+    warn: $warn,
+  )
+));
+
+@include mat.all-component-themes($theme);
+
+:root {
+  color-scheme: light;
+  font-family: "Space Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --app-background: #fdf6f8;
+  --app-surface: #ffffff;
+  --app-border: rgba(28, 20, 24, 0.18);
+  --app-accent: #c03762;
+  --app-accent-strong: #8f2045;
+  --app-accent-soft: rgba(192, 55, 98, 0.16);
+  --app-text: #1f181c;
+  --app-muted: #4a3b42;
+  --mdc-theme-primary: var(--app-accent);
+  --mdc-theme-secondary: var(--app-accent-strong);
+  --mdc-theme-on-surface: var(--app-text);
+  --mdc-theme-text-primary-on-background: var(--app-text);
+  --mdc-theme-text-secondary-on-background: var(--app-muted);
+  --mdc-theme-surface: var(--app-surface);
+  --mdc-theme-background: var(--app-background);
+  --mdc-elevated-card-container-color: var(--app-surface);
+  --mdc-outlined-card-container-color: var(--app-surface);
+  --mdc-tab-indicator-active-indicator-color: var(--app-accent-strong);
+  --mdc-tab-text-label-color-default: #3a2a31;
+  --mdc-tab-text-label-color-active: var(--app-accent-strong);
+  --mdc-tab-ripple-color: rgba(192, 55, 98, 0.16);
+  --mdc-tab-active-ripple-color: rgba(192, 55, 98, 0.2);
+  --mat-tab-header-active-indicator-color: var(--app-accent-strong);
+  --mat-tab-header-active-label-text-color: var(--app-accent-strong);
+  --mat-tab-header-active-hover-label-text-color: var(--app-accent-strong);
+  --mat-tab-header-active-focus-label-text-color: var(--app-accent-strong);
+  --mat-tab-header-inactive-label-text-color: #3a2a31;
+  --mat-tab-header-inactive-hover-label-text-color: #3a2a31;
+  --mat-tab-header-inactive-focus-label-text-color: #3a2a31;
+  --mat-tab-header-active-ripple-color: rgba(192, 55, 98, 0.16);
+  --mat-tab-header-inactive-ripple-color: rgba(192, 55, 98, 0.12);
+  --mdc-filled-button-container-color: var(--app-accent);
+  --mdc-filled-button-label-text-color: #ffffff;
+  --mdc-protected-button-container-color: var(--app-accent);
+  --mdc-protected-button-label-text-color: #ffffff;
+  --mdc-outlined-button-label-text-color: var(--app-accent-strong);
+  --mdc-outlined-button-outline-color: rgba(192, 55, 98, 0.45);
+  --mdc-text-button-label-text-color: var(--app-accent-strong);
+  --mdc-outlined-text-field-input-text-color: var(--app-text);
+  --mdc-outlined-text-field-label-text-color: var(--app-muted);
+  --mdc-outlined-text-field-outline-color: rgba(31, 24, 28, 0.28);
+  --mdc-outlined-text-field-hover-outline-color: rgba(31, 24, 28, 0.45);
+  --mdc-outlined-text-field-focus-outline-color: var(--app-accent-strong);
+  --mdc-outlined-text-field-caret-color: var(--app-accent-strong);
+  --mdc-outlined-text-field-error-outline-color: #b3261e;
+  --mdc-outlined-text-field-error-focus-outline-color: #b3261e;
+  --mdc-outlined-text-field-error-hover-outline-color: #b3261e;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top left, #fff0f5 0%, #f9f3f6 45%, #f4eef2 100%);
+  color: var(--app-text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.mat-mdc-card,
+.mat-mdc-card.mdc-card {
+  background-color: var(--app-surface);
+  color: var(--app-text);
+}
+
+.mat-mdc-form-field .mat-mdc-input-element,
+.mat-mdc-form-field .mdc-text-field__input {
+  color: var(--app-text) !important;
+  -webkit-text-fill-color: var(--app-text) !important;
+}
+
+.mat-mdc-form-field .mdc-text-field__input::placeholder {
+  color: var(--app-muted);
+  opacity: 1;
+}
+
+.mat-mdc-form-field .mdc-text-field--outlined {
+  background-color: #ffffff;
+}
+
+.mat-mdc-form-field .mdc-floating-label {
+  color: var(--app-muted);
+}
+
+.mat-mdc-form-field .mdc-floating-label--float-above {
+  color: var(--app-accent-strong);
+}
+
+.mat-mdc-form-field .mdc-notched-outline__leading,
+.mat-mdc-form-field .mdc-notched-outline__notch,
+.mat-mdc-form-field .mdc-notched-outline__trailing {
+  border-color: rgba(31, 24, 28, 0.28);
+}
+
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: var(--app-accent-strong);
+}
+
+.mat-mdc-form-field.mat-form-field-invalid .mdc-notched-outline__leading,
+.mat-mdc-form-field.mat-form-field-invalid .mdc-notched-outline__notch,
+.mat-mdc-form-field.mat-form-field-invalid .mdc-notched-outline__trailing {
+  border-color: #b3261e;
+}
+
+.mat-mdc-tab-group .mat-mdc-tab .mdc-tab__text-label {
+  color: #3a2a31;
+  font-weight: 600;
+  opacity: 1;
+}
+
+.mat-mdc-tab-group .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+  color: var(--app-accent-strong);
+}
+
+.mat-mdc-tab-group .mdc-tab-indicator__content--underline {
+  border-color: var(--app-accent-strong);
+}
+
+.mat-mdc-tab-group .mdc-tab__text-label {
+  color: #3a2a31;
+}
+
+.mat-mdc-tab-group .mdc-tab--active .mdc-tab__text-label {
+  color: var(--app-accent-strong);
+}
+
+.mat-mdc-tab-group .mdc-tab__ripple::before {
+  background-color: rgba(192, 55, 98, 0.14);
+}
+
+.mat-mdc-tab-group .mdc-tab__ripple::after {
+  background-color: rgba(192, 55, 98, 0.18);
+}
+
+.mat-mdc-tab-group .mdc-tab--active .mdc-tab-indicator__content--underline {
+  border-color: var(--app-accent-strong);
+}
+
+.mat-mdc-button-base.mat-primary {
+  --mdc-filled-button-container-color: var(--app-accent);
+  --mdc-filled-button-label-text-color: #ffffff;
+  --mdc-protected-button-container-color: var(--app-accent);
+  --mdc-protected-button-label-text-color: #ffffff;
+  --mdc-outlined-button-label-text-color: var(--app-accent-strong);
+  --mdc-text-button-label-text-color: var(--app-accent-strong);
+  --mat-mdc-button-persistent-ripple-color: rgba(255, 255, 255, 0.24);
+  --mat-mdc-button-ripple-color: rgba(255, 255, 255, 0.3);
+}
+
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-raised-button.mat-primary {
+  background-color: var(--app-accent) !important;
+  color: #ffffff !important;
+}
+
+.mat-mdc-outlined-button.mat-primary {
+  --mdc-outlined-button-label-text-color: var(--app-accent-strong);
+  --mdc-outlined-button-outline-color: rgba(192, 55, 98, 0.45);
+}
+
+.mat-mdc-button.mat-primary,
+.mat-mdc-icon-button.mat-primary {
+  --mdc-text-button-label-text-color: var(--app-accent-strong);
+  --mdc-icon-button-icon-color: var(--app-accent-strong);
+}
+
+@media (max-width: 1023px) {
+  /* Prevent SSR side drawer flash on narrow screens before hydration. */
+  .app-shell .mat-drawer.mat-drawer-side {
+    transform: translateX(-100%) !important;
+    visibility: hidden;
+  }
+
+  .app-shell .mat-drawer-content {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}

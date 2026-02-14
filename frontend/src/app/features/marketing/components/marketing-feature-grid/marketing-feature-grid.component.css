@@ -1,0 +1,25 @@
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.feature-card,
+.feature-card.mat-mdc-card {
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  box-shadow: 0 20px 40px rgba(25, 18, 22, 0.08);
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+.feature-icon {
+  color: var(--app-accent);
+  margin-bottom: 12px;
+}
+
+h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}

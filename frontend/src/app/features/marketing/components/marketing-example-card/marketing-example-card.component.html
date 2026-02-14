@@ -1,0 +1,29 @@
+<mat-card class="example-card">
+  <div class="example-header">
+    <mat-icon>code</mat-icon>
+    <div>
+      <h3>{{ example().title }}</h3>
+      <p class="text-[13px] text-app-muted">{{ example().description }}</p>
+    </div>
+  </div>
+
+  <div class="example-body">
+    <div class="example-row">
+      <span class="label">Source</span>
+      <code>{{ example().source }}</code>
+    </div>
+    <div class="example-row">
+      <span class="label">Destination</span>
+      <code>{{ example().destination }}</code>
+    </div>
+  @if (example().condition) {
+    <div class="example-row">
+      <span class="label">Condition</span>
+      <code>{{ example().condition }}</code>
+    </div>
+  }
+  @if (example().note) {
+    <p class="note">{{ example().note }}</p>
+  }
+</div>
+</mat-card>

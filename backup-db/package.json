@@ -1,0 +1,20 @@
+{
+  "name": "backup-db",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "RESTRICTED",
+  "scripts": {
+    "start": "node take-pg-backup.js"
+  },
+  "dependencies": {
+    "@getvim/execute": "1.0.0",
+    "backblaze-b2": "1.7.1",
+    "crypto": "1.0.1",
+    "dotenv": "17.3.0",
+    "gzipme": "1.0.0",
+    "node-schedule": "2.1.1",
+    "split-file": "2.3.0"
+  }
+}

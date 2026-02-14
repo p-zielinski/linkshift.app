@@ -1,0 +1,79 @@
+.hero-card {
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  background: #ffffff;
+  min-width: 260px;
+}
+
+.hero-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.hero-card-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-accent-strong);
+}
+
+.hero-flow {
+  display: grid;
+  gap: 12px;
+}
+
+.flow-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(216, 76, 119, 0.08);
+}
+
+.flow-item mat-icon {
+  color: var(--app-accent);
+}
+
+.flow-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.hero-footnote {
+  margin-top: 16px;
+  color: var(--app-muted);
+  font-size: 13px;
+}
+
+.model-card,
+.model-card.mat-mdc-card {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+.model-card mat-icon {
+  color: var(--app-accent);
+  margin-bottom: 10px;
+}
+
+.assurance-card,
+.assurance-card.mat-mdc-card {
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+.assurance-card mat-icon {
+  color: var(--app-accent);
+  margin-bottom: 8px;
+}

@@ -1,0 +1,132 @@
+<div class="flex min-h-[calc(100vh-48px)] flex-col">
+  <app-page-header
+    title="Domains"
+    subtitle="Registered hostnames available for redirect routing."
+  >
+    <div class="flex items-center gap-2">
+      <button mat-stroked-button color="primary" (click)="openSetupDialog()">
+        <mat-icon>help</mat-icon>
+        <span>Domain setup</span>
+      </button>
+      <button mat-flat-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        <span>Add domain</span>
+      </button>
+    </div>
+  </app-page-header>
+
+  <div class="mb-4 grid gap-4 rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+      <mat-label>Domain group</mat-label>
+      <mat-select [formField]="filterForm.domainGroupId">
+        @if (domainGroups().length > 1) {
+          <mat-option value="">All domain groups</mat-option>
+        }
+        @for (group of domainGroups(); track group.id) {
+          <mat-option [value]="group.id">{{ group.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div
+    class="flex min-h-0 flex-1 flex-col rounded-[18px] border border-app-border-soft bg-app-surface p-4"
+  >
+    <div class="min-h-0 flex-1 overflow-auto">
+      <table
+        mat-table
+        [dataSource]="pagedDomains()"
+        class="min-w-[720px] w-full mat-elevation-z0"
+      >
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">Name</th>
+          <td mat-cell *matCellDef="let domain" class="py-3 min-w-[150px] max-w-[250px] truncate">
+            {{ domain.name }}
+          </td>
+        </ng-container>
+
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">Id</th>
+          <td mat-cell *matCellDef="let domain" class="py-3 min-w-[150px] max-w-[250px] truncate">
+            <app-resource-pill
+              [label]="domain.id"
+              [tooltip]="'Domain ID: ' + domain.id"
+            ></app-resource-pill>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="group">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Domain group
+          </th>
+          <td mat-cell *matCellDef="let domain" class="py-3 min-w-[150px] max-w-[250px] truncate">
+            <app-resource-pill
+              [label]="groupLabel(domain.domainGroupId)"
+              [tooltip]="groupTooltip(domain.domainGroupId)"
+            ></app-resource-pill>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Created at
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let domain"
+            class="py-3 min-w-[150px] max-w-[250px] truncate text-[13px] text-app-muted"
+          >
+            {{ domain.createdAt | date:'yyyy-MM-dd HH:mm' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="min-w-[150px] max-w-[250px] truncate"></th>
+          <td mat-cell *matCellDef="let domain" class="py-3 min-w-[150px] max-w-[250px] truncate">
+            <div class="flex items-center gap-1">
+              <button
+                mat-icon-button
+                matTooltip="Edit domain"
+                (click)="openEditDialog(domain)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                color="warn"
+                matTooltip="Delete domain"
+                (click)="confirmDelete(domain.id)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        <tr class="mat-row" *matNoDataRow>
+          <td
+            class="mat-cell px-0 py-6 text-center text-[13px] text-app-muted"
+            [attr.colspan]="columns.length"
+          >
+            No domains found
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="mt-3 border-t border-app-border-soft pt-3">
+      <app-table-paginator
+        position="center"
+        [showCurrentPage]="true"
+        [currentPage]="page()"
+        [hasNextPage]="hasNextPage()"
+        [pageLimitOptions]="pageLimitOptions"
+        [pageLimit]="pageLimit()"
+        (currentPageChange)="onPageChange($event)"
+        (pageLimitChange)="onPageLimitChange($event)"
+      ></app-table-paginator>
+    </div>
+  </div>
+</div>

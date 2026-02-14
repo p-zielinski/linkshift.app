@@ -1,0 +1,179 @@
+<div class="billing-toggle">
+  <div class="toggle-label text-[12px] text-app-muted">Billing</div>
+  <mat-button-toggle-group
+    class="toggle-group"
+    [value]="billingInterval()"
+    (change)="setInterval($event.value)"
+    aria-label="Billing interval"
+  >
+    <mat-button-toggle value="MONTHLY">Monthly</mat-button-toggle>
+    <mat-button-toggle value="YEARLY">Yearly</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
+<div class="pricing-grid" [class.compact]="compact()">
+  @for (plan of plans(); track plan.key) {
+    <mat-card class="pricing-card" [class.featured]="plan.featured">
+      <div class="plan-header">
+        <div>
+          <div class="plan-title-row">
+            <div class="plan-name">{{ plan.name }}</div>
+            @if (plan.badge) {
+              <div class="plan-badge">{{ plan.badge }}</div>
+            }
+          </div>
+          <div class="plan-description text-[13px] text-app-muted">
+            {{ plan.description }}
+          </div>
+        </div>
+      <div class="plan-price">
+        <div class="price-amount">{{ plan.price }}</div>
+        <div class="price-note text-[12px] text-app-muted">{{ plan.priceNote }}</div>
+        @if (plan.savingsNote) {
+          <div class="price-savings text-[11px] text-emerald-700">
+            {{ plan.savingsNote }}
+          </div>
+        }
+      </div>
+      </div>
+      <div class="plan-limits">
+        @for (limit of plan.limits; track limit) {
+          <span class="limit-chip">{{ limit }}</span>
+        }
+      </div>
+      <div class="plan-features">
+        @for (feature of getFeatures(plan); track feature) {
+          <div class="feature-row">
+            <mat-icon>check_circle</mat-icon>
+            <span>{{ feature }}</span>
+          </div>
+        }
+        @if (hasExtraFeatures(plan)) {
+          <div class="feature-more text-[12px] text-app-muted">
+            + more included in full plan details
+          </div>
+        }
+      </div>
+      <div class="plan-actions">
+        @if (actionMode() === 'link') {
+          @if (plan.featured) {
+            <a mat-flat-button color="primary" [routerLink]="plan.ctaLink">
+              {{ plan.ctaLabel }}
+            </a>
+          } @else {
+            <a mat-stroked-button [routerLink]="plan.ctaLink">
+              {{ plan.ctaLabel }}
+            </a>
+          }
+        } @else {
+          @if (isCurrentPlan(plan.key)) {
+            <button mat-stroked-button disabled type="button">
+              Current plan
+            </button>
+          } @else if (plan.key === 'CUSTOM') {
+            <button mat-stroked-button type="button" (click)="requestCustomPlan()">
+              Request a custom plan
+            </button>
+          } @else if (!isSelectablePlan(plan.key)) {
+            <span
+              [matTooltip]="getPlanBlockedReason(plan.key)"
+              [matTooltipDisabled]="!getPlanBlockedReason(plan.key)"
+              matTooltipPosition="above"
+            >
+              <button mat-stroked-button disabled type="button">
+                {{ getPlanBlockedReason(plan.key) ? 'Downgrade unavailable' : 'Not available' }}
+              </button>
+            </span>
+          } @else {
+            <button
+              mat-flat-button
+              [color]="plan.featured ? 'primary' : undefined"
+              type="button"
+              (click)="selectPlan(plan.key)"
+            >
+              {{ plan.ctaLabel }}
+            </button>
+          }
+        }
+      </div>
+    </mat-card>
+  }
+</div>
+
+@if (customPlanCards().length > 0) {
+  <div class="custom-section">
+    <div class="text-[12px] uppercase tracking-[0.12em] text-app-muted">
+      Custom plans
+    </div>
+    <div class="pricing-grid custom-grid">
+      @for (plan of customPlanCards(); track plan.id) {
+        <mat-card class="pricing-card">
+          <div class="plan-header">
+            <div>
+              <div class="plan-title-row">
+                <div class="plan-name">{{ plan.name }}</div>
+                <div class="plan-badge">Custom</div>
+              </div>
+              @if (plan.description) {
+                <div class="plan-description text-[13px] text-app-muted">
+                  {{ plan.description }}
+                </div>
+              }
+            </div>
+            <div class="plan-price">
+              <div class="price-amount">{{ plan.price }}</div>
+              <div class="price-note text-[12px] text-app-muted">{{ plan.priceNote }}</div>
+              @if (plan.savingsNote) {
+                <div class="price-savings text-[11px] text-emerald-700">
+                  {{ plan.savingsNote }}
+                </div>
+              }
+            </div>
+          </div>
+          <div class="plan-limits">
+            @for (limit of plan.limits; track limit) {
+              <span class="limit-chip">{{ limit }}</span>
+            }
+          </div>
+          <div class="plan-features">
+            <div class="feature-row">
+              <mat-icon>check_circle</mat-icon>
+              <span>Custom limits tailored to your org</span>
+            </div>
+            <div class="feature-row">
+              <mat-icon>check_circle</mat-icon>
+              <span>Priority support and onboarding</span>
+            </div>
+          </div>
+          <div class="plan-actions">
+            @if (actionMode() === 'link') {
+              <a mat-stroked-button [routerLink]="customLink()">
+                Request a custom plan
+              </a>
+            } @else {
+              @if (isCustomPlanBlocked(plan.id, plan.pricing)) {
+                <span
+                  [matTooltip]="getCustomPlanBlockedReason(plan.id, plan.pricing)"
+                  [matTooltipDisabled]="!getCustomPlanBlockedReason(plan.id, plan.pricing)"
+                  matTooltipPosition="above"
+                >
+                  <button mat-stroked-button disabled type="button">
+                    Downgrade unavailable
+                  </button>
+                </span>
+              } @else {
+                <button
+                  mat-flat-button
+                  type="button"
+                  (click)="selectCustomPlan(plan.id, plan.pricing)"
+                >
+                  Choose custom plan
+                </button>
+              }
+            }
+          </div>
+        </mat-card>
+      }
+    </div>
+  </div>
+}

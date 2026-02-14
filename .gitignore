@@ -1,2 +1,6 @@
 .DS_Store
 .idea
+/data/
+.env
+/backup-db/node_modules/
+deploy/stack.env

@@ -1,0 +1,33 @@
+.cta-card {
+  display: grid;
+  gap: 20px;
+  padding: 28px;
+  border-radius: 24px;
+  background: linear-gradient(120deg, rgba(216, 76, 119, 0.12), rgba(255, 255, 255, 0.9));
+  border: 1px solid rgba(216, 76, 119, 0.18);
+  box-shadow: 0 24px 40px rgba(25, 18, 22, 0.1);
+}
+
+.cta-description {
+  margin: 8px 0 0;
+  color: var(--app-muted);
+}
+
+.cta-note {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: #3b2f36;
+}
+
+.cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (min-width: 900px) {
+  .cta-card {
+    grid-template-columns: 1.5fr auto;
+    align-items: center;
+  }
+}

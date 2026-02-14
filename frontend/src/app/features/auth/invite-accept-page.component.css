@@ -1,0 +1,10 @@
+.auth-shell {
+  background:
+    radial-gradient(circle at top, rgba(254, 249, 195, 0.6), transparent 55%),
+    linear-gradient(140deg, rgba(234, 179, 8, 0.08), transparent 40%);
+}
+
+.auth-card {
+  background: var(--color-app-surface);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.12);
+}

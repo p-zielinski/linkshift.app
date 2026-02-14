@@ -1,0 +1,21 @@
+<div class="cta-card">
+  <div>
+    <h2>{{ title() }}</h2>
+    <p class="cta-description">{{ description() }}</p>
+    @if (note()) {
+      <p class="cta-note">{{ note() }}</p>
+    }
+  </div>
+  <div class="cta-actions">
+    <a mat-flat-button color="primary" [routerLink]="primaryLink()">
+      <mat-icon>rocket_launch</mat-icon>
+      <span>{{ primaryLabel() }}</span>
+    </a>
+    @if (secondaryLabel() && secondaryLink()) {
+      <a mat-stroked-button [routerLink]="secondaryLink()">
+        <mat-icon>contact_support</mat-icon>
+        <span>{{ secondaryLabel() }}</span>
+      </a>
+    }
+  </div>
+</div>

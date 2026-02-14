@@ -1,0 +1,125 @@
+<div class="flex min-h-[calc(100vh-48px)] flex-col gap-4">
+  <app-page-header
+    title="Profile"
+    subtitle="Manage your account email and verification status."
+  ></app-page-header>
+
+  <div class="grid gap-4 lg:grid-cols-2">
+    <div class="rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div class="text-sm font-semibold text-app-foreground">Account email</div>
+          <div class="text-[13px] text-app-muted">{{ email() }}</div>
+        </div>
+        <span
+          class="status-pill"
+          [class.status-pill--success]="isVerified()"
+          [class.status-pill--pending]="!isVerified()"
+        >
+          {{ isVerified() ? 'Verified' : 'Unverified' }}
+        </span>
+      </div>
+
+      @if (isBrowser() && !isVerified()) {
+        <div class="mt-4 rounded-[14px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+          Verify your email to unlock account changes and security actions.
+        </div>
+        <div class="mt-3">
+          <button
+            mat-stroked-button
+            color="primary"
+            type="button"
+            (click)="resendVerification()"
+            [disabled]="busy()"
+          >
+            Resend verification email
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+      <div class="text-sm font-semibold text-app-foreground">Change email</div>
+      <p class="mt-1 text-[12px] text-app-muted">
+        @if (isVerified()) {
+          Request a code for your new email, then confirm it below.
+        } @else {
+          Update your email directly and we will send a new verification link.
+        }
+      </p>
+
+      <div class="mt-4 grid gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>New email</mat-label>
+          <input matInput type="email" [formField]="emailForm.newEmail" />
+          @if (newEmailError()) {
+            <mat-error>{{ newEmailError() }}</mat-error>
+          }
+        </mat-form-field>
+
+        @if (isVerified()) {
+          <button
+            mat-stroked-button
+            color="primary"
+            type="button"
+            (click)="submitEmailChange()"
+            [disabled]="busy()"
+          >
+            Send verification code
+          </button>
+
+          @if (changeCodeSent()) {
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Verification code</mat-label>
+              <input matInput type="text" [formField]="emailForm.code" />
+              @if (codeError()) {
+                <mat-error>{{ codeError() }}</mat-error>
+              }
+            </mat-form-field>
+
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="confirmEmailChange()"
+              [disabled]="busy()"
+            >
+              Confirm email
+            </button>
+          }
+        } @else {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            (click)="submitEmailChange()"
+            [disabled]="busy()"
+          >
+            Update email and send verification
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="rounded-[18px] border border-app-border-soft bg-app-surface p-4 lg:col-span-2">
+      <div class="text-sm font-semibold text-app-foreground">Legal consent</div>
+      <p class="mt-1 text-[12px] text-app-muted">
+        Version {{ siteConfig.legalVersion }} · Minimum age {{ siteConfig.minAge }}
+      </p>
+      @if (needsLegalUpdate()) {
+        <div class="mt-3 rounded-[14px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+          Updated legal terms require your review.
+        </div>
+        <div class="mt-3">
+          <a mat-stroked-button color="primary" routerLink="/legal/consent">
+            Review and accept updates
+          </a>
+        </div>
+      } @else {
+        <div class="mt-3 text-[12px] text-app-muted">
+          Your latest consent is on file.
+        </div>
+      }
+    </div>
+  </div>
+</div>

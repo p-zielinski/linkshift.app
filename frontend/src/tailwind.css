@@ -1,0 +1,24 @@
+/* Tailwind entrypoint kept in CSS to avoid Sass @import deprecation warnings. */
+@import "tailwindcss";
+@source "./src/**/*.{html,ts}";
+
+@theme {
+  --color-app-background: #fdf6f8;
+  --color-app-surface: #ffffff;
+  --color-app-border: rgba(28, 20, 24, 0.18);
+  --color-app-border-soft: rgba(33, 33, 33, 0.08);
+  --color-app-divider: rgba(33, 33, 33, 0.1);
+  --color-app-accent: #c03762;
+  --color-app-accent-strong: #8f2045;
+  --color-app-accent-soft-weak: rgba(192, 55, 98, 0.12);
+  --color-app-accent-soft: rgba(192, 55, 98, 0.16);
+  --color-app-text: #1f181c;
+  --color-app-muted: #4a3b42;
+  --color-app-ink: #3b2f36;
+  --color-app-ink-strong: #3a2a31;
+  --color-app-ink-muted: #6c5a62;
+  --color-app-outline: #b7a3ad;
+  --color-app-shell-start: #fff2f6;
+  --color-app-shell-mid: #f9f1f4;
+  --color-app-shell-end: #f4eef2;
+}

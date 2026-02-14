@@ -1,0 +1,285 @@
+<div class="flex min-h-[calc(100vh-48px)] flex-col">
+  <app-page-header
+    title="Redirect Rules"
+    subtitle="Define path-level routing actions for each domain group."
+  >
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="openCreateDialog()"
+      [disabled]="!activeGroupId()"
+    >
+      <mat-icon>add</mat-icon>
+      <span>Add rule</span>
+    </button>
+  </app-page-header>
+
+  <div
+    class="mb-4 grid gap-4 rounded-[18px] border border-app-border-soft bg-app-surface p-4 md:grid-cols-[minmax(220px,1fr)_2fr]"
+  >
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+      <mat-label>Domain group</mat-label>
+      <mat-select [formField]="filterForm.domainGroupId">
+        @for (group of domainGroups(); track group.id) {
+          <mat-option [value]="group.id">{{ group.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+      <mat-label>Search source or destination</mat-label>
+      <input matInput type="text" [formField]="filterForm.search" />
+    </mat-form-field>
+  </div>
+
+  <div class="mb-4 rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div class="min-w-[220px]">
+        <div class="text-[13px] font-semibold text-app-foreground">Redirect tests</div>
+        <p class="mt-1 text-[12px] text-app-muted">
+          @if (!activeGroupId()) {
+            Select a domain group to preview tests.
+          } @else {
+            Runs on domain group:
+            <span class="font-medium text-app-foreground">
+              {{ groupLabel(activeGroupId()) }}
+            </span>
+          }
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          mat-stroked-button
+          color="primary"
+          (click)="runTests()"
+          [disabled]="!activeGroupId() || testsLoading()"
+        >
+          <mat-icon>play_arrow</mat-icon>
+          <span>Run tests</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-3">
+        <div class="text-[11px] uppercase tracking-wide text-app-muted">Pass rate</div>
+        <div class="mt-1 text-xl font-semibold text-app-foreground">
+          @if (testsMetrics().total) {
+            {{ testsMetrics().passRate }}%
+          } @else {
+            --
+          }
+        </div>
+        <div class="text-[12px] text-app-muted">
+          @if (testsMetrics().total) {
+            {{ testsMetrics().passed }}/{{ testsMetrics().total }} passing
+          } @else {
+            No tests created yet
+          }
+        </div>
+      </div>
+
+      <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-3">
+        <div class="text-[11px] uppercase tracking-wide text-app-muted">Passed</div>
+        <div class="mt-1 text-xl font-semibold text-app-foreground">
+          {{ testsMetrics().passed }}
+        </div>
+        <div class="text-[12px] text-app-muted">Completed successfully</div>
+      </div>
+
+      <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-3">
+        <div class="text-[11px] uppercase tracking-wide text-app-muted">Needs attention</div>
+        <div class="mt-1 text-xl font-semibold text-app-foreground">
+          {{ testsMetrics().failed + testsMetrics().errored }}
+        </div>
+        <div class="text-[12px] text-app-muted">
+          {{ testsMetrics().failed }} failed, {{ testsMetrics().errored }} errors
+        </div>
+      </div>
+
+      <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-3">
+        <div class="text-[11px] uppercase tracking-wide text-app-muted">Not run</div>
+        <div class="mt-1 text-xl font-semibold text-app-foreground">
+          {{ testsMetrics().notRun }}
+        </div>
+        <div class="text-[12px] text-app-muted">Run tests to refresh results</div>
+      </div>
+    </div>
+
+    <div class="mt-3 text-[12px] text-app-muted">
+      Results reflect runs started from this session.
+    </div>
+
+    @if (testsLoading()) {
+      <div class="mt-2 text-[12px] text-app-muted">Loading tests summary...</div>
+    } @else if (testsError()) {
+      <div class="mt-2 text-[12px] text-app-danger">
+        {{ testsError() }}
+      </div>
+    }
+  </div>
+
+  <div
+    class="flex min-h-0 flex-1 flex-col rounded-[18px] border border-app-border-soft bg-app-surface p-4"
+  >
+    <div class="min-h-0 flex-1 overflow-auto">
+      <table mat-table [dataSource]="rules()" class="min-w-[960px] w-full mat-elevation-z0">
+        <ng-container matColumnDef="priority">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[80px] max-w-[250px] truncate">
+            Priority
+          </th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[80px] max-w-[250px] truncate">
+            {{ rule.priority }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">Id</th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[150px] max-w-[250px] truncate">
+            <app-resource-pill
+              [label]="rule.id"
+              [tooltip]="'Redirect rule Id: ' + rule.id"
+            ></app-resource-pill>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="matchMethod">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Methods
+          </th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[150px] max-w-[250px] truncate">
+            {{ formatMatchMethods(rule.matchMethod) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="source">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Source
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let rule"
+            class="py-3 min-w-[150px] max-w-[250px] truncate"
+            [matTooltip]="rule.source"
+          >
+            {{ rule.source }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="destination" sticky>
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Destination
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let rule"
+            class="py-3 min-w-[150px] max-w-[250px] truncate"
+            [matTooltip]="rule.destination"
+          >
+            {{ rule.destination }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="statusCode">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[80px] max-w-[250px] truncate">
+            Status
+          </th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[80px] max-w-[250px] truncate">
+            {{ rule.statusCode }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="state">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[120px] max-w-[250px] truncate">
+            State
+          </th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[120px] max-w-[250px] truncate">
+            @if (rule.isBlocked) {
+              <span class="status-pill status-pill--blocked">Blocked</span>
+            } @else {
+              <span class="status-pill">Active</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="group">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Domain group
+          </th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[150px] max-w-[250px] truncate">
+            <app-resource-pill
+              [label]="groupLabel(rule.domainGroupId)"
+              [tooltip]="groupTooltip(rule.domainGroupId)"
+            ></app-resource-pill>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+            Created at
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let rule"
+            class="py-3 min-w-[150px] max-w-[250px] truncate text-[13px] text-app-muted"
+          >
+            {{ rule.createdAt | date:'yyyy-MM-dd HH:mm' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions" stickyEnd>
+          <th mat-header-cell *matHeaderCellDef class="min-w-[150px] max-w-[250px] truncate"></th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[150px] max-w-[250px] truncate">
+            <div class="flex items-center gap-1">
+              <button
+                mat-icon-button
+                matTooltip="Edit rule"
+                (click)="openEditDialog(rule)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                color="warn"
+                matTooltip="Delete rule"
+                (click)="confirmDelete(rule.id)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        <tr class="mat-row" *matNoDataRow>
+          <td
+            class="mat-cell px-0 py-6 text-center text-[13px] text-app-muted"
+            [attr.colspan]="columns.length"
+          >
+            @if (!activeGroupId()) {
+              Select a domain group to load rules.
+            } @else if (listResult()) {
+              No redirect rules found
+            } @else {
+              Loading redirect rules...
+            }
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="mt-3 border-t border-app-border-soft pt-3">
+      <app-table-paginator
+        position="center"
+        [showCurrentPage]="true"
+        [currentPage]="page()"
+        [hasNextPage]="hasNextPage()"
+        [pageLimitOptions]="pageLimitOptions"
+        [pageLimit]="pageLimit()"
+        (currentPageChange)="onPageChange($event)"
+        (pageLimitChange)="onPageLimitChange($event)"
+      ></app-table-paginator>
+    </div>
+  </div>
+</div>

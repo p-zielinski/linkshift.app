@@ -1,0 +1,210 @@
+version: "3.8"
+
+services:
+  traefik:
+    image: traefik:v3.4.1
+    command:
+      - --log.level=INFO
+      - --providers.swarm=true
+      - --providers.swarm.exposedbydefault=false
+      - --providers.swarm.network=${TRAEFIK_SWARM_NETWORK}
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --certificatesresolvers.default.acme.email=${TRAEFIK_ACME_EMAIL}
+      - --certificatesresolvers.default.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.default.acme.tlschallenge=true
+      - --api.dashboard=false
+      - --api.debug=false
+      - --api.insecure=false
+      - --ping=false
+      - --global.checknewversion=false
+      - --global.sendanonymoususage=false
+    ports:
+      - mode: host
+        protocol: tcp
+        published: 80
+        target: 80
+      - mode: host
+        protocol: tcp
+        published: 443
+        target: 443
+    volumes:
+      - letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    secrets:
+      - traefik_admin_users
+    networks:
+      - inter-stack
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+  postgres:
+    image: postgres:17.7
+    hostname: postgres
+    ports:
+      - mode: host
+        protocol: tcp
+        published: 5454
+        target: 5432
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - inter-stack
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+  redis:
+    image: redis:8.4.0
+    hostname: redis
+    ports:
+      - mode: host
+        protocol: tcp
+        published: 6767
+        target: 6379
+    command: >
+      sh -c "redis-server --requirepass \"$$(cat /run/secrets/redis_password)\" --appendonly yes"
+    secrets:
+      - redis_password
+    volumes:
+      - redis-data:/data
+    networks:
+      - inter-stack
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+  loki:
+    image: grafana/loki:latest
+    command: -config.file=/etc/loki/local-config.yaml
+    configs:
+      - source: loki_config
+        target: /etc/loki/local-config.yaml
+    volumes:
+      - /mnt/loki:/loki
+    networks:
+      - inter-stack
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+  promtail:
+    image: grafana/promtail:latest
+    command: -config.file=/etc/promtail/config.yml
+    configs:
+      - source: promtail_config
+        target: /etc/promtail/config.yml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    networks:
+      - inter-stack
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+    secrets:
+      - grafana_admin_password
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - inter-stack
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+      labels:
+        - traefik.enable=true
+        - traefik.swarm.network=${TRAEFIK_SWARM_NETWORK}
+        - traefik.http.middlewares.vpn-allowlist.ipwhitelist.sourcerange=${VPN_ALLOWED_CIDR}
+        - traefik.http.middlewares.admin-auth.basicauth.usersfile=/run/secrets/traefik_admin_users
+        - traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOST}`)
+        - traefik.http.routers.grafana.entrypoints=websecure
+        - traefik.http.routers.grafana.tls.certresolver=default
+        - traefik.http.routers.grafana.middlewares=vpn-allowlist,admin-auth
+        - traefik.http.services.grafana.loadbalancer.server.port=3000
+
+  dozzle:
+    image: amir20/dozzle:latest
+    environment:
+      DOZZLE_LEVEL: info
+      DOZZLE_AUTH_CONFIG: /users.yml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - dozzle-data:/data
+    networks:
+      - inter-stack
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+      labels:
+        - traefik.enable=true
+        - traefik.swarm.network=${TRAEFIK_SWARM_NETWORK}
+        - traefik.http.middlewares.vpn-allowlist.ipwhitelist.sourcerange=${VPN_ALLOWED_CIDR}
+        - traefik.http.middlewares.admin-auth.basicauth.usersfile=/run/secrets/traefik_admin_users
+        - traefik.http.routers.dozzle.rule=Host(`${DOZZLE_HOST}`)
+        - traefik.http.routers.dozzle.entrypoints=websecure
+        - traefik.http.routers.dozzle.tls.certresolver=default
+        - traefik.http.routers.dozzle.middlewares=vpn-allowlist,admin-auth
+        - traefik.http.services.dozzle.loadbalancer.server.port=8080
+
+networks:
+  inter-stack:
+    external: true
+    name: ${TRAEFIK_SWARM_NETWORK}
+
+volumes:
+  postgres-data:
+  redis-data:
+  grafana-data:
+  letsencrypt:
+  dozzle-data:
+
+configs:
+  loki_config:
+    file: ./config/loki.yaml
+  promtail_config:
+    file: ./config/promtail.yaml
+  dozzle_users:
+    file: ./config/dozzle.users.yml
+
+secrets:
+  postgres_password:
+    external: true
+  redis_password:
+    external: true
+  grafana_admin_password:
+    external: true
+  traefik_admin_users:
+    external: true
