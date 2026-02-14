@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Log in to GHCR
@@ -28,6 +30,7 @@ jobs:
         with:
           context: .
           file: ./backend/Dockerfile
+          platforms: linux/arm64
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/linkshift-backend:latest
@@ -40,18 +43,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-
       - name: Install backend deps and generate shared client
         run: |
           cd backend
           npm ci
           npx prisma generate
-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Log in to GHCR
@@ -65,6 +67,7 @@ jobs:
         with:
           context: .
           file: ./frontend/Dockerfile
+          platforms: linux/arm64
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/linkshift-frontend:latest
@@ -77,6 +80,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Log in to GHCR
@@ -90,6 +95,7 @@ jobs:
         with:
           context: ./backup-db
           file: ./backup-db/Dockerfile
+          platforms: linux/arm64
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/linkshift-db-backup:latest
@@ -106,6 +112,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Create stack env file
         run: |
           cat <<EOF > ./stack.env
@@ -114,18 +121,26 @@ jobs:
           FRONTEND_IMAGE=ghcr.io/${{ github.repository_owner }}/linkshift-frontend:${{ github.sha }}
           GIT_COMMIT_HASH=${{ github.sha }}
           EOF
-      - name: Deploy infra stack
-        uses: cssnr/stack-deploy-action@v1
-        with:
-          name: linkshift-infra
-          file: docker-stack.infra.yml
-          host: ${{ secrets.DEPLOY_HOST }}
-          user: ${{ secrets.DEPLOY_USER }}
-          ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
-          env_file: ./stack.env
-          registry_host: ghcr.io
-          registry_user: ${{ secrets.DEPLOY_REGISTRY_USER }}
-          registry_pass: ${{ secrets.DEPLOY_REGISTRY_PASS }}
+
+      # --- MANUAL INFRASTRUCTURE DEPLOYMENT ---
+      # To update infrastructure services (e.g., Postgres, Redis, Caddy),
+      # uncomment the block below or run the deployment manually from your
+      # terminal using: docker stack deploy -c docker-stack.infra.yml linkshift-infra
+      #
+      # - name: Deploy infra stack
+      #   uses: cssnr/stack-deploy-action@v1
+      #   with:
+      #     name: linkshift-infra
+      #     file: docker-stack.infra.yml
+      #     host: ${{ secrets.DEPLOY_HOST }}
+      #     user: ${{ secrets.DEPLOY_USER }}
+      #     ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+      #     env_file: ./stack.env
+      #     registry_host: ghcr.io
+      #     registry_user: ${{ secrets.DEPLOY_REGISTRY_USER }}
+      #     registry_pass: ${{ secrets.DEPLOY_REGISTRY_PASS }}
+      # ----------------------------------------
+
       - name: Deploy app stack
         uses: cssnr/stack-deploy-action@v1
         with:
