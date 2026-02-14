@@ -496,4 +496,9 @@ export class CacheManagerService {
     this.localCache.set(key, value, { ttl: ttlSeconds * 1000 });
     await this.redisService.set(key, value, ttlSeconds);
   }
+
+  async invalidateCustomCache(key: string): Promise<void> {
+    this.localCache.delete(key);
+    await this.redisService.del(key);
+  }
 }

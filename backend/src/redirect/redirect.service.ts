@@ -41,7 +41,6 @@ import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
 import { Logger } from 'nestjs-pino';
-import { DockerService } from '../docker/docker.service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -122,6 +121,7 @@ type RedirectSimulationResult = {
 type Manipulator = (val: string) => string;
 
 const ALLOWED_MATCH_METHODS = new Set<string>(Object.values(HttpMethod));
+const CADDY_DOMAIN_CACHE_TTL_SECONDS = 5 * 60;
 
 @Injectable()
 export class RedirectService {
@@ -135,7 +135,6 @@ export class RedirectService {
     private readonly safetyScannerService: SafetyScannerService,
     private readonly domainBlacklistService: DomainBlacklistService,
     private readonly redirectAnalyticsService: RedirectAnalyticsService,
-    private readonly dockerService: DockerService,
     private readonly logger: Logger,
   ) {}
 
@@ -183,8 +182,11 @@ export class RedirectService {
             this.cacheManagerService.invalidateRedirectContext(name),
           ),
         );
+        await Promise.all(
+          uniqueHostnames.map((name) => this.invalidateCaddyDomainCache(name)),
+        );
 
-        this.logger.debug('Invalidated redirect context', {
+        this.logger.debug('Invalidated domain caches', {
           hostnames: uniqueHostnames,
         });
       }
@@ -195,6 +197,54 @@ export class RedirectService {
         error: error instanceof Error ? error.message : 'unknown_error',
       });
     }
+  }
+
+  private normalizeHostname(value: string | undefined | null): string {
+    if (!value) return '';
+    const trimmed = value.trim().toLowerCase();
+    if (!trimmed) return '';
+    const withoutPort = trimmed.split(':')[0] ?? '';
+    return withoutPort.replace(/\.$/, '');
+  }
+
+  private getCaddyDomainCacheKey(hostname: string): string {
+    return `CADDY_DOMAIN_ALLOWED:${hostname}`;
+  }
+
+  private async invalidateCaddyDomainCache(hostname: string): Promise<void> {
+    const normalized = this.normalizeHostname(hostname);
+    if (!normalized) return;
+    const cacheKey = this.getCaddyDomainCacheKey(normalized);
+    await this.cacheManagerService.invalidateCustomCache(cacheKey);
+  }
+
+  async isDomainAllowed(hostname: string): Promise<boolean> {
+    const normalized = this.normalizeHostname(hostname);
+    if (!normalized) return false;
+
+    const cacheKey = this.getCaddyDomainCacheKey(normalized);
+    const cached =
+      await this.cacheManagerService.getCustomCache<boolean>(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const domain = await this.prisma.domain.findFirst({
+      where: {
+        name: normalized,
+        deletedAt: null,
+        domainGroup: { deletedAt: null },
+      },
+      select: { id: true },
+    });
+
+    const allowed = !!domain;
+    await this.cacheManagerService.setCustomCache(
+      cacheKey,
+      allowed,
+      CADDY_DOMAIN_CACHE_TTL_SECONDS,
+    );
+    return allowed;
   }
 
   // --- Management Methods (CRUD) ---
@@ -304,7 +354,6 @@ export class RedirectService {
       type: InvalidationTargetType.HOSTNAME,
       value: domain.name,
     });
-    void this.dockerService.updateTraefikAppHostRule('domain_create');
     return domain;
   }
 
@@ -401,7 +450,6 @@ export class RedirectService {
         value: existing.name,
       });
     }
-    void this.dockerService.updateTraefikAppHostRule('domain_update');
     return domain;
   }
 
@@ -432,7 +480,6 @@ export class RedirectService {
       type: InvalidationTargetType.HOSTNAME,
       value: existing.name,
     });
-    void this.dockerService.updateTraefikAppHostRule('domain_delete');
     return;
   }
 
@@ -887,8 +934,7 @@ export class RedirectService {
 
     let scanResults: Map<string, boolean>;
     try {
-      scanResults =
-        await this.safetyScannerService.checkUrls(extractedUrls);
+      scanResults = await this.safetyScannerService.checkUrls(extractedUrls);
     } catch (error) {
       this.logger.error('Redirect rule safety scan failed', {
         ruleId: context.ruleId ?? null,
@@ -1053,6 +1099,16 @@ export class RedirectService {
 
   async applyRedirect(req: express.Request, res: express.Response) {
     const hostname = req.hostname;
+
+    const allowed = await this.isDomainAllowed(hostname);
+    if (!allowed) {
+      res.status(403).json({
+        message: `Hostname ${hostname} is not allowed`,
+        error: 'Forbidden',
+        statusCode: 403,
+      });
+      return;
+    }
 
     // 1. Get Domain Context (Cached)
     const domain = await this.getDomainRedirectContext(hostname);
