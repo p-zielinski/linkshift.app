@@ -50,10 +50,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Create .env file for frontend build
+      - name: Load frontend build args from STACK_ENV
         run: |
-          echo "${{ secrets.STACK_ENV }}" > .env
-          echo "GIT_COMMIT_HASH=${{ github.sha }}" >> .env
+          cat <<'EOF' > ./stack.env
+          ${{ secrets.STACK_ENV }}
+          EOF
+          set -a
+          . ./stack.env
+          set +a
+          {
+            echo "APP_API_BASE_URL=$APP_API_BASE_URL"
+            echo "APP_SITE_NAME=$APP_SITE_NAME"
+            echo "APP_SITE_TAGLINE=$APP_SITE_TAGLINE"
+            echo "APP_SUPPORT_EMAIL=$APP_SUPPORT_EMAIL"
+            echo "APP_LEGAL_NAME=$APP_LEGAL_NAME"
+            echo "APP_LEGAL_ADDRESS=$APP_LEGAL_ADDRESS"
+            echo "APP_PRIVACY_EMAIL=$APP_PRIVACY_EMAIL"
+            echo "APP_MIN_AGE=$APP_MIN_AGE"
+            echo "APP_LEGAL_VERSION=$APP_LEGAL_VERSION"
+            echo "APP_AUTH_GATE_ENABLED=$APP_AUTH_GATE_ENABLED"
+          } >> "$GITHUB_ENV"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -81,6 +97,17 @@ jobs:
           file: ./frontend/Dockerfile
           platforms: linux/arm64
           push: true
+          build-args: |
+            APP_API_BASE_URL=${{ env.APP_API_BASE_URL }}
+            APP_SITE_NAME=${{ env.APP_SITE_NAME }}
+            APP_SITE_TAGLINE=${{ env.APP_SITE_TAGLINE }}
+            APP_SUPPORT_EMAIL=${{ env.APP_SUPPORT_EMAIL }}
+            APP_LEGAL_NAME=${{ env.APP_LEGAL_NAME }}
+            APP_LEGAL_ADDRESS=${{ env.APP_LEGAL_ADDRESS }}
+            APP_PRIVACY_EMAIL=${{ env.APP_PRIVACY_EMAIL }}
+            APP_MIN_AGE=${{ env.APP_MIN_AGE }}
+            APP_LEGAL_VERSION=${{ env.APP_LEGAL_VERSION }}
+            APP_AUTH_GATE_ENABLED=${{ env.APP_AUTH_GATE_ENABLED }}
           tags: |
             ghcr.io/${{ github.repository_owner }}/linkshift-frontend:latest
             ghcr.io/${{ github.repository_owner }}/linkshift-frontend:${{ github.sha }}

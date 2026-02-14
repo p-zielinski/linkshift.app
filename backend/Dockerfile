@@ -5,6 +5,7 @@ RUN npm ci
 
 FROM node:24.12.0-slim AS build
 WORKDIR /app
+ARG DATABASE_URL
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 
 COPY --from=deps /app/backend/node_modules ./backend/node_modules
@@ -18,6 +19,7 @@ RUN npm prune --omit=dev
 
 FROM node:24.12.0-slim AS runner
 WORKDIR /app/backend
+ARG DATABASE_URL
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 COPY --from=build /app/backend/dist ./dist
