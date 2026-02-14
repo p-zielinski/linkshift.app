@@ -12,7 +12,6 @@ import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
 import { Logger } from 'nestjs-pino';
-import { DockerService } from '../docker/docker.service';
 
 const mockPrismaService = {
   domain: {
@@ -104,7 +103,10 @@ describe('RedirectService', () => {
             getRedirectContext: jest.fn(),
             setRedirectContext: jest.fn(),
             invalidateRedirectContext: jest.fn(),
+            invalidateCustomCache: jest.fn(),
             getData: jest.fn(),
+            getCustomCache: jest.fn(),
+            setCustomCache: jest.fn(),
             checkOrganizationRateLimit: jest.fn(),
           },
         },
@@ -134,12 +136,6 @@ describe('RedirectService', () => {
             trackRuleHit: jest.fn().mockResolvedValue(undefined),
             getTopRulesForOrganization: jest.fn().mockResolvedValue([]),
             getTopRulesGlobal: jest.fn().mockResolvedValue([]),
-          },
-        },
-        {
-          provide: DockerService,
-          useValue: {
-            updateTraefikAppHostRule: jest.fn().mockResolvedValue(undefined),
           },
         },
         {
@@ -1252,6 +1248,8 @@ describe('RedirectService', () => {
         redirect: jest.fn(),
       } as any;
 
+      (cacheManagerService.getCustomCache as jest.Mock).mockResolvedValue(true);
+
       // Mock domain finding
       (prisma.domain.findFirst as jest.Mock).mockResolvedValue({
         domainGroup: {
@@ -1290,6 +1288,8 @@ describe('RedirectService', () => {
         json: jest.fn(),
         redirect: jest.fn(),
       } as any;
+
+      (cacheManagerService.getCustomCache as jest.Mock).mockResolvedValue(true);
 
       (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
         domainGroup: {
