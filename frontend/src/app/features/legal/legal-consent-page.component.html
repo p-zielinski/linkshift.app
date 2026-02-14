@@ -1,0 +1,38 @@
+<div class="legal-consent-shell">
+  <mat-card class="legal-consent-card">
+    <h1>Review updated terms</h1>
+    <p class="text-[13px] text-app-muted">
+      We updated our legal terms. Please review and accept to continue using
+      {{ siteConfig.name }}.
+    </p>
+
+    <div class="mt-4 grid gap-2 rounded-[16px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+      <mat-checkbox [formField]="consentForm.acceptTerms">
+        I agree to the <a routerLink="/terms" class="text-app-accent-strong">Terms of Service</a>.
+      </mat-checkbox>
+      @if (termsError()) {
+        <div class="text-[11px] text-red-600">{{ termsError() }}</div>
+      }
+
+      <mat-checkbox [formField]="consentForm.acceptPrivacy">
+        I agree to the <a routerLink="/privacy" class="text-app-accent-strong">Privacy Policy</a>.
+      </mat-checkbox>
+      @if (privacyError()) {
+        <div class="text-[11px] text-red-600">{{ privacyError() }}</div>
+      }
+
+      <mat-checkbox [formField]="consentForm.confirmAge">
+        I confirm that I am at least {{ siteConfig.minAge }} years old.
+      </mat-checkbox>
+      @if (ageError()) {
+        <div class="text-[11px] text-red-600">{{ ageError() }}</div>
+      }
+    </div>
+
+    <div class="mt-5 flex justify-end">
+      <button mat-flat-button color="primary" type="button" (click)="submit()" [disabled]="busy()">
+        Continue
+      </button>
+    </div>
+  </mat-card>
+</div>

@@ -1,0 +1,139 @@
+.marketing-toolbar,
+.marketing-content,
+.marketing-footer {
+  width: 100%;
+}
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.marketing-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  gap: 16px;
+  padding: 12px 32px;
+  background: linear-gradient(120deg, #fff3f6 0%, #fff 55%, #f7edf2 100%);
+  border-bottom: 1px solid rgba(33, 33, 33, 0.08);
+  color: #241c21;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.nav-links {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.nav-actions {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.nav-links a,
+.nav-actions a {
+  color: #2b2127;
+}
+
+.nav-links a:hover,
+.nav-actions a:hover {
+  color: var(--app-accent-strong);
+}
+
+.nav-links a.active {
+  color: var(--app-accent-strong);
+  font-weight: 600;
+  background: rgba(192, 55, 98, 0.14);
+  border-radius: 999px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.marketing-content {
+  padding: 32px 32px 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex: 1;
+}
+
+.marketing-footer {
+  padding: 32px;
+  border-top: 1px solid rgba(33, 33, 33, 0.08);
+  background: #fff8fb;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-brand {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.footer-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.footer-links {
+  display: grid;
+  gap: 6px;
+}
+
+.footer-links a {
+  color: #3b2f36;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: var(--app-accent-strong);
+}
+
+@media (max-width: 1024px) {
+  .marketing-toolbar {
+    flex-wrap: wrap;
+    padding: 12px 20px;
+  }
+
+  .nav-links {
+    width: 100%;
+    order: 3;
+    flex-wrap: wrap;
+  }
+
+  .nav-actions {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .marketing-content {
+    padding: 24px 20px 64px;
+  }
+
+  .marketing-footer {
+    padding: 24px 20px;
+  }
+}

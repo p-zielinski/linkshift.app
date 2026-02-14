@@ -1,0 +1,129 @@
+<app-marketing-hero
+  eyebrow="Structured redirect management"
+  [title]="siteConfig.name + ' for domain-group routing'"
+  subtitle="Create domain groups, attach domains, and publish redirect rules with regex, placeholders, and conditional logic. Keep every environment aligned with a single source of truth."
+  primaryCtaLabel="Start with a new account"
+  primaryCtaLink="/auth"
+  secondaryCtaLabel="See alternatives"
+  secondaryCtaLink="/alternatives/redirect-pizza"
+  [highlights]="heroHighlights"
+>
+  <mat-card class="hero-card">
+    <div class="hero-card-header">
+      <div class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[12px] text-app-muted">
+        Domain group blueprint
+      </div>
+      <span class="hero-card-badge">Operationally consistent</span>
+    </div>
+    <div class="hero-flow">
+      @for (step of workflowSteps; track step.title) {
+        <div class="flow-item">
+          <mat-icon>{{ step.icon }}</mat-icon>
+          <div>
+            <div class="flow-title">{{ step.title }}</div>
+            <div class="text-[13px] text-app-muted">{{ step.description }}</div>
+          </div>
+        </div>
+      }
+    </div>
+    <div class="hero-footnote">Group-level rules propagate instantly to all domains in the group.</div>
+  </mat-card>
+</app-marketing-hero>
+
+<app-marketing-section
+  eyebrow="Architecture"
+  title="Three building blocks, one predictable workflow"
+  subtitle="LinkShift.App keeps your rules structured. Domain groups own the routing logic, domains inherit it, and rules stay ordered and explicit."
+>
+  <div class="model-grid grid gap-6 lg:grid-cols-3">
+    @for (card of modelCards; track card.title) {
+      <mat-card class="model-card">
+        <mat-icon>{{ card.icon }}</mat-icon>
+        <h3>{{ card.title }}</h3>
+        <p class="text-[13px] text-app-muted">{{ card.description }}</p>
+      </mat-card>
+    }
+  </div>
+</app-marketing-section>
+
+<app-marketing-section
+  eyebrow="Capabilities"
+  title="Rules that stay readable and precise"
+  subtitle="Match exactly what you need, transform data safely, and keep destinations predictable."
+>
+  <app-marketing-feature-grid [features]="features"></app-marketing-feature-grid>
+</app-marketing-section>
+
+<app-marketing-section
+  eyebrow="Pricing"
+  title="Plans that grow with your traffic"
+  subtitle="Start free and scale only when your redirect inventory demands it."
+>
+  <app-pricing-plans [compact]="true"></app-pricing-plans>
+  <div class="mt-6 flex flex-wrap items-center gap-3">
+    <a mat-stroked-button routerLink="/pricing">See full pricing</a>
+    <a mat-flat-button color="primary" routerLink="/auth">Start free</a>
+  </div>
+</app-marketing-section>
+
+<app-marketing-section
+  eyebrow="Examples"
+  title="Rule syntax that mirrors real traffic"
+  subtitle="Use regex, placeholders, and conditions to build consistent redirection logic."
+>
+  <div class="examples-grid grid gap-6 lg:grid-cols-3">
+    @for (example of examples; track example.title) {
+      <app-marketing-example-card [example]="example"></app-marketing-example-card>
+    }
+  </div>
+  <p class="mt-4 text-[13px] text-app-muted">
+    Variables are resolved from request context including path, query parameters, segments, and domain metadata.
+  </p>
+</app-marketing-section>
+
+<app-marketing-section
+  eyebrow="Operations"
+  title="Keep routing safe, fast, and auditable"
+  subtitle="Domain groups help teams work in parallel without losing control of critical redirects."
+>
+  <div class="assurance-grid grid gap-6 lg:grid-cols-2">
+    <mat-card class="assurance-card">
+      <mat-icon>verified_user</mat-icon>
+      <h3>Predictable governance</h3>
+      <p class="text-[13px] text-app-muted">
+        Centralize rules at the group level and avoid divergent redirects across brands, regions, or environments.
+      </p>
+    </mat-card>
+    <mat-card class="assurance-card">
+      <mat-icon>refresh</mat-icon>
+      <h3>30-day satisfaction guarantee</h3>
+      <p class="text-[13px] text-app-muted">
+        If the platform is not the right fit, request a refund within 30 days with no explanation required.
+      </p>
+    </mat-card>
+  </div>
+</app-marketing-section>
+
+<app-marketing-section
+  eyebrow="FAQ"
+  title="Questions teams ask before switching"
+  subtitle="Quick answers for architects, developers, and ops teams."
+>
+  <app-marketing-faq [items]="faqItems"></app-marketing-faq>
+</app-marketing-section>
+
+<app-marketing-section
+  eyebrow="Get started"
+  title="Build your redirect model in minutes"
+  subtitle="Set up a domain group, attach domains, and publish rules with full context."
+>
+  <app-marketing-cta
+    title="Ready to organize redirects by domain group?"
+    description="Create an account and move your redirect inventory into a structured workflow."
+    primaryLabel="Create account"
+    primaryLink="/auth"
+    secondaryLabel="Explore alternatives"
+    secondaryLink="/alternatives/redirect-pizza"
+    note="30-day satisfaction guarantee. Refunds available with no explanation required."
+  ></app-marketing-cta>
+</app-marketing-section>

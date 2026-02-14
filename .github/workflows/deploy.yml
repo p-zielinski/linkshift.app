@@ -1,0 +1,126 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/linkshift-backend:latest
+            ghcr.io/${{ github.repository_owner }}/linkshift-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/linkshift-frontend:latest
+            ghcr.io/${{ github.repository_owner }}/linkshift-frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-db-backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push db-backup image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backup-db
+          file: ./backup-db/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/linkshift-db-backup:latest
+            ghcr.io/${{ github.repository_owner }}/linkshift-db-backup:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs:
+      - build-backend
+      - build-frontend
+      - build-db-backup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Create stack env file
+        run: |
+          printf "%s\n" "${{ secrets.STACK_ENV }}" > ./stack.env
+          echo "BACKEND_IMAGE=ghcr.io/${{ github.repository_owner }}/linkshift-backend:${{ github.sha }}" >> ./stack.env
+          echo "FRONTEND_IMAGE=ghcr.io/${{ github.repository_owner }}/linkshift-frontend:${{ github.sha }}" >> ./stack.env
+          echo "GIT_COMMIT_HASH=${{ github.sha }}" >> ./stack.env
+      - name: Deploy infra stack
+        uses: cssnr/stack-deploy-action@v1
+        with:
+          name: ${{ secrets.INFRA_STACK_NAME }}
+          file: docker-stack.infra.yml
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          env_file: ./stack.env
+          registry_host: ghcr.io
+          registry_user: ${{ secrets.DEPLOY_REGISTRY_USER }}
+          registry_pass: ${{ secrets.DEPLOY_REGISTRY_PASS }}
+      - name: Deploy app stack
+        uses: cssnr/stack-deploy-action@v1
+        with:
+          name: ${{ secrets.APP_STACK_NAME }}
+          file: docker-stack.app.yml
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          env_file: ./stack.env
+          registry_host: ghcr.io
+          registry_user: ${{ secrets.DEPLOY_REGISTRY_USER }}
+          registry_pass: ${{ secrets.DEPLOY_REGISTRY_PASS }}

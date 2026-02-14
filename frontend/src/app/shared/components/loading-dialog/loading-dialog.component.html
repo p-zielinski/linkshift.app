@@ -1,0 +1,9 @@
+<div class="flex items-center gap-4 p-6">
+  <mat-progress-spinner diameter="32" mode="indeterminate" color="primary"></mat-progress-spinner>
+  <div class="min-w-0">
+    @if (data.title) {
+      <h3 class="m-0 mb-1 text-base font-semibold">{{ data.title }}</h3>
+    }
+    <p class="m-0 text-[13px] text-app-muted">{{ data.message }}</p>
+  </div>
+</div>

@@ -1,0 +1,9 @@
+<div class="feature-grid">
+  @for (feature of features(); track feature.title) {
+    <mat-card class="feature-card">
+      <mat-icon class="feature-icon">{{ feature.icon }}</mat-icon>
+      <h3>{{ feature.title }}</h3>
+      <p class="text-[13px] text-app-muted">{{ feature.description }}</p>
+    </mat-card>
+  }
+</div>

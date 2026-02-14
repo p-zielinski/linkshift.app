@@ -1,0 +1,10 @@
+<mat-accordion class="faq-accordion">
+  @for (item of items(); track item.question) {
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>{{ item.question }}</mat-panel-title>
+      </mat-expansion-panel-header>
+      <p class="faq-answer">{{ item.answer }}</p>
+    </mat-expansion-panel>
+  }
+</mat-accordion>

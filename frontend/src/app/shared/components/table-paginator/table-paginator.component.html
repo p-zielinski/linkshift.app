@@ -1,0 +1,62 @@
+<div
+  class="flex flex-wrap items-center gap-3 text-[13px] text-app-muted"
+  [ngClass]="{
+    'justify-start': position() === 'start',
+    'justify-center': position() === 'center',
+    'justify-end': position() === 'end'
+  }"
+>
+  @if (showCurrentPage()) {
+    <div class="min-w-fit">
+      Page: <span class="font-semibold text-app-text">{{ currentPage() }}</span>
+    </div>
+  }
+
+  <div class="flex min-w-fit items-center gap-2">
+    <span>Rows per page:</span>
+    @if (pageLimitOptions().length <= 1) {
+      <span class="font-semibold text-app-text">{{ pageLimit() }}</span>
+    } @else {
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-[96px]">
+        <mat-label class="sr-only">Rows per page</mat-label>
+        <mat-select
+          [value]="pageLimit()"
+          (selectionChange)="onPageLimitChange($event.value)"
+        >
+          @for (limit of pageLimitOptions(); track limit) {
+            <mat-option [value]="limit">{{ limit }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+  </div>
+
+  <div class="flex items-center gap-1">
+    <button
+      mat-icon-button
+      [disabled]="!canGoPrevious"
+      (click)="onPreviousPage()"
+    >
+      <mat-icon
+        matTooltip="Previous page"
+        [class.text-app-accent-strong]="canGoPrevious"
+        matTooltipPosition="above"
+      >
+        chevron_left
+      </mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      [disabled]="!canGoNext"
+      (click)="onNextPage()"
+    >
+      <mat-icon
+        matTooltip="Next page"
+        [class.text-app-accent-strong]="canGoNext"
+        matTooltipPosition="above"
+      >
+        chevron_right
+      </mat-icon>
+    </button>
+  </div>
+</div>

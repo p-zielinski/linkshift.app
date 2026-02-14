@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirection Rules Guide</title>
+  <style>
+      :root {
+          --primary: #2563eb;
+          --bg: #f8fafc;
+          --surface: #ffffff;
+          --text: #334155;
+          --code-bg: #1e293b;
+          --code-text: #e2e8f0;
+          --success: #10b981;
+          --danger: #ef4444;
+          --warning: #f59e0b;
+      }
+
+      body {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          line-height: 1.6;
+          color: var(--text);
+          background: var(--bg);
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 2rem;
+      }
+
+      h1, h2, h3 { color: #0f172a; margin-top: 2rem; }
+      h1 { border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; }
+
+      .card {
+          background: var(--surface);
+          padding: 1.5rem;
+          border-radius: 8px;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+          margin-bottom: 1.5rem;
+      }
+
+      code {
+          background: #e2e8f0;
+          padding: 0.2rem 0.4rem;
+          border-radius: 4px;
+          font-family: 'Fira Code', monospace;
+          font-size: 0.9em;
+          color: #d946ef;
+      }
+
+      pre {
+          background: var(--code-bg);
+          color: var(--code-text);
+          padding: 1rem;
+          border-radius: 8px;
+          overflow-x: auto;
+      }
+
+      pre code {
+          background: transparent;
+          color: inherit;
+          padding: 0;
+      }
+
+      .tag {
+          display: inline-block;
+          padding: 0.25rem 0.75rem;
+          border-radius: 9999px;
+          font-size: 0.75rem;
+          font-weight: bold;
+          color: white;
+          margin-right: 0.5rem;
+      }
+      .tag.source { background-color: var(--primary); }
+      .tag.dest { background-color: var(--success); }
+
+      table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1rem 0;
+      }
+      th, td {
+          text-align: left;
+          padding: 0.75rem;
+          border-bottom: 1px solid #e2e8f0;
+      }
+      th { background-color: #f1f5f9; }
+
+      .example-box {
+          border-left: 4px solid var(--primary);
+          background: #eff6ff;
+          padding: 1rem;
+          margin: 1rem 0;
+      }
+
+      .danger-box {
+          border-left: 4px solid var(--danger);
+          background: #fef2f2;
+          padding: 1rem;
+          margin: 1rem 0;
+      }
+  </style>
+</head>
+<body>
+
+<h1>Redirection Rules Documentation</h1>
+<p>This guide details how to configure the <strong>Source</strong> and <strong>Destination</strong> fields in your redirection dashboard. Our engine supports powerful logic, variables, and pattern matching.</p>
+
+<div class="card">
+  <h2>1. The Source Field</h2>
+  <p>The Source determines <em>when</em> a rule triggers based on the incoming request path.</p>
+
+  <h3>Allowed Formats:</h3>
+  <table>
+    <thead>
+    <tr>
+      <th>Type</th>
+      <th>Syntax</th>
+      <th>Example</th>
+      <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td><strong>Exact Match</strong></td>
+      <td>/path</td>
+      <td><code>/contact</code></td>
+      <td>Matches the path exactly.</td>
+    </tr>
+    <tr>
+      <td><strong>Wildcard</strong></td>
+      <td>*</td>
+      <td><code>*</code></td>
+      <td>Matches EVERYTHING. Use with caution as a fallback.</td>
+    </tr>
+    <tr>
+      <td><strong>Regex</strong></td>
+      <td>/regex/flags</td>
+      <td><code>/^\/blog\/([0-9]+)$/i</code></td>
+      <td>Advanced pattern matching using Regular Expressions. <br>Capture groups (e.g., <code>$1</code>) can be used in the destination.</td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>2. The Destination Field</h2>
+  <p>The Destination determines <em>where</em> the user is sent. It supports static URLs, dynamic variables, and logical conditions.</p>
+
+  <h3>A. Variables & Placeholders</h3>
+  <p>You can inject request data into the destination URL using <code>{variable}</code> syntax.</p>
+
+  <ul>
+    <li><code>{path}</code> - The path (excluding leading slash).</li>
+    <li><code>{domain.subdomain}</code> - The subdomain (e.g., "app" from app.example.com).</li>
+    <li><code>{query.paramName}</code> - Value of a query string parameter.</li>
+    <li><code>{segments.0}</code>, <code>{segments.1}</code> - Path segments (split by /).</li>
+    <li><code>{geo.country}</code> - Two-letter country code (e.g., US, DE).</li>
+    <li><code>{random}</code> - A random integer.</li>
+  </ul>
+
+  <h4>Modifiers (Pipes) & Chaining</h4>
+  <p>The syntax for placeholders follows this pattern: <code>{input:modifier1.modifier2}</code>.</p>
+
+  <div class="example-box">
+    <h3>Colon (:) vs Dot (.)</h3>
+    <ul>
+      <li><strong>Colon (<code>:</code>)</strong>: Used <strong>once</strong> to separate the input (variable or static value) from the modifiers.</li>
+      <li><strong>Dot (<code>.</code>)</strong>: Used to <strong>chain</strong> multiple modifiers together.</li>
+    </ul>
+    <p><strong>Example:</strong> <code>{query.val:multiply_10.divide_10}</code></p>
+    <p>Here, <code>query.val</code> is the input, and <code>multiply_10.divide_10</code> is the chain of actions.</p>
+  </div>
+
+  <table>
+    <thead>
+    <tr>
+      <th>Modifier</th>
+      <th>Description</th>
+      <th>Example</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td><code>to_lower_case</code></td>
+      <td>Converts string to lowercase.</td>
+      <td><code>{path:to_lower_case}</code></td>
+    </tr>
+    <tr>
+      <td><code>to_upper_case</code></td>
+      <td>Converts string to uppercase.</td>
+      <td><code>{domain.root:to_upper_case}</code></td>
+    </tr>
+    <tr>
+      <td><code>url_encode</code></td>
+      <td>Encodes characters for safe URL usage.</td>
+      <td><code>{query.search:url_encode}</code></td>
+    </tr>
+    <tr>
+      <td><code>url_decode</code></td>
+      <td>Decodes URL-encoded strings.</td>
+      <td><code>{path:url_decode}</code></td>
+    </tr>
+    <tr>
+      <td><code>base64_encode</code></td>
+      <td>Encodes the value to Base64 string.</td>
+      <td><code>{id:base64_encode}</code></td>
+    </tr>
+    <tr>
+      <td><code>auto_trailing_slash</code></td>
+      <td>Ensures the value ends with a <code>/</code>.</td>
+      <td><code>{path:auto_trailing_slash}</code></td>
+    </tr>
+    <tr>
+      <td><code>add_10</code></td>
+      <td>Adds 10 to a numeric value.</td>
+      <td><code>{count:add_10}</code></td>
+    </tr>
+    <tr>
+      <td><code>multiply_2</code></td>
+      <td>Multiplies numeric value by 2.</td>
+      <td><code>{price:multiply_2}</code></td>
+    </tr>
+    <tr>
+      <td><code>multiply_10</code></td>
+      <td>Multiplies numeric value by 10.</td>
+      <td><code>{val:multiply_10}</code></td>
+    </tr>
+    <tr>
+      <td><code>divide_10</code></td>
+      <td>Divides numeric value by 10.</td>
+      <td><code>{val:divide_10}</code></td>
+    </tr>
+    <tr>
+      <td><code>round</code></td>
+      <td>Rounds a number to the nearest integer.</td>
+      <td><code>{val:round}</code></td>
+    </tr>
+    <tr>
+      <td><code>random</code></td>
+      <td>Generates a random integer. Note: The range is part of the <strong>input</strong> section.</td>
+      <td><code>{0:100:random}</code></td>
+    </tr>
+    </tbody>
+  </table>
+
+  <div class="example-box">
+    <h3>Example: Advanced Modifier Chaining</h3>
+    <p><strong>Goal:</strong> Generate a random decimal number between 0 and 1 (e.g., 0.45) for custom splitting logic.</p>
+    <p><strong>Logic:</strong> Use <code>random</code> to get a number between 0-100, then divide by 10 twice.</p>
+    <pre><code>{0:100:random:divide_10.divide_10}</code></pre>
+    <p>This will transform <code>"45"</code> into <code>"4.5"</code> and then into <code>"0.45"</code>.</p>
+  </div>
+
+  <h3>B. Conditional Logic</h3>
+  <p>You can create dynamic destinations using the conditional syntax:</p>
+  <pre><code>(Condition) ? True_Destination : False_Destination</code></pre>
+
+  <h4>Supported Operators:</h4>
+  <ul>
+    <li><code>==</code>, <code>!=</code> (Equality)</li>
+    <li><code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code> (Numeric/Date comparison)</li>
+    <li><code>includes</code> (String contains)</li>
+    <li><code>~=</code> (Regex match, e.g., <code>'{path}' ~= /^api/</code>)</li>
+  </ul>
+
+  <h4>Time Functions:</h4>
+  <ul>
+    <li><code>time()</code> - Current timestamp.</li>
+    <li><code>datetime('YYYY-MM-DD', 'Timezone')</code> - Specific date timestamp.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>3. Examples</h2>
+
+  <div class="example-box">
+    <h3>Example 1: Time-Based Routing (Maintenance Mode)</h3>
+    <p><strong>Goal:</strong> Send users to a maintenance page after a specific date.</p>
+    <p><strong>Logic:</strong></p>
+    <pre><code>(time() > datetime('2024-05-01', 'UTC')) ? /maintenance : /app</code></pre>
+  </div>
+
+  <div class="example-box">
+    <h3>Example 2: A/B Testing</h3>
+    <p><strong>Goal:</strong> Split traffic 50/50 between version 1 and version 2.</p>
+    <p><strong>Logic:</strong></p>
+    <pre><code>('{random}' > 500000) ? /v2/landing : /v1/landing</code></pre>
+  </div>
+
+  <div class="example-box">
+    <h3>Example 3: API Versioning based on Path</h3>
+    <p><strong>Goal:</strong> If path contains "api", check date for v2, otherwise go to static.</p>
+    <p><strong>Logic:</strong></p>
+    <pre><code>('{path}' includes 'api')
+  ? (time() > datetime('2024-01-01') ? /api/v2 : /api/v1)
+  : /static-content</code></pre>
+  </div>
+</div>
+
+<div class="card">
+  <h2>4. Safety & Limitations (Do's and Don'ts)</h2>
+
+  <div class="danger-box">
+    <h3>⛔ What NOT to do</h3>
+    <ul>
+      <li><strong>Do NOT create infinite loops:</strong> Avoid setting a destination that matches the source rule without changing the path (e.g., Source: <code>/a</code>, Destination: <code>/a</code>).</li>
+      <li><strong>Do NOT nest too deeply:</strong> While we support nested logic <code>(A ? (B ? C : D) : E)</code>, keep it under 5 levels for readability and performance. Max depth is capped at 32.</li>
+      <li><strong>Do NOT use "Evil Regex":</strong> When using Regex in Source or Logic, avoid patterns that require catastrophic backtracking (e.g., <code>(a+)+</code>).</li>
+    </ul>
+  </div>
+
+  <div class="example-box">
+    <h3>✅ Best Practices</h3>
+    <ul>
+      <li><strong>Use quotes:</strong> Always wrap string values in logic with quotes. <code>'{path}' == 'home'</code>.</li>
+      <li><strong>Test order:</strong> Rules are evaluated by Priority (High to Low), then Creation Date.</li>
+      <li><strong>Use Groups:</strong> Use parentheses <code>(...)</code> to group logic clearly.</li>
+    </ul>
+  </div>
+</div>
+
+<footer>
+  <p>&copy; 2026 Redirection Service. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

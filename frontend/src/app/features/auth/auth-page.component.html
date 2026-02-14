@@ -1,0 +1,193 @@
+<div class="flex min-h-screen items-center justify-center p-8">
+  <mat-card
+    class="auth-card h-[700px] w-[min(520px,96vw)] overflow-hidden overflow-y-auto rounded-[24px] bg-app-surface p-7 shadow-[0_30px_60px_rgba(32,24,28,0.18)]"
+  >
+    <div class="mb-0 flex flex-col gap-2">
+      <div class="flex items-center justify-between gap-3">
+        <h1 class="m-0 text-[28px] font-semibold">Access Control</h1>
+        <button mat-stroked-button class="h-9" type="button" routerLink="/">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Home</span>
+        </button>
+      </div>
+      <div class="flex items-center justify-between gap-4">
+        <p class="m-0 text-[13px] text-app-muted">
+          Authenticate to manage domains and redirect rules.
+        </p>
+        <div
+          class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[11px] text-app-muted"
+        >
+          <mat-icon class="h-4 w-4 text-[16px]">security</mat-icon>
+          <span class="text-right text-nowrap">Secure session</span>
+        </div>
+      </div>
+    </div>
+
+    @if (canAccessAuth()) {
+      <mat-tab-group animationDuration="0ms">
+        <mat-tab label="Login">
+          <form class="grid gap-4" (submit)="onLogin($event)">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" [formField]="loginForm.email" />
+              @if (loginEmailError(); as error) {
+                <mat-error>{{ error }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Password</mat-label>
+              <input matInput type="password" [formField]="loginForm.password" />
+              @if (loginPasswordError(); as error) {
+                <mat-error>{{ error }}</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="flex justify-end">
+              <a routerLink="/reset-password" class="text-[12px] text-app-muted">
+                Forgot password?
+              </a>
+            </div>
+
+            <div class="mt-4 flex justify-end">
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                [disabled]="loginForm().submitting()"
+              >
+                <mat-icon>login</mat-icon>
+                <span>Sign in</span>
+              </button>
+            </div>
+          </form>
+        </mat-tab>
+
+        <mat-tab label="Register">
+          <form class="grid gap-4" (submit)="onRegister($event)">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Organization name</mat-label>
+              <input matInput type="text" [formField]="registerForm.organizationName" />
+              @if (registerOrgError(); as error) {
+                <mat-error>{{ error }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" [formField]="registerForm.email" />
+              @if (registerEmailError(); as error) {
+                <mat-error>{{ error }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Password</mat-label>
+              <input matInput type="password" [formField]="registerForm.password" />
+              @if (registerPasswordError(); as error) {
+                <mat-error>{{ error }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Confirm password</mat-label>
+              <input matInput type="password" [formField]="registerForm.confirmPassword" />
+              @if (registerConfirmError(); as error) {
+                <mat-error>{{ error }}</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="plan-picker">
+              <div class="text-[13px] font-semibold text-app-ink-strong">
+                Choose your plan
+              </div>
+              <div class="interval-toggle">
+                <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
+                  Billing
+                </div>
+                <mat-button-toggle-group
+                  class="interval-toggle-group"
+                  [formField]="registerForm.billingInterval"
+                >
+                  <mat-button-toggle value="MONTHLY">Monthly</mat-button-toggle>
+                  <mat-button-toggle value="YEARLY">Yearly</mat-button-toggle>
+                </mat-button-toggle-group>
+              </div>
+              <mat-radio-group class="plan-grid" [formField]="registerForm.plan">
+                @for (plan of plans(); track plan.id) {
+                  <mat-radio-button class="plan-option" [value]="plan.id">
+                    <div class="plan-meta">
+                      <div class="plan-title">{{ plan.title }}</div>
+                      <div class="plan-price">{{ plan.price }}</div>
+                      <div class="plan-note text-[12px] text-app-muted">
+                        {{ plan.note }}
+                      </div>
+                    </div>
+                  </mat-radio-button>
+                }
+              </mat-radio-group>
+            </div>
+
+            <div class="grid gap-2 rounded-[16px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+              <mat-checkbox [formField]="registerForm.acceptTerms">
+                I agree to the
+                <a routerLink="/terms" class="text-app-accent-strong">Terms of Service</a>.
+              </mat-checkbox>
+              @if (registerTermsError(); as error) {
+                <div class="text-[11px] text-red-600">{{ error }}</div>
+              }
+
+              <mat-checkbox [formField]="registerForm.acceptPrivacy">
+                I agree to the
+                <a routerLink="/privacy" class="text-app-accent-strong">Privacy Policy</a>.
+              </mat-checkbox>
+              @if (registerPrivacyError(); as error) {
+                <div class="text-[11px] text-red-600">{{ error }}</div>
+              }
+
+              <mat-checkbox [formField]="registerForm.confirmAge">
+                I confirm that I am at least {{ siteConfig.minAge }} years old.
+              </mat-checkbox>
+              @if (registerAgeError(); as error) {
+                <div class="text-[11px] text-red-600">{{ error }}</div>
+              }
+            </div>
+
+            <div class="mt-4 flex justify-end">
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                [disabled]="registerForm().submitting()"
+              >
+                <mat-icon>person_add</mat-icon>
+                <span>Create account</span>
+              </button>
+            </div>
+          </form>
+        </mat-tab>
+      </mat-tab-group>
+    } @else {
+      <div class="mt-6 rounded-[20px] border border-app-border-soft bg-app-muted/5 p-5">
+        <div class="flex items-start gap-3">
+          <mat-icon class="text-[26px] text-app-muted">hourglass_top</mat-icon>
+          <div class="grid gap-2 text-[13px] text-app-muted">
+            <div class="text-[15px] font-semibold text-app-ink-strong">
+              Private testing in progress
+            </div>
+            <div>
+              Registration and sign-in are temporarily closed while we finalize
+              testing. Please check back in a few days or contact us for access.
+            </div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              <button mat-flat-button color="primary" type="button" routerLink="/contact">
+                <mat-icon>contact_support</mat-icon>
+                <span>Contact us</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </mat-card>
+</div>

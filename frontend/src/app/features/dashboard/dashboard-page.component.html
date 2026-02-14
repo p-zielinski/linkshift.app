@@ -1,0 +1,348 @@
+<app-page-header
+  title="Dashboard"
+  subtitle="Operational overview for the active organization."
+></app-page-header>
+
+<div class="mb-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+  <mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
+    <h3 class="m-0 text-lg font-semibold">Session details</h3>
+    <div class="my-4 h-px bg-app-divider"></div>
+    @if (user(); as user) {
+      <mat-list>
+        <mat-list-item>
+          <mat-icon matListItemIcon>person</mat-icon>
+          <div matListItemTitle>{{ user.email }}</div>
+          <div matListItemLine>Role: {{ user.isOwner ? 'Owner' : 'Member' }}</div>
+        </mat-list-item>
+        <mat-list-item>
+          <mat-icon matListItemIcon>badge</mat-icon>
+          <div matListItemTitle>User ID</div>
+          <div matListItemLine class="id-line">
+            <span
+              #userIdText
+              class="id-text"
+              [class.is-truncated]="userIdOverflow()"
+              [matTooltip]="user.id"
+              [matTooltipDisabled]="!userIdOverflow()"
+              matTooltipPosition="above"
+              [attr.tabindex]="userIdOverflow() ? 0 : -1"
+              [attr.role]="userIdOverflow() ? 'button' : null"
+              (click)="userIdOverflow() && copyId(user.id)"
+              (keydown.enter)="userIdOverflow() && copyId(user.id)"
+              (keydown.space)="userIdOverflow() && copyId(user.id); $event.preventDefault()"
+            >
+              {{ user.id }}
+            </span>
+          </div>
+        </mat-list-item>
+      </mat-list>
+    } @else {
+      <div class="text-[13px] text-app-muted">No user loaded.</div>
+    }
+  </mat-card>
+
+  <mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
+    <h3 class="m-0 text-lg font-semibold">Organization profile</h3>
+    <div class="my-4 h-px bg-app-divider"></div>
+    @if (organization(); as organization) {
+      <mat-list>
+        <mat-list-item>
+          <mat-icon matListItemIcon>apartment</mat-icon>
+          <div matListItemTitle>{{ organization.name }}</div>
+          <div matListItemLine class="id-line">
+            <span class="id-label">Organization ID:</span>
+            <span
+              #orgIdText
+              class="id-text"
+              [class.is-truncated]="orgIdOverflow()"
+              [matTooltip]="organization.id"
+              [matTooltipDisabled]="!orgIdOverflow()"
+              matTooltipPosition="above"
+              [attr.tabindex]="orgIdOverflow() ? 0 : -1"
+              [attr.role]="orgIdOverflow() ? 'button' : null"
+              (click)="orgIdOverflow() && copyId(organization.id)"
+              (keydown.enter)="orgIdOverflow() && copyId(organization.id)"
+              (keydown.space)="orgIdOverflow() && copyId(organization.id); $event.preventDefault()"
+            >
+              {{ organization.id }}
+            </span>
+          </div>
+        </mat-list-item>
+      </mat-list>
+    } @else {
+      <div class="text-[13px] text-app-muted">No organization loaded.</div>
+    }
+  </mat-card>
+
+  <mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
+    <h3 class="m-0 text-lg font-semibold">Subscription snapshot</h3>
+    <div class="my-4 h-px bg-app-divider"></div>
+    @if (organization()) {
+      @if (activeSubscription(); as subscription) {
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="rounded-2xl bg-app-accent-soft p-4">
+            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
+              Plan
+            </div>
+            <div class="text-[22px] font-semibold">
+              {{ planLabel(subscription.plan, subscription.planName) }}
+            </div>
+            <div class="text-[13px] text-app-muted">
+              Status: {{ subscription.status }}
+            </div>
+          </div>
+          <div class="rounded-2xl bg-app-accent-soft p-4">
+            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
+              Billing
+            </div>
+            <div class="text-[22px] font-semibold">
+              {{ subscription.amount | number: '1.0-2' }}
+              {{ subscription.currency }}
+            </div>
+            <div class="text-[13px] text-app-muted">
+              Interval: {{ subscription.interval }}
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-2xl bg-app-accent-soft p-4">
+            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
+              Active from
+            </div>
+            <div class="text-[14px] font-semibold text-app-foreground">
+              {{ subscription.activeFrom | date: 'mediumDate' }}
+            </div>
+          </div>
+          <div class="rounded-2xl bg-app-accent-soft p-4">
+            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
+              Active until
+            </div>
+            <div class="text-[14px] font-semibold text-app-foreground">
+              @if (subscription.activeUntil) {
+                {{ subscription.activeUntil | date: 'mediumDate' }}
+              } @else {
+                No end date
+              }
+            </div>
+          </div>
+        </div>
+        <div class="mt-5 flex flex-wrap items-center gap-3">
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="billingBusy()"
+            (click)="openUpgradeDialog()"
+          >
+            Upgrade
+          </button>
+          @if (activeSubscription().plan !== 'FREE') {
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="billingBusy()"
+              (click)="openCustomerPortal()"
+            >
+              Manage subscription
+            </button>
+            <button
+              mat-button
+              type="button"
+              [disabled]="billingBusy()"
+              (click)="openCustomerPortal()"
+            >
+              Cancel subscription
+            </button>
+          }
+        </div>
+      }
+    } @else {
+      <div class="text-[13px] text-app-muted">No organization loaded.</div>
+    }
+  </mat-card>
+</div>
+
+<mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
+  <h3 class="m-0 text-lg font-semibold">Subscription limits</h3>
+  <div class="my-4 h-px bg-app-divider"></div>
+  @if (suspensionMessage(); as message) {
+    <div class="mb-4 rounded-2xl bg-red-50 p-4 text-[13px] text-red-700">
+      {{ message }}
+    </div>
+  }
+  @if (usageLoading()) {
+    <div class="mb-3 text-[12px] text-app-muted">Refreshing usage...</div>
+  } @else if (usageError(); as error) {
+    <div class="mb-3 text-[12px] text-red-600">{{ error }}</div>
+  }
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div
+      class="rounded-2xl p-4"
+      [class.bg-app-accent-soft]="!domainGroupLimitReached()"
+      [class.bg-red-50]="domainGroupLimitReached()"
+    >
+      <div
+        class="text-[22px] font-semibold"
+        [class.text-red-700]="domainGroupLimitReached()"
+      >
+        {{ usage()?.domainGroups ?? '-' }} / {{ limits().maxDomainGroups }}
+      </div>
+      <div
+        class="text-[13px]"
+        [class.text-red-600]="domainGroupLimitReached()"
+        [class.text-app-muted]="!domainGroupLimitReached()"
+      >
+        Domain groups used
+      </div>
+    </div>
+    <div class="rounded-2xl bg-app-accent-soft p-4">
+      <div class="text-[22px] font-semibold">
+        {{ limits().maxDomainsPerGroup }}
+      </div>
+      <div class="text-[13px] text-app-muted">Domains per group limit</div>
+    </div>
+    <div
+      class="rounded-2xl p-4"
+      [class.bg-app-accent-soft]="!domainLimitReached()"
+      [class.bg-red-50]="domainLimitReached()"
+    >
+      <div
+        class="text-[22px] font-semibold"
+        [class.text-red-700]="domainLimitReached()"
+      >
+        {{ usage()?.domains ?? '-' }} / {{ limits().maxTotalDomains }}
+      </div>
+      <div
+        class="text-[13px]"
+        [class.text-red-600]="domainLimitReached()"
+        [class.text-app-muted]="!domainLimitReached()"
+      >
+        Domains used
+      </div>
+    </div>
+    <div class="rounded-2xl bg-app-accent-soft p-4">
+      <div class="text-[22px] font-semibold">
+        {{ limits().maxRulesPerGroup }}
+      </div>
+      <div class="text-[13px] text-app-muted">Rules per group limit</div>
+    </div>
+    <div
+      class="rounded-2xl p-4"
+      [class.bg-app-accent-soft]="!ruleLimitReached()"
+      [class.bg-red-50]="ruleLimitReached()"
+    >
+      <div
+        class="text-[22px] font-semibold"
+        [class.text-red-700]="ruleLimitReached()"
+      >
+        {{ usage()?.rules ?? '-' }} / {{ limits().maxTotalRules }}
+      </div>
+      <div
+        class="text-[13px]"
+        [class.text-red-600]="ruleLimitReached()"
+        [class.text-app-muted]="!ruleLimitReached()"
+      >
+        Rules used
+      </div>
+    </div>
+    <div
+      class="rounded-2xl p-4"
+      [class.bg-app-accent-soft]="!testLimitReached()"
+      [class.bg-red-50]="testLimitReached()"
+    >
+      <div
+        class="text-[22px] font-semibold"
+        [class.text-red-700]="testLimitReached()"
+      >
+        {{ usage()?.tests ?? '-' }} / {{ limits().maxTotalTests }}
+      </div>
+      <div
+        class="text-[13px]"
+        [class.text-red-600]="testLimitReached()"
+        [class.text-app-muted]="!testLimitReached()"
+      >
+        Tests used
+      </div>
+    </div>
+    <div
+      class="rounded-2xl p-4"
+      [class.bg-app-accent-soft]="!userLimitReached()"
+      [class.bg-red-50]="userLimitReached()"
+    >
+      <div
+        class="text-[22px] font-semibold"
+        [class.text-red-700]="userLimitReached()"
+      >
+        {{ usage()?.users ?? '-' }} / {{ limits().maxUsers }}
+      </div>
+      <div
+        class="text-[13px]"
+        [class.text-red-600]="userLimitReached()"
+        [class.text-app-muted]="!userLimitReached()"
+      >
+        Active users
+      </div>
+    </div>
+    <div class="rounded-2xl bg-app-accent-soft p-4">
+      <div class="text-[22px] font-semibold">
+        {{ limits().redirectionLimitPerMinute }}
+      </div>
+      <div class="text-[13px] text-app-muted">Redirections per minute</div>
+    </div>
+  </div>
+</mat-card>
+
+<mat-card class="mt-5 rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h3 class="m-0 text-lg font-semibold">Top redirect rules</h3>
+      <div class="text-[13px] text-app-muted">
+        Most used rules for the selected time window.
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      @for (range of topRanges; track range.value) {
+        <button
+          mat-stroked-button
+          type="button"
+          class="range-button"
+          [class.is-active]="topRange() === range.value"
+          (click)="setTopRange(range.value)"
+        >
+          {{ range.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="my-4 h-px bg-app-divider"></div>
+
+  @if (topRulesLoading()) {
+    <div class="text-[12px] text-app-muted">Loading analytics...</div>
+  } @else if (topRulesError(); as error) {
+    <div class="text-[12px] text-red-600">{{ error }}</div>
+  } @else if (topRules().length === 0) {
+    <div class="text-[12px] text-app-muted">No traffic data yet.</div>
+  } @else {
+    <div class="grid gap-3">
+      @for (entry of topRules(); track entry.rule.id) {
+        <div class="analytics-item">
+          <div class="analytics-hits">
+            {{ entry.hits | number }}
+            <span class="analytics-hits-label">hits</span>
+          </div>
+          <div class="analytics-rule">
+            <div class="rule-line" [attr.title]="entry.rule.source">
+              <span class="rule-label">Source</span>
+              <span class="rule-value">{{ entry.rule.source }}</span>
+            </div>
+            <div class="rule-line" [attr.title]="entry.rule.destination">
+              <span class="rule-label">Destination</span>
+              <span class="rule-value">{{ entry.rule.destination }}</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</mat-card>

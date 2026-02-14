@@ -1,0 +1,189 @@
+<div class="wizard-shell flex h-full flex-col gap-4 p-4 sm:p-6">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div class="grid gap-1">
+      <h3 class="m-0 text-lg font-semibold">{{ dialogTitle }}</h3>
+      <p class="m-0 text-sm text-app-muted">
+        Configure a request payload and expected redirect outcome.
+      </p>
+    </div>
+    <button mat-icon-button type="button" aria-label="Close" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <form class="min-h-0 flex-1" (submit)="onSubmit($event)">
+    <mat-stepper #stepper class="wizard-stepper h-full" indicatorType="number">
+      <ng-template matStepperIcon="done" let-index="index">{{ index + 1 }}</ng-template>
+      <ng-template matStepperIcon="edit" let-index="index">{{ index + 1 }}</ng-template>
+
+      <mat-step [completed]="scopeValid()">
+        <ng-template matStepLabel>Request scope</ng-template>
+        <div class="mt-4 grid gap-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Domain group</mat-label>
+            <input matInput type="text" [value]="selectedGroupLabel()" disabled />
+            <mat-hint>
+              @if (isEdit) {
+                Domain group is fixed for existing tests.
+              } @else {
+                Domain group is selected from the Tests or Redirect Rules page.
+              }
+            </mat-hint>
+          </mat-form-field>
+          <input type="hidden" [formField]="form.domainGroupId" />
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Hostname</mat-label>
+            <mat-select [formField]="form.hostname">
+              <mat-option value="">Auto</mat-option>
+              @for (domain of hostnameOptions(); track domain) {
+                <mat-option [value]="domain">{{ domain }}</mat-option>
+              }
+            </mat-select>
+            <mat-hint>
+              Optional. Picks the domain.* variables to use. Auto selects the first available domain.
+            </mat-hint>
+          </mat-form-field>
+          @if (hostnameOptions().length === 0) {
+            <div class="text-[11px] text-app-muted">
+              No domains in this group yet. Variables use a group-based fallback hostname.
+            </div>
+          }
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Path</mat-label>
+            <input matInput type="text" [formField]="form.path" />
+            <mat-hint>Start with / and omit the hostname.</mat-hint>
+            @if (form.path().touched() && !form.path().valid()) {
+              <mat-error>Path is required.</mat-error>
+            } @else if (pathHasDomain()) {
+              <mat-error>Do not include protocol or hostname.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Query string</mat-label>
+            <input matInput type="text" [formField]="form.query" />
+            <mat-hint>Optional query parameters without the leading ?.</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
+          <button mat-flat-button color="primary" type="button" [disabled]="!scopeValid()" (click)="stepper.next()">
+            Next
+          </button>
+        </div>
+      </mat-step>
+
+      <mat-step>
+        <ng-template matStepLabel>Request details</ng-template>
+        <div class="mt-4 grid gap-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Method</mat-label>
+            <mat-select [formField]="form.method">
+              @for (option of methodOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Protocol</mat-label>
+            <mat-select [formField]="form.protocol">
+              @for (option of protocolOptions; track option.value) {
+                <mat-option [value]="option.value">{{ option.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>IP address</mat-label>
+            <input matInput type="text" [formField]="form.ip" />
+            <mat-hint>Example: 203.0.113.10</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>User agent</mat-label>
+            <input matInput type="text" [formField]="form.userAgent" />
+            <mat-hint>Example: Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2)</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Headers</mat-label>
+            <textarea
+              matInput
+              rows="4"
+              [formField]="form.headers"
+            ></textarea>
+            <mat-hint>Example: X-Feature: beta | X-Region: EU (one per line)</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+          <button mat-flat-button color="primary" type="button" matStepperNext>
+            Next
+          </button>
+        </div>
+      </mat-step>
+
+      <mat-step [completed]="expectationValid()">
+        <ng-template matStepLabel>Expected outcome</ng-template>
+        <div class="mt-4 grid gap-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Status code</mat-label>
+            <mat-select [formField]="form.expectedStatusCode">
+              @for (code of statusCodeOptions; track code) {
+                <mat-option [value]="code.toString()">{{ code }}</mat-option>
+              }
+            </mat-select>
+            <mat-hint>Use 404 for a no-match expectation.</mat-hint>
+          </mat-form-field>
+
+          @if (expectedRequiresTarget()) {
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Expected target</mat-label>
+              <input
+                matInput
+                type="text"
+                [formField]="form.expectedTarget"
+              />
+              <mat-hint>Target required for redirect matches. Example: https://example.com/next</mat-hint>
+            </mat-form-field>
+          } @else {
+            <div class="rounded-[14px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+              Expected target is not required for 404 expectations.
+            </div>
+            <input type="hidden" [formField]="form.expectedTarget" />
+          }
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              mat-stroked-button
+              type="button"
+              color="primary"
+              [disabled]="simulateDisabled()"
+              (click)="simulateExpected()"
+            >
+              <mat-icon>bolt</mat-icon>
+              <span>{{ simulating() ? 'Simulating...' : 'Fetch expected result' }}</span>
+            </button>
+            @if (simulatedResult()) {
+              <span class="text-[12px] text-app-muted">Expected result synced from simulation.</span>
+            }
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+          <div class="flex items-center gap-2">
+            <button mat-stroked-button type="button" (click)="onCancel()">Cancel</button>
+            <button mat-flat-button color="primary" type="submit" [disabled]="submitDisabled()">
+              {{ submitLabel }}
+            </button>
+          </div>
+        </div>
+      </mat-step>
+    </mat-stepper>
+  </form>
+</div>

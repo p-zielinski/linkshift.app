@@ -1,0 +1,232 @@
+// Prisma Schema for Redirect Management API
+// PostgreSQL Database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator shared {
+  provider = "prisma-client-js"
+  output   = "../../shared/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+  OPTIONS
+  HEAD
+}
+
+enum BillingCheckoutStatus {
+  PENDING
+  PAID
+  CANCELED
+  FAILED
+  EXPIRED
+}
+
+// Organization entity - top-level tenant
+model Organization {
+  id        String    @id
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // Configuration for organization limits (JSONB)
+  configuration Json?
+
+  users            User[]
+  domainGroups     DomainGroup[]
+  checkoutSessions BillingCheckoutSession[]
+  customPlans      CustomPlan[]
+  redirectTests    RedirectTest[]
+  invites          OrganizationInvite[]
+
+  @@index([deletedAt])
+}
+
+// User entity - belongs to one organization (1:1 relation)
+model User {
+  id                String    @id
+  email             String    @unique
+  passwordHash      String
+  organizationId    String
+  isOwner           Boolean   @default(false)
+  emailVerifiedAt   DateTime?
+  isBlocked         Boolean   @default(false)
+  blockedAt         DateTime?
+  termsAcceptedAt   DateTime?
+  privacyAcceptedAt DateTime?
+  ageConfirmedAt    DateTime?
+  legalVersion      String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+
+  organization     Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  checkoutSessions BillingCheckoutSession[]
+  createdInvites   OrganizationInvite[]     @relation("InviteCreatedBy")
+
+  @@index([organizationId])
+  @@index([deletedAt])
+  @@index([email])
+}
+
+model OrganizationInvite {
+  id              String    @id
+  organizationId  String
+  email           String
+  tokenHash       String
+  expiresAt       DateTime
+  createdByUserId String
+  acceptedAt      DateTime?
+  revokedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("InviteCreatedBy", fields: [createdByUserId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@index([acceptedAt])
+}
+
+// DomainGroup entity - groups multiple domains with shared redirect rules
+model DomainGroup {
+  id             String    @id
+  name           String
+  organizationId String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  domains       Domain[]
+  redirectRules RedirectRule[]
+  redirectTests RedirectTest[]
+
+  @@index([organizationId])
+  @@index([deletedAt])
+}
+
+// Domain entity - individual hostname (e.g., google.com, www.google.com)
+model Domain {
+  id            String    @id
+  name          String // Hostname must be unique among active domains
+  domainGroupId String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  domainGroup DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
+
+  @@index([name]) // Critical for high-speed lookups
+  @@index([domainGroupId])
+  @@index([deletedAt])
+}
+
+// RedirectRule entity - defines redirection logic
+model RedirectRule {
+  id            String       @id
+  source        String // Source path or regex pattern
+  destination   String // Target URL with variable support
+  statusCode    Int          @default(302) // HTTP status code (301 or 302)
+  matchMethod   HttpMethod[] @default([]) // Empty array means all methods.
+  isBlocked     Boolean      @default(false)
+  blockedAt     DateTime?
+  priority      Int          @default(0) // For rule ordering (higher priority = evaluated first)
+  domainGroupId String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  deletedAt     DateTime?
+
+  domainGroup DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
+
+  // Enables Prisma cursor pagination aligned with ordering:
+  // priority desc, createdAt desc, id desc
+  @@unique([priority, createdAt, id])
+  @@index([domainGroupId])
+  @@index([deletedAt])
+  @@index([priority])
+  @@index([isBlocked])
+  // Optional but recommended for performance of list queries
+  @@index([domainGroupId, deletedAt, priority, createdAt, id])
+}
+
+// RedirectTest entity - stored redirect simulations
+model RedirectTest {
+  id             String    @id
+  organizationId String
+  domainGroupId  String
+  pathWithQuery  String
+  requestData    Json
+  expectedResult Json
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  domainGroup  DomainGroup  @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([createdAt, id])
+  @@index([organizationId])
+  @@index([domainGroupId])
+  @@index([deletedAt])
+  @@index([pathWithQuery])
+  @@index([organizationId, deletedAt, createdAt, id])
+}
+
+model BillingCheckoutSession {
+  id                     String                @id
+  organizationId         String
+  userId                 String
+  plan                   String
+  status                 BillingCheckoutStatus @default(PENDING)
+  providerCheckoutId     String?
+  providerOrderId        String?
+  providerSubscriptionId String?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  completedAt            DateTime?
+  metadata               Json?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([status])
+  @@index([providerCheckoutId])
+  @@index([providerSubscriptionId])
+}
+
+model CustomPlan {
+  id               String    @id
+  organizationId   String
+  name             String
+  description      String?
+  monthlyVariantId String?
+  yearlyVariantId  String?
+  limits           Json
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([deletedAt])
+  @@index([monthlyVariantId])
+  @@index([yearlyVariantId])
+}

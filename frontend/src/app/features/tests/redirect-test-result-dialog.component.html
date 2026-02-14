@@ -1,0 +1,59 @@
+<h2 mat-dialog-title>Test result</h2>
+<div mat-dialog-content class="space-y-4">
+  <div class="rounded-xl border border-app-border-soft bg-app-muted/5 p-3">
+    <div class="text-[11px] uppercase tracking-[0.18em] text-app-muted">Path</div>
+    <div class="text-[13px] font-semibold text-app-foreground break-all">
+      {{ data.test.pathWithQuery }}
+    </div>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="rounded-2xl border border-app-border-soft bg-app-surface p-4">
+      <div class="text-[11px] uppercase tracking-[0.18em] text-app-muted">Expected</div>
+      @if (expected(); as expectedResult) {
+        <div class="mt-2 text-[14px] font-semibold">
+          {{ expectedResult.statusCode }}
+          {{ expectedResult.matched ? 'match' : 'no match' }}
+        </div>
+        <div class="text-[12px] text-app-muted break-all">
+          {{ expectedResult.target || 'No target expected' }}
+        </div>
+      } @else {
+        <div class="mt-2 text-[12px] text-app-muted">Expectation not set.</div>
+      }
+    </div>
+
+    <div class="rounded-2xl border border-app-border-soft bg-app-surface p-4">
+      <div class="text-[11px] uppercase tracking-[0.18em] text-app-muted">Actual</div>
+      @if (lastError()) {
+        <div class="mt-2 text-[12px] text-red-600">{{ lastError() }}</div>
+      } @else if (actual(); as actualResult) {
+        <div class="mt-2 text-[14px] font-semibold">
+          {{ actualResult.statusCode }}
+          {{ actualResult.matched ? 'match' : 'no match' }}
+        </div>
+        <div class="text-[12px] text-app-muted break-all">
+          {{ actualResult.target || 'No target returned' }}
+        </div>
+      } @else {
+        <div class="mt-2 text-[12px] text-app-muted">Test has not been run.</div>
+      }
+    </div>
+  </div>
+
+  @if (isMismatch()) {
+    <div class="rounded-xl border border-red-200 bg-red-50 p-3 text-[12px] text-red-700">
+      The latest run does not match the expected result.
+    </div>
+  }
+
+  @if (lastRunAt()) {
+    <div class="text-[11px] text-app-muted">
+      Last run: {{ lastRunAt() | date:'yyyy-MM-dd HH:mm' }}
+    </div>
+  }
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-stroked-button mat-dialog-close>Close</button>
+</div>
