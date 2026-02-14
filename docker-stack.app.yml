@@ -28,8 +28,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
-      # FIX: Prisma needs DATABASE_URL as an environment variable to run migrations
-      DATABASE_URL: ${DATABASE_URL}
+      # Prisma DATABASE_URL is loaded from /run/secrets/database_url by docker-entrypoint.sh
       API_HOSTNAME: ${BACKEND_HOST}
       APP_WEB_URL: ${APP_WEB_URL}
       CORS_ORIGINS: ${CORS_ORIGINS}
