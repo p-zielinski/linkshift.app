@@ -14,6 +14,7 @@ services:
       APP_PRIVACY_EMAIL: ${APP_PRIVACY_EMAIL}
       APP_MIN_AGE: ${APP_MIN_AGE}
       APP_LEGAL_VERSION: ${APP_LEGAL_VERSION}
+      APP_AUTH_GATE_ENABLED: ${APP_AUTH_GATE_ENABLED}
     networks:
       inter-stack:
         aliases:
