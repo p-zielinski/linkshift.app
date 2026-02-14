@@ -5,12 +5,24 @@
   }
 }
 
+(tailscale_only) {
+  @authorized remote_ip 100.64.0.0/10 127.0.0.1 95.217.107.125
+
+  handle @authorized {
+    reverse_proxy {args[0]}
+  }
+
+  handle {
+    abort
+  }
+}
+
 {$DOZZLE_HOST} {
-  reverse_proxy dozzle:8080
+  import tailscale_only dozzle:8080
 }
 
 {$GRAFANA_HOST} {
-  reverse_proxy grafana:5050
+  import tailscale_only grafana:5050
 }
 
 www.{$FRONTEND_HOST} {

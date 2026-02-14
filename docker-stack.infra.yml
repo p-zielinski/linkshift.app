@@ -21,7 +21,7 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     configs:
-      - source: caddyfile
+      - source: caddyfile_v5
         target: /etc/caddy/Caddyfile
     networks:
       - inter-stack
@@ -146,7 +146,10 @@ services:
     image: amir20/dozzle:latest
     environment:
       DOZZLE_LEVEL: info
-      DOZZLE_AUTH_CONFIG: /users.yml
+      DOZZLE_AUTH_PROVIDER: simple
+    configs:
+      - source: dozzle_users_v5
+        target: /data/users.yml
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - dozzle-data:/data
@@ -179,9 +182,9 @@ configs:
     file: ./config/loki.yaml
   promtail_config:
     file: ./config/promtail.yaml
-  dozzle_users:
-    file: ./config/dozzle.users.yml
-  caddyfile:
+  dozzle_users_v5:
+    file: config/dozzle.users.yml
+  caddyfile_v5:
     file: ./config/Caddyfile
 
 secrets:

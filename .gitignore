@@ -4,3 +4,4 @@
 .env
 /backup-db/node_modules/
 deploy/stack.env
+/config/dozzle.users.yml
