@@ -15,17 +15,12 @@ services:
       APP_MIN_AGE: ${APP_MIN_AGE}
       APP_LEGAL_VERSION: ${APP_LEGAL_VERSION}
     networks:
-      - inter-stack
+      inter-stack:
+        aliases:
+          - frontend
     deploy:
       restart_policy:
         condition: on-failure
-      labels:
-        - traefik.enable=true
-        - traefik.swarm.network=${TRAEFIK_SWARM_NETWORK}
-        - traefik.http.routers.frontend.rule=Host(`${FRONTEND_HOST}`)
-        - traefik.http.routers.frontend.entrypoints=websecure
-        - traefik.http.routers.frontend.tls.certresolver=default
-        - traefik.http.services.frontend.loadbalancer.server.port=4000
 
   backend:
     image: ${BACKEND_IMAGE}
@@ -53,10 +48,6 @@ services:
       ZEPTOMAIL_FROM_ADDRESS: ${ZEPTOMAIL_FROM_ADDRESS}
       ZEPTOMAIL_FROM_NAME: ${ZEPTOMAIL_FROM_NAME}
       EMAIL_FROM: ${EMAIL_FROM}
-      TRAEFIK_UPDATE_ENABLED: ${TRAEFIK_UPDATE_ENABLED}
-      TRAEFIK_TARGET_SERVICE: ${TRAEFIK_TARGET_SERVICE}
-      TRAEFIK_ROUTER_RULE_LABEL: ${TRAEFIK_ROUTER_RULE_LABEL}
-      TRAEFIK_BASE_HOSTS: ${TRAEFIK_BASE_HOSTS}
     secrets:
       - database_url
       - redis_password
@@ -67,20 +58,13 @@ services:
       - lemon_squeezy_webhook_secret
       - zeptomail_api_key
       - web_risk_api_key
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - inter-stack
+      inter-stack:
+        aliases:
+          - backend
     deploy:
       restart_policy:
         condition: on-failure
-      labels:
-        - traefik.enable=true
-        - traefik.swarm.network=${TRAEFIK_SWARM_NETWORK}
-        - traefik.http.routers.backend.rule=Host(`${BACKEND_HOST}`)
-        - traefik.http.routers.backend.entrypoints=websecure
-        - traefik.http.routers.backend.tls.certresolver=default
-        - traefik.http.services.backend.loadbalancer.server.port=3000
 
   db-backup:
     image: ghcr.io/p-zielinski/linkshift.app-db-backup:${GIT_COMMIT_HASH:-latest}
@@ -110,7 +94,7 @@ services:
 networks:
   inter-stack:
     external: true
-    name: ${TRAEFIK_SWARM_NETWORK}
+    name: ${SWARM_OVERLAY_NETWORK}
 
 secrets:
   database_url:

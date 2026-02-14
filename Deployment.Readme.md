@@ -3,19 +3,20 @@
 This guide describes how to deploy the infra and app stacks, create secrets, and access services securely.
 
 ## Overview
-- Infra stack: Traefik, Postgres, Redis, Loki, Promtail, Grafana, Dozzle
+- Infra stack: Caddy, Postgres, Redis, Loki, Promtail, Grafana, Dozzle
 - App stack: Frontend, Backend, db-backup
-- Shared overlay network: `TRAEFIK_SWARM_NETWORK`
+- Shared overlay network: `SWARM_OVERLAY_NETWORK`
 
 ## Prerequisites
 - Docker Engine with Swarm mode initialized
-- DNS entries (or internal DNS for VPN) for Traefik-routed services
+- DNS entries (or internal DNS for VPN) for Caddy-routed services
 - Access to the manager node (SSH)
 - A VPN or private network for admin access
 
 ## Files
 - `docker-stack.infra.yml`
 - `docker-stack.app.yml`
+- `config/Caddyfile`
 - `deploy/stack.env.example` (copy to your env file)
 
 ## 1) Prepare environment variables
@@ -28,13 +29,17 @@ cp deploy/stack.env.example deploy/stack.env
 Edit `deploy/stack.env` and set:
 - Image tags (backend/frontend)
 - Hosts (frontend/backend/grafana/dozzle)
-- Traefik settings
+- Caddy ACME email
 - App settings
-- `VPN_ALLOWED_CIDR` for admin tools
 
 Note:
 - Internal service ports remain `5432` (Postgres) and `6379` (Redis).
 - Published host ports are `5454` (Postgres) and `6767` (Redis) for SSH/VPN access.
+
+## Caddy routing notes
+- Standard TLS is issued for `FRONTEND_HOST`, `GRAFANA_HOST`, and `DOZZLE_HOST`.
+- Catch-all traffic uses on-demand TLS and calls `GET /check-domain?domain=...` on the backend.
+- Update `config/Caddyfile` if you add more fixed hosts.
 
 ## 2) Create the shared overlay network
 Run on the manager node:
@@ -43,7 +48,7 @@ Run on the manager node:
 docker network create \
   --driver overlay \
   --attachable \
-  ${TRAEFIK_SWARM_NETWORK}
+  ${SWARM_OVERLAY_NETWORK}
 ```
 
 ## 3) Create Docker secrets
@@ -55,7 +60,6 @@ Infra stack secrets:
 printf "postgres-password" | docker secret create postgres_password -
 printf "redis-password" | docker secret create redis_password -
 printf "grafana-admin-password" | docker secret create grafana_admin_password -
-printf "admin:$apr1$replace-with-htpasswd-hash" | docker secret create traefik_admin_users -
 ```
 
 App stack secrets:
@@ -183,31 +187,32 @@ docker stack services ${APP_STACK_NAME}
 Goal: restrict admin tools to VPN-only access and avoid exposing log endpoints publicly.
 
 Recommended approach:
-1) Keep Promtail internal (no published ports, no Traefik routing).
-2) Access Loki through Grafana, or expose Loki through Traefik only to VPN CIDR.
-3) Expose Grafana and Dozzle through Traefik with TLS and VPN-only access.
-4) Add an IP allowlist middleware for the VPN CIDR and optional auth.
+1) Keep Promtail internal (no published ports, no Caddy routing).
+2) Access Loki through Grafana, or expose Loki through Caddy only to VPN CIDR.
+3) Expose Grafana and Dozzle through Caddy with TLS and VPN-only access.
+4) Add IP allowlisting and optional basic auth at the Caddy layer.
 
 Practical options:
 - VPN-only DNS: map `GRAFANA_HOST` and `DOZZLE_HOST` to private VPN IPs.
-- Traefik IP allowlist: allow only the VPN subnet.
-- Dozzle: add basic auth or forward-auth middleware.
+- Caddy IP filtering: allow only the VPN subnet.
+- Dozzle: add basic auth to the Caddy route.
 - Grafana: keep admin password strong and consider SSO.
 
-Example Traefik labels for VPN allowlist + basic auth:
+Example Caddyfile snippet for VPN allowlist + basic auth:
 
-```yaml
-labels:
-  - traefik.http.middlewares.vpn-allowlist.ipwhitelist.sourcerange=10.8.0.0/24
-  - traefik.http.middlewares.admin-auth.basicauth.usersfile=/run/secrets/traefik_admin_users
-  - traefik.http.routers.grafana.middlewares=vpn-allowlist,admin-auth
-  - traefik.http.routers.dozzle.middlewares=vpn-allowlist,admin-auth
-```
+```caddy
+@vpn_only {
+  remote_ip 10.8.0.0/24
+}
 
-Generate the `traefik_admin_users` secret value (Apache MD5):
-
-```bash
-printf "admin:$(openssl passwd -apr1 'your-strong-password')"
+grafana.example.com {
+  basicauth {
+    admin JDJhJDE0JHZibE9... # htpasswd hash
+  }
+  route @vpn_only {
+    reverse_proxy grafana:3000
+  }
+}
 ```
 
 ## Dozzle simple auth
@@ -276,7 +281,7 @@ Example adjustment if usage is too high:
 Cheapest and simplest is usually a small self-hosted WireGuard server:
 - 256 MB RAM is enough for a few users and low traffic.
 - Gives you a static public IP from the VPS provider.
-- Lets you allowlist the VPN subnet in Traefik and firewall rules.
+- Lets you allowlist the VPN subnet in Caddy and firewall rules.
 
 If you already have a 256 MB VPS, it should be sufficient for VPN-only admin access.
 

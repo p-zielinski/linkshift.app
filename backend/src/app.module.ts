@@ -14,6 +14,7 @@ import { AuthController } from './api/auth.controller';
 import { BillingController } from './api/billing.controller';
 import { OrganizationController } from './api/organization.controller';
 import { RedirectTestsController } from './api/redirect-tests.controller';
+import { CaddyController } from './api/caddy.controller';
 import { AuthService } from './auth/auth.service';
 import { ApiRedirectionMiddleware } from './middleware/api-redirection.middleware';
 import { ClsModule } from 'nestjs-cls';
@@ -44,7 +45,6 @@ import { SAFETY_RESCAN_QUEUE } from './security/security.constants';
 import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { SentryExceptionFilter } from './filters/sentry-exception.filter';
-import { DockerService } from './docker/docker.service';
 
 @Module({
   imports: [
@@ -137,6 +137,7 @@ import { DockerService } from './docker/docker.service';
     BillingController,
     OrganizationController,
     RedirectTestsController,
+    CaddyController,
   ],
   providers: [
     RedirectService,
@@ -164,7 +165,6 @@ import { DockerService } from './docker/docker.service';
     RedirectAnalyticsService,
     SafetyRescanScheduler,
     SafetyRescanProcessor,
-    DockerService,
     {
       provide: APP_FILTER,
       useClass: SentryExceptionFilter,
