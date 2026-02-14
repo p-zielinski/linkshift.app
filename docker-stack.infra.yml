@@ -1,26 +1,13 @@
 version: "3.8"
 
 services:
-  traefik:
-    image: traefik:v3.4.1
-    command:
-      - --log.level=INFO
-      - --providers.swarm=true
-      - --providers.swarm.exposedbydefault=false
-      - --providers.swarm.network=${TRAEFIK_SWARM_NETWORK}
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entrypoints.web.http.redirections.entrypoint.scheme=https
-      - --certificatesresolvers.default.acme.email=${TRAEFIK_ACME_EMAIL}
-      - --certificatesresolvers.default.acme.storage=/letsencrypt/acme.json
-      - --certificatesresolvers.default.acme.tlschallenge=true
-      - --api.dashboard=false
-      - --api.debug=false
-      - --api.insecure=false
-      - --ping=false
-      - --global.checknewversion=false
-      - --global.sendanonymoususage=false
+  caddy:
+    image: caddy:2
+    environment:
+      CADDY_ACME_EMAIL: ${CADDY_ACME_EMAIL}
+      FRONTEND_HOST: ${FRONTEND_HOST}
+      GRAFANA_HOST: ${GRAFANA_HOST}
+      DOZZLE_HOST: ${DOZZLE_HOST}
     ports:
       - mode: host
         protocol: tcp
@@ -31,10 +18,11 @@ services:
         published: 443
         target: 443
     volumes:
-      - letsencrypt:/letsencrypt
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    secrets:
-      - traefik_admin_users
+      - caddy_data:/data
+      - caddy_config:/config
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
     networks:
       - inter-stack
     deploy:
@@ -134,23 +122,15 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
     networks:
-      - inter-stack
+      inter-stack:
+        aliases:
+          - grafana
     deploy:
       placement:
         constraints:
           - node.role == manager
       restart_policy:
         condition: on-failure
-      labels:
-        - traefik.enable=true
-        - traefik.swarm.network=${TRAEFIK_SWARM_NETWORK}
-        - traefik.http.middlewares.vpn-allowlist.ipwhitelist.sourcerange=${VPN_ALLOWED_CIDR}
-        - traefik.http.middlewares.admin-auth.basicauth.usersfile=/run/secrets/traefik_admin_users
-        - traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOST}`)
-        - traefik.http.routers.grafana.entrypoints=websecure
-        - traefik.http.routers.grafana.tls.certresolver=default
-        - traefik.http.routers.grafana.middlewares=vpn-allowlist,admin-auth
-        - traefik.http.services.grafana.loadbalancer.server.port=3000
 
   dozzle:
     image: amir20/dozzle:latest
@@ -161,35 +141,28 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - dozzle-data:/data
     networks:
-      - inter-stack
+      inter-stack:
+        aliases:
+          - dozzle
     deploy:
       placement:
         constraints:
           - node.role == manager
       restart_policy:
         condition: on-failure
-      labels:
-        - traefik.enable=true
-        - traefik.swarm.network=${TRAEFIK_SWARM_NETWORK}
-        - traefik.http.middlewares.vpn-allowlist.ipwhitelist.sourcerange=${VPN_ALLOWED_CIDR}
-        - traefik.http.middlewares.admin-auth.basicauth.usersfile=/run/secrets/traefik_admin_users
-        - traefik.http.routers.dozzle.rule=Host(`${DOZZLE_HOST}`)
-        - traefik.http.routers.dozzle.entrypoints=websecure
-        - traefik.http.routers.dozzle.tls.certresolver=default
-        - traefik.http.routers.dozzle.middlewares=vpn-allowlist,admin-auth
-        - traefik.http.services.dozzle.loadbalancer.server.port=8080
 
 networks:
   inter-stack:
     external: true
-    name: ${TRAEFIK_SWARM_NETWORK}
+    name: ${SWARM_OVERLAY_NETWORK}
 
 volumes:
   postgres-data:
   redis-data:
   grafana-data:
-  letsencrypt:
   dozzle-data:
+  caddy_data:
+  caddy_config:
 
 configs:
   loki_config:
@@ -198,6 +171,8 @@ configs:
     file: ./config/promtail.yaml
   dozzle_users:
     file: ./config/dozzle.users.yml
+  caddyfile:
+    file: ./config/Caddyfile
 
 secrets:
   postgres_password:
@@ -205,6 +180,4 @@ secrets:
   redis_password:
     external: true
   grafana_admin_password:
-    external: true
-  traefik_admin_users:
     external: true
