@@ -1,5 +1,5 @@
 # Use Node.js LTS image
-FROM node:24.12.0-slim
+FROM node:22.12.0-slim
 
 # Install PostgreSQL 17 client tools
 RUN apt-get update && \
@@ -9,7 +9,7 @@ RUN apt-get update && \
     ca-certificates \
     && mkdir -p /etc/apt/keyrings \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/keyrings/postgresql.gpg \
-    && echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt/ bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt/ bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
     postgresql-client-17 \
