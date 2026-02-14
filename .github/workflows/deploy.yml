@@ -30,8 +30,8 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/redirect-backend:latest
-            ghcr.io/${{ github.repository_owner }}/redirect-backend:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/linkshift-backend:latest
+            ghcr.io/${{ github.repository_owner }}/linkshift-backend:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -55,8 +55,8 @@ jobs:
           file: ./frontend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/redirect-frontend:latest
-            ghcr.io/${{ github.repository_owner }}/redirect-frontend:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/linkshift-frontend:latest
+            ghcr.io/${{ github.repository_owner }}/linkshift-frontend:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -80,8 +80,8 @@ jobs:
           file: ./backup-db/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/project4-db-backup:latest
-            ghcr.io/${{ github.repository_owner }}/project4-db-backup:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/linkshift-db-backup:latest
+            ghcr.io/${{ github.repository_owner }}/linkshift-db-backup:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -97,8 +97,8 @@ jobs:
       - name: Create stack env file
         run: |
           printf "%s\n" "${{ secrets.STACK_ENV }}" > ./stack.env
-          echo "BACKEND_IMAGE=ghcr.io/${{ github.repository_owner }}/redirect-backend:${{ github.sha }}" >> ./stack.env
-          echo "FRONTEND_IMAGE=ghcr.io/${{ github.repository_owner }}/redirect-frontend:${{ github.sha }}" >> ./stack.env
+          echo "BACKEND_IMAGE=ghcr.io/${{ github.repository_owner }}/linkshift-backend:${{ github.sha }}" >> ./stack.env
+          echo "FRONTEND_IMAGE=ghcr.io/${{ github.repository_owner }}/linkshift-frontend:${{ github.sha }}" >> ./stack.env
           echo "GIT_COMMIT_HASH=${{ github.sha }}" >> ./stack.env
       - name: Deploy infra stack
         uses: cssnr/stack-deploy-action@v1

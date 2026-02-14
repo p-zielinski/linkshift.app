@@ -83,7 +83,7 @@ services:
         - traefik.http.services.backend.loadbalancer.server.port=3000
 
   db-backup:
-    image: ghcr.io/p-zielinski/project4-db-backup:${GIT_COMMIT_HASH:-latest}
+    image: ghcr.io/p-zielinski/linkshift.app-db-backup:${GIT_COMMIT_HASH:-latest}
     networks:
       - inter-stack
     secrets:
@@ -93,7 +93,7 @@ services:
     environment:
       - HOST_ID=eu1
       - DATABASE=core
-      - DB_HOST=postgres.project4_inter-stack-network
+      - DB_HOST=postgres.linkshift_inter-stack-network
       - DB_USER=postgres
       - DB_PASSWORD_FILE=/run/secrets/db-password
       - DB_PORT=5432
