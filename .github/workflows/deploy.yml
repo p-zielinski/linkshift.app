@@ -115,7 +115,7 @@ jobs:
       - name: Deploy infra stack
         uses: cssnr/stack-deploy-action@v1
         with:
-          name: ${{ secrets.INFRA_STACK_NAME }}
+          name: linkshift-infra
           file: docker-stack.infra.yml
           host: ${{ secrets.DEPLOY_HOST }}
           user: ${{ secrets.DEPLOY_USER }}
@@ -127,7 +127,7 @@ jobs:
       - name: Deploy app stack
         uses: cssnr/stack-deploy-action@v1
         with:
-          name: ${{ secrets.APP_STACK_NAME }}
+          name: linkshift-app
           file: docker-stack.app.yml
           host: ${{ secrets.DEPLOY_HOST }}
           user: ${{ secrets.DEPLOY_USER }}
