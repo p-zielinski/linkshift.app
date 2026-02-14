@@ -12,6 +12,7 @@ COPY --from=deps /app/frontend/node_modules ./frontend/node_modules
 # Copy source code including shared directory
 COPY shared ./shared
 COPY frontend ./frontend
+RUN ln -sfn /app/frontend/node_modules /app/node_modules
 
 WORKDIR /app/frontend
 RUN npm run build && npm prune --omit=dev
