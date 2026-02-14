@@ -2,7 +2,7 @@ FROM node:24.12.0-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/package-lock.json ./backend/
-RUN npm ci && cd backend && npm ci
+RUN cd backend && npm ci
 
 FROM node:24.12.0-slim AS build
 WORKDIR /app
