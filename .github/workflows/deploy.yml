@@ -15,6 +15,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Create .env file for backend build
+        run: |
+          echo "${{ secrets.STACK_ENV }}" > .env
+          echo "GIT_COMMIT_HASH=${{ github.sha }}" >> .env
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -43,6 +49,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Create .env file for frontend build
+        run: |
+          echo "${{ secrets.STACK_ENV }}" > .env
+          echo "GIT_COMMIT_HASH=${{ github.sha }}" >> .env
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -115,12 +127,7 @@ jobs:
 
       - name: Create stack env file
         run: |
-          cat <<EOF > ./stack.env
-          ${{ secrets.STACK_ENV }}
-          BACKEND_IMAGE=ghcr.io/${{ github.repository_owner }}/linkshift-backend:${{ github.sha }}
-          FRONTEND_IMAGE=ghcr.io/${{ github.repository_owner }}/linkshift-frontend:${{ github.sha }}
-          GIT_COMMIT_HASH=${{ github.sha }}
-          EOF
+          echo "${{ secrets.STACK_ENV }}" > .env
 
 # --- MANUAL INFRASTRUCTURE DEPLOYMENT ---
 # To update infrastructure services (e.g., Postgres, Redis, Caddy),
