@@ -39,6 +39,7 @@ app.get('/runtime-config.js', (_req, res) => {
       'privacy@redirectcontrol.app',
     APP_MIN_AGE: process.env['' + 'APP_MIN_AGE'] ?? '16',
     APP_LEGAL_VERSION: process.env['' + 'APP_LEGAL_VERSION'] ?? 'v1',
+    APP_AUTH_GATE_ENABLED: process.env['' + 'APP_AUTH_GATE_ENABLED'] ?? 'false',
     APP_DOMAIN_TARGET_IP: process.env['' + 'APP_DOMAIN_TARGET_IP'] ?? '',
   };
 
