@@ -122,24 +122,24 @@ jobs:
           GIT_COMMIT_HASH=${{ github.sha }}
           EOF
 
-      # --- MANUAL INFRASTRUCTURE DEPLOYMENT ---
-      # To update infrastructure services (e.g., Postgres, Redis, Caddy),
-      # uncomment the block below or run the deployment manually from your
-      # terminal using: docker stack deploy -c docker-stack.infra.yml linkshift-infra
-      #
-      - name: Deploy infra stack
-        uses: cssnr/stack-deploy-action@v1
-        with:
-         name: linkshift-infra
-         file: docker-stack.infra.yml
-         host: ${{ secrets.DEPLOY_HOST }}
-         user: ${{ secrets.DEPLOY_USER }}
-         ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
-         env_file: ./stack.env
-         registry_host: ghcr.io
-         registry_user: ${{ secrets.DEPLOY_REGISTRY_USER }}
-         registry_pass: ${{ secrets.DEPLOY_REGISTRY_PASS }}
-      # ----------------------------------------
+# --- MANUAL INFRASTRUCTURE DEPLOYMENT ---
+# To update infrastructure services (e.g., Postgres, Redis, Caddy),
+# uncomment the block below or run the deployment manually from your
+# terminal using: docker stack deploy -c docker-stack.infra.yml linkshift-infra
+#
+#      - name: Deploy infra stack
+#        uses: cssnr/stack-deploy-action@v1
+#        with:
+#         name: linkshift-infra
+#         file: docker-stack.infra.yml
+#         host: ${{ secrets.DEPLOY_HOST }}
+#         user: ${{ secrets.DEPLOY_USER }}
+#         ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+#         env_file: ./stack.env
+#         registry_host: ghcr.io
+#         registry_user: ${{ secrets.DEPLOY_REGISTRY_USER }}
+#         registry_pass: ${{ secrets.DEPLOY_REGISTRY_PASS }}
+# ----------------------------------------
 
       - name: Deploy app stack
         uses: cssnr/stack-deploy-action@v1
