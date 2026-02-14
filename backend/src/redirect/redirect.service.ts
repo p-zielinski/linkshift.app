@@ -220,7 +220,9 @@ export class RedirectService {
 
   async isDomainAllowed(hostname: string): Promise<boolean> {
     const normalized = this.normalizeHostname(hostname);
-    if (!normalized) return false;
+    if (!normalized) {
+      return false;
+    }
 
     const cacheKey = this.getCaddyDomainCacheKey(normalized);
     const cached =

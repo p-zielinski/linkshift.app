@@ -17,10 +17,6 @@
   reverse_proxy frontend:4000
 }
 
-{$BACKEND_HOST} {
-  reverse_proxy backend:3000
-}
-
 :443 {
   tls {
     on_demand
