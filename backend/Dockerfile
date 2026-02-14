@@ -1,11 +1,13 @@
-FROM node:24-slim AS deps
+FROM node:24.12.0-slim AS deps
 WORKDIR /app
+COPY package.json package-lock.json ./
 COPY backend/package.json backend/package-lock.json ./backend/
-RUN cd backend && npm ci
+RUN npm ci && cd backend && npm ci
 
-FROM node:24-slim AS build
+FROM node:24.12.0-slim AS build
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
+COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/backend/node_modules ./backend/node_modules
 COPY shared ./shared
 COPY backend ./backend
@@ -14,7 +16,7 @@ RUN npx prisma generate
 RUN npm run build
 RUN npm prune --omit=dev
 
-FROM node:24-slim AS runner
+FROM node:24.12.0-slim AS runner
 WORKDIR /app/backend
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
