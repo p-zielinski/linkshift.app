@@ -12,7 +12,6 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'verify-email', renderMode: RenderMode.Client },
   { path: 'reset-password', renderMode: RenderMode.Client },
   { path: 'invite', renderMode: RenderMode.Client },
-
   {
     path: '**',
     renderMode: RenderMode.Prerender,
