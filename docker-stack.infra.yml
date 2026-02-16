@@ -8,6 +8,7 @@ services:
       FRONTEND_HOST: ${FRONTEND_HOST}
       GRAFANA_HOST: ${GRAFANA_HOST}
       DOZZLE_HOST: ${DOZZLE_HOST}
+      BACKEND_HOST: ${BACKEND_HOST}
     ports:
       - mode: host
         protocol: tcp
@@ -21,7 +22,7 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     configs:
-      - source: caddyfile_v5
+      - source: caddyfile_v7
         target: /etc/caddy/Caddyfile
     networks:
       - inter-stack
@@ -184,7 +185,7 @@ configs:
     file: ./config/promtail.yaml
   dozzle_users_v5:
     file: config/dozzle.users.yml
-  caddyfile_v5:
+  caddyfile_v7:
     file: ./config/Caddyfile
 
 secrets:

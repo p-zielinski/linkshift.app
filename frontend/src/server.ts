@@ -51,14 +51,28 @@ app.get('/runtime-config.js', (_req, res) => {
   res.send(`window.APP_CONFIG = ${JSON.stringify(config)};`);
 });
 
-app.use((_req, res, next) => {
+app.use((req, res, next) => {
+  const apiBase = process.env['' + 'APP_API_BASE_URL'] ?? 'http://localhost:3000';
+  const apiOrigin = safeOrigin(apiBase);
+
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(204);
+    return;
+  }
+
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'no-referrer');
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
-  const apiBase = process.env['' + 'APP_API_BASE_URL'] ?? 'http://localhost:3000';
-  const apiOrigin = safeOrigin(apiBase);
   const connectSrc = apiOrigin ? `'self' ${apiOrigin}` : "'self'";
 
   res.setHeader(
