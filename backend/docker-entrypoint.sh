@@ -31,10 +31,10 @@ load_secret "web_risk_api_key" "WEB_RISK_API_KEY"
 # Run Prisma migrations if DATABASE_URL is available
 if [ -n "${DATABASE_URL:-}" ]; then
   echo "DATABASE_URL detected. Running Prisma migrations..."
-  # Ensure we are in the directory containing the prisma folder
-  npx prisma migrate deploy
+  # Explicitly pass the variable to the prisma command
+  DATABASE_URL="$DATABASE_URL" npx prisma migrate deploy
 else
-  echo "Error: DATABASE_URL is not set. Prisma migrations skipped."
+  echo "Error: DATABASE_URL is not set."
 fi
 
 # Execute the main container command (from CMD)
