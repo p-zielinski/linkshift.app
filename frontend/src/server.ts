@@ -25,6 +25,10 @@ const CSR_ROUTES = [
   '/legal/consent',
 ];
 
+app.get('/robots.txt', (req, res) => {
+  res.sendFile(join(browserDistFolder, 'robots.txt'));
+});
+
 app.get('/runtime-config.js', (_req, res) => {
   const config = {
     APP_API_BASE_URL: process.env['' + 'APP_API_BASE_URL'] ?? 'http://localhost:3000',

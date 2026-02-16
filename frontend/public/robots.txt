@@ -1,0 +1,31 @@
+# General rules for all crawlers
+User-agent: *
+
+# Allowed paths (Marketing SSG)
+Allow: /
+Allow: /home
+Allow: /pricing
+Allow: /contact
+Allow: /alternatives/
+Allow: /terms
+Allow: /privacy
+Allow: /cookies
+
+# Blocked application paths (AppShell / CSR)
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /organization
+Disallow: /domains
+Disallow: /domain-groups
+Disallow: /redirect-rules
+Disallow: /tests
+Disallow: /legal/consent
+
+# Blocked auth and system paths
+Disallow: /auth
+Disallow: /verify-email
+Disallow: /reset-password
+Disallow: /invite
+
+# Sitemap location (update with your actual domain)
+Sitemap: https://linkshift.app/
