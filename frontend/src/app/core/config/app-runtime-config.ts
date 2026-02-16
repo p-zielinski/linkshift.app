@@ -1,7 +1,7 @@
 import { inject, InjectionToken, makeStateKey, TransferState } from '@angular/core';
 
 export type AppRuntimeConfig = {
-  APP_API_BASE_URL: string;
+  APP_BASE_URL: string;
   APP_SITE_NAME: string;
   APP_SITE_TAGLINE: string;
   APP_SUPPORT_EMAIL: string;
@@ -15,7 +15,7 @@ export type AppRuntimeConfig = {
 };
 
 export const DEFAULT_APP_RUNTIME_CONFIG: AppRuntimeConfig = {
-  APP_API_BASE_URL: 'http://localhost:3000',
+  APP_BASE_URL: 'http://localhost:3000',
   APP_SITE_NAME: 'LinkShift.App',
   APP_SITE_TAGLINE: 'Signal-driven redirect automation',
   APP_SUPPORT_EMAIL: 'support@redirectcontrol.app',

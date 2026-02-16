@@ -5,7 +5,7 @@ services:
     image: ${FRONTEND_IMAGE}
     environment:
       PORT: "4000"
-      APP_API_BASE_URL: ${APP_API_BASE_URL}
+      APP_BASE_URL: ${APP_BASE_URL}
       APP_SITE_NAME: ${APP_SITE_NAME}
       APP_SITE_TAGLINE: ${APP_SITE_TAGLINE}
       APP_SUPPORT_EMAIL: ${APP_SUPPORT_EMAIL}

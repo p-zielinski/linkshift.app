@@ -90,7 +90,7 @@ Ngrok (local dev only):
 
 ### Frontend (`frontend/.env`)
 - `PORT`: SSR server port (when running `serve:ssr:frontend`).
-- `APP_API_BASE_URL`: Base URL for API calls, exposed to the browser.
+- `APP_BASE_URL`: Base URL for API calls, exposed to the browser.
 
 ## Docker Compose defaults
 The provided `docker-compose.yml` exposes:
