@@ -1,7 +1,7 @@
 {
   email {$CADDY_ACME_EMAIL}
   on_demand_tls {
-    ask http://backend:3000/check-domain
+    ask http://linkshift-app_backend:3000/check-domain
   }
 }
 
@@ -16,11 +16,11 @@
 }
 
 {$DOZZLE_HOST} {
-  import tailscale_only dozzle:8080
+  import tailscale_only linkshift-infra_dozzle:8080
 }
 
 {$GRAFANA_HOST} {
-  import tailscale_only grafana:5050
+  import tailscale_only linkshift-infra_grafana:5050
 }
 
 www.{$FRONTEND_HOST} {
@@ -28,16 +28,20 @@ www.{$FRONTEND_HOST} {
 }
 
 {$FRONTEND_HOST} {
-  reverse_proxy frontend:4000
+  reverse_proxy linkshift-app_frontend:4000
 }
 
-:443 {
+{$BACKEND_HOST} {
+  reverse_proxy linkshift-app_backend:3000
+}
+
+https:// {
   tls {
     on_demand
   }
-  reverse_proxy backend:3000
+  reverse_proxy linkshift-app_backend:3000
 }
 
-:80 {
-  reverse_proxy backend:3000
+http:// {
+  redir https://{host}{uri} permanent
 }
