@@ -30,20 +30,25 @@ load_secret "web_risk_api_key" "WEB_RISK_API_KEY"
 
 # Run Prisma migrations if DATABASE_URL is available
 if [ -n "${DATABASE_URL:-}" ]; then
-  echo "DATABASE_URL detected. Running Prisma migrations..."
+  echo "DATABASE_URL detected. Generating lean prisma.config.js..."
 
-  # Option 1: Direct flag (if Prisma 7 supports it in your dev build)
-  # npx prisma migrate deploy --url "$DATABASE_URL"
+  # Generate a pure CommonJS config file without external imports
+  # We place it in the root and/or the prisma folder to be sure
+  cat <<EOF > prisma.config.js
+module.exports = {
+  datasource: {
+    url: \`${DATABASE_URL}\`
+  }
+};
+EOF
 
-  # Option 2: The "Overkill" method - Creating a temporary .env file just for Prisma
-  echo "DATABASE_URL=\"$DATABASE_URL\"" > .env
-  
+  # Copy to prisma folder as well, just in case Prisma 7-dev looks there
+  cp prisma.config.js prisma/prisma.config.js
+
+  echo "Running Prisma migrations..."
   npx prisma migrate deploy
-
-  # Remove temporary .env after migration for security
-  rm .env
 else
-  echo "Error: DATABASE_URL is not set."
+  echo "Error: DATABASE_URL is not set. Prisma migrations skipped."
 fi
 
 # Execute the main container command (from CMD)
