@@ -44,16 +44,28 @@ async function bootstrap() {
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
-  const allowedOrigins =
-    corsOrigins.length > 0
-      ? corsOrigins
-      : ['http://localhost:4200', 'http://localhost:4000'];
+  const appWebOrigin = safeOrigin(
+    configService.get<string>('APP_WEB_URL') ?? '',
+  );
+  const allowedOrigins = [
+    ...corsOrigins,
+    ...(appWebOrigin ? [appWebOrigin] : []),
+  ];
+  if (allowedOrigins.length === 0) {
+    allowedOrigins.push('http://localhost:4200');
+  }
 
   app.enableCors({
     origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type'],
+    allowedHeaders: [
+      'Authorization',
+      'Content-Type',
+      'Accept',
+      'X-Requested-With',
+      'X-XSRF-TOKEN',
+    ],
   });
 
   app.use((_req, res, next) => {
@@ -70,7 +82,10 @@ async function bootstrap() {
         'max-age=15552000; includeSubDomains',
       );
     }
-    res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none';");
+    res.setHeader(
+      'Content-Security-Policy',
+      "default-src 'none'; frame-ancestors 'none';",
+    );
     next();
   });
   app.useGlobalFilters(new ZodFilter(logger, isProduction));
@@ -86,3 +101,11 @@ async function bootstrap() {
 }
 
 bootstrap();
+
+function safeOrigin(value: string): string | null {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
