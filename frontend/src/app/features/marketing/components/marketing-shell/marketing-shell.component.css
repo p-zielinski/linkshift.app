@@ -1,3 +1,4 @@
+.marketing-shell,
 .marketing-toolbar,
 .marketing-content,
 .marketing-footer {
@@ -10,16 +11,31 @@
   min-height: 100vh;
 }
 
+.marketing-shell-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 .marketing-toolbar {
   position: sticky;
   top: 0;
   z-index: 10;
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   padding: 12px 32px;
+  height: auto;
+  min-height: 0;
   background: linear-gradient(120deg, #fff3f6 0%, #fff 55%, #f7edf2 100%);
   border-bottom: 1px solid rgba(33, 33, 33, 0.08);
   color: #241c21;
+}
+
+.toolbar-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .brand {
@@ -45,12 +61,14 @@
 }
 
 .nav-links a,
-.nav-actions a {
+.nav-actions a,
+.auth-cta {
   color: #2b2127;
 }
 
 .nav-links a:hover,
-.nav-actions a:hover {
+.nav-actions a:hover,
+.auth-cta:hover {
   color: var(--app-accent-strong);
 }
 
@@ -63,6 +81,10 @@
 
 .spacer {
   flex: 1;
+}
+
+.auth-cta {
+  white-space: nowrap;
 }
 
 .marketing-content {
@@ -113,7 +135,6 @@
 
 @media (max-width: 1024px) {
   .marketing-toolbar {
-    flex-wrap: wrap;
     padding: 12px 20px;
   }
 
