@@ -28,7 +28,6 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
-      DATABASE_URL: ${DATABASE_URL}
       API_HOSTNAME: ${BACKEND_HOST}
       APP_WEB_URL: ${APP_WEB_URL}
       CORS_ORIGINS: ${CORS_ORIGINS}
@@ -42,7 +41,6 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       REDIS_USERNAME: default
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
       LEMON_SQUEEZY_STORE_ID: ${LEMON_SQUEEZY_STORE_ID}
       LEMON_SQUEEZY_SUCCESS_URL: ${LEMON_SQUEEZY_SUCCESS_URL}
       LEMON_SQUEEZY_VARIANT_STARTER_ID: ${LEMON_SQUEEZY_VARIANT_STARTER_ID}
@@ -51,9 +49,6 @@ services:
       ZEPTOMAIL_FROM_ADDRESS: ${ZEPTOMAIL_FROM_ADDRESS}
       ZEPTOMAIL_FROM_NAME: ${ZEPTOMAIL_FROM_NAME}
       EMAIL_FROM: ${EMAIL_FROM}
-      # Other secrets passed as env vars if the app doesn't support /run/secrets/ files
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
     secrets:
       - database_url
       - redis_password
@@ -73,7 +68,6 @@ services:
         condition: on-failure
 
   db-backup:
-    # FIX: Corrected the image name (replaced dot with hyphen to match workflow)
     image: ghcr.io/p-zielinski/linkshift-db-backup:${GIT_COMMIT_HASH:-latest}
     networks:
       - inter-stack
@@ -84,7 +78,7 @@ services:
     environment:
       - HOST_ID=eu1
       - DATABASE=core
-      - DB_HOST=postgres # Simplified host name assuming aliases are set in infra stack
+      - DB_HOST=postgres
       - DB_USER=postgres
       - DB_PASSWORD_FILE=/run/secrets/db-password
       - DB_PORT=5432
@@ -101,12 +95,9 @@ services:
 networks:
   inter-stack:
     external: true
-    # This must be defined in your stack.env or GitHub Secrets
     name: ${SWARM_OVERLAY_NETWORK}
 
 secrets:
-  # Using external secrets is fine, but ensure they are created on the server
-  # docker secret create database_url -
   database_url:
     external: true
   redis_password:
