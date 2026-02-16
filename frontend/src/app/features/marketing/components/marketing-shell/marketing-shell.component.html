@@ -1,77 +1,147 @@
-<mat-toolbar class="marketing-toolbar">
-  <a class="brand" routerLink="/home">
-    <app-logo/>
-  </a>
-
-  <span class="spacer"></span>
-
-  <nav class="nav-links">
-    <a mat-button routerLink="/home" routerLinkActive="active">Home</a>
-    <a mat-button routerLink="/pricing" routerLinkActive="active">Pricing</a>
-    <a mat-button routerLink="/contact" routerLinkActive="active">Contact</a>
-    <a
-      mat-button
-      routerLink="/alternatives/redirect-pizza"
-      routerLinkActive="active"
+<mat-sidenav-container class="marketing-shell min-h-screen">
+  <mat-sidenav
+    class="md:hidden"
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="mobileNavOpen()"
+    [fixedInViewport]="true"
+    (openedChange)="onSidenavOpenedChange($event)"
+  >
+    <div
+      class="flex h-full flex-col bg-[linear-gradient(160deg,#fff0f5_0%,#fff_55%,#f7edf2_100%)] px-4 py-5"
     >
-      Redirect.pizza alternative
-    </a>
-    <a
-      mat-button
-      routerLink="/alternatives/redirect-proxy"
-      routerLinkActive="active"
-    >
-      Redirect proxy alternative
-    </a>
-    <a
-      mat-button
-      routerLink="/alternatives/managed-redirects"
-      routerLinkActive="active"
-    >
-      Managed redirects
-    </a>
-  </nav>
+      <a class="brand mb-4" routerLink="/home" (click)="onNavigate()">
+        <app-logo/>
+      </a>
 
-  <div class="nav-actions">
-    <a mat-button routerLink="/auth">Sign in</a>
-    <a mat-flat-button color="primary" routerLink="/auth">Start now</a>
-  </div>
-</mat-toolbar>
+      <nav class="flex flex-col gap-2">
+        <a mat-button routerLink="/home" routerLinkActive="active" (click)="onNavigate()">Home</a>
+        <a mat-button routerLink="/pricing" routerLinkActive="active" (click)="onNavigate()">Pricing</a>
+        <a mat-button routerLink="/contact" routerLinkActive="active" (click)="onNavigate()">Contact</a>
+        <a
+          mat-button
+          routerLink="/alternatives/redirect-pizza"
+          routerLinkActive="active"
+          (click)="onNavigate()"
+        >
+          Redirect.pizza alternative
+        </a>
+        <a
+          mat-button
+          routerLink="/alternatives/redirect-proxy"
+          routerLinkActive="active"
+          (click)="onNavigate()"
+        >
+          Redirect proxy alternative
+        </a>
+        <a
+          mat-button
+          routerLink="/alternatives/managed-redirects"
+          routerLinkActive="active"
+          (click)="onNavigate()"
+        >
+          Managed redirects
+        </a>
+      </nav>
 
-<main class="marketing-content">
-  <router-outlet></router-outlet>
-</main>
-
-<footer class="marketing-footer">
-  <div class="footer-grid">
-    <div>
-      <div class="footer-brand">{{ siteConfig.name }}</div>
-      <div class="text-[13px] text-app-muted">{{ siteConfig.tagline }}</div>
-    </div>
-    <div>
-      <div class="footer-title">Product</div>
-      <div class="footer-links">
-        <a routerLink="/home">Capabilities</a>
-        <a routerLink="/pricing">Pricing</a>
-        <a routerLink="/contact">Contact</a>
-        <a routerLink="/alternatives/redirect-pizza">Redirect.pizza alternative</a>
-        <a routerLink="/alternatives/managed-redirects">Managed redirects</a>
+      <div class="mt-auto flex flex-col gap-2 pt-4">
+        <a mat-button routerLink="/auth" (click)="onNavigate()">Sign in</a>
+        <a mat-flat-button color="primary" routerLink="/auth" (click)="onNavigate()">Start now</a>
       </div>
     </div>
-    <div>
-      <div class="footer-title">Assurance</div>
-      <p class="text-[13px] text-app-muted">
-        30-day satisfaction guarantee. Cancel within 30 days and request a refund with no explanation needed.
-      </p>
-    </div>
-    <div>
-      <div class="footer-title">Legal</div>
-      <div class="footer-links">
-        <a routerLink="/terms">Terms</a>
-        <a routerLink="/privacy">Privacy</a>
-        <a routerLink="/cookies">Cookies</a>
-        <a routerLink="/do-not-sell">Do not sell or share</a>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="marketing-shell-content">
+    <mat-toolbar class="marketing-toolbar">
+      <div class="toolbar-left">
+        <button
+          mat-icon-button
+          type="button"
+          class="md:hidden"
+          aria-label="Open menu"
+          (click)="toggleMobileNav()"
+        >
+          <mat-icon>menu</mat-icon>
+        </button>
+        <a class="brand" routerLink="/home">
+          <app-logo/>
+        </a>
       </div>
-    </div>
-  </div>
-</footer>
+
+      <span class="spacer"></span>
+
+      <nav class="nav-links hidden md:inline-flex">
+        <a mat-button routerLink="/home" routerLinkActive="active">Home</a>
+        <a mat-button routerLink="/pricing" routerLinkActive="active">Pricing</a>
+        <a mat-button routerLink="/contact" routerLinkActive="active">Contact</a>
+        <a
+          mat-button
+          routerLink="/alternatives/redirect-pizza"
+          routerLinkActive="active"
+        >
+          Redirect.pizza alternative
+        </a>
+        <a
+          mat-button
+          routerLink="/alternatives/redirect-proxy"
+          routerLinkActive="active"
+        >
+          Redirect proxy alternative
+        </a>
+        <a
+          mat-button
+          routerLink="/alternatives/managed-redirects"
+          routerLinkActive="active"
+        >
+          Managed redirects
+        </a>
+      </nav>
+
+      <div class="nav-actions md:hidden">
+        <a mat-flat-button color="primary" routerLink="/auth">Go to App</a>
+      </div>
+
+      <div class="nav-actions hidden md:inline-flex">
+        <a mat-button routerLink="/auth">Sign in</a>
+        <a mat-flat-button color="primary" routerLink="/auth">Start now</a>
+      </div>
+    </mat-toolbar>
+
+    <main class="marketing-content">
+      <router-outlet></router-outlet>
+    </main>
+
+    <footer class="marketing-footer">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand">{{ siteConfig.name }}</div>
+          <div class="text-[13px] text-app-muted">{{ siteConfig.tagline }}</div>
+        </div>
+        <div>
+          <div class="footer-title">Product</div>
+          <div class="footer-links">
+            <a routerLink="/home">Capabilities</a>
+            <a routerLink="/pricing">Pricing</a>
+            <a routerLink="/contact">Contact</a>
+            <a routerLink="/alternatives/redirect-pizza">Redirect.pizza alternative</a>
+            <a routerLink="/alternatives/managed-redirects">Managed redirects</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-title">Assurance</div>
+          <p class="text-[13px] text-app-muted">
+            30-day satisfaction guarantee. Cancel within 30 days and request a refund with no explanation needed.
+          </p>
+        </div>
+        <div>
+          <div class="footer-title">Legal</div>
+          <div class="footer-links">
+            <a routerLink="/terms">Terms</a>
+            <a routerLink="/privacy">Privacy</a>
+            <a routerLink="/cookies">Cookies</a>
+            <a routerLink="/do-not-sell">Do not sell or share</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,5 +1,5 @@
 /* Tailwind entrypoint kept in CSS to avoid Sass @import deprecation warnings. */
-@import "tailwindcss";
+@import "tailwindcss" important;
 @source "./src/**/*.{html,ts}";
 
 @theme {
