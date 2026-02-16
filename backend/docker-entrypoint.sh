@@ -31,8 +31,17 @@ load_secret "web_risk_api_key" "WEB_RISK_API_KEY"
 # Run Prisma migrations if DATABASE_URL is available
 if [ -n "${DATABASE_URL:-}" ]; then
   echo "DATABASE_URL detected. Running Prisma migrations..."
-  # Explicitly pass the variable to the prisma command
-  DATABASE_URL="$DATABASE_URL" npx prisma migrate deploy
+
+  # Option 1: Direct flag (if Prisma 7 supports it in your dev build)
+  # npx prisma migrate deploy --url "$DATABASE_URL"
+
+  # Option 2: The "Overkill" method - Creating a temporary .env file just for Prisma
+  echo "DATABASE_URL=\"$DATABASE_URL\"" > .env
+  
+  npx prisma migrate deploy
+
+  # Remove temporary .env after migration for security
+  rm .env
 else
   echo "Error: DATABASE_URL is not set."
 fi
