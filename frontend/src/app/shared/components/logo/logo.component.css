@@ -1,6 +1,7 @@
 .logo-mark {
   display: inline-flex;
   align-items: center;
+  margin-bottom: -3px;
 }
 
 .logo-icon {
