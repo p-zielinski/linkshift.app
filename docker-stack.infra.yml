@@ -8,7 +8,6 @@ services:
       FRONTEND_HOST: ${FRONTEND_HOST}
       GRAFANA_HOST: ${GRAFANA_HOST}
       DOZZLE_HOST: ${DOZZLE_HOST}
-      BACKEND_HOST: ${BACKEND_HOST}
     ports:
       - mode: host
         protocol: tcp

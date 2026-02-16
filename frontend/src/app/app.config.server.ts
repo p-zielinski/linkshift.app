@@ -15,7 +15,7 @@ const serverConfig: ApplicationConfig = {
       provide: APP_CONFIG,
       useFactory: () => {
         const config = resolveAppRuntimeConfig({
-          APP_API_BASE_URL: process.env['' + 'APP_API_BASE_URL'],
+          APP_BASE_URL: process.env['' + 'APP_BASE_URL'],
           APP_SITE_NAME: process.env['' + 'APP_SITE_NAME'],
           APP_SITE_TAGLINE: process.env['' + 'APP_SITE_TAGLINE'],
           APP_SUPPORT_EMAIL: process.env['' + 'APP_SUPPORT_EMAIL'],

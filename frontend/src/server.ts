@@ -15,7 +15,7 @@ const app = express();
 app.disable('x-powered-by');
 
 app.use((req, res, next) => {
-  const apiBase = process.env['APP_API_BASE_URL'] ?? 'http://localhost:3000';
+  const apiBase = process.env['APP_BASE_URL'] ?? 'http://localhost:3000';
   const apiOrigin = safeOrigin(apiBase);
   const origin = req.headers.origin;
 
@@ -63,7 +63,7 @@ app.get('/robots.txt', (req, res) => {
 
 app.get('/runtime-config.js', (_req, res) => {
   const config = {
-    APP_API_BASE_URL: process.env['APP_API_BASE_URL'] ?? 'http://localhost:3000',
+    APP_BASE_URL: process.env['APP_BASE_URL'] ?? 'http://localhost:3000',
     APP_SITE_NAME: process.env['APP_SITE_NAME'] ?? 'LinkShift.app',
     APP_SITE_TAGLINE: process.env['APP_SITE_TAGLINE'] ?? 'Signal-driven redirect automation',
     APP_SUPPORT_EMAIL: process.env['APP_SUPPORT_EMAIL'] ?? 'support@redirectcontrol.app',

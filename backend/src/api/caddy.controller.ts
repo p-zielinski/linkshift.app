@@ -26,10 +26,6 @@ export class CaddyController {
       throw new BadRequestException('Missing domain');
     }
 
-    if (domain === 'api.linkshift.app') {
-      return { allowed: true };
-    }
-
     const allowed = await this.redirectService.isDomainAllowed(domain);
 
     this.logger.log('Caddy domain check', {
