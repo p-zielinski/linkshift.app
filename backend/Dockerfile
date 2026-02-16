@@ -29,9 +29,6 @@ COPY --from=build /app/backend/prisma ./prisma
 COPY --from=build /app/backend/docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
-RUN echo "SPRAWDZAM ZAWARTOŚC FOLDERU DIST:" && ls -R ./dist
-RUN echo "SPRAWDZAM GDZIE JEST main.js:" && find ./dist -name "main.js"
-
 EXPOSE 3000
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "dist/backend/src/main.js"]
