@@ -34,4 +34,4 @@ RUN echo "SPRAWDZAM GDZIE JEST main.js:" && find ./dist -name "main.js"
 
 EXPOSE 3000
 ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD ["node", "backend/src/main.js"]
+CMD ["node", "dist/backend/src/main.js"]
