@@ -4,7 +4,9 @@ services:
   frontend:
     image: ${FRONTEND_IMAGE}
     environment:
+      NODE_ENV: production
       PORT: "4000"
+      APP_DOMAIN_TARGET_IP: ${APP_DOMAIN_TARGET_IP}
       APP_BASE_URL: ${APP_BASE_URL}
       APP_SITE_NAME: ${APP_SITE_NAME}
       APP_SITE_TAGLINE: ${APP_SITE_TAGLINE}
