@@ -150,7 +150,9 @@ If Loki fails to write, check the container user ID and adjust ownership.
 From the repo root on the manager node:
 
 ```bash
-export $(grep -v '^#' deploy/stack.env | xargs)
+set -a
+source deploy/stack.env
+set +a
 
 docker stack deploy \
   --with-registry-auth \
@@ -168,7 +170,9 @@ export GIT_COMMIT_HASH=latest
 Deploy:
 
 ```bash
-export $(grep -v '^#' deploy/stack.env | xargs)
+set -a
+source deploy/stack.env
+set +a
 
 docker stack deploy \
   --with-registry-auth \

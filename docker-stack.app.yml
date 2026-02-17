@@ -22,6 +22,8 @@ services:
         aliases:
           - frontend
     deploy:
+      update_config:
+        order: start-first
       restart_policy:
         condition: on-failure
 
@@ -69,6 +71,8 @@ services:
         aliases:
           - backend
     deploy:
+      update_config:
+        order: start-first
       replicas: 3
       restart_policy:
         condition: on-failure
