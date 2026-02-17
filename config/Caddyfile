@@ -41,7 +41,10 @@ https:// {
   tls {
     on_demand
   }
-  reverse_proxy linkshift-app_backend:3000
+  reverse_proxy linkshift-app_backend:3000 {
+      header_up Host {host}
+      header_up X-Forwarded-Host {host}
+    }
 }
 
 http:// {
