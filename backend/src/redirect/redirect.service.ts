@@ -220,7 +220,17 @@ export class RedirectService {
 
   async isDomainAllowed(hostname: string): Promise<boolean> {
     const normalized = this.normalizeHostname(hostname);
+    const requestId = this.clsService.getId();
+    this.logger.debug('Caddy domain allow check start', {
+      requestId,
+      hostname,
+      normalized,
+    });
     if (!normalized) {
+      this.logger.warn('Caddy domain allow check invalid hostname', {
+        requestId,
+        hostname,
+      });
       return false;
     }
 
@@ -228,8 +238,19 @@ export class RedirectService {
     const cached =
       await this.cacheManagerService.getCustomCache<boolean>(cacheKey);
     if (cached !== undefined) {
+      this.logger.debug('Caddy domain allow check cache hit', {
+        requestId,
+        normalized,
+        allowed: cached,
+        cacheKey,
+      });
       return cached;
     }
+    this.logger.debug('Caddy domain allow check cache miss', {
+      requestId,
+      normalized,
+      cacheKey,
+    });
 
     const domain = await this.prisma.domain.findFirst({
       where: {
@@ -241,11 +262,24 @@ export class RedirectService {
     });
 
     const allowed = !!domain;
+    this.logger.debug('Caddy domain allow check db lookup', {
+      requestId,
+      normalized,
+      allowed,
+      domainId: domain?.id ?? null,
+    });
     await this.cacheManagerService.setCustomCache(
       cacheKey,
       allowed,
       CADDY_DOMAIN_CACHE_TTL_SECONDS,
     );
+    this.logger.debug('Caddy domain allow check cache set', {
+      requestId,
+      normalized,
+      allowed,
+      cacheKey,
+      ttlSeconds: CADDY_DOMAIN_CACHE_TTL_SECONDS,
+    });
     return allowed;
   }
 
