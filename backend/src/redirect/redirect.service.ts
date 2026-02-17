@@ -1550,7 +1550,6 @@ export class RedirectService {
       'domain.subdomain': subdomains.join('.'),
       path: path,
       method: req.method,
-      scheme: req.protocol,
       ip: req.ip || req.socket.remoteAddress,
       'user-agent': req.get('User-Agent') || '',
       // Geo placeholder (Mock)

@@ -26,6 +26,8 @@ services:
     networks:
       - inter-stack
     deploy:
+      update_config:
+        order: start-first
       placement:
         constraints:
           - node.role == manager
