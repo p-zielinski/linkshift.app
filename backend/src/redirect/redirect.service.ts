@@ -1136,16 +1136,6 @@ export class RedirectService {
   async applyRedirect(req: express.Request, res: express.Response) {
     const hostname = req.hostname;
 
-    const allowed = await this.isDomainAllowed(hostname);
-    if (!allowed) {
-      res.status(403).json({
-        message: `Hostname ${hostname} is not allowed`,
-        error: 'Forbidden',
-        statusCode: 403,
-      });
-      return;
-    }
-
     // 1. Get Domain Context (Cached)
     const domain = await this.getDomainRedirectContext(hostname);
 

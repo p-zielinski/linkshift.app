@@ -58,7 +58,7 @@ import { SentryExceptionFilter } from './filters/sentry-exception.filter';
 
         return {
           pinoHttp: {
-            level: isProduction ? 'info' : 'debug',
+            level: 'debug',
             transport: isProduction
               ? undefined
               : {
@@ -90,7 +90,7 @@ import { SentryExceptionFilter } from './filters/sentry-exception.filter';
               const header = req.headers['x-request-id'];
               const requestId = Array.isArray(header)
                 ? header[0]
-                : header ?? createCustomCuid(AppEntity.Request, 10);
+                : (header ?? createCustomCuid(AppEntity.Request, 10));
               res.setHeader('X-Request-Id', requestId);
               return requestId;
             },

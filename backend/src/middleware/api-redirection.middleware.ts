@@ -22,7 +22,12 @@ export class ApiRedirectionMiddleware implements NestMiddleware {
   private readonly isProduction: boolean;
 
   async use(req: Request, res: Response, next: NextFunction) {
-    if (req.hostname === this.configService.get('API_HOSTNAME')) {
+    const apiHostname = this.configService.get<string>('API_HOSTNAME');
+
+    if (
+      req.hostname === apiHostname ||
+      (req.baseUrl === `/check-domain` && !req.hostname.includes('.'))
+    ) {
       return next();
     }
 
@@ -31,6 +36,13 @@ export class ApiRedirectionMiddleware implements NestMiddleware {
       req.originalUrl === '/api/v1/billing/webhooks/lemon-squeezy' &&
       req.method === 'POST'
     ) {
+      this.logger.debug(
+        'ApiRedirectionMiddleware bypass (lemon-squeezy dev webhook)',
+        {
+          method: req.method,
+          originalUrl: req.originalUrl,
+        },
+      );
       return next();
     }
 
