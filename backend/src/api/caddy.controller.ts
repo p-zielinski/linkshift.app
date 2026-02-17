@@ -19,9 +19,14 @@ export class CaddyController {
 
   @Get('check-domain')
   async checkDomain(@Query('domain') domain?: string) {
+    const requestId = this.clsService.getId();
+    this.logger.log('Caddy domain check request', {
+      requestId,
+      domain,
+    });
     if (!domain) {
       this.logger.log('Caddy domain check missing domain', {
-        requestId: this.clsService.getId(),
+        requestId,
       });
       throw new BadRequestException('Missing domain');
     }
@@ -29,12 +34,16 @@ export class CaddyController {
     const allowed = await this.redirectService.isDomainAllowed(domain);
 
     this.logger.log('Caddy domain check', {
-      requestId: this.clsService.getId(),
+      requestId,
       domain,
       allowed,
     });
 
     if (!allowed) {
+      this.logger.warn('Caddy domain check not allowed', {
+        requestId,
+        domain,
+      });
       throw new ForbiddenException('Domain not allowed');
     }
 
