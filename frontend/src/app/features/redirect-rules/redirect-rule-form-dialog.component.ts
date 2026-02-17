@@ -19,15 +19,12 @@ import { applyZodField } from '../../core/forms/zod-validators';
 import {
   redirectRuleSchema,
   redirectRuleMatchMethods,
-  redirectRuleStatusCodes
+  redirectRuleStatusCodes,
 } from './redirect-rule.schemas';
 import type { RedirectRule } from '../../core/models/redirect-rule.model';
 import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
 import { HttpMethod } from '../../core/models/http-method.model';
-import {
-  ensureLeadingSlash,
-  splitPathWithQuery
-} from '../tests/redirect-test.utils';
+import { ensureLeadingSlash, splitPathWithQuery } from '../tests/redirect-test.utils';
 import type { RedirectTestFormPrefill } from '../tests/redirect-test-form-dialog.component';
 
 type WizardMode = 'guided' | 'fast';
@@ -68,14 +65,16 @@ export type RedirectRuleDialogResult = {
     MatExpansionModule,
     MatTooltipModule,
     LayoutModule,
-    FormField
+    FormField,
   ],
   templateUrl: './redirect-rule-form-dialog.component.html',
-  styleUrl: './redirect-rule-form-dialog.component.css'
+  styleUrl: './redirect-rule-form-dialog.component.css',
 })
 export class RedirectRuleFormDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<RedirectRuleFormDialogComponent>);
-  private readonly data = inject<RedirectRuleDialogData | null>(MAT_DIALOG_DATA, { optional: true });
+  private readonly data = inject<RedirectRuleDialogData | null>(MAT_DIALOG_DATA, {
+    optional: true,
+  });
   private readonly redirectRuleStore = inject(RedirectRuleStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
@@ -114,14 +113,12 @@ export class RedirectRuleFormDialogComponent {
     destination: this.rule?.destination ?? 'https://',
     statusCode: String(this.initialStatusCode),
     matchMethod: this.rule?.matchMethod ?? [],
-    priority: String(this.rule?.priority ?? 0)
+    priority: String(this.rule?.priority ?? 0),
   });
 
   readonly wizardMode = signal<WizardMode>('guided');
   readonly isCompact = signal(false);
-  readonly effectiveWizardMode = computed(() =>
-    this.isCompact() ? 'fast' : this.wizardMode()
-  );
+  readonly effectiveWizardMode = computed(() => (this.isCompact() ? 'fast' : this.wizardMode()));
   readonly pendingSubmit = signal(false);
   private readonly submitKey = signal(CREATE_ENTITY_ID);
   private readonly submitErrorSequence = signal(0);
@@ -159,12 +156,12 @@ export class RedirectRuleFormDialogComponent {
   matchMethodError = computed(() => this.getFieldError(this.ruleForm.matchMethod()));
   priorityError = computed(() => this.getFieldError(this.ruleForm.priority()));
   scopeValid = computed(
-    () => this.ruleForm.domainGroupId().valid() && this.ruleForm.priority().valid()
+    () => this.ruleForm.domainGroupId().valid() && this.ruleForm.priority().valid(),
   );
   private readonly sourceValue = computed(() => this.ruleModel().source.trim());
   private readonly destinationValue = computed(() => this.ruleModel().destination.trim());
   private readonly destinationHasProtocol = computed(() =>
-    /^https?:\/\//i.test(this.destinationValue())
+    /^https?:\/\//i.test(this.destinationValue()),
   );
   readonly statusCodeOptions = computed(() => redirectRuleStatusCodes);
 
@@ -173,7 +170,7 @@ export class RedirectRuleFormDialogComponent {
     () =>
       this.ruleForm.destination().valid() &&
       this.destinationValue().length > 0 &&
-      this.destinationHasProtocol()
+      this.destinationHasProtocol(),
   );
   statusValid = computed(() => this.ruleForm.statusCode().valid());
   canSubmit = computed(() => {
@@ -188,7 +185,7 @@ export class RedirectRuleFormDialogComponent {
     );
   });
   readonly submitDisabled = computed(
-    () => !this.canSubmit() || this.ruleForm().submitting() || this.pendingSubmit()
+    () => !this.canSubmit() || this.ruleForm().submitting() || this.pendingSubmit(),
   );
   readonly submitTooltip = computed(() => {
     const errors = new Set<string>();
@@ -240,67 +237,62 @@ export class RedirectRuleFormDialogComponent {
     {
       token: 'domain.fqdn',
       description: 'Full hostname.',
-      example: 'https://{domain.fqdn}/welcome'
+      example: 'https://{domain.fqdn}/welcome',
     },
     {
       token: 'domain.label',
       description: 'Hostname without TLD.',
-      example: 'https://{domain.label}.example.com'
+      example: 'https://{domain.label}.example.com',
     },
     {
       token: 'domain.root',
       description: 'Root label only.',
-      example: 'https://store.example.com?brand={domain.root}'
+      example: 'https://store.example.com?brand={domain.root}',
     },
     {
       token: 'domain.extension',
       description: 'TLD like com/pl.',
-      example: 'https://example.com?tld={domain.extension}'
+      example: 'https://example.com?tld={domain.extension}',
     },
     {
       token: 'domain.subdomain',
       description: 'Subdomain portion only.',
-      example: 'https://example.com/tenant/{domain.subdomain}'
+      example: 'https://example.com/tenant/{domain.subdomain}',
     },
     {
       token: 'path',
       description: 'Path without leading slash.',
-      example: 'https://site.com/{path}'
+      example: 'https://site.com/{path}',
     },
     {
       token: 'segments.0',
       description: 'Path segment by index.',
-      example: 'https://example.com/category/{segments.0}'
+      example: 'https://example.com/category/{segments.0}',
     },
     {
       token: 'query.ref',
       description: 'Query param by key.',
-      example: 'https://target.com?ref={query.ref}'
+      example: 'https://target.com?ref={query.ref}',
     },
     {
       token: 'domain.subdomains.0',
       description: 'Subdomain by index.',
-      example: 'https://example.com/region/{domain.subdomains.0}'
+      example: 'https://example.com/region/{domain.subdomains.0}',
     },
     {
       token: 'method',
       description: 'HTTP method.',
-      example: 'https://example.com/route/{method}'
-    },
-    {
-      token: 'scheme',
-      description: 'Protocol (http/https).',
-      example: 'https://example.com?proto={scheme}'
+      example: 'https://example.com/route/{method}',
     },
     {
       token: 'ip',
       description: 'Client IP address.',
-      example: 'https://example.com/audit?ip={ip}'
+      example: 'https://example.com/audit?ip={ip}',
     },
     {
       token: 'user-agent',
       description: 'User-Agent header.',
-      example: 'https://example.com/ua/{user-agent}'
+      example: 'https://example.com/ua/{user-agent}',
     },
   ];
 
@@ -308,124 +300,124 @@ export class RedirectRuleFormDialogComponent {
     {
       token: 'to_lower_case',
       description: 'Lowercase.',
-      example: '{path:to_lower_case}'
+      example: '{path:to_lower_case}',
     },
     {
       token: 'to_upper_case',
       description: 'Uppercase.',
-      example: '{domain.root:to_upper_case}'
+      example: '{domain.root:to_upper_case}',
     },
     {
       token: 'url_encode',
       description: 'URL encode.',
-      example: '{query.q:url_encode}'
+      example: '{query.q:url_encode}',
     },
     {
       token: 'url_decode',
       description: 'URL decode.',
-      example: '{query.q:url_decode}'
+      example: '{query.q:url_decode}',
     },
     {
       token: 'base64_encode',
       description: 'Base64 encode.',
-      example: '{path:base64_encode}'
+      example: '{path:base64_encode}',
     },
     {
       token: 'to_iso_string',
       description: 'Convert a timestamp to ISO string.',
-      example: '{time():to_iso_string}'
+      example: '{time():to_iso_string}',
     },
     {
       token: 'auto_trailing_slash',
       description: 'Ensure trailing slash.',
-      example: '{path:auto_trailing_slash}'
+      example: '{path:auto_trailing_slash}',
     },
     {
       token: 'multiply_10',
       description: 'Multiply by 10.',
-      example: '{query.amount:multiply_10}'
+      example: '{query.amount:multiply_10}',
     },
     {
       token: 'divide_10',
       description: 'Divide by 10.',
-      example: '{query.amount:divide_10}'
+      example: '{query.amount:divide_10}',
     },
     {
       token: 'add_10',
       description: 'Add 10.',
-      example: '{query.amount:add_10}'
+      example: '{query.amount:add_10}',
     },
     {
       token: 'multiply_2',
       description: 'Multiply by 2.',
-      example: '{query.amount:multiply_2}'
+      example: '{query.amount:multiply_2}',
     },
     {
       token: 'round',
       description: 'Round number.',
-      example: '{query.amount:round}'
-    }
+      example: '{query.amount:round}',
+    },
   ];
 
   readonly operatorReferences = [
     {
       token: '==',
       description: 'Equals',
-      example: "{method} == 'POST'"
+      example: "{method} == 'POST'",
     },
     {
       token: '!=',
       description: 'Not equals',
-      example: "{method} != 'POST'"
+      example: "{method} != 'POST'",
     },
     {
       token: '<',
       description: 'Less than',
-      example: 'random(0,100) < 30'
+      example: 'random(0,100) < 30',
     },
     {
       token: '>',
       description: 'Greater than',
-      example: 'random(0,100) > 70'
+      example: 'random(0,100) > 70',
     },
     {
       token: '<=',
       description: 'Less or equal',
-      example: 'time() <= datetime("2024-01-01")'
+      example: 'time() <= datetime("2024-01-01")',
     },
     {
       token: '>=',
       description: 'Greater or equal',
-      example: 'time() >= datetime("2024-01-01")'
+      example: 'time() >= datetime("2024-01-01")',
     },
     {
       token: '~=',
       description: 'Regex match',
-      example: "{user-agent} ~= /mobile/i"
+      example: '{user-agent} ~= /mobile/i',
     },
     {
       token: 'includes',
       description: 'Substring match',
-      example: "{path} includes 'admin'"
-    }
+      example: "{path} includes 'admin'",
+    },
   ];
 
   readonly functionReferences = [
     {
       token: 'time()',
       description: 'Current time in milliseconds (use :to_iso_string for ISO).',
-      example: 'time() > datetime("2024-01-01")'
+      example: 'time() > datetime("2024-01-01")',
     },
     {
       token: 'random(0,100)',
       description: 'Random number in range (0-100).',
-      example: 'random(0,100) < 30'
+      example: 'random(0,100) < 30',
     },
     {
       token: "datetime('2024-01-01', 'Europe/Warsaw')",
       description: 'Parse date/time.',
-      example: "datetime('2024-01-01', 'Europe/Warsaw')"
-    }
+      example: "datetime('2024-01-01', 'Europe/Warsaw')",
+    },
   ];
 
   constructor() {
@@ -433,46 +425,44 @@ export class RedirectRuleFormDialogComponent {
     this.restoreWizardMode();
     this.observeViewport();
 
-    effect(
-      () => {
-        if (!this.pendingSubmit()) {
-          return;
-        }
-
-        const key = this.submitKey();
-        const loading = this.redirectRuleStore.isLoading()[key] ?? false;
-        if (loading) {
-          if (!this.submitLoadingSeen()) {
-            this.submitLoadingSeen.set(true);
-          }
-          return;
-        }
-
-        if (!this.submitLoadingSeen()) {
-          return;
-        }
-
-        const hadError = this.redirectRuleStore.errorSequence() !== this.submitErrorSequence();
-        this.pendingSubmit.set(false);
-        this.submitLoadingSeen.set(false);
-        this.submitKey.set(CREATE_ENTITY_ID);
-
-        if (!hadError) {
-          this.redirectTestResultsStore.clearAll();
-          if (!this.isEdit) {
-            const lastValue = this.lastSubmittedValue();
-            const testPrefill = lastValue ? this.buildTestPrefill(lastValue) : undefined;
-            this.dialogRef.close({
-              saved: true,
-              openTestWizard: true,
-              testPrefill
-            });
-            return;
-          }
-          this.dialogRef.close({ saved: true });
-        }
+    effect(() => {
+      if (!this.pendingSubmit()) {
+        return;
       }
-    );
+
+      const key = this.submitKey();
+      const loading = this.redirectRuleStore.isLoading()[key] ?? false;
+      if (loading) {
+        if (!this.submitLoadingSeen()) {
+          this.submitLoadingSeen.set(true);
+        }
+        return;
+      }
+
+      if (!this.submitLoadingSeen()) {
+        return;
+      }
+
+      const hadError = this.redirectRuleStore.errorSequence() !== this.submitErrorSequence();
+      this.pendingSubmit.set(false);
+      this.submitLoadingSeen.set(false);
+      this.submitKey.set(CREATE_ENTITY_ID);
+
+      if (!hadError) {
+        this.redirectTestResultsStore.clearAll();
+        if (!this.isEdit) {
+          const lastValue = this.lastSubmittedValue();
+          const testPrefill = lastValue ? this.buildTestPrefill(lastValue) : undefined;
+          this.dialogRef.close({
+            saved: true,
+            openTestWizard: true,
+            testPrefill,
+          });
+          return;
+        }
+        this.dialogRef.close({ saved: true });
+      }
+    });
   }
 
   toggleWizardMode(): void {
@@ -496,9 +486,7 @@ export class RedirectRuleFormDialogComponent {
   private restoreWizardMode(): void {
     try {
       const stored =
-        typeof window !== 'undefined'
-          ? window.localStorage.getItem(WIZARD_MODE_KEY)
-          : null;
+        typeof window !== 'undefined' ? window.localStorage.getItem(WIZARD_MODE_KEY) : null;
       if (stored === 'fast' || stored === 'guided') {
         this.wizardMode.set(stored);
       }
@@ -527,7 +515,7 @@ export class RedirectRuleFormDialogComponent {
         destination: value.destination,
         statusCode: Number(value.statusCode),
         matchMethod: value.matchMethod,
-        priority: Number(value.priority)
+        priority: Number(value.priority),
       };
 
       const key = this.isEdit && this.rule ? this.rule.id : CREATE_ENTITY_ID;
@@ -539,14 +527,14 @@ export class RedirectRuleFormDialogComponent {
       if (this.isEdit && this.rule) {
         this.redirectRuleStore.upsert({
           id: this.rule.id,
-          entity: payload
+          entity: payload,
         });
       } else {
         this.redirectRuleStore.upsert({
           entity: {
             ...payload,
-            domainGroupId: value.domainGroupId
-          }
+            domainGroupId: value.domainGroupId,
+          },
         });
       }
       return undefined;
@@ -580,7 +568,7 @@ export class RedirectRuleFormDialogComponent {
       query,
       method: model.matchMethod.length === 1 ? model.matchMethod[0] : '',
       expectedStatusCode: model.statusCode,
-      expectedTarget: model.destination.trim()
+      expectedTarget: model.destination.trim(),
     };
   }
 

@@ -16,8 +16,7 @@ export interface ValidationResult {
 
 @Injectable()
 export class RuleValidatorService {
-  constructor(private readonly logger: Logger) {
-  }
+  constructor(private readonly logger: Logger) {}
 
   private readonly KNOWN_VARIABLES = [
     'domain.fqdn',
@@ -27,7 +26,6 @@ export class RuleValidatorService {
     'domain.subdomain',
     'path',
     'method',
-    'scheme',
     'ip',
     'user-agent',
     'geo.country',
