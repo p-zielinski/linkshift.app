@@ -37,6 +37,7 @@ import type {
   TopRedirectRuleEntry
 } from '../../core/models/redirect-rule.model';
 import { formatPlanLabel } from '../../core/utils/plan-label';
+import { RuleAnalyticsDialogComponent } from './rule-analytics-dialog.component';
 import {
   NgApexchartsModule,
   ApexAxisChartSeries,
@@ -135,9 +136,10 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       toolbar: { show: false }
     },
     xaxis: {
-      categories: this.topRules().map((entry) => this.toLabel(entry.rule.source)),
+      categories: this.topRules().map((entry) => entry.rule.source || 'Rule'),
       labels: {
-        rotate: -35
+        rotate: -35,
+        formatter: (value: string) => this.toLabel(value)
       }
     },
     plotOptions: {
@@ -333,6 +335,15 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       }
     }
     this.loadTopRules();
+  }
+
+  openRuleDetails(entry: TopRedirectRuleEntry): void {
+    this.dialog.open(RuleAnalyticsDialogComponent, {
+      data: { entry },
+      closeOnNavigation: true,
+      maxWidth: '720px',
+      width: 'min(720px, 96vw)'
+    });
   }
 
   onRangeStartChange(event: Event): void {
