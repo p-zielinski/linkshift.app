@@ -7,6 +7,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { RuleValidatorService } from '../rule-validator/rule-validator.service';
 import {
   CreateRedirectRuleDto,
+  TopRedirectRulesQueryDto,
   UpdateRedirectRuleDto,
 } from '../zod-schames/redirect-rule.schemas';
 import {
@@ -693,16 +694,28 @@ export class RedirectService {
     });
   }
 
-  async getTopRules(organizationId: string, limit = 50, range: string = 'day') {
-    const boundedLimit = Number.isFinite(limit)
-      ? Math.min(Math.max(limit, 1), 50)
+  async getTopRules(
+    organizationId: string,
+    query: TopRedirectRulesQueryDto,
+  ) {
+    const boundedLimit = Number.isFinite(query.limit)
+      ? Math.min(Math.max(query.limit, 1), 50)
       : 50;
+
+    if (query.start && query.end) {
+      return this.getTopRulesFromHourlyAggregates(
+        organizationId,
+        boundedLimit,
+        query.start,
+        query.end,
+      );
+    }
 
     const topHits =
       await this.redirectAnalyticsService.getTopRulesForOrganization(
         organizationId,
         boundedLimit,
-        this.resolveTopRulesWindow(range),
+        this.resolveTopRulesWindow(query.range ?? 'day'),
       );
 
     const ruleIds = topHits.map((entry) => entry.ruleId);
@@ -735,6 +748,78 @@ export class RedirectService {
       );
 
     return { data };
+  }
+
+  private async getTopRulesFromHourlyAggregates(
+    organizationId: string,
+    limit: number,
+    start: Date,
+    end: Date,
+  ) {
+    const range = this.normalizeHourlyRange(start, end);
+    const topHits = await this.prisma.redirectRuleHitsHourly.groupBy({
+      by: ['ruleId'],
+      where: {
+        organizationId,
+        bucketStart: {
+          gte: range.start,
+          lte: range.end,
+        },
+      },
+      _sum: { hits: true },
+      orderBy: {
+        _sum: { hits: 'desc' },
+      },
+      take: limit,
+    });
+
+    const ruleIds = topHits.map((entry) => entry.ruleId);
+    if (ruleIds.length === 0) {
+      return { data: [] };
+    }
+
+    const rules = await this.prisma.redirectRule.findMany({
+      where: {
+        id: { in: ruleIds },
+        deletedAt: null,
+        isBlocked: false,
+        domainGroup: { organizationId, deletedAt: null },
+      },
+    });
+
+    const ruleMap = new Map(rules.map((rule) => [rule.id, rule]));
+    const data = topHits
+      .map((entry) => {
+        const rule = ruleMap.get(entry.ruleId);
+        if (!rule) return null;
+        return {
+          rule,
+          hits: entry._sum.hits ?? 0,
+        };
+      })
+      .filter(
+        (entry): entry is { rule: (typeof rules)[number]; hits: number } =>
+          Boolean(entry),
+      );
+
+    return { data };
+  }
+
+  private normalizeHourlyRange(start: Date, end: Date): {
+    start: Date;
+    end: Date;
+  } {
+    const startHour = dayjs(start).utc().startOf('hour');
+    const endHour = dayjs(end).utc().startOf('hour');
+    if (endHour.isBefore(startHour)) {
+      throwHttpException(
+        new BadRequestError({
+          details: 'Start must be before end',
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+    return { start: startHour.toDate(), end: endHour.toDate() };
   }
 
   private resolveTopRulesWindow(range: string): number {

@@ -42,12 +42,19 @@ export type RedirectRuleListQuery = {
 
 export type RedirectRuleTopRange = 'day' | 'week' | 'month';
 
+export type RedirectRuleAnalyticsQuery = {
+  range?: RedirectRuleTopRange;
+  start?: string;
+  end?: string;
+  limit?: number;
+};
+
 export type TopRedirectRuleEntry = {
   rule: RedirectRule;
   hits: number;
 };
 
-export type TopRedirectRulesResponse = {
+export type RedirectRuleAnalyticsResponse = {
   data: TopRedirectRuleEntry[];
 };
 

@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { HttpException } from '@nestjs/common';
 import { RedirectRule, RedirectService } from './redirect.service';
 import { PrismaService } from '../prisma.service';
 import { RuleValidatorService } from '../rule-validator/rule-validator.service';
@@ -78,6 +79,9 @@ describe('RedirectService', () => {
               update: jest.fn(),
               delete: jest.fn(),
               count: jest.fn(),
+            },
+            redirectRuleHitsHourly: {
+              groupBy: jest.fn(),
             },
             domainGroup: {
               findUnique: jest.fn(),
@@ -183,6 +187,59 @@ describe('RedirectService', () => {
       socket: { remoteAddress: '127.0.0.1' },
     };
   };
+
+  describe('getTopRules', () => {
+    it('should use hourly aggregates when start and end are provided', async () => {
+      const start = new Date('2026-02-10T10:12:00Z');
+      const end = new Date('2026-02-10T12:45:00Z');
+
+      (prisma.redirectRuleHitsHourly.groupBy as jest.Mock).mockResolvedValue([
+        { ruleId: 'rule-1', _sum: { hits: 12 } },
+        { ruleId: 'rule-2', _sum: { hits: 5 } },
+      ]);
+
+      (prisma.redirectRule.findMany as jest.Mock).mockResolvedValue([
+        { id: 'rule-1' },
+        { id: 'rule-2' },
+      ]);
+
+      const result = await service.getTopRules('org-1', {
+        limit: 10,
+        start,
+        end,
+      });
+
+      expect(prisma.redirectRuleHitsHourly.groupBy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            organizationId: 'org-1',
+            bucketStart: {
+              gte: new Date('2026-02-10T10:00:00.000Z'),
+              lte: new Date('2026-02-10T12:00:00.000Z'),
+            },
+          }),
+        }),
+      );
+
+      expect(result.data).toEqual([
+        { rule: { id: 'rule-1' }, hits: 12 },
+        { rule: { id: 'rule-2' }, hits: 5 },
+      ]);
+    });
+
+    it('should reject when end is before start', async () => {
+      const start = new Date('2026-02-10T12:00:00Z');
+      const end = new Date('2026-02-10T10:00:00Z');
+
+      await expect(
+        service.getTopRules('org-1', {
+          limit: 10,
+          start,
+          end,
+        }),
+      ).rejects.toBeInstanceOf(HttpException);
+    });
+  });
 
   describe('Standard Rules Scenarios', () => {
     it('should handle "Blog Rule" correctly with variable extraction and chaining', async () => {

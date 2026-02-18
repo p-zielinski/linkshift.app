@@ -20,6 +20,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../core/store/auth.store';
 import {
@@ -32,10 +34,19 @@ import { OrganizationUsageStore } from '../../core/store/organization-usage.stor
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { RedirectRulesApiService } from '../../core/api/redirect-rules-api.service';
 import type {
-  RedirectRuleTopRange,
   TopRedirectRuleEntry
 } from '../../core/models/redirect-rule.model';
 import { formatPlanLabel } from '../../core/utils/plan-label';
+import {
+  NgApexchartsModule,
+  ApexAxisChartSeries,
+  ApexChart,
+  ApexXAxis,
+  ApexPlotOptions,
+  ApexDataLabels,
+  ApexTooltip,
+  ApexGrid
+} from 'ng-apexcharts';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -46,12 +57,15 @@ import { formatPlanLabel } from '../../core/utils/plan-label';
     MatIconModule,
     MatListModule,
     MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
     MatDialogModule,
     MatSnackBarModule,
     MatMenuModule,
     MatTooltipModule,
     ClipboardModule,
-    PageHeaderComponent
+    PageHeaderComponent,
+    NgApexchartsModule
   ],
   templateUrl: './dashboard-page.component.html',
   styleUrl: './dashboard-page.component.css'
@@ -93,12 +107,64 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
   readonly topRules = signal<TopRedirectRuleEntry[]>([]);
   readonly topRulesLoading = signal(false);
   readonly topRulesError = signal<string | null>(null);
-  readonly topRange = signal<RedirectRuleTopRange>('day');
-  readonly topRanges = [
-    { value: 'day' as const, label: 'Day' },
-    { value: 'week' as const, label: 'Week' },
-    { value: 'month' as const, label: 'Month' }
+  readonly rangeStart = signal<string>('');
+  readonly rangeEnd = signal<string>('');
+  readonly quickRanges = [
+    { label: 'Last 3 days', days: 3 },
+    { label: 'Last 7 days', days: 7 },
+    { label: 'Last 14 days', days: 14 },
+    { label: 'Last 30 days', days: 30 }
   ];
+  readonly chartSeries = computed<ApexAxisChartSeries>(() => [
+    {
+      name: 'Hits',
+      data: this.topRules().map((entry) => entry.hits)
+    }
+  ]);
+  readonly chartOptions = computed<{
+    chart: ApexChart;
+    xaxis: ApexXAxis;
+    plotOptions: ApexPlotOptions;
+    dataLabels: ApexDataLabels;
+    tooltip: ApexTooltip;
+    grid: ApexGrid;
+  }>(() => ({
+    chart: {
+      type: 'bar',
+      height: 320,
+      toolbar: { show: false }
+    },
+    xaxis: {
+      categories: this.topRules().map((entry) => this.toLabel(entry.rule.source)),
+      labels: {
+        rotate: -35
+      }
+    },
+    plotOptions: {
+      bar: {
+        borderRadius: 6,
+        horizontal: false,
+        columnWidth: '45%'
+      }
+    },
+    dataLabels: {
+      enabled: false
+    },
+    tooltip: {
+      y: {
+        formatter: (value) => `${value} hits`
+      }
+    },
+    grid: {
+      strokeDashArray: 4,
+      padding: {
+        top: 8,
+        right: 12,
+        left: 12,
+        bottom: 0
+      }
+    }
+  }));
   readonly domainGroupLimitReached = computed(() => {
     const usage = this.usage();
     if (!usage) {
@@ -178,7 +244,7 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.usageStore.loadUsage();
-    this.loadTopRules();
+    this.setQuickRange(7);
   }
 
   ngAfterViewInit(): void {
@@ -224,9 +290,13 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     this.topRulesLoading.set(true);
     this.topRulesError.set(null);
     try {
-      const response = await firstValueFrom(
-        this.redirectRulesApi.top(this.topRange(), 50),
-      );
+      const start = this.toIsoString(this.rangeStart());
+      const end = this.toIsoString(this.rangeEnd());
+      const response = await firstValueFrom(this.redirectRulesApi.analytics({
+        start,
+        end,
+        limit: 50
+      }));
       this.topRules.set(response.data ?? []);
     } catch (error) {
       const message =
@@ -237,12 +307,42 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     }
   }
 
-  setTopRange(range: RedirectRuleTopRange): void {
-    if (this.topRange() === range) {
+  setQuickRange(days: number): void {
+    const end = new Date();
+    const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
+    this.rangeStart.set(this.toDateTimeInputValue(start));
+    this.rangeEnd.set(this.toDateTimeInputValue(end));
+    this.loadTopRules();
+  }
+
+  applyCustomRange(): void {
+    const start = this.rangeStart();
+    const end = this.rangeEnd();
+    if ((start && !end) || (!start && end)) {
+      this.topRulesError.set('Provide both start and end date/time.');
       return;
     }
-    this.topRange.set(range);
+    if (start && end) {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      if (!Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime())) {
+        if (startDate > endDate) {
+          this.topRulesError.set('Start must be before end.');
+          return;
+        }
+      }
+    }
     this.loadTopRules();
+  }
+
+  onRangeStartChange(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    this.rangeStart.set(target?.value ?? '');
+  }
+
+  onRangeEndChange(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    this.rangeEnd.set(target?.value ?? '');
   }
 
   copyId(value: string): void {
@@ -280,5 +380,33 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       return false;
     }
     return element.scrollWidth > element.clientWidth;
+  }
+
+  private toDateTimeInputValue(value: Date): string {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    const hours = String(value.getHours()).padStart(2, '0');
+    const minutes = String(value.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  private toIsoString(value: string): string | undefined {
+    if (!value) {
+      return undefined;
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return undefined;
+    }
+    return parsed.toISOString();
+  }
+
+  private toLabel(value: string): string {
+    const trimmed = value?.trim() ?? '';
+    if (trimmed.length <= 18) {
+      return trimmed || 'Rule';
+    }
+    return `${trimmed.slice(0, 18)}…`;
   }
 }

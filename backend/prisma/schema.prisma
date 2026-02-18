@@ -49,6 +49,7 @@ model Organization {
   customPlans CustomPlan[]
   redirectTests RedirectTest[]
   invites OrganizationInvite[]
+  redirectRuleHitsHourly RedirectRuleHitsHourly[]
 
   @@index([deletedAt])
 }
@@ -152,6 +153,7 @@ model RedirectRule {
   deletedAt     DateTime?
 
   domainGroup DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
+  hitsHourly RedirectRuleHitsHourly[]
 
   @@index([domainGroupId])
   @@index([deletedAt])
@@ -164,6 +166,22 @@ model RedirectRule {
 
     // Optional but recommended for performance of list queries
   @@index([domainGroupId, deletedAt, priority, createdAt, id])
+}
+
+model RedirectRuleHitsHourly {
+  ruleId         String
+  organizationId String
+  bucketStart    DateTime
+  hits           Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  redirectRule RedirectRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([ruleId, organizationId, bucketStart])
+  @@index([organizationId, bucketStart])
+  @@index([ruleId, bucketStart])
 }
 
 // RedirectTest entity - stored redirect simulations

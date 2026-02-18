@@ -7,6 +7,7 @@ import {
   REDIRECT_TOP_TEMP_KEY_PREFIX,
 } from './security.constants';
 import { Logger } from 'nestjs-pino';
+import { buildHourlyKey } from './redirect-analytics-keys';
 
 type RuleHit = { ruleId: string; hits: number };
 
@@ -22,8 +23,8 @@ export class RedirectAnalyticsService {
     if (!ruleId || !organizationId) return;
 
     const now = new Date();
-    const hourKeyGlobal = this.buildHourlyKey(REDIRECT_HIT_PREFIX_GLOBAL, now);
-    const hourKeyOrg = this.buildHourlyKey(
+    const hourKeyGlobal = buildHourlyKey(REDIRECT_HIT_PREFIX_GLOBAL, now);
+    const hourKeyOrg = buildHourlyKey(
       `${REDIRECT_HIT_PREFIX_ORG}:${organizationId}`,
       now,
     );
@@ -95,16 +96,8 @@ export class RedirectAnalyticsService {
     const now = new Date();
     for (let i = 0; i < hours; i++) {
       const date = new Date(now.getTime() - i * 60 * 60 * 1000);
-      keys.push(this.buildHourlyKey(prefix, date));
+      keys.push(buildHourlyKey(prefix, date));
     }
     return keys;
-  }
-
-  private buildHourlyKey(prefix: string, date: Date): string {
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const hour = String(date.getUTCHours()).padStart(2, '0');
-    return `${prefix}:${year}${month}${day}${hour}`;
   }
 }
