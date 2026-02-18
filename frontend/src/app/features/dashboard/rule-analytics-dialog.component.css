@@ -1,0 +1,76 @@
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 20px 24px 0;
+}
+
+.dialog-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.dialog-subtitle {
+  font-size: 12px;
+  color: var(--app-muted, #6b7280);
+}
+
+.dialog-body {
+  padding: 16px 24px 0;
+  display: grid;
+  gap: 16px;
+}
+
+.metric-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--app-accent-soft, #f2eefc);
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.metric-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--app-muted, #6b7280);
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--app-muted, #6b7280);
+}
+
+.field-value {
+  font-size: 14px;
+  color: var(--app-foreground, #111827);
+  word-break: break-word;
+}
+
+.field-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.dialog-actions {
+  padding: 16px 24px 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (min-width: 640px) {
+  .field-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

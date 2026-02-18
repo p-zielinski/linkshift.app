@@ -44,6 +44,11 @@ export type Domain = $Result.DefaultSelection<Prisma.$DomainPayload>
  */
 export type RedirectRule = $Result.DefaultSelection<Prisma.$RedirectRulePayload>
 /**
+ * Model RedirectRuleHitsHourly
+ * 
+ */
+export type RedirectRuleHitsHourly = $Result.DefaultSelection<Prisma.$RedirectRuleHitsHourlyPayload>
+/**
  * Model RedirectTest
  * 
  */
@@ -272,6 +277,16 @@ export class PrismaClient<
     * ```
     */
   get redirectRule(): Prisma.RedirectRuleDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.redirectRuleHitsHourly`: Exposes CRUD operations for the **RedirectRuleHitsHourly** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more RedirectRuleHitsHourlies
+    * const redirectRuleHitsHourlies = await prisma.redirectRuleHitsHourly.findMany()
+    * ```
+    */
+  get redirectRuleHitsHourly(): Prisma.RedirectRuleHitsHourlyDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.redirectTest`: Exposes CRUD operations for the **RedirectTest** model.
@@ -742,6 +757,7 @@ export namespace Prisma {
     DomainGroup: 'DomainGroup',
     Domain: 'Domain',
     RedirectRule: 'RedirectRule',
+    RedirectRuleHitsHourly: 'RedirectRuleHitsHourly',
     RedirectTest: 'RedirectTest',
     BillingCheckoutSession: 'BillingCheckoutSession',
     CustomPlan: 'CustomPlan'
@@ -760,7 +776,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "organization" | "user" | "organizationInvite" | "domainGroup" | "domain" | "redirectRule" | "redirectTest" | "billingCheckoutSession" | "customPlan"
+      modelProps: "organization" | "user" | "organizationInvite" | "domainGroup" | "domain" | "redirectRule" | "redirectRuleHitsHourly" | "redirectTest" | "billingCheckoutSession" | "customPlan"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1208,6 +1224,80 @@ export namespace Prisma {
           }
         }
       }
+      RedirectRuleHitsHourly: {
+        payload: Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>
+        fields: Prisma.RedirectRuleHitsHourlyFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.RedirectRuleHitsHourlyFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectRuleHitsHourlyPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.RedirectRuleHitsHourlyFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectRuleHitsHourlyPayload>
+          }
+          findFirst: {
+            args: Prisma.RedirectRuleHitsHourlyFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectRuleHitsHourlyPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.RedirectRuleHitsHourlyFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectRuleHitsHourlyPayload>
+          }
+          findMany: {
+            args: Prisma.RedirectRuleHitsHourlyFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectRuleHitsHourlyPayload>[]
+          }
+          create: {
+            args: Prisma.RedirectRuleHitsHourlyCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectRuleHitsHourlyPayload>
+          }
+          createMany: {
+            args: Prisma.RedirectRuleHitsHourlyCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.RedirectRuleHitsHourlyCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectRuleHitsHourlyPayload>[]
+          }
+          delete: {
+            args: Prisma.RedirectRuleHitsHourlyDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectRuleHitsHourlyPayload>
+          }
+          update: {
+            args: Prisma.RedirectRuleHitsHourlyUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectRuleHitsHourlyPayload>
+          }
+          deleteMany: {
+            args: Prisma.RedirectRuleHitsHourlyDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.RedirectRuleHitsHourlyUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.RedirectRuleHitsHourlyUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectRuleHitsHourlyPayload>[]
+          }
+          upsert: {
+            args: Prisma.RedirectRuleHitsHourlyUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$RedirectRuleHitsHourlyPayload>
+          }
+          aggregate: {
+            args: Prisma.RedirectRuleHitsHourlyAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateRedirectRuleHitsHourly>
+          }
+          groupBy: {
+            args: Prisma.RedirectRuleHitsHourlyGroupByArgs<ExtArgs>
+            result: $Utils.Optional<RedirectRuleHitsHourlyGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.RedirectRuleHitsHourlyCountArgs<ExtArgs>
+            result: $Utils.Optional<RedirectRuleHitsHourlyCountAggregateOutputType> | number
+          }
+        }
+      }
       RedirectTest: {
         payload: Prisma.$RedirectTestPayload<ExtArgs>
         fields: Prisma.RedirectTestFieldRefs
@@ -1544,6 +1634,7 @@ export namespace Prisma {
     domainGroup?: DomainGroupOmit
     domain?: DomainOmit
     redirectRule?: RedirectRuleOmit
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyOmit
     redirectTest?: RedirectTestOmit
     billingCheckoutSession?: BillingCheckoutSessionOmit
     customPlan?: CustomPlanOmit
@@ -1633,6 +1724,7 @@ export namespace Prisma {
     customPlans: number
     redirectTests: number
     invites: number
+    redirectRuleHitsHourly: number
   }
 
   export type OrganizationCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1642,6 +1734,7 @@ export namespace Prisma {
     customPlans?: boolean | OrganizationCountOutputTypeCountCustomPlansArgs
     redirectTests?: boolean | OrganizationCountOutputTypeCountRedirectTestsArgs
     invites?: boolean | OrganizationCountOutputTypeCountInvitesArgs
+    redirectRuleHitsHourly?: boolean | OrganizationCountOutputTypeCountRedirectRuleHitsHourlyArgs
   }
 
   // Custom InputTypes
@@ -1695,6 +1788,13 @@ export namespace Prisma {
    */
   export type OrganizationCountOutputTypeCountInvitesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: OrganizationInviteWhereInput
+  }
+
+  /**
+   * OrganizationCountOutputType without action
+   */
+  export type OrganizationCountOutputTypeCountRedirectRuleHitsHourlyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RedirectRuleHitsHourlyWhereInput
   }
 
 
@@ -1784,6 +1884,37 @@ export namespace Prisma {
    */
   export type DomainGroupCountOutputTypeCountRedirectTestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: RedirectTestWhereInput
+  }
+
+
+  /**
+   * Count Type RedirectRuleCountOutputType
+   */
+
+  export type RedirectRuleCountOutputType = {
+    hitsHourly: number
+  }
+
+  export type RedirectRuleCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    hitsHourly?: boolean | RedirectRuleCountOutputTypeCountHitsHourlyArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * RedirectRuleCountOutputType without action
+   */
+  export type RedirectRuleCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleCountOutputType
+     */
+    select?: RedirectRuleCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * RedirectRuleCountOutputType without action
+   */
+  export type RedirectRuleCountOutputTypeCountHitsHourlyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RedirectRuleHitsHourlyWhereInput
   }
 
 
@@ -1965,6 +2096,7 @@ export namespace Prisma {
     customPlans?: boolean | Organization$customPlansArgs<ExtArgs>
     redirectTests?: boolean | Organization$redirectTestsArgs<ExtArgs>
     invites?: boolean | Organization$invitesArgs<ExtArgs>
+    redirectRuleHitsHourly?: boolean | Organization$redirectRuleHitsHourlyArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["organization"]>
 
@@ -2003,6 +2135,7 @@ export namespace Prisma {
     customPlans?: boolean | Organization$customPlansArgs<ExtArgs>
     redirectTests?: boolean | Organization$redirectTestsArgs<ExtArgs>
     invites?: boolean | Organization$invitesArgs<ExtArgs>
+    redirectRuleHitsHourly?: boolean | Organization$redirectRuleHitsHourlyArgs<ExtArgs>
     _count?: boolean | OrganizationCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2017,6 +2150,7 @@ export namespace Prisma {
       customPlans: Prisma.$CustomPlanPayload<ExtArgs>[]
       redirectTests: Prisma.$RedirectTestPayload<ExtArgs>[]
       invites: Prisma.$OrganizationInvitePayload<ExtArgs>[]
+      redirectRuleHitsHourly: Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2425,6 +2559,7 @@ export namespace Prisma {
     customPlans<T extends Organization$customPlansArgs<ExtArgs> = {}>(args?: Subset<T, Organization$customPlansArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CustomPlanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     redirectTests<T extends Organization$redirectTestsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$redirectTestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     invites<T extends Organization$invitesArgs<ExtArgs> = {}>(args?: Subset<T, Organization$invitesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrganizationInvitePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    redirectRuleHitsHourly<T extends Organization$redirectRuleHitsHourlyArgs<ExtArgs> = {}>(args?: Subset<T, Organization$redirectRuleHitsHourlyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2989,6 +3124,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: OrganizationInviteScalarFieldEnum | OrganizationInviteScalarFieldEnum[]
+  }
+
+  /**
+   * Organization.redirectRuleHitsHourly
+   */
+  export type Organization$redirectRuleHitsHourlyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyInclude<ExtArgs> | null
+    where?: RedirectRuleHitsHourlyWhereInput
+    orderBy?: RedirectRuleHitsHourlyOrderByWithRelationInput | RedirectRuleHitsHourlyOrderByWithRelationInput[]
+    cursor?: RedirectRuleHitsHourlyWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RedirectRuleHitsHourlyScalarFieldEnum | RedirectRuleHitsHourlyScalarFieldEnum[]
   }
 
   /**
@@ -7870,6 +8029,8 @@ export namespace Prisma {
     updatedAt?: boolean
     deletedAt?: boolean
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+    hitsHourly?: boolean | RedirectRule$hitsHourlyArgs<ExtArgs>
+    _count?: boolean | RedirectRuleCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["redirectRule"]>
 
   export type RedirectRuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -7922,6 +8083,8 @@ export namespace Prisma {
   export type RedirectRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "source" | "destination" | "statusCode" | "matchMethod" | "isBlocked" | "blockedAt" | "priority" | "domainGroupId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["redirectRule"]>
   export type RedirectRuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+    hitsHourly?: boolean | RedirectRule$hitsHourlyArgs<ExtArgs>
+    _count?: boolean | RedirectRuleCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type RedirectRuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
@@ -7934,6 +8097,7 @@ export namespace Prisma {
     name: "RedirectRule"
     objects: {
       domainGroup: Prisma.$DomainGroupPayload<ExtArgs>
+      hitsHourly: Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -8343,6 +8507,7 @@ export namespace Prisma {
   export interface Prisma__RedirectRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     domainGroup<T extends DomainGroupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroupDefaultArgs<ExtArgs>>): Prisma__DomainGroupClient<$Result.GetResult<Prisma.$DomainGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    hitsHourly<T extends RedirectRule$hitsHourlyArgs<ExtArgs> = {}>(args?: Subset<T, RedirectRule$hitsHourlyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8780,6 +8945,30 @@ export namespace Prisma {
   }
 
   /**
+   * RedirectRule.hitsHourly
+   */
+  export type RedirectRule$hitsHourlyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyInclude<ExtArgs> | null
+    where?: RedirectRuleHitsHourlyWhereInput
+    orderBy?: RedirectRuleHitsHourlyOrderByWithRelationInput | RedirectRuleHitsHourlyOrderByWithRelationInput[]
+    cursor?: RedirectRuleHitsHourlyWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RedirectRuleHitsHourlyScalarFieldEnum | RedirectRuleHitsHourlyScalarFieldEnum[]
+  }
+
+  /**
    * RedirectRule without action
    */
   export type RedirectRuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8795,6 +8984,1119 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: RedirectRuleInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model RedirectRuleHitsHourly
+   */
+
+  export type AggregateRedirectRuleHitsHourly = {
+    _count: RedirectRuleHitsHourlyCountAggregateOutputType | null
+    _avg: RedirectRuleHitsHourlyAvgAggregateOutputType | null
+    _sum: RedirectRuleHitsHourlySumAggregateOutputType | null
+    _min: RedirectRuleHitsHourlyMinAggregateOutputType | null
+    _max: RedirectRuleHitsHourlyMaxAggregateOutputType | null
+  }
+
+  export type RedirectRuleHitsHourlyAvgAggregateOutputType = {
+    hits: number | null
+  }
+
+  export type RedirectRuleHitsHourlySumAggregateOutputType = {
+    hits: number | null
+  }
+
+  export type RedirectRuleHitsHourlyMinAggregateOutputType = {
+    ruleId: string | null
+    organizationId: string | null
+    bucketStart: Date | null
+    hits: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type RedirectRuleHitsHourlyMaxAggregateOutputType = {
+    ruleId: string | null
+    organizationId: string | null
+    bucketStart: Date | null
+    hits: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type RedirectRuleHitsHourlyCountAggregateOutputType = {
+    ruleId: number
+    organizationId: number
+    bucketStart: number
+    hits: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type RedirectRuleHitsHourlyAvgAggregateInputType = {
+    hits?: true
+  }
+
+  export type RedirectRuleHitsHourlySumAggregateInputType = {
+    hits?: true
+  }
+
+  export type RedirectRuleHitsHourlyMinAggregateInputType = {
+    ruleId?: true
+    organizationId?: true
+    bucketStart?: true
+    hits?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type RedirectRuleHitsHourlyMaxAggregateInputType = {
+    ruleId?: true
+    organizationId?: true
+    bucketStart?: true
+    hits?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type RedirectRuleHitsHourlyCountAggregateInputType = {
+    ruleId?: true
+    organizationId?: true
+    bucketStart?: true
+    hits?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type RedirectRuleHitsHourlyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which RedirectRuleHitsHourly to aggregate.
+     */
+    where?: RedirectRuleHitsHourlyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RedirectRuleHitsHourlies to fetch.
+     */
+    orderBy?: RedirectRuleHitsHourlyOrderByWithRelationInput | RedirectRuleHitsHourlyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: RedirectRuleHitsHourlyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RedirectRuleHitsHourlies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RedirectRuleHitsHourlies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned RedirectRuleHitsHourlies
+    **/
+    _count?: true | RedirectRuleHitsHourlyCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: RedirectRuleHitsHourlyAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: RedirectRuleHitsHourlySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: RedirectRuleHitsHourlyMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: RedirectRuleHitsHourlyMaxAggregateInputType
+  }
+
+  export type GetRedirectRuleHitsHourlyAggregateType<T extends RedirectRuleHitsHourlyAggregateArgs> = {
+        [P in keyof T & keyof AggregateRedirectRuleHitsHourly]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateRedirectRuleHitsHourly[P]>
+      : GetScalarType<T[P], AggregateRedirectRuleHitsHourly[P]>
+  }
+
+
+
+
+  export type RedirectRuleHitsHourlyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RedirectRuleHitsHourlyWhereInput
+    orderBy?: RedirectRuleHitsHourlyOrderByWithAggregationInput | RedirectRuleHitsHourlyOrderByWithAggregationInput[]
+    by: RedirectRuleHitsHourlyScalarFieldEnum[] | RedirectRuleHitsHourlyScalarFieldEnum
+    having?: RedirectRuleHitsHourlyScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: RedirectRuleHitsHourlyCountAggregateInputType | true
+    _avg?: RedirectRuleHitsHourlyAvgAggregateInputType
+    _sum?: RedirectRuleHitsHourlySumAggregateInputType
+    _min?: RedirectRuleHitsHourlyMinAggregateInputType
+    _max?: RedirectRuleHitsHourlyMaxAggregateInputType
+  }
+
+  export type RedirectRuleHitsHourlyGroupByOutputType = {
+    ruleId: string
+    organizationId: string
+    bucketStart: Date
+    hits: number
+    createdAt: Date
+    updatedAt: Date
+    _count: RedirectRuleHitsHourlyCountAggregateOutputType | null
+    _avg: RedirectRuleHitsHourlyAvgAggregateOutputType | null
+    _sum: RedirectRuleHitsHourlySumAggregateOutputType | null
+    _min: RedirectRuleHitsHourlyMinAggregateOutputType | null
+    _max: RedirectRuleHitsHourlyMaxAggregateOutputType | null
+  }
+
+  type GetRedirectRuleHitsHourlyGroupByPayload<T extends RedirectRuleHitsHourlyGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<RedirectRuleHitsHourlyGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof RedirectRuleHitsHourlyGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], RedirectRuleHitsHourlyGroupByOutputType[P]>
+            : GetScalarType<T[P], RedirectRuleHitsHourlyGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type RedirectRuleHitsHourlySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    ruleId?: boolean
+    organizationId?: boolean
+    bucketStart?: boolean
+    hits?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    redirectRule?: boolean | RedirectRuleDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["redirectRuleHitsHourly"]>
+
+  export type RedirectRuleHitsHourlySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    ruleId?: boolean
+    organizationId?: boolean
+    bucketStart?: boolean
+    hits?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    redirectRule?: boolean | RedirectRuleDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["redirectRuleHitsHourly"]>
+
+  export type RedirectRuleHitsHourlySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    ruleId?: boolean
+    organizationId?: boolean
+    bucketStart?: boolean
+    hits?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    redirectRule?: boolean | RedirectRuleDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["redirectRuleHitsHourly"]>
+
+  export type RedirectRuleHitsHourlySelectScalar = {
+    ruleId?: boolean
+    organizationId?: boolean
+    bucketStart?: boolean
+    hits?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type RedirectRuleHitsHourlyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"ruleId" | "organizationId" | "bucketStart" | "hits" | "createdAt" | "updatedAt", ExtArgs["result"]["redirectRuleHitsHourly"]>
+  export type RedirectRuleHitsHourlyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    redirectRule?: boolean | RedirectRuleDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+  export type RedirectRuleHitsHourlyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    redirectRule?: boolean | RedirectRuleDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+  export type RedirectRuleHitsHourlyIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    redirectRule?: boolean | RedirectRuleDefaultArgs<ExtArgs>
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+
+  export type $RedirectRuleHitsHourlyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "RedirectRuleHitsHourly"
+    objects: {
+      redirectRule: Prisma.$RedirectRulePayload<ExtArgs>
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      ruleId: string
+      organizationId: string
+      bucketStart: Date
+      hits: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["redirectRuleHitsHourly"]>
+    composites: {}
+  }
+
+  type RedirectRuleHitsHourlyGetPayload<S extends boolean | null | undefined | RedirectRuleHitsHourlyDefaultArgs> = $Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload, S>
+
+  type RedirectRuleHitsHourlyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<RedirectRuleHitsHourlyFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: RedirectRuleHitsHourlyCountAggregateInputType | true
+    }
+
+  export interface RedirectRuleHitsHourlyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['RedirectRuleHitsHourly'], meta: { name: 'RedirectRuleHitsHourly' } }
+    /**
+     * Find zero or one RedirectRuleHitsHourly that matches the filter.
+     * @param {RedirectRuleHitsHourlyFindUniqueArgs} args - Arguments to find a RedirectRuleHitsHourly
+     * @example
+     * // Get one RedirectRuleHitsHourly
+     * const redirectRuleHitsHourly = await prisma.redirectRuleHitsHourly.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends RedirectRuleHitsHourlyFindUniqueArgs>(args: SelectSubset<T, RedirectRuleHitsHourlyFindUniqueArgs<ExtArgs>>): Prisma__RedirectRuleHitsHourlyClient<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one RedirectRuleHitsHourly that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {RedirectRuleHitsHourlyFindUniqueOrThrowArgs} args - Arguments to find a RedirectRuleHitsHourly
+     * @example
+     * // Get one RedirectRuleHitsHourly
+     * const redirectRuleHitsHourly = await prisma.redirectRuleHitsHourly.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends RedirectRuleHitsHourlyFindUniqueOrThrowArgs>(args: SelectSubset<T, RedirectRuleHitsHourlyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__RedirectRuleHitsHourlyClient<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first RedirectRuleHitsHourly that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectRuleHitsHourlyFindFirstArgs} args - Arguments to find a RedirectRuleHitsHourly
+     * @example
+     * // Get one RedirectRuleHitsHourly
+     * const redirectRuleHitsHourly = await prisma.redirectRuleHitsHourly.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends RedirectRuleHitsHourlyFindFirstArgs>(args?: SelectSubset<T, RedirectRuleHitsHourlyFindFirstArgs<ExtArgs>>): Prisma__RedirectRuleHitsHourlyClient<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first RedirectRuleHitsHourly that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectRuleHitsHourlyFindFirstOrThrowArgs} args - Arguments to find a RedirectRuleHitsHourly
+     * @example
+     * // Get one RedirectRuleHitsHourly
+     * const redirectRuleHitsHourly = await prisma.redirectRuleHitsHourly.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends RedirectRuleHitsHourlyFindFirstOrThrowArgs>(args?: SelectSubset<T, RedirectRuleHitsHourlyFindFirstOrThrowArgs<ExtArgs>>): Prisma__RedirectRuleHitsHourlyClient<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more RedirectRuleHitsHourlies that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectRuleHitsHourlyFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all RedirectRuleHitsHourlies
+     * const redirectRuleHitsHourlies = await prisma.redirectRuleHitsHourly.findMany()
+     * 
+     * // Get first 10 RedirectRuleHitsHourlies
+     * const redirectRuleHitsHourlies = await prisma.redirectRuleHitsHourly.findMany({ take: 10 })
+     * 
+     * // Only select the `ruleId`
+     * const redirectRuleHitsHourlyWithRuleIdOnly = await prisma.redirectRuleHitsHourly.findMany({ select: { ruleId: true } })
+     * 
+     */
+    findMany<T extends RedirectRuleHitsHourlyFindManyArgs>(args?: SelectSubset<T, RedirectRuleHitsHourlyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a RedirectRuleHitsHourly.
+     * @param {RedirectRuleHitsHourlyCreateArgs} args - Arguments to create a RedirectRuleHitsHourly.
+     * @example
+     * // Create one RedirectRuleHitsHourly
+     * const RedirectRuleHitsHourly = await prisma.redirectRuleHitsHourly.create({
+     *   data: {
+     *     // ... data to create a RedirectRuleHitsHourly
+     *   }
+     * })
+     * 
+     */
+    create<T extends RedirectRuleHitsHourlyCreateArgs>(args: SelectSubset<T, RedirectRuleHitsHourlyCreateArgs<ExtArgs>>): Prisma__RedirectRuleHitsHourlyClient<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many RedirectRuleHitsHourlies.
+     * @param {RedirectRuleHitsHourlyCreateManyArgs} args - Arguments to create many RedirectRuleHitsHourlies.
+     * @example
+     * // Create many RedirectRuleHitsHourlies
+     * const redirectRuleHitsHourly = await prisma.redirectRuleHitsHourly.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends RedirectRuleHitsHourlyCreateManyArgs>(args?: SelectSubset<T, RedirectRuleHitsHourlyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many RedirectRuleHitsHourlies and returns the data saved in the database.
+     * @param {RedirectRuleHitsHourlyCreateManyAndReturnArgs} args - Arguments to create many RedirectRuleHitsHourlies.
+     * @example
+     * // Create many RedirectRuleHitsHourlies
+     * const redirectRuleHitsHourly = await prisma.redirectRuleHitsHourly.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many RedirectRuleHitsHourlies and only return the `ruleId`
+     * const redirectRuleHitsHourlyWithRuleIdOnly = await prisma.redirectRuleHitsHourly.createManyAndReturn({
+     *   select: { ruleId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends RedirectRuleHitsHourlyCreateManyAndReturnArgs>(args?: SelectSubset<T, RedirectRuleHitsHourlyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a RedirectRuleHitsHourly.
+     * @param {RedirectRuleHitsHourlyDeleteArgs} args - Arguments to delete one RedirectRuleHitsHourly.
+     * @example
+     * // Delete one RedirectRuleHitsHourly
+     * const RedirectRuleHitsHourly = await prisma.redirectRuleHitsHourly.delete({
+     *   where: {
+     *     // ... filter to delete one RedirectRuleHitsHourly
+     *   }
+     * })
+     * 
+     */
+    delete<T extends RedirectRuleHitsHourlyDeleteArgs>(args: SelectSubset<T, RedirectRuleHitsHourlyDeleteArgs<ExtArgs>>): Prisma__RedirectRuleHitsHourlyClient<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one RedirectRuleHitsHourly.
+     * @param {RedirectRuleHitsHourlyUpdateArgs} args - Arguments to update one RedirectRuleHitsHourly.
+     * @example
+     * // Update one RedirectRuleHitsHourly
+     * const redirectRuleHitsHourly = await prisma.redirectRuleHitsHourly.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends RedirectRuleHitsHourlyUpdateArgs>(args: SelectSubset<T, RedirectRuleHitsHourlyUpdateArgs<ExtArgs>>): Prisma__RedirectRuleHitsHourlyClient<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more RedirectRuleHitsHourlies.
+     * @param {RedirectRuleHitsHourlyDeleteManyArgs} args - Arguments to filter RedirectRuleHitsHourlies to delete.
+     * @example
+     * // Delete a few RedirectRuleHitsHourlies
+     * const { count } = await prisma.redirectRuleHitsHourly.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends RedirectRuleHitsHourlyDeleteManyArgs>(args?: SelectSubset<T, RedirectRuleHitsHourlyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more RedirectRuleHitsHourlies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectRuleHitsHourlyUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many RedirectRuleHitsHourlies
+     * const redirectRuleHitsHourly = await prisma.redirectRuleHitsHourly.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends RedirectRuleHitsHourlyUpdateManyArgs>(args: SelectSubset<T, RedirectRuleHitsHourlyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more RedirectRuleHitsHourlies and returns the data updated in the database.
+     * @param {RedirectRuleHitsHourlyUpdateManyAndReturnArgs} args - Arguments to update many RedirectRuleHitsHourlies.
+     * @example
+     * // Update many RedirectRuleHitsHourlies
+     * const redirectRuleHitsHourly = await prisma.redirectRuleHitsHourly.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more RedirectRuleHitsHourlies and only return the `ruleId`
+     * const redirectRuleHitsHourlyWithRuleIdOnly = await prisma.redirectRuleHitsHourly.updateManyAndReturn({
+     *   select: { ruleId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends RedirectRuleHitsHourlyUpdateManyAndReturnArgs>(args: SelectSubset<T, RedirectRuleHitsHourlyUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one RedirectRuleHitsHourly.
+     * @param {RedirectRuleHitsHourlyUpsertArgs} args - Arguments to update or create a RedirectRuleHitsHourly.
+     * @example
+     * // Update or create a RedirectRuleHitsHourly
+     * const redirectRuleHitsHourly = await prisma.redirectRuleHitsHourly.upsert({
+     *   create: {
+     *     // ... data to create a RedirectRuleHitsHourly
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the RedirectRuleHitsHourly we want to update
+     *   }
+     * })
+     */
+    upsert<T extends RedirectRuleHitsHourlyUpsertArgs>(args: SelectSubset<T, RedirectRuleHitsHourlyUpsertArgs<ExtArgs>>): Prisma__RedirectRuleHitsHourlyClient<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of RedirectRuleHitsHourlies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectRuleHitsHourlyCountArgs} args - Arguments to filter RedirectRuleHitsHourlies to count.
+     * @example
+     * // Count the number of RedirectRuleHitsHourlies
+     * const count = await prisma.redirectRuleHitsHourly.count({
+     *   where: {
+     *     // ... the filter for the RedirectRuleHitsHourlies we want to count
+     *   }
+     * })
+    **/
+    count<T extends RedirectRuleHitsHourlyCountArgs>(
+      args?: Subset<T, RedirectRuleHitsHourlyCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], RedirectRuleHitsHourlyCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a RedirectRuleHitsHourly.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectRuleHitsHourlyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends RedirectRuleHitsHourlyAggregateArgs>(args: Subset<T, RedirectRuleHitsHourlyAggregateArgs>): Prisma.PrismaPromise<GetRedirectRuleHitsHourlyAggregateType<T>>
+
+    /**
+     * Group by RedirectRuleHitsHourly.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {RedirectRuleHitsHourlyGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends RedirectRuleHitsHourlyGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: RedirectRuleHitsHourlyGroupByArgs['orderBy'] }
+        : { orderBy?: RedirectRuleHitsHourlyGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, RedirectRuleHitsHourlyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetRedirectRuleHitsHourlyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the RedirectRuleHitsHourly model
+   */
+  readonly fields: RedirectRuleHitsHourlyFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for RedirectRuleHitsHourly.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__RedirectRuleHitsHourlyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    redirectRule<T extends RedirectRuleDefaultArgs<ExtArgs> = {}>(args?: Subset<T, RedirectRuleDefaultArgs<ExtArgs>>): Prisma__RedirectRuleClient<$Result.GetResult<Prisma.$RedirectRulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the RedirectRuleHitsHourly model
+   */
+  interface RedirectRuleHitsHourlyFieldRefs {
+    readonly ruleId: FieldRef<"RedirectRuleHitsHourly", 'String'>
+    readonly organizationId: FieldRef<"RedirectRuleHitsHourly", 'String'>
+    readonly bucketStart: FieldRef<"RedirectRuleHitsHourly", 'DateTime'>
+    readonly hits: FieldRef<"RedirectRuleHitsHourly", 'Int'>
+    readonly createdAt: FieldRef<"RedirectRuleHitsHourly", 'DateTime'>
+    readonly updatedAt: FieldRef<"RedirectRuleHitsHourly", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * RedirectRuleHitsHourly findUnique
+   */
+  export type RedirectRuleHitsHourlyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyInclude<ExtArgs> | null
+    /**
+     * Filter, which RedirectRuleHitsHourly to fetch.
+     */
+    where: RedirectRuleHitsHourlyWhereUniqueInput
+  }
+
+  /**
+   * RedirectRuleHitsHourly findUniqueOrThrow
+   */
+  export type RedirectRuleHitsHourlyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyInclude<ExtArgs> | null
+    /**
+     * Filter, which RedirectRuleHitsHourly to fetch.
+     */
+    where: RedirectRuleHitsHourlyWhereUniqueInput
+  }
+
+  /**
+   * RedirectRuleHitsHourly findFirst
+   */
+  export type RedirectRuleHitsHourlyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyInclude<ExtArgs> | null
+    /**
+     * Filter, which RedirectRuleHitsHourly to fetch.
+     */
+    where?: RedirectRuleHitsHourlyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RedirectRuleHitsHourlies to fetch.
+     */
+    orderBy?: RedirectRuleHitsHourlyOrderByWithRelationInput | RedirectRuleHitsHourlyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for RedirectRuleHitsHourlies.
+     */
+    cursor?: RedirectRuleHitsHourlyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RedirectRuleHitsHourlies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RedirectRuleHitsHourlies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of RedirectRuleHitsHourlies.
+     */
+    distinct?: RedirectRuleHitsHourlyScalarFieldEnum | RedirectRuleHitsHourlyScalarFieldEnum[]
+  }
+
+  /**
+   * RedirectRuleHitsHourly findFirstOrThrow
+   */
+  export type RedirectRuleHitsHourlyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyInclude<ExtArgs> | null
+    /**
+     * Filter, which RedirectRuleHitsHourly to fetch.
+     */
+    where?: RedirectRuleHitsHourlyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RedirectRuleHitsHourlies to fetch.
+     */
+    orderBy?: RedirectRuleHitsHourlyOrderByWithRelationInput | RedirectRuleHitsHourlyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for RedirectRuleHitsHourlies.
+     */
+    cursor?: RedirectRuleHitsHourlyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RedirectRuleHitsHourlies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RedirectRuleHitsHourlies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of RedirectRuleHitsHourlies.
+     */
+    distinct?: RedirectRuleHitsHourlyScalarFieldEnum | RedirectRuleHitsHourlyScalarFieldEnum[]
+  }
+
+  /**
+   * RedirectRuleHitsHourly findMany
+   */
+  export type RedirectRuleHitsHourlyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyInclude<ExtArgs> | null
+    /**
+     * Filter, which RedirectRuleHitsHourlies to fetch.
+     */
+    where?: RedirectRuleHitsHourlyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of RedirectRuleHitsHourlies to fetch.
+     */
+    orderBy?: RedirectRuleHitsHourlyOrderByWithRelationInput | RedirectRuleHitsHourlyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing RedirectRuleHitsHourlies.
+     */
+    cursor?: RedirectRuleHitsHourlyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` RedirectRuleHitsHourlies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` RedirectRuleHitsHourlies.
+     */
+    skip?: number
+    distinct?: RedirectRuleHitsHourlyScalarFieldEnum | RedirectRuleHitsHourlyScalarFieldEnum[]
+  }
+
+  /**
+   * RedirectRuleHitsHourly create
+   */
+  export type RedirectRuleHitsHourlyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyInclude<ExtArgs> | null
+    /**
+     * The data needed to create a RedirectRuleHitsHourly.
+     */
+    data: XOR<RedirectRuleHitsHourlyCreateInput, RedirectRuleHitsHourlyUncheckedCreateInput>
+  }
+
+  /**
+   * RedirectRuleHitsHourly createMany
+   */
+  export type RedirectRuleHitsHourlyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many RedirectRuleHitsHourlies.
+     */
+    data: RedirectRuleHitsHourlyCreateManyInput | RedirectRuleHitsHourlyCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * RedirectRuleHitsHourly createManyAndReturn
+   */
+  export type RedirectRuleHitsHourlyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * The data used to create many RedirectRuleHitsHourlies.
+     */
+    data: RedirectRuleHitsHourlyCreateManyInput | RedirectRuleHitsHourlyCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * RedirectRuleHitsHourly update
+   */
+  export type RedirectRuleHitsHourlyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyInclude<ExtArgs> | null
+    /**
+     * The data needed to update a RedirectRuleHitsHourly.
+     */
+    data: XOR<RedirectRuleHitsHourlyUpdateInput, RedirectRuleHitsHourlyUncheckedUpdateInput>
+    /**
+     * Choose, which RedirectRuleHitsHourly to update.
+     */
+    where: RedirectRuleHitsHourlyWhereUniqueInput
+  }
+
+  /**
+   * RedirectRuleHitsHourly updateMany
+   */
+  export type RedirectRuleHitsHourlyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update RedirectRuleHitsHourlies.
+     */
+    data: XOR<RedirectRuleHitsHourlyUpdateManyMutationInput, RedirectRuleHitsHourlyUncheckedUpdateManyInput>
+    /**
+     * Filter which RedirectRuleHitsHourlies to update
+     */
+    where?: RedirectRuleHitsHourlyWhereInput
+    /**
+     * Limit how many RedirectRuleHitsHourlies to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * RedirectRuleHitsHourly updateManyAndReturn
+   */
+  export type RedirectRuleHitsHourlyUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * The data used to update RedirectRuleHitsHourlies.
+     */
+    data: XOR<RedirectRuleHitsHourlyUpdateManyMutationInput, RedirectRuleHitsHourlyUncheckedUpdateManyInput>
+    /**
+     * Filter which RedirectRuleHitsHourlies to update
+     */
+    where?: RedirectRuleHitsHourlyWhereInput
+    /**
+     * Limit how many RedirectRuleHitsHourlies to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * RedirectRuleHitsHourly upsert
+   */
+  export type RedirectRuleHitsHourlyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyInclude<ExtArgs> | null
+    /**
+     * The filter to search for the RedirectRuleHitsHourly to update in case it exists.
+     */
+    where: RedirectRuleHitsHourlyWhereUniqueInput
+    /**
+     * In case the RedirectRuleHitsHourly found by the `where` argument doesn't exist, create a new RedirectRuleHitsHourly with this data.
+     */
+    create: XOR<RedirectRuleHitsHourlyCreateInput, RedirectRuleHitsHourlyUncheckedCreateInput>
+    /**
+     * In case the RedirectRuleHitsHourly was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<RedirectRuleHitsHourlyUpdateInput, RedirectRuleHitsHourlyUncheckedUpdateInput>
+  }
+
+  /**
+   * RedirectRuleHitsHourly delete
+   */
+  export type RedirectRuleHitsHourlyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyInclude<ExtArgs> | null
+    /**
+     * Filter which RedirectRuleHitsHourly to delete.
+     */
+    where: RedirectRuleHitsHourlyWhereUniqueInput
+  }
+
+  /**
+   * RedirectRuleHitsHourly deleteMany
+   */
+  export type RedirectRuleHitsHourlyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which RedirectRuleHitsHourlies to delete
+     */
+    where?: RedirectRuleHitsHourlyWhereInput
+    /**
+     * Limit how many RedirectRuleHitsHourlies to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * RedirectRuleHitsHourly without action
+   */
+  export type RedirectRuleHitsHourlyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRuleHitsHourly
+     */
+    select?: RedirectRuleHitsHourlySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRuleHitsHourly
+     */
+    omit?: RedirectRuleHitsHourlyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleHitsHourlyInclude<ExtArgs> | null
   }
 
 
@@ -12285,6 +13587,18 @@ export namespace Prisma {
   export type RedirectRuleScalarFieldEnum = (typeof RedirectRuleScalarFieldEnum)[keyof typeof RedirectRuleScalarFieldEnum]
 
 
+  export const RedirectRuleHitsHourlyScalarFieldEnum: {
+    ruleId: 'ruleId',
+    organizationId: 'organizationId',
+    bucketStart: 'bucketStart',
+    hits: 'hits',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type RedirectRuleHitsHourlyScalarFieldEnum = (typeof RedirectRuleHitsHourlyScalarFieldEnum)[keyof typeof RedirectRuleHitsHourlyScalarFieldEnum]
+
+
   export const RedirectTestScalarFieldEnum: {
     id: 'id',
     organizationId: 'organizationId',
@@ -12511,6 +13825,7 @@ export namespace Prisma {
     customPlans?: CustomPlanListRelationFilter
     redirectTests?: RedirectTestListRelationFilter
     invites?: OrganizationInviteListRelationFilter
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyListRelationFilter
   }
 
   export type OrganizationOrderByWithRelationInput = {
@@ -12526,6 +13841,7 @@ export namespace Prisma {
     customPlans?: CustomPlanOrderByRelationAggregateInput
     redirectTests?: RedirectTestOrderByRelationAggregateInput
     invites?: OrganizationInviteOrderByRelationAggregateInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyOrderByRelationAggregateInput
   }
 
   export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -12544,6 +13860,7 @@ export namespace Prisma {
     customPlans?: CustomPlanListRelationFilter
     redirectTests?: RedirectTestListRelationFilter
     invites?: OrganizationInviteListRelationFilter
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyListRelationFilter
   }, "id">
 
   export type OrganizationOrderByWithAggregationInput = {
@@ -12910,6 +14227,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"RedirectRule"> | Date | string
     deletedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     domainGroup?: XOR<DomainGroupScalarRelationFilter, DomainGroupWhereInput>
+    hitsHourly?: RedirectRuleHitsHourlyListRelationFilter
   }
 
   export type RedirectRuleOrderByWithRelationInput = {
@@ -12926,6 +14244,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     domainGroup?: DomainGroupOrderByWithRelationInput
+    hitsHourly?: RedirectRuleHitsHourlyOrderByRelationAggregateInput
   }
 
   export type RedirectRuleWhereUniqueInput = Prisma.AtLeast<{
@@ -12946,6 +14265,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"RedirectRule"> | Date | string
     deletedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     domainGroup?: XOR<DomainGroupScalarRelationFilter, DomainGroupWhereInput>
+    hitsHourly?: RedirectRuleHitsHourlyListRelationFilter
   }, "id" | "priority_createdAt_id">
 
   export type RedirectRuleOrderByWithAggregationInput = {
@@ -12984,6 +14304,72 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"RedirectRule"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"RedirectRule"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"RedirectRule"> | Date | string | null
+  }
+
+  export type RedirectRuleHitsHourlyWhereInput = {
+    AND?: RedirectRuleHitsHourlyWhereInput | RedirectRuleHitsHourlyWhereInput[]
+    OR?: RedirectRuleHitsHourlyWhereInput[]
+    NOT?: RedirectRuleHitsHourlyWhereInput | RedirectRuleHitsHourlyWhereInput[]
+    ruleId?: StringFilter<"RedirectRuleHitsHourly"> | string
+    organizationId?: StringFilter<"RedirectRuleHitsHourly"> | string
+    bucketStart?: DateTimeFilter<"RedirectRuleHitsHourly"> | Date | string
+    hits?: IntFilter<"RedirectRuleHitsHourly"> | number
+    createdAt?: DateTimeFilter<"RedirectRuleHitsHourly"> | Date | string
+    updatedAt?: DateTimeFilter<"RedirectRuleHitsHourly"> | Date | string
+    redirectRule?: XOR<RedirectRuleScalarRelationFilter, RedirectRuleWhereInput>
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+  }
+
+  export type RedirectRuleHitsHourlyOrderByWithRelationInput = {
+    ruleId?: SortOrder
+    organizationId?: SortOrder
+    bucketStart?: SortOrder
+    hits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    redirectRule?: RedirectRuleOrderByWithRelationInput
+    organization?: OrganizationOrderByWithRelationInput
+  }
+
+  export type RedirectRuleHitsHourlyWhereUniqueInput = Prisma.AtLeast<{
+    ruleId_organizationId_bucketStart?: RedirectRuleHitsHourlyRuleIdOrganizationIdBucketStartCompoundUniqueInput
+    AND?: RedirectRuleHitsHourlyWhereInput | RedirectRuleHitsHourlyWhereInput[]
+    OR?: RedirectRuleHitsHourlyWhereInput[]
+    NOT?: RedirectRuleHitsHourlyWhereInput | RedirectRuleHitsHourlyWhereInput[]
+    ruleId?: StringFilter<"RedirectRuleHitsHourly"> | string
+    organizationId?: StringFilter<"RedirectRuleHitsHourly"> | string
+    bucketStart?: DateTimeFilter<"RedirectRuleHitsHourly"> | Date | string
+    hits?: IntFilter<"RedirectRuleHitsHourly"> | number
+    createdAt?: DateTimeFilter<"RedirectRuleHitsHourly"> | Date | string
+    updatedAt?: DateTimeFilter<"RedirectRuleHitsHourly"> | Date | string
+    redirectRule?: XOR<RedirectRuleScalarRelationFilter, RedirectRuleWhereInput>
+    organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
+  }, "ruleId_organizationId_bucketStart">
+
+  export type RedirectRuleHitsHourlyOrderByWithAggregationInput = {
+    ruleId?: SortOrder
+    organizationId?: SortOrder
+    bucketStart?: SortOrder
+    hits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: RedirectRuleHitsHourlyCountOrderByAggregateInput
+    _avg?: RedirectRuleHitsHourlyAvgOrderByAggregateInput
+    _max?: RedirectRuleHitsHourlyMaxOrderByAggregateInput
+    _min?: RedirectRuleHitsHourlyMinOrderByAggregateInput
+    _sum?: RedirectRuleHitsHourlySumOrderByAggregateInput
+  }
+
+  export type RedirectRuleHitsHourlyScalarWhereWithAggregatesInput = {
+    AND?: RedirectRuleHitsHourlyScalarWhereWithAggregatesInput | RedirectRuleHitsHourlyScalarWhereWithAggregatesInput[]
+    OR?: RedirectRuleHitsHourlyScalarWhereWithAggregatesInput[]
+    NOT?: RedirectRuleHitsHourlyScalarWhereWithAggregatesInput | RedirectRuleHitsHourlyScalarWhereWithAggregatesInput[]
+    ruleId?: StringWithAggregatesFilter<"RedirectRuleHitsHourly"> | string
+    organizationId?: StringWithAggregatesFilter<"RedirectRuleHitsHourly"> | string
+    bucketStart?: DateTimeWithAggregatesFilter<"RedirectRuleHitsHourly"> | Date | string
+    hits?: IntWithAggregatesFilter<"RedirectRuleHitsHourly"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"RedirectRuleHitsHourly"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"RedirectRuleHitsHourly"> | Date | string
   }
 
   export type RedirectTestWhereInput = {
@@ -13251,6 +14637,7 @@ export namespace Prisma {
     customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateInput = {
@@ -13266,6 +14653,7 @@ export namespace Prisma {
     customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUpdateInput = {
@@ -13281,6 +14669,7 @@ export namespace Prisma {
     customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateInput = {
@@ -13296,6 +14685,7 @@ export namespace Prisma {
     customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationCreateManyInput = {
@@ -13696,6 +15086,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     domainGroup: DomainGroupCreateNestedOneWithoutRedirectRulesInput
+    hitsHourly?: RedirectRuleHitsHourlyCreateNestedManyWithoutRedirectRuleInput
   }
 
   export type RedirectRuleUncheckedCreateInput = {
@@ -13711,6 +15102,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    hitsHourly?: RedirectRuleHitsHourlyUncheckedCreateNestedManyWithoutRedirectRuleInput
   }
 
   export type RedirectRuleUpdateInput = {
@@ -13726,6 +15118,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domainGroup?: DomainGroupUpdateOneRequiredWithoutRedirectRulesNestedInput
+    hitsHourly?: RedirectRuleHitsHourlyUpdateManyWithoutRedirectRuleNestedInput
   }
 
   export type RedirectRuleUncheckedUpdateInput = {
@@ -13741,6 +15134,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    hitsHourly?: RedirectRuleHitsHourlyUncheckedUpdateManyWithoutRedirectRuleNestedInput
   }
 
   export type RedirectRuleCreateManyInput = {
@@ -13785,6 +15179,67 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type RedirectRuleHitsHourlyCreateInput = {
+    bucketStart: Date | string
+    hits: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    redirectRule: RedirectRuleCreateNestedOneWithoutHitsHourlyInput
+    organization: OrganizationCreateNestedOneWithoutRedirectRuleHitsHourlyInput
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedCreateInput = {
+    ruleId: string
+    organizationId: string
+    bucketStart: Date | string
+    hits: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RedirectRuleHitsHourlyUpdateInput = {
+    bucketStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    hits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    redirectRule?: RedirectRuleUpdateOneRequiredWithoutHitsHourlyNestedInput
+    organization?: OrganizationUpdateOneRequiredWithoutRedirectRuleHitsHourlyNestedInput
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedUpdateInput = {
+    ruleId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    bucketStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    hits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RedirectRuleHitsHourlyCreateManyInput = {
+    ruleId: string
+    organizationId: string
+    bucketStart: Date | string
+    hits: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RedirectRuleHitsHourlyUpdateManyMutationInput = {
+    bucketStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    hits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedUpdateManyInput = {
+    ruleId?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    bucketStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    hits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type RedirectTestCreateInput = {
@@ -14158,6 +15613,12 @@ export namespace Prisma {
     none?: OrganizationInviteWhereInput
   }
 
+  export type RedirectRuleHitsHourlyListRelationFilter = {
+    every?: RedirectRuleHitsHourlyWhereInput
+    some?: RedirectRuleHitsHourlyWhereInput
+    none?: RedirectRuleHitsHourlyWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -14184,6 +15645,10 @@ export namespace Prisma {
   }
 
   export type OrganizationInviteOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type RedirectRuleHitsHourlyOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -14605,6 +16070,52 @@ export namespace Prisma {
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
   }
+
+  export type RedirectRuleScalarRelationFilter = {
+    is?: RedirectRuleWhereInput
+    isNot?: RedirectRuleWhereInput
+  }
+
+  export type RedirectRuleHitsHourlyRuleIdOrganizationIdBucketStartCompoundUniqueInput = {
+    ruleId: string
+    organizationId: string
+    bucketStart: Date | string
+  }
+
+  export type RedirectRuleHitsHourlyCountOrderByAggregateInput = {
+    ruleId?: SortOrder
+    organizationId?: SortOrder
+    bucketStart?: SortOrder
+    hits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type RedirectRuleHitsHourlyAvgOrderByAggregateInput = {
+    hits?: SortOrder
+  }
+
+  export type RedirectRuleHitsHourlyMaxOrderByAggregateInput = {
+    ruleId?: SortOrder
+    organizationId?: SortOrder
+    bucketStart?: SortOrder
+    hits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type RedirectRuleHitsHourlyMinOrderByAggregateInput = {
+    ruleId?: SortOrder
+    organizationId?: SortOrder
+    bucketStart?: SortOrder
+    hits?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type RedirectRuleHitsHourlySumOrderByAggregateInput = {
+    hits?: SortOrder
+  }
   export type JsonFilter<$PrismaModel = never> =
     | PatchUndefined<
         Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
@@ -14831,6 +16342,13 @@ export namespace Prisma {
     connect?: OrganizationInviteWhereUniqueInput | OrganizationInviteWhereUniqueInput[]
   }
 
+  export type RedirectRuleHitsHourlyCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<RedirectRuleHitsHourlyCreateWithoutOrganizationInput, RedirectRuleHitsHourlyUncheckedCreateWithoutOrganizationInput> | RedirectRuleHitsHourlyCreateWithoutOrganizationInput[] | RedirectRuleHitsHourlyUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: RedirectRuleHitsHourlyCreateOrConnectWithoutOrganizationInput | RedirectRuleHitsHourlyCreateOrConnectWithoutOrganizationInput[]
+    createMany?: RedirectRuleHitsHourlyCreateManyOrganizationInputEnvelope
+    connect?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+  }
+
   export type UserUncheckedCreateNestedManyWithoutOrganizationInput = {
     create?: XOR<UserCreateWithoutOrganizationInput, UserUncheckedCreateWithoutOrganizationInput> | UserCreateWithoutOrganizationInput[] | UserUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: UserCreateOrConnectWithoutOrganizationInput | UserCreateOrConnectWithoutOrganizationInput[]
@@ -14871,6 +16389,13 @@ export namespace Prisma {
     connectOrCreate?: OrganizationInviteCreateOrConnectWithoutOrganizationInput | OrganizationInviteCreateOrConnectWithoutOrganizationInput[]
     createMany?: OrganizationInviteCreateManyOrganizationInputEnvelope
     connect?: OrganizationInviteWhereUniqueInput | OrganizationInviteWhereUniqueInput[]
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedCreateNestedManyWithoutOrganizationInput = {
+    create?: XOR<RedirectRuleHitsHourlyCreateWithoutOrganizationInput, RedirectRuleHitsHourlyUncheckedCreateWithoutOrganizationInput> | RedirectRuleHitsHourlyCreateWithoutOrganizationInput[] | RedirectRuleHitsHourlyUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: RedirectRuleHitsHourlyCreateOrConnectWithoutOrganizationInput | RedirectRuleHitsHourlyCreateOrConnectWithoutOrganizationInput[]
+    createMany?: RedirectRuleHitsHourlyCreateManyOrganizationInputEnvelope
+    connect?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -14969,6 +16494,20 @@ export namespace Prisma {
     deleteMany?: OrganizationInviteScalarWhereInput | OrganizationInviteScalarWhereInput[]
   }
 
+  export type RedirectRuleHitsHourlyUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<RedirectRuleHitsHourlyCreateWithoutOrganizationInput, RedirectRuleHitsHourlyUncheckedCreateWithoutOrganizationInput> | RedirectRuleHitsHourlyCreateWithoutOrganizationInput[] | RedirectRuleHitsHourlyUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: RedirectRuleHitsHourlyCreateOrConnectWithoutOrganizationInput | RedirectRuleHitsHourlyCreateOrConnectWithoutOrganizationInput[]
+    upsert?: RedirectRuleHitsHourlyUpsertWithWhereUniqueWithoutOrganizationInput | RedirectRuleHitsHourlyUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: RedirectRuleHitsHourlyCreateManyOrganizationInputEnvelope
+    set?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    disconnect?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    delete?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    connect?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    update?: RedirectRuleHitsHourlyUpdateWithWhereUniqueWithoutOrganizationInput | RedirectRuleHitsHourlyUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: RedirectRuleHitsHourlyUpdateManyWithWhereWithoutOrganizationInput | RedirectRuleHitsHourlyUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: RedirectRuleHitsHourlyScalarWhereInput | RedirectRuleHitsHourlyScalarWhereInput[]
+  }
+
   export type UserUncheckedUpdateManyWithoutOrganizationNestedInput = {
     create?: XOR<UserCreateWithoutOrganizationInput, UserUncheckedCreateWithoutOrganizationInput> | UserCreateWithoutOrganizationInput[] | UserUncheckedCreateWithoutOrganizationInput[]
     connectOrCreate?: UserCreateOrConnectWithoutOrganizationInput | UserCreateOrConnectWithoutOrganizationInput[]
@@ -15051,6 +16590,20 @@ export namespace Prisma {
     update?: OrganizationInviteUpdateWithWhereUniqueWithoutOrganizationInput | OrganizationInviteUpdateWithWhereUniqueWithoutOrganizationInput[]
     updateMany?: OrganizationInviteUpdateManyWithWhereWithoutOrganizationInput | OrganizationInviteUpdateManyWithWhereWithoutOrganizationInput[]
     deleteMany?: OrganizationInviteScalarWhereInput | OrganizationInviteScalarWhereInput[]
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedUpdateManyWithoutOrganizationNestedInput = {
+    create?: XOR<RedirectRuleHitsHourlyCreateWithoutOrganizationInput, RedirectRuleHitsHourlyUncheckedCreateWithoutOrganizationInput> | RedirectRuleHitsHourlyCreateWithoutOrganizationInput[] | RedirectRuleHitsHourlyUncheckedCreateWithoutOrganizationInput[]
+    connectOrCreate?: RedirectRuleHitsHourlyCreateOrConnectWithoutOrganizationInput | RedirectRuleHitsHourlyCreateOrConnectWithoutOrganizationInput[]
+    upsert?: RedirectRuleHitsHourlyUpsertWithWhereUniqueWithoutOrganizationInput | RedirectRuleHitsHourlyUpsertWithWhereUniqueWithoutOrganizationInput[]
+    createMany?: RedirectRuleHitsHourlyCreateManyOrganizationInputEnvelope
+    set?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    disconnect?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    delete?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    connect?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    update?: RedirectRuleHitsHourlyUpdateWithWhereUniqueWithoutOrganizationInput | RedirectRuleHitsHourlyUpdateWithWhereUniqueWithoutOrganizationInput[]
+    updateMany?: RedirectRuleHitsHourlyUpdateManyWithWhereWithoutOrganizationInput | RedirectRuleHitsHourlyUpdateManyWithWhereWithoutOrganizationInput[]
+    deleteMany?: RedirectRuleHitsHourlyScalarWhereInput | RedirectRuleHitsHourlyScalarWhereInput[]
   }
 
   export type OrganizationCreateNestedOneWithoutUsersInput = {
@@ -15351,6 +16904,20 @@ export namespace Prisma {
     connect?: DomainGroupWhereUniqueInput
   }
 
+  export type RedirectRuleHitsHourlyCreateNestedManyWithoutRedirectRuleInput = {
+    create?: XOR<RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput, RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput> | RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput[] | RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput[]
+    connectOrCreate?: RedirectRuleHitsHourlyCreateOrConnectWithoutRedirectRuleInput | RedirectRuleHitsHourlyCreateOrConnectWithoutRedirectRuleInput[]
+    createMany?: RedirectRuleHitsHourlyCreateManyRedirectRuleInputEnvelope
+    connect?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedCreateNestedManyWithoutRedirectRuleInput = {
+    create?: XOR<RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput, RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput> | RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput[] | RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput[]
+    connectOrCreate?: RedirectRuleHitsHourlyCreateOrConnectWithoutRedirectRuleInput | RedirectRuleHitsHourlyCreateOrConnectWithoutRedirectRuleInput[]
+    createMany?: RedirectRuleHitsHourlyCreateManyRedirectRuleInputEnvelope
+    connect?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+  }
+
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
@@ -15370,6 +16937,62 @@ export namespace Prisma {
     upsert?: DomainGroupUpsertWithoutRedirectRulesInput
     connect?: DomainGroupWhereUniqueInput
     update?: XOR<XOR<DomainGroupUpdateToOneWithWhereWithoutRedirectRulesInput, DomainGroupUpdateWithoutRedirectRulesInput>, DomainGroupUncheckedUpdateWithoutRedirectRulesInput>
+  }
+
+  export type RedirectRuleHitsHourlyUpdateManyWithoutRedirectRuleNestedInput = {
+    create?: XOR<RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput, RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput> | RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput[] | RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput[]
+    connectOrCreate?: RedirectRuleHitsHourlyCreateOrConnectWithoutRedirectRuleInput | RedirectRuleHitsHourlyCreateOrConnectWithoutRedirectRuleInput[]
+    upsert?: RedirectRuleHitsHourlyUpsertWithWhereUniqueWithoutRedirectRuleInput | RedirectRuleHitsHourlyUpsertWithWhereUniqueWithoutRedirectRuleInput[]
+    createMany?: RedirectRuleHitsHourlyCreateManyRedirectRuleInputEnvelope
+    set?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    disconnect?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    delete?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    connect?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    update?: RedirectRuleHitsHourlyUpdateWithWhereUniqueWithoutRedirectRuleInput | RedirectRuleHitsHourlyUpdateWithWhereUniqueWithoutRedirectRuleInput[]
+    updateMany?: RedirectRuleHitsHourlyUpdateManyWithWhereWithoutRedirectRuleInput | RedirectRuleHitsHourlyUpdateManyWithWhereWithoutRedirectRuleInput[]
+    deleteMany?: RedirectRuleHitsHourlyScalarWhereInput | RedirectRuleHitsHourlyScalarWhereInput[]
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedUpdateManyWithoutRedirectRuleNestedInput = {
+    create?: XOR<RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput, RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput> | RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput[] | RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput[]
+    connectOrCreate?: RedirectRuleHitsHourlyCreateOrConnectWithoutRedirectRuleInput | RedirectRuleHitsHourlyCreateOrConnectWithoutRedirectRuleInput[]
+    upsert?: RedirectRuleHitsHourlyUpsertWithWhereUniqueWithoutRedirectRuleInput | RedirectRuleHitsHourlyUpsertWithWhereUniqueWithoutRedirectRuleInput[]
+    createMany?: RedirectRuleHitsHourlyCreateManyRedirectRuleInputEnvelope
+    set?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    disconnect?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    delete?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    connect?: RedirectRuleHitsHourlyWhereUniqueInput | RedirectRuleHitsHourlyWhereUniqueInput[]
+    update?: RedirectRuleHitsHourlyUpdateWithWhereUniqueWithoutRedirectRuleInput | RedirectRuleHitsHourlyUpdateWithWhereUniqueWithoutRedirectRuleInput[]
+    updateMany?: RedirectRuleHitsHourlyUpdateManyWithWhereWithoutRedirectRuleInput | RedirectRuleHitsHourlyUpdateManyWithWhereWithoutRedirectRuleInput[]
+    deleteMany?: RedirectRuleHitsHourlyScalarWhereInput | RedirectRuleHitsHourlyScalarWhereInput[]
+  }
+
+  export type RedirectRuleCreateNestedOneWithoutHitsHourlyInput = {
+    create?: XOR<RedirectRuleCreateWithoutHitsHourlyInput, RedirectRuleUncheckedCreateWithoutHitsHourlyInput>
+    connectOrCreate?: RedirectRuleCreateOrConnectWithoutHitsHourlyInput
+    connect?: RedirectRuleWhereUniqueInput
+  }
+
+  export type OrganizationCreateNestedOneWithoutRedirectRuleHitsHourlyInput = {
+    create?: XOR<OrganizationCreateWithoutRedirectRuleHitsHourlyInput, OrganizationUncheckedCreateWithoutRedirectRuleHitsHourlyInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutRedirectRuleHitsHourlyInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type RedirectRuleUpdateOneRequiredWithoutHitsHourlyNestedInput = {
+    create?: XOR<RedirectRuleCreateWithoutHitsHourlyInput, RedirectRuleUncheckedCreateWithoutHitsHourlyInput>
+    connectOrCreate?: RedirectRuleCreateOrConnectWithoutHitsHourlyInput
+    upsert?: RedirectRuleUpsertWithoutHitsHourlyInput
+    connect?: RedirectRuleWhereUniqueInput
+    update?: XOR<XOR<RedirectRuleUpdateToOneWithWhereWithoutHitsHourlyInput, RedirectRuleUpdateWithoutHitsHourlyInput>, RedirectRuleUncheckedUpdateWithoutHitsHourlyInput>
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutRedirectRuleHitsHourlyNestedInput = {
+    create?: XOR<OrganizationCreateWithoutRedirectRuleHitsHourlyInput, OrganizationUncheckedCreateWithoutRedirectRuleHitsHourlyInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutRedirectRuleHitsHourlyInput
+    upsert?: OrganizationUpsertWithoutRedirectRuleHitsHourlyInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutRedirectRuleHitsHourlyInput, OrganizationUpdateWithoutRedirectRuleHitsHourlyInput>, OrganizationUncheckedUpdateWithoutRedirectRuleHitsHourlyInput>
   }
 
   export type OrganizationCreateNestedOneWithoutRedirectTestsInput = {
@@ -15901,6 +17524,32 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type RedirectRuleHitsHourlyCreateWithoutOrganizationInput = {
+    bucketStart: Date | string
+    hits: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    redirectRule: RedirectRuleCreateNestedOneWithoutHitsHourlyInput
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedCreateWithoutOrganizationInput = {
+    ruleId: string
+    bucketStart: Date | string
+    hits: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RedirectRuleHitsHourlyCreateOrConnectWithoutOrganizationInput = {
+    where: RedirectRuleHitsHourlyWhereUniqueInput
+    create: XOR<RedirectRuleHitsHourlyCreateWithoutOrganizationInput, RedirectRuleHitsHourlyUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type RedirectRuleHitsHourlyCreateManyOrganizationInputEnvelope = {
+    data: RedirectRuleHitsHourlyCreateManyOrganizationInput | RedirectRuleHitsHourlyCreateManyOrganizationInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithWhereUniqueWithoutOrganizationInput = {
     where: UserWhereUniqueInput
     update: XOR<UserUpdateWithoutOrganizationInput, UserUncheckedUpdateWithoutOrganizationInput>
@@ -16095,6 +17744,34 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"OrganizationInvite"> | Date | string
   }
 
+  export type RedirectRuleHitsHourlyUpsertWithWhereUniqueWithoutOrganizationInput = {
+    where: RedirectRuleHitsHourlyWhereUniqueInput
+    update: XOR<RedirectRuleHitsHourlyUpdateWithoutOrganizationInput, RedirectRuleHitsHourlyUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<RedirectRuleHitsHourlyCreateWithoutOrganizationInput, RedirectRuleHitsHourlyUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type RedirectRuleHitsHourlyUpdateWithWhereUniqueWithoutOrganizationInput = {
+    where: RedirectRuleHitsHourlyWhereUniqueInput
+    data: XOR<RedirectRuleHitsHourlyUpdateWithoutOrganizationInput, RedirectRuleHitsHourlyUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type RedirectRuleHitsHourlyUpdateManyWithWhereWithoutOrganizationInput = {
+    where: RedirectRuleHitsHourlyScalarWhereInput
+    data: XOR<RedirectRuleHitsHourlyUpdateManyMutationInput, RedirectRuleHitsHourlyUncheckedUpdateManyWithoutOrganizationInput>
+  }
+
+  export type RedirectRuleHitsHourlyScalarWhereInput = {
+    AND?: RedirectRuleHitsHourlyScalarWhereInput | RedirectRuleHitsHourlyScalarWhereInput[]
+    OR?: RedirectRuleHitsHourlyScalarWhereInput[]
+    NOT?: RedirectRuleHitsHourlyScalarWhereInput | RedirectRuleHitsHourlyScalarWhereInput[]
+    ruleId?: StringFilter<"RedirectRuleHitsHourly"> | string
+    organizationId?: StringFilter<"RedirectRuleHitsHourly"> | string
+    bucketStart?: DateTimeFilter<"RedirectRuleHitsHourly"> | Date | string
+    hits?: IntFilter<"RedirectRuleHitsHourly"> | number
+    createdAt?: DateTimeFilter<"RedirectRuleHitsHourly"> | Date | string
+    updatedAt?: DateTimeFilter<"RedirectRuleHitsHourly"> | Date | string
+  }
+
   export type OrganizationCreateWithoutUsersInput = {
     id: string
     name: string
@@ -16107,6 +17784,7 @@ export namespace Prisma {
     customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutUsersInput = {
@@ -16121,6 +17799,7 @@ export namespace Prisma {
     customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutUsersInput = {
@@ -16223,6 +17902,7 @@ export namespace Prisma {
     customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutUsersInput = {
@@ -16237,6 +17917,7 @@ export namespace Prisma {
     customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type BillingCheckoutSessionUpsertWithWhereUniqueWithoutUserInput = {
@@ -16283,6 +17964,7 @@ export namespace Prisma {
     checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
     customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutInvitesInput = {
@@ -16297,6 +17979,7 @@ export namespace Prisma {
     checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
     customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutInvitesInput = {
@@ -16370,6 +18053,7 @@ export namespace Prisma {
     checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
     customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutInvitesInput = {
@@ -16384,6 +18068,7 @@ export namespace Prisma {
     checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
     customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutCreatedInvitesInput = {
@@ -16447,6 +18132,7 @@ export namespace Prisma {
     customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutDomainGroupsInput = {
@@ -16461,6 +18147,7 @@ export namespace Prisma {
     customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutDomainGroupsInput = {
@@ -16506,6 +18193,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    hitsHourly?: RedirectRuleHitsHourlyCreateNestedManyWithoutRedirectRuleInput
   }
 
   export type RedirectRuleUncheckedCreateWithoutDomainGroupInput = {
@@ -16520,6 +18208,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    hitsHourly?: RedirectRuleHitsHourlyUncheckedCreateNestedManyWithoutRedirectRuleInput
   }
 
   export type RedirectRuleCreateOrConnectWithoutDomainGroupInput = {
@@ -16587,6 +18276,7 @@ export namespace Prisma {
     customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutDomainGroupsInput = {
@@ -16601,6 +18291,7 @@ export namespace Prisma {
     customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type DomainUpsertWithWhereUniqueWithoutDomainGroupInput = {
@@ -16768,6 +18459,32 @@ export namespace Prisma {
     create: XOR<DomainGroupCreateWithoutRedirectRulesInput, DomainGroupUncheckedCreateWithoutRedirectRulesInput>
   }
 
+  export type RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput = {
+    bucketStart: Date | string
+    hits: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    organization: OrganizationCreateNestedOneWithoutRedirectRuleHitsHourlyInput
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput = {
+    organizationId: string
+    bucketStart: Date | string
+    hits: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RedirectRuleHitsHourlyCreateOrConnectWithoutRedirectRuleInput = {
+    where: RedirectRuleHitsHourlyWhereUniqueInput
+    create: XOR<RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput, RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput>
+  }
+
+  export type RedirectRuleHitsHourlyCreateManyRedirectRuleInputEnvelope = {
+    data: RedirectRuleHitsHourlyCreateManyRedirectRuleInput | RedirectRuleHitsHourlyCreateManyRedirectRuleInput[]
+    skipDuplicates?: boolean
+  }
+
   export type DomainGroupUpsertWithoutRedirectRulesInput = {
     update: XOR<DomainGroupUpdateWithoutRedirectRulesInput, DomainGroupUncheckedUpdateWithoutRedirectRulesInput>
     create: XOR<DomainGroupCreateWithoutRedirectRulesInput, DomainGroupUncheckedCreateWithoutRedirectRulesInput>
@@ -16801,6 +18518,174 @@ export namespace Prisma {
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
 
+  export type RedirectRuleHitsHourlyUpsertWithWhereUniqueWithoutRedirectRuleInput = {
+    where: RedirectRuleHitsHourlyWhereUniqueInput
+    update: XOR<RedirectRuleHitsHourlyUpdateWithoutRedirectRuleInput, RedirectRuleHitsHourlyUncheckedUpdateWithoutRedirectRuleInput>
+    create: XOR<RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput, RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput>
+  }
+
+  export type RedirectRuleHitsHourlyUpdateWithWhereUniqueWithoutRedirectRuleInput = {
+    where: RedirectRuleHitsHourlyWhereUniqueInput
+    data: XOR<RedirectRuleHitsHourlyUpdateWithoutRedirectRuleInput, RedirectRuleHitsHourlyUncheckedUpdateWithoutRedirectRuleInput>
+  }
+
+  export type RedirectRuleHitsHourlyUpdateManyWithWhereWithoutRedirectRuleInput = {
+    where: RedirectRuleHitsHourlyScalarWhereInput
+    data: XOR<RedirectRuleHitsHourlyUpdateManyMutationInput, RedirectRuleHitsHourlyUncheckedUpdateManyWithoutRedirectRuleInput>
+  }
+
+  export type RedirectRuleCreateWithoutHitsHourlyInput = {
+    id: string
+    source: string
+    destination: string
+    statusCode?: number
+    matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: boolean
+    blockedAt?: Date | string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    domainGroup: DomainGroupCreateNestedOneWithoutRedirectRulesInput
+  }
+
+  export type RedirectRuleUncheckedCreateWithoutHitsHourlyInput = {
+    id: string
+    source: string
+    destination: string
+    statusCode?: number
+    matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: boolean
+    blockedAt?: Date | string | null
+    priority?: number
+    domainGroupId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type RedirectRuleCreateOrConnectWithoutHitsHourlyInput = {
+    where: RedirectRuleWhereUniqueInput
+    create: XOR<RedirectRuleCreateWithoutHitsHourlyInput, RedirectRuleUncheckedCreateWithoutHitsHourlyInput>
+  }
+
+  export type OrganizationCreateWithoutRedirectRuleHitsHourlyInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserCreateNestedManyWithoutOrganizationInput
+    domainGroups?: DomainGroupCreateNestedManyWithoutOrganizationInput
+    checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
+    redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
+    invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutRedirectRuleHitsHourlyInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
+    domainGroups?: DomainGroupUncheckedCreateNestedManyWithoutOrganizationInput
+    checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
+    customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
+    invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutRedirectRuleHitsHourlyInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutRedirectRuleHitsHourlyInput, OrganizationUncheckedCreateWithoutRedirectRuleHitsHourlyInput>
+  }
+
+  export type RedirectRuleUpsertWithoutHitsHourlyInput = {
+    update: XOR<RedirectRuleUpdateWithoutHitsHourlyInput, RedirectRuleUncheckedUpdateWithoutHitsHourlyInput>
+    create: XOR<RedirectRuleCreateWithoutHitsHourlyInput, RedirectRuleUncheckedCreateWithoutHitsHourlyInput>
+    where?: RedirectRuleWhereInput
+  }
+
+  export type RedirectRuleUpdateToOneWithWhereWithoutHitsHourlyInput = {
+    where?: RedirectRuleWhereInput
+    data: XOR<RedirectRuleUpdateWithoutHitsHourlyInput, RedirectRuleUncheckedUpdateWithoutHitsHourlyInput>
+  }
+
+  export type RedirectRuleUpdateWithoutHitsHourlyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    statusCode?: IntFieldUpdateOperationsInput | number
+    matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: BoolFieldUpdateOperationsInput | boolean
+    blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    domainGroup?: DomainGroupUpdateOneRequiredWithoutRedirectRulesNestedInput
+  }
+
+  export type RedirectRuleUncheckedUpdateWithoutHitsHourlyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    statusCode?: IntFieldUpdateOperationsInput | number
+    matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    isBlocked?: BoolFieldUpdateOperationsInput | boolean
+    blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type OrganizationUpsertWithoutRedirectRuleHitsHourlyInput = {
+    update: XOR<OrganizationUpdateWithoutRedirectRuleHitsHourlyInput, OrganizationUncheckedUpdateWithoutRedirectRuleHitsHourlyInput>
+    create: XOR<OrganizationCreateWithoutRedirectRuleHitsHourlyInput, OrganizationUncheckedCreateWithoutRedirectRuleHitsHourlyInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutRedirectRuleHitsHourlyInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutRedirectRuleHitsHourlyInput, OrganizationUncheckedUpdateWithoutRedirectRuleHitsHourlyInput>
+  }
+
+  export type OrganizationUpdateWithoutRedirectRuleHitsHourlyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserUpdateManyWithoutOrganizationNestedInput
+    domainGroups?: DomainGroupUpdateManyWithoutOrganizationNestedInput
+    checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
+    redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
+    invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutRedirectRuleHitsHourlyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    configuration?: NullableJsonNullValueInput | InputJsonValue
+    users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
+    domainGroups?: DomainGroupUncheckedUpdateManyWithoutOrganizationNestedInput
+    checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+    customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
+    invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
   export type OrganizationCreateWithoutRedirectTestsInput = {
     id: string
     name: string
@@ -16813,6 +18698,7 @@ export namespace Prisma {
     checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
     customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutRedirectTestsInput = {
@@ -16827,6 +18713,7 @@ export namespace Prisma {
     checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
     customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutRedirectTestsInput = {
@@ -16884,6 +18771,7 @@ export namespace Prisma {
     checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
     customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutRedirectTestsInput = {
@@ -16898,6 +18786,7 @@ export namespace Prisma {
     checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
     customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type DomainGroupUpsertWithoutRedirectTestsInput = {
@@ -16945,6 +18834,7 @@ export namespace Prisma {
     customPlans?: CustomPlanCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCheckoutSessionsInput = {
@@ -16959,6 +18849,7 @@ export namespace Prisma {
     customPlans?: CustomPlanUncheckedCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCheckoutSessionsInput = {
@@ -17032,6 +18923,7 @@ export namespace Prisma {
     customPlans?: CustomPlanUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCheckoutSessionsInput = {
@@ -17046,6 +18938,7 @@ export namespace Prisma {
     customPlans?: CustomPlanUncheckedUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserUpsertWithoutCheckoutSessionsInput = {
@@ -17109,6 +19002,7 @@ export namespace Prisma {
     checkoutSessions?: BillingCheckoutSessionCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationUncheckedCreateWithoutCustomPlansInput = {
@@ -17123,6 +19017,7 @@ export namespace Prisma {
     checkoutSessions?: BillingCheckoutSessionUncheckedCreateNestedManyWithoutOrganizationInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutOrganizationInput
     invites?: OrganizationInviteUncheckedCreateNestedManyWithoutOrganizationInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedCreateNestedManyWithoutOrganizationInput
   }
 
   export type OrganizationCreateOrConnectWithoutCustomPlansInput = {
@@ -17153,6 +19048,7 @@ export namespace Prisma {
     checkoutSessions?: BillingCheckoutSessionUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUpdateManyWithoutOrganizationNestedInput
   }
 
   export type OrganizationUncheckedUpdateWithoutCustomPlansInput = {
@@ -17167,6 +19063,7 @@ export namespace Prisma {
     checkoutSessions?: BillingCheckoutSessionUncheckedUpdateManyWithoutOrganizationNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutOrganizationNestedInput
     invites?: OrganizationInviteUncheckedUpdateManyWithoutOrganizationNestedInput
+    redirectRuleHitsHourly?: RedirectRuleHitsHourlyUncheckedUpdateManyWithoutOrganizationNestedInput
   }
 
   export type UserCreateManyOrganizationInput = {
@@ -17239,6 +19136,14 @@ export namespace Prisma {
     createdByUserId: string
     acceptedAt?: Date | string | null
     revokedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RedirectRuleHitsHourlyCreateManyOrganizationInput = {
+    ruleId: string
+    bucketStart: Date | string
+    hits: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -17475,6 +19380,30 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type RedirectRuleHitsHourlyUpdateWithoutOrganizationInput = {
+    bucketStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    hits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    redirectRule?: RedirectRuleUpdateOneRequiredWithoutHitsHourlyNestedInput
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedUpdateWithoutOrganizationInput = {
+    ruleId?: StringFieldUpdateOperationsInput | string
+    bucketStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    hits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedUpdateManyWithoutOrganizationInput = {
+    ruleId?: StringFieldUpdateOperationsInput | string
+    bucketStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    hits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type BillingCheckoutSessionCreateManyUserInput = {
     id: string
     organizationId: string
@@ -17648,6 +19577,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    hitsHourly?: RedirectRuleHitsHourlyUpdateManyWithoutRedirectRuleNestedInput
   }
 
   export type RedirectRuleUncheckedUpdateWithoutDomainGroupInput = {
@@ -17662,6 +19592,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    hitsHourly?: RedirectRuleHitsHourlyUncheckedUpdateManyWithoutRedirectRuleNestedInput
   }
 
   export type RedirectRuleUncheckedUpdateManyWithoutDomainGroupInput = {
@@ -17709,6 +19640,38 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type RedirectRuleHitsHourlyCreateManyRedirectRuleInput = {
+    organizationId: string
+    bucketStart: Date | string
+    hits: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type RedirectRuleHitsHourlyUpdateWithoutRedirectRuleInput = {
+    bucketStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    hits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutRedirectRuleHitsHourlyNestedInput
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedUpdateWithoutRedirectRuleInput = {
+    organizationId?: StringFieldUpdateOperationsInput | string
+    bucketStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    hits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type RedirectRuleHitsHourlyUncheckedUpdateManyWithoutRedirectRuleInput = {
+    organizationId?: StringFieldUpdateOperationsInput | string
+    bucketStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    hits?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

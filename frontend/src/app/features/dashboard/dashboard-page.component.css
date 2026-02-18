@@ -22,19 +22,24 @@
   cursor: pointer;
 }
 
-.range-button.is-active {
-  background: var(--app-accent-soft, #f2eefc);
-  border-color: transparent;
-}
-
-.analytics-item {
-  display: grid;
-  grid-template-columns: 90px 1fr;
+.analytics-row {
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   align-items: center;
+  justify-content: space-between;
   padding: 12px 14px;
   border-radius: 16px;
   background: var(--app-accent-soft, #f2eefc);
+}
+
+.analytics-meta {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 90px 1fr;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 320px;
 }
 
 .analytics-hits {
@@ -79,4 +84,8 @@
   white-space: nowrap;
   font-size: 13px;
   color: var(--app-foreground, #111827);
+}
+
+.details-button {
+  flex: 0 0 auto;
 }

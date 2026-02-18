@@ -8,8 +8,8 @@ import type {
   RedirectRuleListQuery,
   RedirectSimulationEntry,
   RedirectSimulationResponse,
-  RedirectRuleTopRange,
-  TopRedirectRulesResponse
+  RedirectRuleAnalyticsQuery,
+  RedirectRuleAnalyticsResponse
 } from '../models/redirect-rule.model';
 import type { QueryResult } from '../models/query-result.model';
 import { buildHttpParams } from './api.utils';
@@ -54,8 +54,8 @@ export class RedirectRulesApiService {
     });
   }
 
-  top(range: RedirectRuleTopRange, limit = 50): Observable<TopRedirectRulesResponse> {
-    const params = buildHttpParams({ range, limit });
-    return this.http.get<TopRedirectRulesResponse>(`${this.apiUrl}/top`, { params });
+  analytics(query: RedirectRuleAnalyticsQuery): Observable<RedirectRuleAnalyticsResponse> {
+    const params = buildHttpParams(query);
+    return this.http.get<RedirectRuleAnalyticsResponse>(`${this.apiUrl}/analytics`, { params });
   }
 }

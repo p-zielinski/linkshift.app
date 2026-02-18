@@ -51,23 +51,24 @@ export class RedirectRulesController {
     );
   }
 
-  @Get('top')
+  @Get('analytics')
   @UseGuards(AuthGuard)
   async topRules(
     @User('organizationId') organizationId: string,
-    @Query('limit') limit?: string,
-    @Query('range') range?: string,
+    @Query(new ZodPipe(redirectRuleSchemas.TopRedirectRulesQuerySchema))
+    query?: redirectRuleSchemas.TopRedirectRulesQueryDto,
   ) {
-    this.logger.log('Redirect rules top requested', {
+    this.logger.log('Redirect rules analytics requested', {
       requestId: this.clsService.getId(),
       organizationId,
-      range: range ?? 'day',
+      range: query?.range ?? 'day',
+      start: query?.start?.toISOString?.(),
+      end: query?.end?.toISOString?.(),
     });
-    const parsedLimit = limit ? Number(limit) : 50;
+
     return this.redirectService.getTopRules(
       organizationId,
-      parsedLimit,
-      range ?? 'day',
+      query ?? { limit: 50 },
     );
   }
 
