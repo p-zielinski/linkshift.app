@@ -1,7 +1,7 @@
 FROM node:24.12.0-slim AS deps
 WORKDIR /app/backend
 COPY backend/package.json backend/package-lock.json ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 FROM node:24.12.0-slim AS build
 WORKDIR /app
