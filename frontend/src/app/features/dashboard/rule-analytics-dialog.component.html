@@ -1,0 +1,67 @@
+<div class="dialog-header">
+  <div>
+    <div class="dialog-title">Rule analytics details</div>
+    <div class="dialog-subtitle">Full rule information with hit count.</div>
+  </div>
+  <button mat-icon-button mat-dialog-close type="button" aria-label="Close dialog">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<div class="dialog-body">
+  <div class="metric-card">
+    <div class="metric-value">{{ data.entry.hits | number }}</div>
+    <div class="metric-label">Hits in range</div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">Source</div>
+    <div class="field-value">{{ data.entry.rule.source }}</div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">Destination</div>
+    <div class="field-value">{{ data.entry.rule.destination }}</div>
+  </div>
+
+  <div class="field-grid">
+    <div class="field">
+      <div class="field-label">Status code</div>
+      <div class="field-value">{{ data.entry.rule.statusCode }}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Priority</div>
+      <div class="field-value">{{ data.entry.rule.priority }}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Domain group</div>
+      <div class="field-value">{{ data.entry.rule.domainGroupId }}</div>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">Match methods</div>
+    <div class="field-value">
+      @if ((data.entry.rule.matchMethod ?? []).length === 0) {
+        All methods
+      } @else {
+        {{ data.entry.rule.matchMethod.join(', ') }}
+      }
+    </div>
+  </div>
+
+  <div class="field-grid">
+    <div class="field">
+      <div class="field-label">Created at</div>
+      <div class="field-value">{{ data.entry.rule.createdAt | date: 'medium' }}</div>
+    </div>
+    <div class="field">
+      <div class="field-label">Updated at</div>
+      <div class="field-value">{{ data.entry.rule.updatedAt | date: 'medium' }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="dialog-actions">
+  <button mat-flat-button color="primary" mat-dialog-close type="button">Close</button>
+</div>

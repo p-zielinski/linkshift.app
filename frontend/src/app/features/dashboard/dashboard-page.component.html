@@ -358,5 +358,36 @@
       [tooltip]="chartOptions().tooltip"
       [grid]="chartOptions().grid"
     ></apx-chart>
+
+    <div class="mt-5 grid gap-3">
+      @for (entry of topRules(); track entry.rule.id) {
+        <div class="analytics-row">
+          <div class="analytics-meta">
+            <div class="analytics-hits">
+              {{ entry.hits | number }}
+              <span class="analytics-hits-label">hits</span>
+            </div>
+            <div class="analytics-rule">
+              <div class="rule-line" [attr.title]="entry.rule.source">
+                <span class="rule-label">Source</span>
+                <span class="rule-value">{{ entry.rule.source }}</span>
+              </div>
+              <div class="rule-line" [attr.title]="entry.rule.destination">
+                <span class="rule-label">Destination</span>
+                <span class="rule-value">{{ entry.rule.destination }}</span>
+              </div>
+            </div>
+          </div>
+          <button
+            mat-stroked-button
+            type="button"
+            class="details-button"
+            (click)="openRuleDetails(entry)"
+          >
+            Details
+          </button>
+        </div>
+      }
+    </div>
   }
 </mat-card>
