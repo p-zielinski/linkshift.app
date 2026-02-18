@@ -89,6 +89,39 @@ export const ListRedirectRulesQuerySchema = z.object({
     .optional(),
 });
 
+const RangeEnum = z.enum(['day', 'week', 'month']);
+const CoercedDateSchema = z.coerce.date().refine(
+  (value) => !Number.isNaN(value.getTime()),
+  'Invalid date',
+);
+
+export const TopRedirectRulesQuerySchema = z
+  .object({
+    limit: z.coerce.number().int().min(1).max(50).default(50),
+    range: RangeEnum.optional(),
+    start: CoercedDateSchema.optional(),
+    end: CoercedDateSchema.optional(),
+  })
+  .superRefine((value, ctx) => {
+    const hasStart = Boolean(value.start);
+    const hasEnd = Boolean(value.end);
+    if (hasStart !== hasEnd) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Both start and end must be provided together',
+        path: ['start'],
+      });
+      return;
+    }
+    if (value.start && value.end && value.start > value.end) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Start must be before end',
+        path: ['start'],
+      });
+    }
+  });
+
 const SimulationEntrySchema = z.object({
   domainGroupId: z
     .string()
@@ -122,5 +155,8 @@ export type CreateRedirectRuleDto = z.infer<typeof CreateRedirectRuleSchema>;
 export type UpdateRedirectRuleDto = z.infer<typeof UpdateRedirectRuleSchema>;
 export type ListRedirectRulesQueryDto = z.infer<
   typeof ListRedirectRulesQuerySchema
+>;
+export type TopRedirectRulesQueryDto = z.infer<
+  typeof TopRedirectRulesQuerySchema
 >;
 export type SimulateRedirectsDto = z.infer<typeof SimulateRedirectsSchema>;

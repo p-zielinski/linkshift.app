@@ -1,5 +1,6 @@
 import { defineConfig } from 'prisma/config';
 import { readFileSync } from 'fs';
+import 'dotenv/config';
 
 /**
  * Helper to get database URL from environment variables or Docker Secrets.

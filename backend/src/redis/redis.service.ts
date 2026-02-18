@@ -92,6 +92,44 @@ export class RedisService implements OnModuleDestroy {
     await this.redis.expire(key, seconds);
   }
 
+  async scan(
+    cursor: string,
+    pattern: string,
+    count = 1000,
+  ): Promise<{ cursor: string; keys: string[] }> {
+    const response = await this.redis.scan(
+      cursor,
+      'MATCH',
+      pattern,
+      'COUNT',
+      count,
+    );
+    const [nextCursor, keys] = response as [string, string[]];
+    return { cursor: nextCursor, keys };
+  }
+
+  async zScan(
+    key: string,
+    cursor: string,
+    count = 1000,
+  ): Promise<{ cursor: string; entries: { member: string; score: number }[] }> {
+    const response = await this.redis.zscan(
+      key,
+      cursor,
+      'COUNT',
+      count,
+    );
+    const [nextCursor, flatEntries] = response as [string, string[]];
+    const entries: { member: string; score: number }[] = [];
+    for (let i = 0; i < flatEntries.length; i += 2) {
+      entries.push({
+        member: flatEntries[i],
+        score: Number(flatEntries[i + 1] ?? 0),
+      });
+    }
+    return { cursor: nextCursor, entries };
+  }
+
   async onModuleDestroy() {
     await this.redis.quit();
   }

@@ -295,24 +295,49 @@
 <mat-card class="mt-5 rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div>
-      <h3 class="m-0 text-lg font-semibold">Top redirect rules</h3>
+      <h3 class="m-0 text-lg font-semibold">Redirect rules analytics</h3>
       <div class="text-[13px] text-app-muted">
-        Most used rules for the selected time window.
+        Traffic distribution for the selected time window.
       </div>
     </div>
     <div class="flex flex-wrap items-center gap-2">
-      @for (range of topRanges; track range.value) {
+      @for (range of quickRanges; track range.days) {
         <button
           mat-stroked-button
           type="button"
           class="range-button"
-          [class.is-active]="topRange() === range.value"
-          (click)="setTopRange(range.value)"
+          (click)="setQuickRange(range.days)"
         >
           {{ range.label }}
         </button>
       }
     </div>
+  </div>
+
+  <div class="my-4 h-px bg-app-divider"></div>
+
+  <div class="flex flex-wrap items-end gap-4">
+    <mat-form-field appearance="outline" class="min-w-[220px]">
+      <mat-label>Start date & time</mat-label>
+      <input
+        matInput
+        type="datetime-local"
+        [value]="rangeStart()"
+        (change)="onRangeStartChange($event)"
+      />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="min-w-[220px]">
+      <mat-label>End date & time</mat-label>
+      <input
+        matInput
+        type="datetime-local"
+        [value]="rangeEnd()"
+        (change)="onRangeEndChange($event)"
+      />
+    </mat-form-field>
+    <button mat-flat-button color="primary" type="button" (click)="applyCustomRange()">
+      Apply range
+    </button>
   </div>
 
   <div class="my-4 h-px bg-app-divider"></div>
@@ -324,23 +349,43 @@
   } @else if (topRules().length === 0) {
     <div class="text-[12px] text-app-muted">No traffic data yet.</div>
   } @else {
-    <div class="grid gap-3">
+    <apx-chart
+      [series]="chartSeries()"
+      [chart]="chartOptions().chart"
+      [xaxis]="chartOptions().xaxis"
+      [plotOptions]="chartOptions().plotOptions"
+      [dataLabels]="chartOptions().dataLabels"
+      [tooltip]="chartOptions().tooltip"
+      [grid]="chartOptions().grid"
+    ></apx-chart>
+
+    <div class="mt-5 grid gap-3">
       @for (entry of topRules(); track entry.rule.id) {
-        <div class="analytics-item">
-          <div class="analytics-hits">
-            {{ entry.hits | number }}
-            <span class="analytics-hits-label">hits</span>
-          </div>
-          <div class="analytics-rule">
-            <div class="rule-line" [attr.title]="entry.rule.source">
-              <span class="rule-label">Source</span>
-              <span class="rule-value">{{ entry.rule.source }}</span>
+        <div class="analytics-row">
+          <div class="analytics-meta">
+            <div class="analytics-hits">
+              {{ entry.hits | number }}
+              <span class="analytics-hits-label">hits</span>
             </div>
-            <div class="rule-line" [attr.title]="entry.rule.destination">
-              <span class="rule-label">Destination</span>
-              <span class="rule-value">{{ entry.rule.destination }}</span>
+            <div class="analytics-rule">
+              <div class="rule-line" [attr.title]="entry.rule.source">
+                <span class="rule-label">Source</span>
+                <span class="rule-value">{{ entry.rule.source }}</span>
+              </div>
+              <div class="rule-line" [attr.title]="entry.rule.destination">
+                <span class="rule-label">Destination</span>
+                <span class="rule-value">{{ entry.rule.destination }}</span>
+              </div>
             </div>
           </div>
+          <button
+            mat-stroked-button
+            type="button"
+            class="details-button"
+            (click)="openRuleDetails(entry)"
+          >
+            Details
+          </button>
         </div>
       }
     </div>

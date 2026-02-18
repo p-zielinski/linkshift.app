@@ -73,7 +73,7 @@ services:
     deploy:
       update_config:
         order: start-first
-      replicas: 1
+      replicas: 4
       restart_policy:
         condition: on-failure
 
