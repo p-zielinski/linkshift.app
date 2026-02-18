@@ -41,7 +41,13 @@ import { DomainBlacklistService } from './security/domain-blacklist.service';
 import { RedirectAnalyticsService } from './security/redirect-analytics.service';
 import { SafetyRescanScheduler } from './security/safety-rescan.scheduler';
 import { SafetyRescanProcessor } from './security/safety-rescan.processor';
-import { SAFETY_RESCAN_QUEUE } from './security/security.constants';
+import {
+  REDIRECT_HITS_SNAPSHOT_QUEUE,
+  SAFETY_RESCAN_QUEUE,
+} from './security/security.constants';
+import { RedirectHitsSnapshotService } from './security/redirect-hits-snapshot.service';
+import { RedirectHitsSnapshotScheduler } from './security/redirect-hits-snapshot.scheduler';
+import { RedirectHitsSnapshotProcessor } from './security/redirect-hits-snapshot.processor';
 import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { SentryExceptionFilter } from './filters/sentry-exception.filter';
@@ -116,6 +122,7 @@ import { SentryExceptionFilter } from './filters/sentry-exception.filter';
       }),
     }),
     BullModule.registerQueue({ name: SAFETY_RESCAN_QUEUE }),
+    BullModule.registerQueue({ name: REDIRECT_HITS_SNAPSHOT_QUEUE }),
     ClsModule.forRoot({
       global: true,
       middleware: {
@@ -163,8 +170,11 @@ import { SentryExceptionFilter } from './filters/sentry-exception.filter';
     SafetyScannerService,
     DomainBlacklistService,
     RedirectAnalyticsService,
+    RedirectHitsSnapshotService,
     SafetyRescanScheduler,
     SafetyRescanProcessor,
+    RedirectHitsSnapshotScheduler,
+    RedirectHitsSnapshotProcessor,
     {
       provide: APP_FILTER,
       useClass: SentryExceptionFilter,

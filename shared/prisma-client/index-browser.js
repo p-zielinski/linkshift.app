@@ -193,6 +193,15 @@ exports.Prisma.RedirectRuleScalarFieldEnum = {
   deletedAt: 'deletedAt'
 };
 
+exports.Prisma.RedirectRuleHitsHourlyScalarFieldEnum = {
+  ruleId: 'ruleId',
+  organizationId: 'organizationId',
+  bucketStart: 'bucketStart',
+  hits: 'hits',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.RedirectTestScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -287,6 +296,7 @@ exports.Prisma.ModelName = {
   DomainGroup: 'DomainGroup',
   Domain: 'Domain',
   RedirectRule: 'RedirectRule',
+  RedirectRuleHitsHourly: 'RedirectRuleHitsHourly',
   RedirectTest: 'RedirectTest',
   BillingCheckoutSession: 'BillingCheckoutSession',
   CustomPlan: 'CustomPlan'
