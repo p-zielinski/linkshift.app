@@ -1,0 +1,67 @@
+@if (loading) {
+  <div
+    class="flex items-center justify-center text-[12px] text-app-muted"
+    [style.minHeight.px]="chartHeight"
+  >
+    Loading analytics...
+  </div>
+} @else if (error) {
+  <div
+    class="flex items-center justify-center text-[12px] text-red-600"
+    [style.minHeight.px]="chartHeight"
+  >
+    {{ error }}
+  </div>
+} @else if (entries.length === 0) {
+  <div
+    class="flex items-center justify-center text-[12px] text-app-muted"
+    [style.minHeight.px]="chartHeight"
+  >
+    No traffic data yet.
+  </div>
+} @else {
+  <apx-chart
+    [series]="chartSeries"
+    [chart]="chartOptions.chart"
+    [xaxis]="chartOptions.xaxis"
+    [plotOptions]="chartOptions.plotOptions"
+    [dataLabels]="chartOptions.dataLabels"
+    [tooltip]="chartOptions.tooltip"
+    [grid]="chartOptions.grid"
+  ></apx-chart>
+
+  <div class="mt-5 grid gap-3">
+    @for (entry of entries; track entry.rule.id) {
+      <div class="flex flex-wrap items-center justify-between gap-4 rounded-[16px] bg-app-accent-soft p-3">
+        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-4">
+          <div class="flex min-w-[90px] flex-col text-[18px] font-semibold leading-tight">
+            {{ entry.hits | number }}
+            <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">hits</span>
+          </div>
+          <div class="grid min-w-0 flex-1 gap-2">
+            <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
+              <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Source</span>
+              <span class="truncate text-[13px] text-app-foreground" [attr.title]="entry.rule.source">
+                {{ entry.rule.source }}
+              </span>
+            </div>
+            <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
+              <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Destination</span>
+              <span class="truncate text-[13px] text-app-foreground" [attr.title]="entry.rule.destination">
+                {{ entry.rule.destination }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <button
+          mat-stroked-button
+          type="button"
+          class="shrink-0"
+          (click)="openDetails.emit(entry)"
+        >
+          Details
+        </button>
+      </div>
+    }
+  </div>
+}
