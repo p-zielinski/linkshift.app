@@ -270,13 +270,13 @@ export class EmailService {
     text: string;
     html?: string;
   }): Promise<void> {
-    const apiKey = this.configService.get<string>('ZEPTOMAIL_API_KEY') ?? '';
+    const authorizationToken = this.configService.get<string>('ZEPTOMAIL_API_KEY') ?? '';
     const apiUrl =
       this.configService.get<string>('ZEPTOMAIL_API_URL') ??
       'https://api.zeptomail.com/v1.1/email';
     const sender = this.resolveSender();
 
-    if (!apiKey || !sender) {
+    if (!authorizationToken || !sender) {
       this.logger.warn('Email skipped due to missing ZeptoMail config', {
         to: params.to,
       });
@@ -297,7 +297,7 @@ export class EmailService {
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        Authorization: `Zoho-enczapikey ${apiKey}`,
+        Authorization: authorizationToken,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
