@@ -160,7 +160,8 @@ export class HomePageComponent implements OnInit {
     'Domain groups with shared rules',
     'Regex sources with capture groups',
     'Template variables and modifiers',
-    'Conditional routing by context'
+    'Conditional routing by context',
+    'SSL included on every domain'
   ];
 
   ngOnInit(): void {

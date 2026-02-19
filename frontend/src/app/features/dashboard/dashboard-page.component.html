@@ -174,120 +174,121 @@
     <div class="mb-3 text-[12px] text-app-muted">Refreshing usage...</div>
   } @else if (usageError(); as error) {
     <div class="mb-3 text-[12px] text-red-600">{{ error }}</div>
+  } @else {
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        class="rounded-2xl p-4"
+        [class.bg-app-accent-soft]="!domainGroupLimitReached()"
+        [class.bg-red-50]="domainGroupLimitReached()"
+      >
+        <div
+          class="text-[22px] font-semibold"
+          [class.text-red-700]="domainGroupLimitReached()"
+        >
+          {{ usage()?.domainGroups ?? '-' }} / {{ limits().maxDomainGroups }}
+        </div>
+        <div
+          class="text-[13px]"
+          [class.text-red-600]="domainGroupLimitReached()"
+          [class.text-app-muted]="!domainGroupLimitReached()"
+        >
+          Domain groups
+        </div>
+      </div>
+      <div class="rounded-2xl bg-app-accent-soft p-4">
+        <div class="text-[22px] font-semibold">
+          {{ limits().maxDomainsPerGroup }}
+        </div>
+        <div class="text-[13px] text-app-muted">Domains per group limit</div>
+      </div>
+      <div
+        class="rounded-2xl p-4"
+        [class.bg-app-accent-soft]="!domainLimitReached()"
+        [class.bg-red-50]="domainLimitReached()"
+      >
+        <div
+          class="text-[22px] font-semibold"
+          [class.text-red-700]="domainLimitReached()"
+        >
+          {{ usage()?.domains ?? '-' }} / {{ limits().maxTotalDomains }}
+        </div>
+        <div
+          class="text-[13px]"
+          [class.text-red-600]="domainLimitReached()"
+          [class.text-app-muted]="!domainLimitReached()"
+        >
+          Domains
+        </div>
+      </div>
+      <div class="rounded-2xl bg-app-accent-soft p-4">
+        <div class="text-[22px] font-semibold">
+          {{ limits().maxRulesPerGroup }}
+        </div>
+        <div class="text-[13px] text-app-muted">Rules per group limit</div>
+      </div>
+      <div
+        class="rounded-2xl p-4"
+        [class.bg-app-accent-soft]="!ruleLimitReached()"
+        [class.bg-red-50]="ruleLimitReached()"
+      >
+        <div
+          class="text-[22px] font-semibold"
+          [class.text-red-700]="ruleLimitReached()"
+        >
+          {{ usage()?.rules ?? '-' }} / {{ limits().maxTotalRules }}
+        </div>
+        <div
+          class="text-[13px]"
+          [class.text-red-600]="ruleLimitReached()"
+          [class.text-app-muted]="!ruleLimitReached()"
+        >
+          Rules
+        </div>
+      </div>
+      <div
+        class="rounded-2xl p-4"
+        [class.bg-app-accent-soft]="!testLimitReached()"
+        [class.bg-red-50]="testLimitReached()"
+      >
+        <div
+          class="text-[22px] font-semibold"
+          [class.text-red-700]="testLimitReached()"
+        >
+          {{ usage()?.tests ?? '-' }} / {{ limits().maxTotalTests }}
+        </div>
+        <div
+          class="text-[13px]"
+          [class.text-red-600]="testLimitReached()"
+          [class.text-app-muted]="!testLimitReached()"
+        >
+          Tests
+        </div>
+      </div>
+      <div
+        class="rounded-2xl p-4"
+        [class.bg-app-accent-soft]="!userLimitReached()"
+        [class.bg-red-50]="userLimitReached()"
+      >
+        <div
+          class="text-[22px] font-semibold"
+          [class.text-red-700]="userLimitReached()"
+        >
+          {{ usage()?.users ?? '-' }} / {{ limits().maxUsers }}
+        </div>
+        <div
+          class="text-[13px]"
+          [class.text-red-600]="userLimitReached()"
+          [class.text-app-muted]="!userLimitReached()"
+        >
+          Active users
+        </div>
+      </div>
+      <div class="rounded-2xl bg-app-accent-soft p-4">
+        <div class="text-[22px] font-semibold">
+          {{ limits().redirectionLimitPerMinute }}
+        </div>
+        <div class="text-[13px] text-app-muted">Redirections per minute</div>
+      </div>
+    </div>
   }
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    <div
-      class="rounded-2xl p-4"
-      [class.bg-app-accent-soft]="!domainGroupLimitReached()"
-      [class.bg-red-50]="domainGroupLimitReached()"
-    >
-      <div
-        class="text-[22px] font-semibold"
-        [class.text-red-700]="domainGroupLimitReached()"
-      >
-        {{ usage()?.domainGroups ?? '-' }} / {{ limits().maxDomainGroups }}
-      </div>
-      <div
-        class="text-[13px]"
-        [class.text-red-600]="domainGroupLimitReached()"
-        [class.text-app-muted]="!domainGroupLimitReached()"
-      >
-        Domain groups
-      </div>
-    </div>
-    <div class="rounded-2xl bg-app-accent-soft p-4">
-      <div class="text-[22px] font-semibold">
-        {{ limits().maxDomainsPerGroup }}
-      </div>
-      <div class="text-[13px] text-app-muted">Domains per group limit</div>
-    </div>
-    <div
-      class="rounded-2xl p-4"
-      [class.bg-app-accent-soft]="!domainLimitReached()"
-      [class.bg-red-50]="domainLimitReached()"
-    >
-      <div
-        class="text-[22px] font-semibold"
-        [class.text-red-700]="domainLimitReached()"
-      >
-        {{ usage()?.domains ?? '-' }} / {{ limits().maxTotalDomains }}
-      </div>
-      <div
-        class="text-[13px]"
-        [class.text-red-600]="domainLimitReached()"
-        [class.text-app-muted]="!domainLimitReached()"
-      >
-        Domains
-      </div>
-    </div>
-    <div class="rounded-2xl bg-app-accent-soft p-4">
-      <div class="text-[22px] font-semibold">
-        {{ limits().maxRulesPerGroup }}
-      </div>
-      <div class="text-[13px] text-app-muted">Rules per group limit</div>
-    </div>
-    <div
-      class="rounded-2xl p-4"
-      [class.bg-app-accent-soft]="!ruleLimitReached()"
-      [class.bg-red-50]="ruleLimitReached()"
-    >
-      <div
-        class="text-[22px] font-semibold"
-        [class.text-red-700]="ruleLimitReached()"
-      >
-        {{ usage()?.rules ?? '-' }} / {{ limits().maxTotalRules }}
-      </div>
-      <div
-        class="text-[13px]"
-        [class.text-red-600]="ruleLimitReached()"
-        [class.text-app-muted]="!ruleLimitReached()"
-      >
-        Rules
-      </div>
-    </div>
-    <div
-      class="rounded-2xl p-4"
-      [class.bg-app-accent-soft]="!testLimitReached()"
-      [class.bg-red-50]="testLimitReached()"
-    >
-      <div
-        class="text-[22px] font-semibold"
-        [class.text-red-700]="testLimitReached()"
-      >
-        {{ usage()?.tests ?? '-' }} / {{ limits().maxTotalTests }}
-      </div>
-      <div
-        class="text-[13px]"
-        [class.text-red-600]="testLimitReached()"
-        [class.text-app-muted]="!testLimitReached()"
-      >
-        Tests
-      </div>
-    </div>
-    <div
-      class="rounded-2xl p-4"
-      [class.bg-app-accent-soft]="!userLimitReached()"
-      [class.bg-red-50]="userLimitReached()"
-    >
-      <div
-        class="text-[22px] font-semibold"
-        [class.text-red-700]="userLimitReached()"
-      >
-        {{ usage()?.users ?? '-' }} / {{ limits().maxUsers }}
-      </div>
-      <div
-        class="text-[13px]"
-        [class.text-red-600]="userLimitReached()"
-        [class.text-app-muted]="!userLimitReached()"
-      >
-        Active users
-      </div>
-    </div>
-    <div class="rounded-2xl bg-app-accent-soft p-4">
-      <div class="text-[22px] font-semibold">
-        {{ limits().redirectionLimitPerMinute }}
-      </div>
-      <div class="text-[13px] text-app-muted">Redirections per minute</div>
-    </div>
-  </div>
 </mat-card>
