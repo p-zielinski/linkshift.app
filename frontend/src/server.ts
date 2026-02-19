@@ -94,6 +94,7 @@ app.use(
 
 const CSR_ROUTES = [
   '/dashboard',
+  '/redirect-rules-analytics',
   '/profile',
   '/organization',
   '/domains',
