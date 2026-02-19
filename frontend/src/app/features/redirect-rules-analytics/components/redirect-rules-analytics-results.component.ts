@@ -6,8 +6,10 @@ import {
   ApexAxisChartSeries,
   ApexChart,
   ApexDataLabels,
+  ApexFill,
   ApexGrid,
   ApexPlotOptions,
+  ApexStroke,
   ApexTooltip,
   ApexXAxis,
 } from 'ng-apexcharts';
@@ -31,6 +33,9 @@ export class RedirectRulesAnalyticsResultsComponent {
     dataLabels: ApexDataLabels;
     tooltip: ApexTooltip;
     grid: ApexGrid;
+    colors: string[];
+    fill: ApexFill;
+    stroke: ApexStroke;
   };
   @Input() chartHeight = 400;
 
