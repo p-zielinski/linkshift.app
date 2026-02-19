@@ -3,6 +3,7 @@ import { authGuard, guestGuard } from './core/auth/auth.guard';
 import { AppShellComponent } from './core/layout/app-shell.component';
 import { AuthPageComponent } from './features/auth/auth-page.component';
 import { DashboardPageComponent } from './features/dashboard/dashboard-page.component';
+import { RedirectRulesAnalyticsPageComponent } from './features/redirect-rules-analytics/redirect-rules-analytics-page.component';
 import { DomainsPageComponent } from './features/domains/domains-page.component';
 import { DomainGroupsPageComponent } from './features/domain-groups/domain-groups-page.component';
 import { RedirectRulesPageComponent } from './features/redirect-rules/redirect-rules-page.component';
@@ -65,6 +66,11 @@ export const routes: Routes = [
     canActivate: [authGuard, legalConsentGuard],
     children: [
       { path: 'dashboard', component: DashboardPageComponent },
+      {
+        path: 'redirect-rules-analytics',
+        component: RedirectRulesAnalyticsPageComponent,
+        canActivate: [domainGroupsRequiredGuard],
+      },
       { path: 'legal/consent', component: LegalConsentPageComponent },
       { path: 'profile', component: ProfilePageComponent },
       { path: 'organization', component: OrganizationPageComponent },

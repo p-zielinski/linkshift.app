@@ -1,0 +1,41 @@
+<div class="flex flex-wrap items-center justify-between gap-4">
+  <div class="text-[13px] font-semibold text-app-foreground">Quick ranges</div>
+  <div class="flex flex-wrap items-center gap-2">
+    @for (range of quickRanges; track range.days) {
+      <button
+        mat-stroked-button
+        type="button"
+        class="text-[12px]"
+        (click)="quickRangeSelected.emit(range.days)"
+      >
+        {{ range.label }}
+      </button>
+    }
+  </div>
+</div>
+
+<div class="my-4 h-px bg-app-divider"></div>
+
+<div class="flex flex-wrap items-center gap-4">
+  <mat-form-field appearance="outline" class="min-w-[220px]">
+    <mat-label>Start date & time</mat-label>
+    <input
+      matInput
+      type="datetime-local"
+      [value]="rangeStart"
+      (change)="onRangeStartChange($event)"
+    />
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="min-w-[220px]">
+    <mat-label>End date & time</mat-label>
+    <input
+      matInput
+      type="datetime-local"
+      [value]="rangeEnd"
+      (change)="onRangeEndChange($event)"
+    />
+  </mat-form-field>
+  <button mat-flat-button color="primary" type="button" (click)="applyRange.emit()">
+    Apply range
+  </button>
+</div>
