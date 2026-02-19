@@ -1,0 +1,6 @@
+::ng-deep .apexcharts-tooltip,
+::ng-deep .apexcharts-tooltip-title {
+  max-width: 360px;
+  white-space: normal;
+  word-break: break-word;
+}

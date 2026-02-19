@@ -1,0 +1,30 @@
+<div class="flex min-h-[calc(100vh-48px)] flex-col">
+  <app-page-header
+    title="Redirect rules analytics"
+    subtitle="Traffic distribution for the selected time window."
+  ></app-page-header>
+
+  <div class="mb-4 rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+    <app-redirect-rules-analytics-filters
+      [quickRanges]="quickRanges"
+      [rangeStart]="rangeStart()"
+      [rangeEnd]="rangeEnd()"
+      (quickRangeSelected)="setQuickRange($event)"
+      (rangeStartChange)="onRangeStartChange($event)"
+      (rangeEndChange)="onRangeEndChange($event)"
+      (applyRange)="applyCustomRange()"
+    ></app-redirect-rules-analytics-filters>
+  </div>
+
+  <div class="flex min-h-0 flex-1 flex-col rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+    <app-redirect-rules-analytics-results
+      [entries]="topRules()"
+      [loading]="topRulesLoading()"
+      [error]="topRulesError()"
+      [chartSeries]="chartSeries()"
+      [chartOptions]="chartOptions()"
+      [chartHeight]="chartHeight"
+      (openDetails)="openRuleDetails($event)"
+    ></app-redirect-rules-analytics-results>
+  </div>
+</div>
