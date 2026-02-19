@@ -24,18 +24,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../core/store/auth.store';
-import {
-  OrganizationConfiguration,
-} from '@shared/models/organization-config.model';
+import { OrganizationConfiguration } from '@shared/models/organization-config.model';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { BillingApiService } from '../../core/api/billing-api.service';
 import { UpgradeDialogComponent } from '../billing/upgrade-dialog/upgrade-dialog.component';
 import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { RedirectRulesApiService } from '../../core/api/redirect-rules-api.service';
-import type {
-  TopRedirectRuleEntry
-} from '../../core/models/redirect-rule.model';
+import type { TopRedirectRuleEntry } from '../../core/models/redirect-rule.model';
 import { formatPlanLabel } from '../../core/utils/plan-label';
 import { RuleAnalyticsDialogComponent } from './rule-analytics-dialog.component';
 import {
@@ -46,7 +42,7 @@ import {
   ApexPlotOptions,
   ApexDataLabels,
   ApexTooltip,
-  ApexGrid
+  ApexGrid,
 } from 'ng-apexcharts';
 
 @Component({
@@ -66,10 +62,10 @@ import {
     MatTooltipModule,
     ClipboardModule,
     PageHeaderComponent,
-    NgApexchartsModule
+    NgApexchartsModule,
   ],
   templateUrl: './dashboard-page.component.html',
-  styleUrl: './dashboard-page.component.css'
+  styleUrl: './dashboard-page.component.css',
 })
 export class DashboardPageComponent implements OnInit, AfterViewInit {
   private readonly authStore = inject(AuthStore);
@@ -98,9 +94,7 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     const rawConfig = org?.configuration ?? undefined;
     return OrganizationConfiguration.fromJson(rawConfig);
   });
-  readonly activeSubscription = computed(
-    () => this.config().activeSubscription,
-  );
+  readonly activeSubscription = computed(() => this.config().activeSubscription);
   readonly limits = computed(() => this.activeSubscription().limits);
   readonly usage = computed(() => this.usageStore.usage());
   readonly usageLoading = computed(() => this.usageStore.isLoading());
@@ -114,13 +108,13 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     { label: 'Last 3 days', days: 3 },
     { label: 'Last 7 days', days: 7 },
     { label: 'Last 14 days', days: 14 },
-    { label: 'Last 30 days', days: 30 }
+    { label: 'Last 30 days', days: 30 },
   ];
   readonly chartSeries = computed<ApexAxisChartSeries>(() => [
     {
       name: 'Hits',
-      data: this.topRules().map((entry) => entry.hits)
-    }
+      data: this.topRules().map((entry) => entry.hits),
+    },
   ]);
   readonly chartOptions = computed<{
     chart: ApexChart;
@@ -132,30 +126,32 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
   }>(() => ({
     chart: {
       type: 'bar',
-      height: 320,
-      toolbar: { show: false }
+      height: 400,
+      toolbar: { show: false },
     },
     xaxis: {
-      categories: this.topRules().map((entry) => entry.rule.source || 'Rule'),
+      categories: this.topRules().map((entry) => entry.rule.destination),
       labels: {
         rotate: -35,
-        formatter: (value: string) => this.toLabel(value)
-      }
+        formatter: (value: string) => this.toLabel(value),
+      },
     },
     plotOptions: {
       bar: {
         borderRadius: 6,
         horizontal: false,
-        columnWidth: '45%'
-      }
+      },
     },
     dataLabels: {
-      enabled: false
+      enabled: false,
     },
     tooltip: {
+      x: {
+        formatter: (_value, opts) => this.destinationLabel(opts?.dataPointIndex ?? -1),
+      },
       y: {
-        formatter: (value) => `${value} hits`
-      }
+        formatter: (value) => `${value} hits`,
+      },
     },
     grid: {
       strokeDashArray: 4,
@@ -163,9 +159,9 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
         top: 8,
         right: 12,
         left: 12,
-        bottom: 0
-      }
-    }
+        bottom: 0,
+      },
+    },
   }));
   readonly domainGroupLimitReached = computed(() => {
     const usage = this.usage();
@@ -261,13 +257,10 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
   async openCustomerPortal(): Promise<void> {
     this.billingBusy.set(true);
     try {
-      const response = await firstValueFrom(
-        this.billingApi.getCustomerPortal(),
-      );
+      const response = await firstValueFrom(this.billingApi.getCustomerPortal());
       window.location.href = response.url;
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Unable to open portal.';
+      const message = error instanceof Error ? error.message : 'Unable to open portal.';
       this.snackBar.open(message, 'Dismiss', {
         duration: 5000,
         horizontalPosition: 'center',
@@ -294,15 +287,16 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     try {
       const start = this.toIsoString(this.rangeStart());
       const end = this.toIsoString(this.rangeEnd());
-      const response = await firstValueFrom(this.redirectRulesApi.analytics({
-        start,
-        end,
-        limit: 50
-      }));
+      const response = await firstValueFrom(
+        this.redirectRulesApi.analytics({
+          start,
+          end,
+          limit: 50,
+        }),
+      );
       this.topRules.set(response.data ?? []);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Unable to load top rules.';
+      const message = error instanceof Error ? error.message : 'Unable to load top rules.';
       this.topRulesError.set(message);
     } finally {
       this.topRulesLoading.set(false);
@@ -342,7 +336,7 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       data: { entry },
       closeOnNavigation: true,
       maxWidth: '720px',
-      width: 'min(720px, 96vw)'
+      width: 'min(720px, 96vw)',
     });
   }
 
@@ -419,5 +413,11 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       return trimmed || 'Rule';
     }
     return `${trimmed.slice(0, 18)}…`;
+  }
+
+  private destinationLabel(index: number): string {
+    const entry = this.topRules()[index];
+    const label = entry?.rule.destination?.trim() ?? '';
+    return label || 'Rule';
   }
 }
