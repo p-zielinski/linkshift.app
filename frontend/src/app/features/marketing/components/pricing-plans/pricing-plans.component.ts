@@ -60,6 +60,7 @@ const PRICING_PLANS: PricingPlanBase[] = [
     features: [
       'Regex and placeholder rules',
       'Domain group governance',
+      'SSL included for every domain',
       'Shared redirect audit log',
       'Email support within 48h',
     ],
@@ -80,6 +81,7 @@ const PRICING_PLANS: PricingPlanBase[] = [
     ],
     features: [
       'Staging and production workspaces',
+      'SSL included for every domain',
       'Scheduled redirect exports',
       'Workflow-based approvals',
       'Priority email support',
@@ -103,6 +105,7 @@ const PRICING_PLANS: PricingPlanBase[] = [
     ],
     features: [
       'Role-based access controls',
+      'SSL included for every domain',
       'Bulk rule validation checks',
       'Priority routing audit trail',
       'Dedicated onboarding support',
@@ -124,6 +127,7 @@ const PRICING_PLANS: PricingPlanBase[] = [
     ],
     features: [
       'We scope limits to your routing load',
+      'SSL included for every domain',
       'Workflows aligned to your org',
       'Dedicated solution architect',
       'Support SLAs based on needs',

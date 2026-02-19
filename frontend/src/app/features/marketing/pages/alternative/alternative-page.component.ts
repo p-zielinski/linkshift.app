@@ -30,6 +30,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       'Regex sources with capture groups',
       'Template variables and modifiers',
       'Conditional routing by request context',
+      'SSL included on every domain',
     ],
     heroPanelTitle: 'Switching checklist',
     heroPanelItems: [
@@ -94,6 +95,11 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         icon: 'rule',
         title: 'Regex and literal sources',
         description: 'Use /pattern/flags or literal paths depending on the workload.',
+      },
+      {
+        icon: 'lock',
+        title: 'HTTPS by default',
+        description: 'SSL is included for every domain so requests are served securely.',
       },
       {
         icon: 'data_object',
