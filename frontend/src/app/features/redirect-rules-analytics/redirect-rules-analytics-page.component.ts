@@ -1,5 +1,5 @@
-import { Component, OnInit, computed, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, computed, signal, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { firstValueFrom } from 'rxjs';
 import { RedirectRulesApiService } from '../../core/api/redirect-rules-api.service';
@@ -10,8 +10,10 @@ import {
   ApexAxisChartSeries,
   ApexChart,
   ApexDataLabels,
+  ApexFill,
   ApexGrid,
   ApexPlotOptions,
+  ApexStroke,
   ApexTooltip,
   ApexXAxis,
 } from 'ng-apexcharts';
@@ -39,8 +41,15 @@ const ANALYTICS_CHART_HEIGHT = 400;
 export class RedirectRulesAnalyticsPageComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly redirectRulesApi = inject(RedirectRulesApiService);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   readonly chartHeight = ANALYTICS_CHART_HEIGHT;
+  readonly chartTheme = signal({
+    base: '#c03762',
+    strong: '#8f2045',
+    grid: 'rgba(192, 55, 98, 0.2)',
+  });
   readonly topRules = signal<TopRedirectRuleEntry[]>([]);
   readonly topRulesLoading = signal(false);
   readonly topRulesError = signal<string | null>(null);
@@ -67,6 +76,9 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
     dataLabels: ApexDataLabels;
     tooltip: ApexTooltip;
     grid: ApexGrid;
+    colors: string[];
+    fill: ApexFill;
+    stroke: ApexStroke;
   }>(() => ({
     chart: {
       type: 'bar',
@@ -89,6 +101,21 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
     dataLabels: {
       enabled: false,
     },
+    colors: [this.chartTheme().base],
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shade: 'light',
+        shadeIntensity: 0.35,
+        opacityFrom: 0.92,
+        opacityTo: 0.55,
+        stops: [0, 70, 100],
+      },
+    },
+    stroke: {
+      colors: [this.chartTheme().strong],
+      width: 1,
+    },
     tooltip: {
       x: {
         formatter: (_value, opts) => this.destinationLabel(opts?.dataPointIndex ?? -1),
@@ -99,6 +126,7 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
     },
     grid: {
       strokeDashArray: 4,
+      borderColor: this.chartTheme().grid,
       padding: {
         top: 8,
         right: 12,
@@ -109,6 +137,9 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
   }));
 
   ngOnInit(): void {
+    if (this.isBrowser) {
+      this.chartTheme.set(this.buildChartTheme());
+    }
     this.setQuickRange(7);
   }
 
@@ -211,5 +242,58 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
     const entry = this.topRules()[index];
     const label = entry?.rule.destination?.trim() ?? '';
     return label;
+  }
+
+  private buildChartTheme(): { base: string; strong: string; grid: string } {
+    const base = this.readCssColor('--app-accent') ?? '#c03762';
+    const strong =
+      this.readCssColor('--app-accent-strong') ?? this.mixColor(base, '#000000', 0.18);
+    const grid =
+      this.readCssColor('--app-accent-soft') ?? this.mixColor(base, '#ffffff', 0.72);
+    return { base, strong, grid };
+  }
+
+  private readCssColor(variable: string): string | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+    const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+    return value || null;
+  }
+
+  private mixColor(color: string, mixWith: string, weight: number): string {
+    const base = this.parseColor(color);
+    const mix = this.parseColor(mixWith);
+    if (!base || !mix) {
+      return color;
+    }
+    const mixChannel = (a: number, b: number) => Math.round(a * (1 - weight) + b * weight);
+    return `rgb(${mixChannel(base.r, mix.r)}, ${mixChannel(base.g, mix.g)}, ${mixChannel(base.b, mix.b)})`;
+  }
+
+  private parseColor(color: string): { r: number; g: number; b: number } | null {
+    const hex = color.replace('#', '').trim();
+    if (/^[0-9a-f]{3}$/i.test(hex)) {
+      return {
+        r: parseInt(hex[0] + hex[0], 16),
+        g: parseInt(hex[1] + hex[1], 16),
+        b: parseInt(hex[2] + hex[2], 16),
+      };
+    }
+    if (/^[0-9a-f]{6}$/i.test(hex)) {
+      return {
+        r: parseInt(hex.slice(0, 2), 16),
+        g: parseInt(hex.slice(2, 4), 16),
+        b: parseInt(hex.slice(4, 6), 16),
+      };
+    }
+    const rgbMatch = color.match(/rgba?\\(([^)]+)\\)/i);
+    if (rgbMatch) {
+      const parts = rgbMatch[1].split(',').map((part) => Number.parseFloat(part.trim()));
+      if (parts.length >= 3 && parts.every((value) => Number.isFinite(value))) {
+        return { r: parts[0], g: parts[1], b: parts[2] };
+      }
+    }
+    return null;
   }
 }
