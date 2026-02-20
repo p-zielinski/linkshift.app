@@ -81,6 +81,75 @@
             }
           </mat-form-field>
 
+          <div class="grid gap-4 sm:grid-cols-2">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Path match</mat-label>
+              <mat-select [formField]="field('pathMatch')">
+                @for (option of pathMatchOptions; track option) {
+                  <mat-option [value]="option">
+                    {{ option === 'prefix' ? 'Prefix (example /v1/* when /v1)' : 'Exact' }}
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-hint>Prefix matches all nested paths.</mat-hint>
+              @if (pathMatchError(); as error) {
+                <mat-error>{{ error }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Query match</mat-label>
+              <mat-select [formField]="field('queryMatch')">
+                @for (option of queryMatchOptions; track option) {
+                  <mat-option [value]="option">
+                    {{
+                      option === 'ignore'
+                        ? 'Ignore query'
+                        : option === 'subset'
+                          ? 'Subset (require listed params)'
+                          : 'Exact (include query)'
+                    }}
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-hint>Ignore makes <code>/path</code> match <code>/path?x=1</code>.</mat-hint>
+              @if (queryMatchError(); as error) {
+                <mat-error>{{ error }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div
+            class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted"
+          >
+            <div class="font-semibold text-app-text">Match modes explained</div>
+            <div class="mt-2 grid gap-2">
+              <div class="text-app-muted">
+                Query rules come from the <code>?...</code> part of the Source field.
+              </div>
+              <div>
+                <span class="font-semibold text-app-text">Path exact:</span>
+                <span>/v1 matches only /v1</span>
+              </div>
+              <div>
+                <span class="font-semibold text-app-text">Path prefix:</span>
+                <span>/v1 matches /v1/users (but not /v11)</span>
+              </div>
+              <div>
+                <span class="font-semibold text-app-text">Query exact:</span>
+                <span>/v1?333=1 matches only the same query</span>
+              </div>
+              <div>
+                <span class="font-semibold text-app-text">Query subset:</span>
+                <span>/v1?333=1 also matches /v1?333=1&x=2</span>
+              </div>
+              <div>
+                <span class="font-semibold text-app-text">Query ignore:</span>
+                <span>/v1 matches /v1?anything=1</span>
+              </div>
+            </div>
+          </div>
+
           <div
             class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted"
           >
@@ -339,6 +408,14 @@
                 <span>{{ formatMatchMethods(ruleModel().matchMethod) }}</span>
               </div>
               <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-app-muted">Path match</span>
+                <span>{{ formatPathMatch(ruleModel().pathMatch) }}</span>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-app-muted">Query match</span>
+                <span>{{ formatQueryMatch(ruleModel().queryMatch) }}</span>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-2">
                 <span class="text-app-muted">Status</span>
                 <span>{{ ruleModel().statusCode }}</span>
               </div>
@@ -396,6 +473,44 @@
             <mat-error>{{ error }}</mat-error>
           }
         </mat-form-field>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Path match</mat-label>
+            <mat-select [formField]="field('pathMatch')">
+              @for (option of pathMatchOptions; track option) {
+                <mat-option [value]="option">
+                  {{ option === 'prefix' ? 'Prefix (example /v1/* when /v1)' : 'Exact' }}
+                </mat-option>
+              }
+            </mat-select>
+            <mat-hint>Prefix matches all nested paths.</mat-hint>
+            @if (pathMatchError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Query match</mat-label>
+            <mat-select [formField]="field('queryMatch')">
+              @for (option of queryMatchOptions; track option) {
+                <mat-option [value]="option">
+                  {{
+                    option === 'ignore'
+                      ? 'Ignore query'
+                      : option === 'subset'
+                        ? 'Subset (require listed params)'
+                        : 'Exact (include query)'
+                  }}
+                </mat-option>
+              }
+            </mat-select>
+            <mat-hint>Subset allows extra query params.</mat-hint>
+            @if (queryMatchError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Destination</mat-label>

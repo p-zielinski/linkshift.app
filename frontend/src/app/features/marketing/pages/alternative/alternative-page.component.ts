@@ -30,6 +30,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       'Regex sources with capture groups',
       'Template variables and modifiers',
       'Conditional routing by request context',
+      'Path prefix and query match modes',
       'SSL included on every domain',
     ],
     heroPanelTitle: 'Switching checklist',
@@ -97,6 +98,11 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         description: 'Use /pattern/flags or literal paths depending on the workload.',
       },
       {
+        icon: 'manage_search',
+        title: 'Flexible match modes',
+        description: 'Use path prefix matching with query exact, ignore, or subset rules.',
+      },
+      {
         icon: 'lock',
         title: 'HTTPS by default',
         description: 'SSL is included for every domain so requests are served securely.',
@@ -161,6 +167,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       'No edge scripts to maintain',
       'Domain groups keep rules aligned',
       'Conditional routing by method or time',
+      'Path prefix and query match modes',
       'Placeholders and modifiers for precision',
     ],
     heroPanelTitle: 'Operational advantages',
@@ -219,6 +226,11 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         description: 'Keep rules tied to a group instead of duplicated across domains.',
       },
       {
+        icon: 'filter_alt',
+        title: 'Path and query control',
+        description: 'Match path prefixes and tune query matching with exact, ignore, or subset.',
+      },
+      {
         icon: 'manage_search',
         title: 'Regex capture groups',
         description: 'Use $1, $2, and more to build dynamic destinations.',
@@ -270,6 +282,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       'Self-serve control with guardrails',
       'Domain groups unify rule ownership',
       'Condition-based routing',
+      'Path prefix and query match modes',
       'Transparent rule syntax',
     ],
     heroPanelTitle: 'What you gain',
@@ -322,6 +335,11 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         icon: 'hub',
         title: 'Domain group ownership',
         description: 'Assign domains to a group and manage a shared rule set.',
+      },
+      {
+        icon: 'manage_search',
+        title: 'Match mode flexibility',
+        description: 'Use path prefix matching and query exact, ignore, or subset rules.',
       },
       {
         icon: 'terminal',
