@@ -5,6 +5,8 @@ import { HttpMethod } from '@prisma/client';
 const ALLOWED_STATUS_CODES: number[] = [301, 302, 307, 308];
 
 const HTTP_METHOD_VALUES = Object.values(HttpMethod) as [string, ...string[]];
+const QUERY_MATCH_VALUES = ['exact', 'ignore', 'subset'] as const;
+const PATH_MATCH_VALUES = ['exact', 'prefix'] as const;
 
 const MatchMethodListSchema = z
   .array(z.enum(HttpMethod))
@@ -42,6 +44,8 @@ export const CreateRedirectRuleSchema = z.object({
     )
     .default(302),
   matchMethod: MatchMethodListSchema.default([]),
+  queryMatch: z.enum(QUERY_MATCH_VALUES).default('exact'),
+  pathMatch: z.enum(PATH_MATCH_VALUES).default('exact'),
   priority: z
     .number()
     .int()
@@ -74,6 +78,8 @@ export const UpdateRedirectRuleSchema = z.object({
     )
     .optional(),
   matchMethod: MatchMethodListSchema.optional(),
+  queryMatch: z.enum(QUERY_MATCH_VALUES).optional(),
+  pathMatch: z.enum(PATH_MATCH_VALUES).optional(),
   priority: z.number().int().min(0).max(1000).optional(),
 });
 

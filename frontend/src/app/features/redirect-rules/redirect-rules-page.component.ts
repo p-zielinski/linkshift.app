@@ -80,6 +80,7 @@ export class RedirectRulesPageComponent {
     'priority',
     'id',
     'matchMethod',
+    'matchMode',
     'source',
     'destination',
     'statusCode',
@@ -402,6 +403,36 @@ export class RedirectRulesPageComponent {
       return 'All';
     }
     return methods.join(', ');
+  }
+
+  pathMatchIcon(rule: RedirectRule): string {
+    return rule.pathMatch === 'prefix' ? 'call_split' : 'rule';
+  }
+
+  pathMatchTooltip(rule: RedirectRule): string {
+    return rule.pathMatch === 'prefix'
+      ? 'Path match: prefix (/v1/*)'
+      : 'Path match: exact';
+  }
+
+  queryMatchIcon(rule: RedirectRule): string {
+    if (rule.queryMatch === 'ignore') {
+      return 'search_off';
+    }
+    if (rule.queryMatch === 'subset') {
+      return 'filter_alt';
+    }
+    return 'manage_search';
+  }
+
+  queryMatchTooltip(rule: RedirectRule): string {
+    if (rule.queryMatch === 'ignore') {
+      return 'Query match: ignore';
+    }
+    if (rule.queryMatch === 'subset') {
+      return 'Query match: subset (extra params allowed)';
+    }
+    return 'Query match: exact (includes query)';
   }
 
   onPageChange(page: number): void {

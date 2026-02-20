@@ -20,8 +20,14 @@ import {
   redirectRuleSchema,
   redirectRuleMatchMethods,
   redirectRuleStatusCodes,
+  redirectRuleQueryMatches,
+  redirectRulePathMatches,
 } from './redirect-rule.schemas';
-import type { RedirectRule } from '../../core/models/redirect-rule.model';
+import type {
+  RedirectRule,
+  RedirectQueryMatch,
+  RedirectPathMatch
+} from '../../core/models/redirect-rule.model';
 import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
 import { HttpMethod } from '../../core/models/http-method.model';
 import { ensureLeadingSlash, splitPathWithQuery } from '../tests/redirect-test.utils';
@@ -34,6 +40,8 @@ type RedirectRuleFormModel = {
   destination: string;
   statusCode: string;
   matchMethod: HttpMethod[];
+  queryMatch: RedirectQueryMatch;
+  pathMatch: RedirectPathMatch;
   priority: string;
 };
 
@@ -83,6 +91,8 @@ export class RedirectRuleFormDialogComponent {
 
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly matchMethodOptions = redirectRuleMatchMethods;
+  readonly queryMatchOptions = redirectRuleQueryMatches;
+  readonly pathMatchOptions = redirectRulePathMatches;
   readonly rule = this.data?.rule ?? null;
   readonly isEdit = !!this.rule;
   readonly dialogTitle = computed(() => {
@@ -113,6 +123,8 @@ export class RedirectRuleFormDialogComponent {
     destination: this.rule?.destination ?? 'https://',
     statusCode: String(this.initialStatusCode),
     matchMethod: this.rule?.matchMethod ?? [],
+    queryMatch: this.rule?.queryMatch ?? 'exact',
+    pathMatch: this.rule?.pathMatch ?? 'exact',
     priority: String(this.rule?.priority ?? 0),
   });
 
@@ -136,6 +148,8 @@ export class RedirectRuleFormDialogComponent {
     applyZodField(f.destination, redirectRuleSchema.shape.destination);
     applyZodField(f.statusCode, redirectRuleSchema.shape.statusCode);
     applyZodField(f.matchMethod, redirectRuleSchema.shape.matchMethod);
+    applyZodField(f.queryMatch, redirectRuleSchema.shape.queryMatch);
+    applyZodField(f.pathMatch, redirectRuleSchema.shape.pathMatch);
     applyZodField(f.priority, redirectRuleSchema.shape.priority);
   });
 
@@ -150,10 +164,26 @@ export class RedirectRuleFormDialogComponent {
     return methods.join(', ');
   }
 
+  formatPathMatch(value: RedirectPathMatch): string {
+    return value === 'prefix' ? 'Prefix' : 'Exact';
+  }
+
+  formatQueryMatch(value: RedirectQueryMatch): string {
+    if (value === 'ignore') {
+      return 'Ignore';
+    }
+    if (value === 'subset') {
+      return 'Subset';
+    }
+    return 'Exact';
+  }
+
   sourceError = computed(() => this.getFieldError(this.ruleForm.source()));
   destinationError = computed(() => this.getFieldError(this.ruleForm.destination()));
   statusError = computed(() => this.getFieldError(this.ruleForm.statusCode()));
   matchMethodError = computed(() => this.getFieldError(this.ruleForm.matchMethod()));
+  queryMatchError = computed(() => this.getFieldError(this.ruleForm.queryMatch()));
+  pathMatchError = computed(() => this.getFieldError(this.ruleForm.pathMatch()));
   priorityError = computed(() => this.getFieldError(this.ruleForm.priority()));
   scopeValid = computed(
     () => this.ruleForm.domainGroupId().valid() && this.ruleForm.priority().valid(),
@@ -180,6 +210,8 @@ export class RedirectRuleFormDialogComponent {
       this.destinationValid() &&
       this.ruleForm.statusCode().valid() &&
       this.ruleForm.matchMethod().valid() &&
+      this.ruleForm.queryMatch().valid() &&
+      this.ruleForm.pathMatch().valid() &&
       this.sourceValue().length > 0 &&
       this.destinationValue().length > 0
     );
@@ -223,6 +255,16 @@ export class RedirectRuleFormDialogComponent {
     if (!this.ruleForm.matchMethod().valid()) {
       const message = this.getFieldErrorMessage(this.ruleForm.matchMethod());
       errors.add(message ?? 'Request method is invalid.');
+    }
+
+    if (!this.ruleForm.queryMatch().valid()) {
+      const message = this.getFieldErrorMessage(this.ruleForm.queryMatch());
+      errors.add(message ?? 'Query match is invalid.');
+    }
+
+    if (!this.ruleForm.pathMatch().valid()) {
+      const message = this.getFieldErrorMessage(this.ruleForm.pathMatch());
+      errors.add(message ?? 'Path match is invalid.');
     }
 
     if (!this.ruleForm.priority().valid()) {
@@ -515,6 +557,8 @@ export class RedirectRuleFormDialogComponent {
         destination: value.destination,
         statusCode: Number(value.statusCode),
         matchMethod: value.matchMethod,
+        queryMatch: value.queryMatch,
+        pathMatch: value.pathMatch,
         priority: Number(value.priority),
       };
 
