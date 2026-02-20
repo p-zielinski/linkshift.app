@@ -152,6 +152,28 @@
           </td>
         </ng-container>
 
+        <ng-container matColumnDef="matchMode">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[110px] max-w-[250px] truncate">
+            Match
+          </th>
+          <td mat-cell *matCellDef="let rule" class="py-3 min-w-[110px] max-w-[250px] truncate">
+            <div class="flex items-center gap-2">
+              <mat-icon
+                class="text-[18px] text-app-muted"
+                [matTooltip]="pathMatchTooltip(rule)"
+              >
+                {{ pathMatchIcon(rule) }}
+              </mat-icon>
+              <mat-icon
+                class="text-[18px] text-app-muted"
+                [matTooltip]="queryMatchTooltip(rule)"
+              >
+                {{ queryMatchIcon(rule) }}
+              </mat-icon>
+            </div>
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="source">
           <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
             Source

@@ -184,6 +184,8 @@ exports.Prisma.RedirectRuleScalarFieldEnum = {
   destination: 'destination',
   statusCode: 'statusCode',
   matchMethod: 'matchMethod',
+  queryMatch: 'queryMatch',
+  pathMatch: 'pathMatch',
   isBlocked: 'isBlocked',
   blockedAt: 'blockedAt',
   priority: 'priority',
@@ -271,6 +273,17 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
+exports.RedirectQueryMatch = exports.$Enums.RedirectQueryMatch = {
+  exact: 'exact',
+  ignore: 'ignore',
+  subset: 'subset'
+};
+
+exports.RedirectPathMatch = exports.$Enums.RedirectPathMatch = {
+  exact: 'exact',
+  prefix: 'prefix'
+};
+
 exports.HttpMethod = exports.$Enums.HttpMethod = {
   GET: 'GET',
   POST: 'POST',

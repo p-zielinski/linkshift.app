@@ -54,6 +54,11 @@ const FEATURES: MarketingFeature[] = [
     description: 'Route by method or time with inline condition expressions.'
   },
   {
+    icon: 'manage_search',
+    title: 'Path + query match modes',
+    description: 'Use path prefix matching with query exact, ignore, or subset rules.'
+  },
+  {
     icon: 'shield',
     title: 'Organization-aware limits',
     description: 'Respect domain group, domain, and rule limits per organization.'
@@ -168,9 +173,10 @@ export class HomePageComponent implements OnInit {
     this.seo.updateTags({
       title: `${this.siteConfig.name} | Domain group redirect automation`,
       description:
-        'Create domain groups, attach domains, and publish redirect rules with regex, placeholders, and conditional routing. Built for teams managing complex redirect inventories.',
+        'Create domain groups, attach domains, and publish redirect rules with regex, placeholders, conditional routing, and advanced match modes. Built for teams managing complex redirect inventories.',
       canonicalPath: '/home',
-      keywords: 'redirect rules, domain groups, regex redirects, placeholder redirects, conditional routing, redirect management'
+      keywords:
+        'redirect rules, domain groups, regex redirects, placeholder redirects, conditional routing, path prefix matching, query subset matching, redirect management'
     });
   }
 }
