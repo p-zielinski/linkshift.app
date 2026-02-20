@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 const statusCodes = [301, 302, 307, 308];
 const matchMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'] as const;
+const queryMatches = ['exact', 'ignore', 'subset'] as const;
+const pathMatches = ['exact', 'prefix'] as const;
 
 export const redirectRuleSchema = z.object({
   source: z.string().min(1, 'Source is required').max(16384, 'Source is too long'),
@@ -20,6 +22,8 @@ export const redirectRuleSchema = z.object({
   matchMethod: z
     .array(z.enum(matchMethods))
     .refine((value) => new Set(value).size === value.length, 'Match methods must be unique'),
+  queryMatch: z.enum(queryMatches),
+  pathMatch: z.enum(pathMatches),
   priority: z
     .coerce
     .number({ invalid_type_error: 'Priority must be a number' })
@@ -30,3 +34,5 @@ export const redirectRuleSchema = z.object({
 
 export const redirectRuleStatusCodes = statusCodes;
 export const redirectRuleMatchMethods = matchMethods;
+export const redirectRuleQueryMatches = queryMatches;
+export const redirectRulePathMatches = pathMatches;

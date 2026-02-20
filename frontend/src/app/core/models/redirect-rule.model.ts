@@ -7,6 +7,8 @@ export type RedirectRule = {
   destination: string;
   statusCode: number;
   matchMethod: HttpMethod[];
+  queryMatch: RedirectQueryMatch;
+  pathMatch: RedirectPathMatch;
   priority: number;
   domainGroupId: string;
   createdAt: string;
@@ -21,6 +23,8 @@ export type CreateRedirectRuleDto = {
   destination: string;
   statusCode?: number;
   matchMethod?: HttpMethod[];
+  queryMatch?: RedirectQueryMatch;
+  pathMatch?: RedirectPathMatch;
   priority?: number;
   domainGroupId: string;
 };
@@ -30,8 +34,13 @@ export type UpdateRedirectRuleDto = {
   destination?: string;
   statusCode?: number;
   matchMethod?: HttpMethod[];
+  queryMatch?: RedirectQueryMatch;
+  pathMatch?: RedirectPathMatch;
   priority?: number;
 };
+
+export type RedirectQueryMatch = 'exact' | 'ignore' | 'subset';
+export type RedirectPathMatch = 'exact' | 'prefix';
 
 export type RedirectRuleListQuery = {
   domainGroupId: string;

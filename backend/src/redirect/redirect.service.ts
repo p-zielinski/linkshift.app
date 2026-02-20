@@ -94,6 +94,8 @@ export interface RedirectRule {
   destination: string;
   statusCode?: number;
   matchMethod?: HttpMethod[];
+  queryMatch?: 'exact' | 'ignore' | 'subset';
+  pathMatch?: 'exact' | 'prefix';
 }
 
 type RedirectSimulationEntry = {
@@ -910,6 +912,8 @@ export class RedirectService {
         destination: data.destination,
         statusCode: data.statusCode,
         matchMethod,
+        queryMatch: data.queryMatch ?? 'exact',
+        pathMatch: data.pathMatch ?? 'exact',
         priority: data.priority,
         domainGroupId: data.domainGroupId,
       },
@@ -992,6 +996,12 @@ export class RedirectService {
     }
     if (data.matchMethod !== undefined) {
       updateData.matchMethod = this.normalizeMatchMethods(data.matchMethod);
+    }
+    if (data.queryMatch !== undefined) {
+      updateData.queryMatch = data.queryMatch;
+    }
+    if (data.pathMatch !== undefined) {
+      updateData.pathMatch = data.pathMatch;
     }
 
     const rule = await this.prisma.redirectRule.update({
@@ -1463,11 +1473,12 @@ export class RedirectService {
   ): { target: string; rule: RedirectRule } | null {
     const url = this.getRequestUrl(req);
     const variables = this.extractVariables(req, url);
+    const matchContext = this.buildMatchContext(req, url);
 
     for (const rule of rules) {
       const result = this.processRule(
         rule,
-        req.originalUrl,
+        matchContext,
         req.method,
         variables,
       );
@@ -1486,6 +1497,8 @@ export class RedirectService {
       destination: string;
       statusCode: number;
       matchMethod: HttpMethod[];
+      queryMatch?: 'exact' | 'ignore' | 'subset';
+      pathMatch?: 'exact' | 'prefix';
     }[],
   ): RedirectRule[] {
     return rules.map((rule) => {
@@ -1499,6 +1512,8 @@ export class RedirectService {
           destination: rule.destination,
           statusCode: rule.statusCode,
           matchMethod: rule.matchMethod,
+          queryMatch: rule.queryMatch,
+          pathMatch: rule.pathMatch,
         };
       }
 
@@ -1508,6 +1523,8 @@ export class RedirectService {
         destination: rule.destination,
         statusCode: rule.statusCode,
         matchMethod: rule.matchMethod,
+        queryMatch: rule.queryMatch,
+        pathMatch: rule.pathMatch,
       };
     });
   }
@@ -1702,28 +1719,54 @@ export class RedirectService {
 
   private processRule(
     rule: RedirectRule,
-    currentPath: string,
+    matchContext: {
+      path: string;
+      originalUrl: string;
+      query: URLSearchParams;
+    },
     currentMethod: string,
     variables: Record<string, string | undefined>,
   ): string | null {
     try {
       let target = rule.destination;
       let isMatch = false;
+      const pathMatch = rule.pathMatch ?? 'exact';
+      const queryMatch = rule.queryMatch ?? 'exact';
 
       if (!this.isMethodMatch(rule.matchMethod, currentMethod)) {
         return null;
       }
 
       if (rule.source instanceof RegExp) {
-        const match = currentPath.match(rule.source);
+        const matchTarget =
+          queryMatch === 'ignore'
+            ? matchContext.path
+            : matchContext.originalUrl;
+        const match = matchTarget.match(rule.source);
         if (match) {
           isMatch = true;
           match.forEach((val, index) => {
             target = target.replace(new RegExp(`\\$${index}`, 'g'), val);
           });
         }
-      } else if (rule.source === '*' || currentPath === rule.source) {
+      } else if (rule.source === '*') {
         isMatch = true;
+      } else {
+        const { path: sourcePath, query: sourceQuery } =
+          this.parseSourceForMatch(rule.source);
+        if (pathMatch === 'prefix') {
+          isMatch = this.isPrefixMatch(sourcePath, matchContext.path);
+        } else {
+          isMatch = matchContext.path === sourcePath;
+        }
+
+        if (isMatch) {
+          isMatch = this.isQueryMatch(
+            sourceQuery,
+            matchContext.query,
+            queryMatch,
+          );
+        }
       }
 
       if (!isMatch) return null;
@@ -1743,6 +1786,114 @@ export class RedirectService {
       // If a rule is malformed or dangerous, return null (skip it) so the server stays alive
       return null;
     }
+  }
+
+  private buildMatchContext(req: Request, url: URL): {
+    path: string;
+    originalUrl: string;
+    query: URLSearchParams;
+  } {
+    const path = url.pathname.startsWith('/') ? url.pathname : `/${url.pathname}`;
+    const originalUrl =
+      req.originalUrl ?? (url.search ? `${path}${url.search}` : path);
+    return {
+      path,
+      originalUrl,
+      query: url.searchParams,
+    };
+  }
+
+  private isPrefixMatch(source: string, currentPath: string): boolean {
+    if (!currentPath.startsWith(source)) {
+      return false;
+    }
+
+    if (currentPath.length === source.length) {
+      return true;
+    }
+
+    if (source.endsWith('/')) {
+      return true;
+    }
+
+    const boundary = currentPath[source.length];
+    return boundary === '/' || boundary === '?';
+  }
+
+  private parseSourceForMatch(source: string): {
+    path: string;
+    query: URLSearchParams;
+  } {
+    const url = new URL(source, 'http://localhost');
+    const path = url.pathname.startsWith('/') ? url.pathname : `/${url.pathname}`;
+    return { path, query: url.searchParams };
+  }
+
+  private isQueryMatch(
+    expected: URLSearchParams,
+    actual: URLSearchParams,
+    mode: 'exact' | 'ignore' | 'subset',
+  ): boolean {
+    if (mode === 'ignore') {
+      return true;
+    }
+
+    const expectedMap = this.toQueryMap(expected);
+    const actualMap = this.toQueryMap(actual);
+
+    if (mode === 'exact') {
+      if (expectedMap.size !== actualMap.size) {
+        return false;
+      }
+      for (const [key, values] of expectedMap.entries()) {
+        const actualValues = actualMap.get(key);
+        if (!actualValues || actualValues.length !== values.length) {
+          return false;
+        }
+        for (let i = 0; i < values.length; i += 1) {
+          if (values[i] !== actualValues[i]) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    if (expectedMap.size === 0) {
+      return true;
+    }
+
+    for (const [key, values] of expectedMap.entries()) {
+      const actualValues = actualMap.get(key);
+      if (!actualValues) {
+        return false;
+      }
+      const remaining = [...actualValues];
+      for (const value of values) {
+        const index = remaining.indexOf(value);
+        if (index === -1) {
+          return false;
+        }
+        remaining.splice(index, 1);
+      }
+    }
+    return true;
+  }
+
+  private toQueryMap(params: URLSearchParams): Map<string, string[]> {
+    const map = new Map<string, string[]>();
+    for (const [key, value] of params.entries()) {
+      const current = map.get(key);
+      if (current) {
+        current.push(value);
+      } else {
+        map.set(key, [value]);
+      }
+    }
+    for (const values of map.values()) {
+      values.sort();
+    }
+    return map;
   }
 
   /**

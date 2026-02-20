@@ -81,6 +81,23 @@ export namespace $Enums {
 export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod]
 
 
+export const RedirectQueryMatch: {
+  exact: 'exact',
+  ignore: 'ignore',
+  subset: 'subset'
+};
+
+export type RedirectQueryMatch = (typeof RedirectQueryMatch)[keyof typeof RedirectQueryMatch]
+
+
+export const RedirectPathMatch: {
+  exact: 'exact',
+  prefix: 'prefix'
+};
+
+export type RedirectPathMatch = (typeof RedirectPathMatch)[keyof typeof RedirectPathMatch]
+
+
 export const BillingCheckoutStatus: {
   PENDING: 'PENDING',
   PAID: 'PAID',
@@ -96,6 +113,14 @@ export type BillingCheckoutStatus = (typeof BillingCheckoutStatus)[keyof typeof 
 export type HttpMethod = $Enums.HttpMethod
 
 export const HttpMethod: typeof $Enums.HttpMethod
+
+export type RedirectQueryMatch = $Enums.RedirectQueryMatch
+
+export const RedirectQueryMatch: typeof $Enums.RedirectQueryMatch
+
+export type RedirectPathMatch = $Enums.RedirectPathMatch
+
+export const RedirectPathMatch: typeof $Enums.RedirectPathMatch
 
 export type BillingCheckoutStatus = $Enums.BillingCheckoutStatus
 
@@ -7801,6 +7826,8 @@ export namespace Prisma {
     source: string | null
     destination: string | null
     statusCode: number | null
+    queryMatch: $Enums.RedirectQueryMatch | null
+    pathMatch: $Enums.RedirectPathMatch | null
     isBlocked: boolean | null
     blockedAt: Date | null
     priority: number | null
@@ -7815,6 +7842,8 @@ export namespace Prisma {
     source: string | null
     destination: string | null
     statusCode: number | null
+    queryMatch: $Enums.RedirectQueryMatch | null
+    pathMatch: $Enums.RedirectPathMatch | null
     isBlocked: boolean | null
     blockedAt: Date | null
     priority: number | null
@@ -7830,6 +7859,8 @@ export namespace Prisma {
     destination: number
     statusCode: number
     matchMethod: number
+    queryMatch: number
+    pathMatch: number
     isBlocked: number
     blockedAt: number
     priority: number
@@ -7856,6 +7887,8 @@ export namespace Prisma {
     source?: true
     destination?: true
     statusCode?: true
+    queryMatch?: true
+    pathMatch?: true
     isBlocked?: true
     blockedAt?: true
     priority?: true
@@ -7870,6 +7903,8 @@ export namespace Prisma {
     source?: true
     destination?: true
     statusCode?: true
+    queryMatch?: true
+    pathMatch?: true
     isBlocked?: true
     blockedAt?: true
     priority?: true
@@ -7885,6 +7920,8 @@ export namespace Prisma {
     destination?: true
     statusCode?: true
     matchMethod?: true
+    queryMatch?: true
+    pathMatch?: true
     isBlocked?: true
     blockedAt?: true
     priority?: true
@@ -7987,6 +8024,8 @@ export namespace Prisma {
     destination: string
     statusCode: number
     matchMethod: $Enums.HttpMethod[]
+    queryMatch: $Enums.RedirectQueryMatch
+    pathMatch: $Enums.RedirectPathMatch
     isBlocked: boolean
     blockedAt: Date | null
     priority: number
@@ -8021,6 +8060,8 @@ export namespace Prisma {
     destination?: boolean
     statusCode?: boolean
     matchMethod?: boolean
+    queryMatch?: boolean
+    pathMatch?: boolean
     isBlocked?: boolean
     blockedAt?: boolean
     priority?: boolean
@@ -8039,6 +8080,8 @@ export namespace Prisma {
     destination?: boolean
     statusCode?: boolean
     matchMethod?: boolean
+    queryMatch?: boolean
+    pathMatch?: boolean
     isBlocked?: boolean
     blockedAt?: boolean
     priority?: boolean
@@ -8055,6 +8098,8 @@ export namespace Prisma {
     destination?: boolean
     statusCode?: boolean
     matchMethod?: boolean
+    queryMatch?: boolean
+    pathMatch?: boolean
     isBlocked?: boolean
     blockedAt?: boolean
     priority?: boolean
@@ -8071,6 +8116,8 @@ export namespace Prisma {
     destination?: boolean
     statusCode?: boolean
     matchMethod?: boolean
+    queryMatch?: boolean
+    pathMatch?: boolean
     isBlocked?: boolean
     blockedAt?: boolean
     priority?: boolean
@@ -8080,7 +8127,7 @@ export namespace Prisma {
     deletedAt?: boolean
   }
 
-  export type RedirectRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "source" | "destination" | "statusCode" | "matchMethod" | "isBlocked" | "blockedAt" | "priority" | "domainGroupId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["redirectRule"]>
+  export type RedirectRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "source" | "destination" | "statusCode" | "matchMethod" | "queryMatch" | "pathMatch" | "isBlocked" | "blockedAt" | "priority" | "domainGroupId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["redirectRule"]>
   export type RedirectRuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
     hitsHourly?: boolean | RedirectRule$hitsHourlyArgs<ExtArgs>
@@ -8105,6 +8152,8 @@ export namespace Prisma {
       destination: string
       statusCode: number
       matchMethod: $Enums.HttpMethod[]
+      queryMatch: $Enums.RedirectQueryMatch
+      pathMatch: $Enums.RedirectPathMatch
       isBlocked: boolean
       blockedAt: Date | null
       priority: number
@@ -8542,6 +8591,8 @@ export namespace Prisma {
     readonly destination: FieldRef<"RedirectRule", 'String'>
     readonly statusCode: FieldRef<"RedirectRule", 'Int'>
     readonly matchMethod: FieldRef<"RedirectRule", 'HttpMethod[]'>
+    readonly queryMatch: FieldRef<"RedirectRule", 'RedirectQueryMatch'>
+    readonly pathMatch: FieldRef<"RedirectRule", 'RedirectPathMatch'>
     readonly isBlocked: FieldRef<"RedirectRule", 'Boolean'>
     readonly blockedAt: FieldRef<"RedirectRule", 'DateTime'>
     readonly priority: FieldRef<"RedirectRule", 'Int'>
@@ -13575,6 +13626,8 @@ export namespace Prisma {
     destination: 'destination',
     statusCode: 'statusCode',
     matchMethod: 'matchMethod',
+    queryMatch: 'queryMatch',
+    pathMatch: 'pathMatch',
     isBlocked: 'isBlocked',
     blockedAt: 'blockedAt',
     priority: 'priority',
@@ -13775,6 +13828,34 @@ export namespace Prisma {
    * Reference to a field of type 'HttpMethod'
    */
   export type EnumHttpMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HttpMethod'>
+    
+
+
+  /**
+   * Reference to a field of type 'RedirectQueryMatch'
+   */
+  export type EnumRedirectQueryMatchFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RedirectQueryMatch'>
+    
+
+
+  /**
+   * Reference to a field of type 'RedirectQueryMatch[]'
+   */
+  export type ListEnumRedirectQueryMatchFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RedirectQueryMatch[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'RedirectPathMatch'
+   */
+  export type EnumRedirectPathMatchFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RedirectPathMatch'>
+    
+
+
+  /**
+   * Reference to a field of type 'RedirectPathMatch[]'
+   */
+  export type ListEnumRedirectPathMatchFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RedirectPathMatch[]'>
     
 
 
@@ -14219,6 +14300,8 @@ export namespace Prisma {
     destination?: StringFilter<"RedirectRule"> | string
     statusCode?: IntFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
+    queryMatch?: EnumRedirectQueryMatchFilter<"RedirectRule"> | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFilter<"RedirectRule"> | $Enums.RedirectPathMatch
     isBlocked?: BoolFilter<"RedirectRule"> | boolean
     blockedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     priority?: IntFilter<"RedirectRule"> | number
@@ -14236,6 +14319,8 @@ export namespace Prisma {
     destination?: SortOrder
     statusCode?: SortOrder
     matchMethod?: SortOrder
+    queryMatch?: SortOrder
+    pathMatch?: SortOrder
     isBlocked?: SortOrder
     blockedAt?: SortOrderInput | SortOrder
     priority?: SortOrder
@@ -14257,6 +14342,8 @@ export namespace Prisma {
     destination?: StringFilter<"RedirectRule"> | string
     statusCode?: IntFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
+    queryMatch?: EnumRedirectQueryMatchFilter<"RedirectRule"> | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFilter<"RedirectRule"> | $Enums.RedirectPathMatch
     isBlocked?: BoolFilter<"RedirectRule"> | boolean
     blockedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     priority?: IntFilter<"RedirectRule"> | number
@@ -14274,6 +14361,8 @@ export namespace Prisma {
     destination?: SortOrder
     statusCode?: SortOrder
     matchMethod?: SortOrder
+    queryMatch?: SortOrder
+    pathMatch?: SortOrder
     isBlocked?: SortOrder
     blockedAt?: SortOrderInput | SortOrder
     priority?: SortOrder
@@ -14297,6 +14386,8 @@ export namespace Prisma {
     destination?: StringWithAggregatesFilter<"RedirectRule"> | string
     statusCode?: IntWithAggregatesFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
+    queryMatch?: EnumRedirectQueryMatchWithAggregatesFilter<"RedirectRule"> | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchWithAggregatesFilter<"RedirectRule"> | $Enums.RedirectPathMatch
     isBlocked?: BoolWithAggregatesFilter<"RedirectRule"> | boolean
     blockedAt?: DateTimeNullableWithAggregatesFilter<"RedirectRule"> | Date | string | null
     priority?: IntWithAggregatesFilter<"RedirectRule"> | number
@@ -15079,6 +15170,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: $Enums.RedirectQueryMatch
+    pathMatch?: $Enums.RedirectPathMatch
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
@@ -15095,6 +15188,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: $Enums.RedirectQueryMatch
+    pathMatch?: $Enums.RedirectPathMatch
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
@@ -15111,6 +15206,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
@@ -15127,6 +15224,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
@@ -15143,6 +15242,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: $Enums.RedirectQueryMatch
+    pathMatch?: $Enums.RedirectPathMatch
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
@@ -15158,6 +15259,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
@@ -15172,6 +15275,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
@@ -15996,6 +16101,20 @@ export namespace Prisma {
     isEmpty?: boolean
   }
 
+  export type EnumRedirectQueryMatchFilter<$PrismaModel = never> = {
+    equals?: $Enums.RedirectQueryMatch | EnumRedirectQueryMatchFieldRefInput<$PrismaModel>
+    in?: $Enums.RedirectQueryMatch[] | ListEnumRedirectQueryMatchFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RedirectQueryMatch[] | ListEnumRedirectQueryMatchFieldRefInput<$PrismaModel>
+    not?: NestedEnumRedirectQueryMatchFilter<$PrismaModel> | $Enums.RedirectQueryMatch
+  }
+
+  export type EnumRedirectPathMatchFilter<$PrismaModel = never> = {
+    equals?: $Enums.RedirectPathMatch | EnumRedirectPathMatchFieldRefInput<$PrismaModel>
+    in?: $Enums.RedirectPathMatch[] | ListEnumRedirectPathMatchFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RedirectPathMatch[] | ListEnumRedirectPathMatchFieldRefInput<$PrismaModel>
+    not?: NestedEnumRedirectPathMatchFilter<$PrismaModel> | $Enums.RedirectPathMatch
+  }
+
   export type RedirectRulePriorityCreatedAtIdCompoundUniqueInput = {
     priority: number
     createdAt: Date | string
@@ -16008,6 +16127,8 @@ export namespace Prisma {
     destination?: SortOrder
     statusCode?: SortOrder
     matchMethod?: SortOrder
+    queryMatch?: SortOrder
+    pathMatch?: SortOrder
     isBlocked?: SortOrder
     blockedAt?: SortOrder
     priority?: SortOrder
@@ -16027,6 +16148,8 @@ export namespace Prisma {
     source?: SortOrder
     destination?: SortOrder
     statusCode?: SortOrder
+    queryMatch?: SortOrder
+    pathMatch?: SortOrder
     isBlocked?: SortOrder
     blockedAt?: SortOrder
     priority?: SortOrder
@@ -16041,6 +16164,8 @@ export namespace Prisma {
     source?: SortOrder
     destination?: SortOrder
     statusCode?: SortOrder
+    queryMatch?: SortOrder
+    pathMatch?: SortOrder
     isBlocked?: SortOrder
     blockedAt?: SortOrder
     priority?: SortOrder
@@ -16069,6 +16194,26 @@ export namespace Prisma {
     _sum?: NestedIntFilter<$PrismaModel>
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type EnumRedirectQueryMatchWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RedirectQueryMatch | EnumRedirectQueryMatchFieldRefInput<$PrismaModel>
+    in?: $Enums.RedirectQueryMatch[] | ListEnumRedirectQueryMatchFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RedirectQueryMatch[] | ListEnumRedirectQueryMatchFieldRefInput<$PrismaModel>
+    not?: NestedEnumRedirectQueryMatchWithAggregatesFilter<$PrismaModel> | $Enums.RedirectQueryMatch
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRedirectQueryMatchFilter<$PrismaModel>
+    _max?: NestedEnumRedirectQueryMatchFilter<$PrismaModel>
+  }
+
+  export type EnumRedirectPathMatchWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RedirectPathMatch | EnumRedirectPathMatchFieldRefInput<$PrismaModel>
+    in?: $Enums.RedirectPathMatch[] | ListEnumRedirectPathMatchFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RedirectPathMatch[] | ListEnumRedirectPathMatchFieldRefInput<$PrismaModel>
+    not?: NestedEnumRedirectPathMatchWithAggregatesFilter<$PrismaModel> | $Enums.RedirectPathMatch
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRedirectPathMatchFilter<$PrismaModel>
+    _max?: NestedEnumRedirectPathMatchFilter<$PrismaModel>
   }
 
   export type RedirectRuleScalarRelationFilter = {
@@ -16931,6 +17076,14 @@ export namespace Prisma {
     push?: $Enums.HttpMethod | $Enums.HttpMethod[]
   }
 
+  export type EnumRedirectQueryMatchFieldUpdateOperationsInput = {
+    set?: $Enums.RedirectQueryMatch
+  }
+
+  export type EnumRedirectPathMatchFieldUpdateOperationsInput = {
+    set?: $Enums.RedirectPathMatch
+  }
+
   export type DomainGroupUpdateOneRequiredWithoutRedirectRulesNestedInput = {
     create?: XOR<DomainGroupCreateWithoutRedirectRulesInput, DomainGroupUncheckedCreateWithoutRedirectRulesInput>
     connectOrCreate?: DomainGroupCreateOrConnectWithoutRedirectRulesInput
@@ -17239,6 +17392,20 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
+  export type NestedEnumRedirectQueryMatchFilter<$PrismaModel = never> = {
+    equals?: $Enums.RedirectQueryMatch | EnumRedirectQueryMatchFieldRefInput<$PrismaModel>
+    in?: $Enums.RedirectQueryMatch[] | ListEnumRedirectQueryMatchFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RedirectQueryMatch[] | ListEnumRedirectQueryMatchFieldRefInput<$PrismaModel>
+    not?: NestedEnumRedirectQueryMatchFilter<$PrismaModel> | $Enums.RedirectQueryMatch
+  }
+
+  export type NestedEnumRedirectPathMatchFilter<$PrismaModel = never> = {
+    equals?: $Enums.RedirectPathMatch | EnumRedirectPathMatchFieldRefInput<$PrismaModel>
+    in?: $Enums.RedirectPathMatch[] | ListEnumRedirectPathMatchFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RedirectPathMatch[] | ListEnumRedirectPathMatchFieldRefInput<$PrismaModel>
+    not?: NestedEnumRedirectPathMatchFilter<$PrismaModel> | $Enums.RedirectPathMatch
+  }
+
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -17264,6 +17431,26 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type NestedEnumRedirectQueryMatchWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RedirectQueryMatch | EnumRedirectQueryMatchFieldRefInput<$PrismaModel>
+    in?: $Enums.RedirectQueryMatch[] | ListEnumRedirectQueryMatchFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RedirectQueryMatch[] | ListEnumRedirectQueryMatchFieldRefInput<$PrismaModel>
+    not?: NestedEnumRedirectQueryMatchWithAggregatesFilter<$PrismaModel> | $Enums.RedirectQueryMatch
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRedirectQueryMatchFilter<$PrismaModel>
+    _max?: NestedEnumRedirectQueryMatchFilter<$PrismaModel>
+  }
+
+  export type NestedEnumRedirectPathMatchWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RedirectPathMatch | EnumRedirectPathMatchFieldRefInput<$PrismaModel>
+    in?: $Enums.RedirectPathMatch[] | ListEnumRedirectPathMatchFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RedirectPathMatch[] | ListEnumRedirectPathMatchFieldRefInput<$PrismaModel>
+    not?: NestedEnumRedirectPathMatchWithAggregatesFilter<$PrismaModel> | $Enums.RedirectPathMatch
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRedirectPathMatchFilter<$PrismaModel>
+    _max?: NestedEnumRedirectPathMatchFilter<$PrismaModel>
   }
   export type NestedJsonFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -18187,6 +18374,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: $Enums.RedirectQueryMatch
+    pathMatch?: $Enums.RedirectPathMatch
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
@@ -18202,6 +18391,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: $Enums.RedirectQueryMatch
+    pathMatch?: $Enums.RedirectPathMatch
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
@@ -18347,6 +18538,8 @@ export namespace Prisma {
     destination?: StringFilter<"RedirectRule"> | string
     statusCode?: IntFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
+    queryMatch?: EnumRedirectQueryMatchFilter<"RedirectRule"> | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFilter<"RedirectRule"> | $Enums.RedirectPathMatch
     isBlocked?: BoolFilter<"RedirectRule"> | boolean
     blockedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     priority?: IntFilter<"RedirectRule"> | number
@@ -18540,6 +18733,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: $Enums.RedirectQueryMatch
+    pathMatch?: $Enums.RedirectPathMatch
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
@@ -18555,6 +18750,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: $Enums.RedirectQueryMatch
+    pathMatch?: $Enums.RedirectPathMatch
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
@@ -18621,6 +18818,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
@@ -18636,6 +18835,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
@@ -19522,6 +19723,8 @@ export namespace Prisma {
     destination: string
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: $Enums.RedirectQueryMatch
+    pathMatch?: $Enums.RedirectPathMatch
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
@@ -19571,6 +19774,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
@@ -19586,6 +19791,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
@@ -19601,6 +19808,8 @@ export namespace Prisma {
     destination?: StringFieldUpdateOperationsInput | string
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number

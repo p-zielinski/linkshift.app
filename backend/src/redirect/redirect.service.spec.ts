@@ -312,6 +312,105 @@ describe('RedirectService', () => {
     });
   });
 
+  describe('Path and Query Matching', () => {
+    it('should ignore query when queryMatch is ignore', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '/test',
+          destination: '/matched',
+          queryMatch: 'ignore',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/test?foo=bar');
+      expect(service.getRedirect(req, rules)).toBe('/matched');
+    });
+
+    it('should require exact query when queryMatch is exact', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '/test',
+          destination: '/matched',
+          queryMatch: 'exact',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/test?foo=bar');
+      expect(service.getRedirect(req, rules)).toBeNull();
+    });
+
+    it('should allow subset query match', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '/test?foo=bar',
+          destination: '/matched',
+          queryMatch: 'subset',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/test?foo=bar&extra=1');
+      expect(service.getRedirect(req, rules)).toBe('/matched');
+    });
+
+    it('should reject subset query match when required params are missing', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '/test?foo=bar',
+          destination: '/matched',
+          queryMatch: 'subset',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/test?extra=1');
+      expect(service.getRedirect(req, rules)).toBeNull();
+    });
+
+    it('should match prefix paths when pathMatch is prefix', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '/v1',
+          destination: '/matched',
+          pathMatch: 'prefix',
+          queryMatch: 'ignore',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/v1/users');
+      expect(service.getRedirect(req, rules)).toBe('/matched');
+    });
+
+    it('should require exact query for prefix matches when queryMatch is exact', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '/v1?333=1',
+          destination: '/matched',
+          pathMatch: 'prefix',
+          queryMatch: 'exact',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/v1/users?333=1');
+      const reqWithExtra = createMockRequest('http://test.com/v1/users?333=1&x=2');
+
+      expect(service.getRedirect(req, rules)).toBe('/matched');
+      expect(service.getRedirect(reqWithExtra, rules)).toBeNull();
+    });
+
+    it('should not match prefix paths across boundaries', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '/v1',
+          destination: '/matched',
+          pathMatch: 'prefix',
+          queryMatch: 'ignore',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/v11/users');
+      expect(service.getRedirect(req, rules)).toBeNull();
+    });
+  });
+
   describe('Variable Extraction Logic', () => {
     it('should correctly extract domain parts for complicated domains', async () => {
       const rules: RedirectRule[] = [
