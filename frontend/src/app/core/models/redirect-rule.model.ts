@@ -9,6 +9,7 @@ export type RedirectRule = {
   matchMethod: HttpMethod[];
   queryMatch: RedirectQueryMatch;
   pathMatch: RedirectPathMatch;
+  linkMapId?: string | null;
   priority: number;
   domainGroupId: string;
   createdAt: string;
@@ -25,6 +26,7 @@ export type CreateRedirectRuleDto = {
   matchMethod?: HttpMethod[];
   queryMatch?: RedirectQueryMatch;
   pathMatch?: RedirectPathMatch;
+  linkMapId?: string | null;
   priority?: number;
   domainGroupId: string;
 };
@@ -36,6 +38,7 @@ export type UpdateRedirectRuleDto = {
   matchMethod?: HttpMethod[];
   queryMatch?: RedirectQueryMatch;
   pathMatch?: RedirectPathMatch;
+  linkMapId?: string | null;
   priority?: number;
 };
 

@@ -14,6 +14,7 @@ import { AuthController } from './api/auth.controller';
 import { BillingController } from './api/billing.controller';
 import { OrganizationController } from './api/organization.controller';
 import { RedirectTestsController } from './api/redirect-tests.controller';
+import { LinkMapsController } from './api/link-maps.controller';
 import { CaddyController } from './api/caddy.controller';
 import { AuthService } from './auth/auth.service';
 import { ApiRedirectionMiddleware } from './middleware/api-redirection.middleware';
@@ -51,6 +52,7 @@ import { RedirectHitsSnapshotProcessor } from './security/redirect-hits-snapshot
 import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { SentryExceptionFilter } from './filters/sentry-exception.filter';
+import { LinkMapService } from './link-map/link-map.service';
 
 @Module({
   imports: [
@@ -140,6 +142,7 @@ import { SentryExceptionFilter } from './filters/sentry-exception.filter';
     DomainGroupsController,
     DomainsController,
     RedirectRulesController,
+    LinkMapsController,
     AuthController,
     BillingController,
     OrganizationController,
@@ -171,6 +174,7 @@ import { SentryExceptionFilter } from './filters/sentry-exception.filter';
     DomainBlacklistService,
     RedirectAnalyticsService,
     RedirectHitsSnapshotService,
+    LinkMapService,
     SafetyRescanScheduler,
     SafetyRescanProcessor,
     RedirectHitsSnapshotScheduler,

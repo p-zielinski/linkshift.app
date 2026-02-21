@@ -155,6 +155,87 @@ export class OrganizationService {
   }
 
   /**
+   * Checks if the organization can create a new link map.
+   */
+  async checkLinkMapLimit(
+    organizationId: string,
+    domainGroupId: string,
+  ): Promise<void> {
+    const config = await this.getConfiguration(organizationId);
+    const limits = this.getEffectiveSubscription(config).limits;
+
+    const totalCount = await this.prisma.linkMap.count({
+      where: {
+        domainGroup: { organizationId, deletedAt: null },
+        deletedAt: null,
+      },
+    });
+
+    if (totalCount >= limits.maxLinkMaps) {
+      this.throwLimitError(
+        `Link map limit reached (${limits.maxLinkMaps} max). Please upgrade your plan.`,
+      );
+    }
+
+    // Domain group validation for ownership (used for audit-style errors later).
+    const groupExists = await this.prisma.domainGroup.findFirst({
+      where: { id: domainGroupId, organizationId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!groupExists) {
+      this.throwLimitError(
+        `Domain group ${domainGroupId} not found for this organization.`,
+      );
+    }
+  }
+
+  /**
+   * Checks if the organization can add more link map entries.
+   */
+  async checkLinkMapEntryLimit(
+    organizationId: string,
+    domainGroupId: string,
+    additionalCount: number,
+    linkMapId?: string,
+  ): Promise<void> {
+    if (additionalCount <= 0) return;
+
+    const config = await this.getConfiguration(organizationId);
+    const limits = this.getEffectiveSubscription(config).limits;
+
+    const totalCount = await this.prisma.linkMapEntry.count({
+      where: {
+        deletedAt: null,
+        linkMap: {
+          deletedAt: null,
+          domainGroup: { organizationId, deletedAt: null },
+        },
+      },
+    });
+
+    if (totalCount + additionalCount > limits.maxLinkMapEntriesTotal) {
+      this.throwLimitError(
+        `Link map entry limit reached (${limits.maxLinkMapEntriesTotal} max). Please upgrade your plan.`,
+      );
+    }
+
+    if (linkMapId) {
+      const mapCount = await this.prisma.linkMapEntry.count({
+        where: { linkMapId, deletedAt: null },
+      });
+      if (mapCount + additionalCount > limits.maxLinkMapEntriesPerMap) {
+        this.throwLimitError(
+          `Link map entry limit for this map reached (${limits.maxLinkMapEntriesPerMap} max). Please upgrade your plan.`,
+        );
+      }
+    } else if (additionalCount > limits.maxLinkMapEntriesPerMap) {
+      this.throwLimitError(
+        `Link map entry limit for this map reached (${limits.maxLinkMapEntriesPerMap} max). Please upgrade your plan.`,
+      );
+    }
+  }
+
+  /**
    * Checks if the organization can create a new redirect test.
    * Verifies both total organization limit and per-group limit.
    */
@@ -284,9 +365,12 @@ export class OrganizationService {
       domainGroupCount,
       totalDomainCount,
       totalRuleCount,
+      totalLinkMapCount,
+      totalLinkMapEntryCount,
       activeUserCount,
       domainCounts,
       ruleCounts,
+      linkMapEntryCounts,
     ] = await Promise.all([
       this.prisma.domainGroup.count({
         where: { organizationId, deletedAt: null },
@@ -301,6 +385,21 @@ export class OrganizationService {
         where: {
           domainGroup: { organizationId, deletedAt: null },
           deletedAt: null,
+        },
+      }),
+      this.prisma.linkMap.count({
+        where: {
+          domainGroup: { organizationId, deletedAt: null },
+          deletedAt: null,
+        },
+      }),
+      this.prisma.linkMapEntry.count({
+        where: {
+          deletedAt: null,
+          linkMap: {
+            deletedAt: null,
+            domainGroup: { organizationId, deletedAt: null },
+          },
         },
       }),
       this.prisma.user.count({
@@ -326,6 +425,17 @@ export class OrganizationService {
         },
         _count: { _all: true },
       }),
+      this.prisma.linkMapEntry.groupBy({
+        by: ['linkMapId'],
+        where: {
+          deletedAt: null,
+          linkMap: {
+            deletedAt: null,
+            domainGroup: { organizationId, deletedAt: null },
+          },
+        },
+        _count: { _all: true },
+      }),
     ]);
 
     if (domainGroupCount > limits.maxDomainGroups) {
@@ -338,6 +448,14 @@ export class OrganizationService {
 
     if (totalRuleCount > limits.maxTotalRules) {
       return `Total rules ${totalRuleCount}/${limits.maxTotalRules}`;
+    }
+
+    if (totalLinkMapCount > limits.maxLinkMaps) {
+      return `Link maps ${totalLinkMapCount}/${limits.maxLinkMaps}`;
+    }
+
+    if (totalLinkMapEntryCount > limits.maxLinkMapEntriesTotal) {
+      return `Link map entries ${totalLinkMapEntryCount}/${limits.maxLinkMapEntriesTotal}`;
     }
 
     if (activeUserCount > limits.maxUsers) {
@@ -358,6 +476,13 @@ export class OrganizationService {
       return `Rules per group ${ruleOverage._count._all}/${limits.maxRulesPerGroup}`;
     }
 
+    const linkMapEntryOverage = linkMapEntryCounts.find(
+      (entry) => entry._count._all > limits.maxLinkMapEntriesPerMap,
+    );
+    if (linkMapEntryOverage) {
+      return `Link map entries per map ${linkMapEntryOverage._count._all}/${limits.maxLinkMapEntriesPerMap}`;
+    }
+
     return null;
   }
 
@@ -367,8 +492,18 @@ export class OrganizationService {
     rules: number;
     tests: number;
     users: number;
+    linkMaps: number;
+    linkMapEntries: number;
   }> {
-    const [domainGroups, domains, rules, tests, users] = await Promise.all([
+    const [
+      domainGroups,
+      domains,
+      rules,
+      tests,
+      users,
+      linkMaps,
+      linkMapEntries,
+    ] = await Promise.all([
       this.prisma.domainGroup.count({
         where: { organizationId, deletedAt: null },
       }),
@@ -397,9 +532,32 @@ export class OrganizationService {
           isBlocked: false,
         },
       }),
+      this.prisma.linkMap.count({
+        where: {
+          deletedAt: null,
+          domainGroup: { organizationId, deletedAt: null },
+        },
+      }),
+      this.prisma.linkMapEntry.count({
+        where: {
+          deletedAt: null,
+          linkMap: {
+            deletedAt: null,
+            domainGroup: { organizationId, deletedAt: null },
+          },
+        },
+      }),
     ]);
 
-    return { domainGroups, domains, rules, tests, users };
+    return {
+      domainGroups,
+      domains,
+      rules,
+      tests,
+      users,
+      linkMaps,
+      linkMapEntries,
+    };
   }
 
   private throwLimitError(details: string): never {

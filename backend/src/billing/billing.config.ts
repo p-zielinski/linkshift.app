@@ -19,6 +19,9 @@ export const PLAN_LIMITS: Record<
     maxTotalTests: 30,
     maxUsers: 1,
     redirectionLimitPerMinute: 10,
+    maxLinkMaps: 1,
+    maxLinkMapEntriesTotal: 100,
+    maxLinkMapEntriesPerMap: 100,
   },
   [OrganizationPlan.BASIC]: {
     maxDomainGroups: 1,
@@ -30,6 +33,9 @@ export const PLAN_LIMITS: Record<
     maxTotalTests: 500,
     maxUsers: 3,
     redirectionLimitPerMinute: 50,
+    maxLinkMaps: 5,
+    maxLinkMapEntriesTotal: 5000,
+    maxLinkMapEntriesPerMap: 2000,
   },
   [OrganizationPlan.PRO]: {
     maxDomainGroups: 2,
@@ -41,6 +47,9 @@ export const PLAN_LIMITS: Record<
     maxTotalTests: 1000,
     maxUsers: 5,
     redirectionLimitPerMinute: 100,
+    maxLinkMaps: 20,
+    maxLinkMapEntriesTotal: 20000,
+    maxLinkMapEntriesPerMap: 5000,
   },
 };
 

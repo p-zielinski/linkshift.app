@@ -1,0 +1,120 @@
+<div class="flex min-h-[calc(100vh-48px)] flex-col">
+  <app-page-header
+    title="Link Maps"
+    subtitle="Create reusable short-link maps for each domain group."
+  >
+    <button mat-flat-button color="primary" (click)="openCreateDialog()" [disabled]="!activeGroupId()">
+      <mat-icon>add</mat-icon>
+      <span>Add link map</span>
+    </button>
+  </app-page-header>
+
+  <div
+    class="mb-4 grid gap-4 rounded-[18px] border border-app-border-soft bg-app-surface p-4 md:grid-cols-[minmax(220px,1fr)_2fr]"
+  >
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+      <mat-label>Domain group</mat-label>
+      <mat-select [formField]="filterForm.domainGroupId">
+        @for (group of domainGroups(); track group.id) {
+          <mat-option [value]="group.id">{{ group.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-3 text-[12px] text-app-muted">
+      Link maps turn short keys into full destinations. Use a redirect rule with path prefix
+      (for example <code>/short</code>) to route to a chosen map.
+    </div>
+  </div>
+
+  <div class="flex min-h-0 flex-1 flex-col rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+    <div class="min-h-0 flex-1 overflow-auto">
+      <table mat-table [dataSource]="linkMaps()" class="min-w-[960px] w-full mat-elevation-z0">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[180px] max-w-[280px] truncate">
+            Name
+          </th>
+          <td mat-cell *matCellDef="let map" class="py-3 min-w-[180px] max-w-[280px] truncate">
+            {{ map.name }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="queryMatch">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[140px] max-w-[220px] truncate">
+            Query match
+          </th>
+          <td mat-cell *matCellDef="let map" class="py-3 min-w-[140px] max-w-[220px] truncate">
+            <div class="flex items-center gap-2">
+              <mat-icon class="text-[18px] text-app-muted" [matTooltip]="queryMatchTooltip(map)">
+                {{ queryMatchIcon(map) }}
+              </mat-icon>
+              <span>{{ formatQueryMatch(map) }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="caseSensitive">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[140px] max-w-[220px] truncate">
+            Case
+          </th>
+          <td mat-cell *matCellDef="let map" class="py-3 min-w-[140px] max-w-[220px] truncate">
+            <span
+              class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[12px]"
+              [class.text-app-muted]="!map.caseSensitive"
+            >
+              <mat-icon class="text-[16px]">
+                {{ map.caseSensitive ? 'text_rotation_none' : 'text_fields' }}
+              </mat-icon>
+              {{ map.caseSensitive ? 'Sensitive' : 'Insensitive' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="fallback">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[200px] max-w-[320px] truncate">
+            Fallback
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let map"
+            class="py-3 min-w-[200px] max-w-[320px] truncate"
+            [matTooltip]="map.fallbackDestination || 'No fallback destination'"
+          >
+            {{ map.fallbackDestination || '—' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="min-w-[140px] max-w-[200px] truncate"></th>
+          <td mat-cell *matCellDef="let map" class="py-3 min-w-[140px] max-w-[200px] truncate">
+            <div class="flex items-center gap-1">
+              <button mat-icon-button matTooltip="Edit link map" (click)="openEditDialog(map)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" matTooltip="Delete link map" (click)="deleteMap(map)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        <tr class="mat-row" *matNoDataRow>
+          <td
+            class="mat-cell px-0 py-6 text-center text-[13px] text-app-muted"
+            [attr.colspan]="columns.length"
+          >
+            @if (!activeGroupId()) {
+              Select a domain group to view link maps.
+            } @else if (loading()) {
+              Loading link maps...
+            } @else {
+              No link maps found.
+            }
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>

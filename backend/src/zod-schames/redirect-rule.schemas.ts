@@ -46,6 +46,11 @@ export const CreateRedirectRuleSchema = z.object({
   matchMethod: MatchMethodListSchema.default([]),
   queryMatch: z.enum(QUERY_MATCH_VALUES).default('exact'),
   pathMatch: z.enum(PATH_MATCH_VALUES).default('exact'),
+  linkMapId: z
+    .string()
+    .regex(getEntityIdRegex(AppEntity.LinkMap), 'Invalid Link Map ID')
+    .nullable()
+    .optional(),
   priority: z
     .number()
     .int()
@@ -80,6 +85,11 @@ export const UpdateRedirectRuleSchema = z.object({
   matchMethod: MatchMethodListSchema.optional(),
   queryMatch: z.enum(QUERY_MATCH_VALUES).optional(),
   pathMatch: z.enum(PATH_MATCH_VALUES).optional(),
+  linkMapId: z
+    .string()
+    .regex(getEntityIdRegex(AppEntity.LinkMap), 'Invalid Link Map ID')
+    .nullable()
+    .optional(),
   priority: z.number().int().min(0).max(1000).optional(),
 });
 

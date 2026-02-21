@@ -42,6 +42,7 @@ import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
 import { Logger } from 'nestjs-pino';
+import { LinkMapService } from '../link-map/link-map.service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -96,6 +97,7 @@ export interface RedirectRule {
   matchMethod?: HttpMethod[];
   queryMatch?: 'exact' | 'ignore' | 'subset';
   pathMatch?: 'exact' | 'prefix';
+  linkMapId?: string | null;
 }
 
 type RedirectSimulationEntry = {
@@ -138,6 +140,7 @@ export class RedirectService {
     private readonly safetyScannerService: SafetyScannerService,
     private readonly domainBlacklistService: DomainBlacklistService,
     private readonly redirectAnalyticsService: RedirectAnalyticsService,
+    private readonly linkMapService: LinkMapService,
     private readonly logger: Logger,
   ) {}
 
@@ -903,6 +906,15 @@ export class RedirectService {
       domainGroupId: data.domainGroupId,
     });
 
+    await this.validateLinkMapRule({
+      organizationId,
+      domainGroupId: data.domainGroupId,
+      linkMapId: data.linkMapId ?? null,
+      source: data.source,
+      pathMatch: data.pathMatch,
+      queryMatch: data.queryMatch,
+    });
+
     // 4. Create
     const matchMethod = this.normalizeMatchMethods(data.matchMethod);
     const rule = await this.prisma.redirectRule.create({
@@ -914,6 +926,7 @@ export class RedirectService {
         matchMethod,
         queryMatch: data.queryMatch ?? 'exact',
         pathMatch: data.pathMatch ?? 'exact',
+        linkMapId: data.linkMapId ?? null,
         priority: data.priority,
         domainGroupId: data.domainGroupId,
       },
@@ -975,6 +988,16 @@ export class RedirectService {
       domainGroupId: existing.domainGroupId,
     });
 
+    await this.validateLinkMapRule({
+      organizationId,
+      domainGroupId: existing.domainGroupId,
+      linkMapId:
+        data.linkMapId !== undefined ? data.linkMapId : existing.linkMapId,
+      source: data.source ?? existing.source,
+      pathMatch: data.pathMatch ?? existing.pathMatch,
+      queryMatch: data.queryMatch ?? existing.queryMatch,
+    });
+
     // 3. Update
     const updateData: Prisma.RedirectRuleUpdateInput = {
       updatedAt: new Date(),
@@ -1002,6 +1025,12 @@ export class RedirectService {
     }
     if (data.pathMatch !== undefined) {
       updateData.pathMatch = data.pathMatch;
+    }
+    if (data.linkMapId !== undefined) {
+      updateData.linkMap =
+        data.linkMapId === null
+          ? { disconnect: true }
+          : { connect: { id: data.linkMapId } };
     }
 
     const rule = await this.prisma.redirectRule.update({
@@ -1109,6 +1138,91 @@ export class RedirectService {
       domainGroupId: context.domainGroupId,
       extractedDomains: extractedUrls,
     });
+  }
+
+  private async validateLinkMapRule(params: {
+    organizationId: string;
+    domainGroupId: string;
+    linkMapId: string | null | undefined;
+    source: string;
+    pathMatch?: 'exact' | 'prefix';
+    queryMatch?: 'exact' | 'ignore' | 'subset';
+  }): Promise<void> {
+    if (!params.linkMapId) {
+      return;
+    }
+
+    if (params.source === '*') {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Link map rules cannot use the "*" source.',
+          relatedObjectParameter: 'source',
+        }),
+      );
+    }
+
+    if (params.source.includes('?')) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Link map rule source must not include query params.',
+          relatedObjectParameter: 'source',
+        }),
+      );
+    }
+
+    if (params.source.startsWith('/') && params.source.lastIndexOf('/') > 0) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Link map rules do not support regex sources.',
+          relatedObjectParameter: 'source',
+        }),
+      );
+    }
+
+    const pathMatch = params.pathMatch ?? 'exact';
+    if (pathMatch !== 'prefix') {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Link map rules require pathMatch set to prefix.',
+          relatedObjectParameter: 'pathMatch',
+        }),
+      );
+    }
+
+    const queryMatch = params.queryMatch ?? 'exact';
+    if (queryMatch !== 'ignore') {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Link map rules require queryMatch set to ignore.',
+          relatedObjectParameter: 'queryMatch',
+        }),
+      );
+    }
+
+    const linkMap = await this.prisma.linkMap.findFirst({
+      where: {
+        id: params.linkMapId,
+        deletedAt: null,
+        domainGroupId: params.domainGroupId,
+        domainGroup: { organizationId: params.organizationId, deletedAt: null },
+      },
+      select: { id: true },
+    });
+
+    if (!linkMap) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Link map not found for this domain group.',
+          relatedObjectParameter: 'linkMapId',
+        }),
+      );
+    }
   }
 
   static readonly manipulators: Record<string, Manipulator> = {
@@ -1289,7 +1403,7 @@ export class RedirectService {
     );
 
     // 4. Pass rules to getRedirect to find a match
-    const match = this.getRedirectMatch(req, rules);
+    const match = await this.getRedirectMatch(req, rules);
 
     // 5. Action: redirect or return 404
     if (match) {
@@ -1343,8 +1457,8 @@ export class RedirectService {
     });
   }
 
-  getRedirect(req: Request, rules: RedirectRule[]): string | null {
-    const match = this.getRedirectMatch(req, rules);
+  async getRedirect(req: Request, rules: RedirectRule[]): Promise<string | null> {
+    const match = await this.getRedirectMatch(req, rules);
     return match ? match.target : null;
   }
 
@@ -1392,7 +1506,7 @@ export class RedirectService {
 
     const groupMap = new Map(domainGroups.map((group) => [group.id, group]));
 
-    const results = entries.map((entry, index) => {
+    const results = await Promise.all(entries.map(async (entry, index) => {
       const group = groupMap.get(entry.domainGroupId);
       if (!group) {
         return {
@@ -1436,7 +1550,7 @@ export class RedirectService {
       }
       const request = this.buildSimulationRequest(entry, hostname);
       const rules = this.mapStoredRules(group.redirectRules);
-      const match = this.getRedirectMatch(request, rules);
+      const match = await this.getRedirectMatch(request, rules);
 
       if (match) {
         const statusCode = match.rule.statusCode ?? 302;
@@ -1462,15 +1576,15 @@ export class RedirectService {
         statusCode: 404,
         target: null,
       };
-    });
+    }));
 
     return { results };
   }
 
-  private getRedirectMatch(
+  private async getRedirectMatch(
     req: Request,
     rules: RedirectRule[],
-  ): { target: string; rule: RedirectRule } | null {
+  ): Promise<{ target: string; rule: RedirectRule } | null> {
     const url = this.getRequestUrl(req);
     const variables = this.extractVariables(req, url);
     const matchContext = this.buildMatchContext(req, url);
@@ -1483,6 +1597,16 @@ export class RedirectService {
         variables,
       );
       if (result) {
+        if (rule.linkMapId) {
+          const linkMapTarget = await this.resolveLinkMapTarget(
+            rule,
+            matchContext,
+          );
+          if (linkMapTarget) {
+            return { target: linkMapTarget, rule };
+          }
+          continue;
+        }
         return { target: result, rule };
       }
     }
@@ -1499,6 +1623,7 @@ export class RedirectService {
       matchMethod: HttpMethod[];
       queryMatch?: 'exact' | 'ignore' | 'subset';
       pathMatch?: 'exact' | 'prefix';
+      linkMapId?: string | null;
     }[],
   ): RedirectRule[] {
     return rules.map((rule) => {
@@ -1514,6 +1639,7 @@ export class RedirectService {
           matchMethod: rule.matchMethod,
           queryMatch: rule.queryMatch,
           pathMatch: rule.pathMatch,
+          linkMapId: rule.linkMapId ?? null,
         };
       }
 
@@ -1525,6 +1651,7 @@ export class RedirectService {
         matchMethod: rule.matchMethod,
         queryMatch: rule.queryMatch,
         pathMatch: rule.pathMatch,
+        linkMapId: rule.linkMapId ?? null,
       };
     });
   }
@@ -1786,6 +1913,53 @@ export class RedirectService {
       // If a rule is malformed or dangerous, return null (skip it) so the server stays alive
       return null;
     }
+  }
+
+  private async resolveLinkMapTarget(
+    rule: RedirectRule,
+    matchContext: { path: string; query: URLSearchParams },
+  ): Promise<string | null> {
+    if (!rule.linkMapId || typeof rule.source !== 'string') {
+      return null;
+    }
+
+    const sourcePath = this.parseSourcePath(rule.source);
+    if (!sourcePath) {
+      return null;
+    }
+
+    const keyPath = this.extractLinkMapKey(matchContext.path, sourcePath);
+    if (keyPath === null) {
+      return null;
+    }
+
+    return this.linkMapService.resolveLinkMapDestination(
+      rule.linkMapId,
+      keyPath,
+      matchContext.query,
+    );
+  }
+
+  private parseSourcePath(source: string): string | null {
+    try {
+      const url = new URL(source, 'http://localhost');
+      const path = url.pathname.startsWith('/') ? url.pathname : `/${url.pathname}`;
+      return path;
+    } catch {
+      return null;
+    }
+  }
+
+  private extractLinkMapKey(path: string, sourcePath: string): string | null {
+    if (!path.startsWith(sourcePath)) {
+      return null;
+    }
+
+    let remainder = path.slice(sourcePath.length);
+    if (remainder.startsWith('/')) {
+      remainder = remainder.slice(1);
+    }
+    return remainder;
   }
 
   private buildMatchContext(req: Request, url: URL): {

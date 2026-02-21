@@ -1,0 +1,73 @@
+.dialog-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  max-height: 85vh;
+  overflow: hidden;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dialog-header h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.dialog-body {
+  display: grid;
+  gap: 20px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.section {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--app-border-soft);
+  border-radius: 16px;
+  background: var(--app-surface);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.entries-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.entry-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.warning {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff3f3;
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+code {
+  font-family: "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}

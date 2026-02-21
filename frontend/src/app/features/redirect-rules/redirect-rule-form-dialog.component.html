@@ -119,6 +119,49 @@
             </mat-form-field>
           </div>
 
+          <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="font-semibold text-app-text">Link map routing (optional)</span>
+              @if (linkMapsLoading()) {
+                <span>Loading maps...</span>
+              }
+            </div>
+            <div class="mt-2 grid gap-3">
+              <div>
+                Link maps resolve destinations from a short key. The key is the path after your source prefix
+                (<code>/short</code> + request <code>/short/abc</code> → key <code>abc</code>).
+              </div>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Link map</mat-label>
+                <mat-select [formField]="field('linkMapId')">
+                  <mat-option [value]="null">None</mat-option>
+                  @for (map of linkMaps(); track map.id) {
+                    <mat-option [value]="map.id">
+                      {{ map.name }}
+                    </mat-option>
+                  }
+                </mat-select>
+                <mat-hint>When selected, path match becomes prefix and query match is ignored.</mat-hint>
+              </mat-form-field>
+              @if (linkMapsError()) {
+                <div class="text-app-danger">{{ linkMapsError() }}</div>
+              }
+              @if (selectedLinkMap(); as map) {
+                <div class="grid gap-1 text-[11px] text-app-muted">
+                  <div>Map query: {{ formatQueryMatch(map.queryMatch) }}</div>
+                  <div>Case sensitive: {{ map.caseSensitive ? 'yes' : 'no' }}</div>
+                  <div>Fallback: {{ map.fallbackDestination || 'none' }}</div>
+                </div>
+              }
+              @if (linkMapSourceIssue()) {
+                <div class="text-app-danger">{{ linkMapSourceIssue() }}</div>
+              }
+              @if (linkMapMissing()) {
+                <div class="text-app-danger">{{ linkMapMissing() }}</div>
+              }
+            </div>
+          </div>
+
           <div
             class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted"
           >
@@ -216,6 +259,9 @@
             <input matInput type="text" [formField]="field('destination')" />
             <mat-hint>
               Must start with <code>http://</code> or <code>https://</code>.
+              @if (isLinkMapRule()) {
+                Link map rules use map destinations; set this to a safe fallback.
+              }
             </mat-hint>
             @if (destinationError(); as error) {
               <mat-error>{{ error }}</mat-error>
@@ -416,6 +462,10 @@
                 <span>{{ formatQueryMatch(ruleModel().queryMatch) }}</span>
               </div>
               <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-app-muted">Link map</span>
+                <span>{{ selectedLinkMap()?.name || '—' }}</span>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-2">
                 <span class="text-app-muted">Status</span>
                 <span>{{ ruleModel().statusCode }}</span>
               </div>
@@ -513,9 +563,31 @@
         </div>
 
         <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Link map (optional)</mat-label>
+          <mat-select [formField]="field('linkMapId')">
+            <mat-option [value]="null">None</mat-option>
+            @for (map of linkMaps(); track map.id) {
+              <mat-option [value]="map.id">{{ map.name }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Link maps use the path prefix as a key lookup (for example /short/abc → abc).</mat-hint>
+        </mat-form-field>
+        @if (linkMapsError()) {
+          <div class="text-app-danger text-xs">{{ linkMapsError() }}</div>
+        }
+        @if (linkMapSourceIssue()) {
+          <div class="text-app-danger text-xs">{{ linkMapSourceIssue() }}</div>
+        }
+
+        <mat-form-field appearance="outline" class="w-full">
           <mat-label>Destination</mat-label>
           <input matInput type="text" [formField]="field('destination')" />
-          <mat-hint>Must start with <code>http://</code> or <code>https://</code>.</mat-hint>
+          <mat-hint>
+            Must start with <code>http://</code> or <code>https://</code>.
+            @if (isLinkMapRule()) {
+              Link map rules use map destinations; set this to a safe fallback.
+            }
+          </mat-hint>
           @if (destinationError(); as error) {
             <mat-error>{{ error }}</mat-error>
           }

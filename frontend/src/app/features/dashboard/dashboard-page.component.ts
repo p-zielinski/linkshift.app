@@ -108,6 +108,20 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     }
     return usage.tests >= this.limits().maxTotalTests;
   });
+  readonly linkMapLimitReached = computed(() => {
+    const usage = this.usage();
+    if (!usage) {
+      return false;
+    }
+    return usage.linkMaps >= this.limits().maxLinkMaps;
+  });
+  readonly linkMapEntriesLimitReached = computed(() => {
+    const usage = this.usage();
+    if (!usage) {
+      return false;
+    }
+    return usage.linkMapEntries >= this.limits().maxLinkMapEntriesTotal;
+  });
   readonly userLimitReached = computed(() => {
     const usage = this.usage();
     if (!usage) {
@@ -134,6 +148,14 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     }
     if (usage.users > limits.maxUsers) {
       details.push(`Active users ${usage.users}/${limits.maxUsers}`);
+    }
+    if (usage.linkMaps > limits.maxLinkMaps) {
+      details.push(`Link maps ${usage.linkMaps}/${limits.maxLinkMaps}`);
+    }
+    if (usage.linkMapEntries > limits.maxLinkMapEntriesTotal) {
+      details.push(
+        `Link map entries ${usage.linkMapEntries}/${limits.maxLinkMapEntriesTotal}`,
+      );
     }
     return details;
   });
