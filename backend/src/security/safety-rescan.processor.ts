@@ -48,6 +48,10 @@ export class SafetyRescanProcessor {
       return;
     }
 
+    if (!rule.destination) {
+      return;
+    }
+
     const extractedUrls = this.destinationExtractor.extractUrls(rule.destination);
     if (extractedUrls.length === 0) {
       this.logger.debug('Safety rescan skipped (no domains)', {
@@ -100,7 +104,7 @@ export class SafetyRescanProcessor {
           email: owner.email,
           organization: rule.domainGroup.organization?.name ?? 'Organization',
           ruleId: rule.id,
-          destination: rule.destination,
+          destination: rule.destination ?? '',
           unsafeDomains: unsafeUrls,
           detectedAt: new Date(),
         });

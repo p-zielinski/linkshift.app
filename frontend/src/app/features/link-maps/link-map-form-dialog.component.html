@@ -1,7 +1,7 @@
-<div class="dialog-shell">
-  <div class="dialog-header">
-    <div>
-      <h3>{{ title() }}</h3>
+<form (submit)="onSubmit($event)" class="flex h-full flex-col">
+  <div mat-dialog-title class="flex w-full items-start justify-between gap-4 text-left px-4 pt-4">
+    <div class="flex-1">
+      <h3 class=" m-0 text-lg font-semibold">{{ title() }}</h3>
       <p class="text-app-muted text-sm">
         Store short keys and destinations in a dedicated link map tied to a domain group.
       </p>
@@ -11,23 +11,22 @@
     </button>
   </div>
 
-  <form class="dialog-body" (submit)="onSubmit($event)">
-    <div class="grid gap-4">
+  <div mat-dialog-content class="flex-1 overflow-auto px-4">
+    <div class="grid gap-4 pt-1">
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>Name</mat-label>
         <input matInput type="text" [formField]="mapForm.name" />
+        @if (nameError(); as error) {
+          <mat-error>{{ error }}</mat-error>
+        }
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Domain group</mat-label>
-        <mat-select [formField]="mapForm.domainGroupId">
-          @for (group of domainGroups(); track group.id) {
-            <mat-option [value]="group.id">{{ group.name }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm mb-4 mt-[-4px]">
+        <div class="text-[12px] text-app-muted">Domain group</div>
+        <div class="mt-1 font-medium text-app-foreground">{{ selectedGroupLabel() }}</div>
+      </div>
 
-      <div class="grid gap-4 sm:grid-cols-2">
+      <div class="grid gap-4 sm:grid-cols-2 items-center">
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Query match</mat-label>
           <mat-select [value]="mapModel().queryMatch" (selectionChange)="onQueryMatchChange($event.value)">
@@ -64,14 +63,17 @@
           matInput
           type="text"
           [formField]="mapForm.fallbackDestination"
-          placeholder="https://example.com/fallback"
+          (blur)="normalizeFallbackDestination()"
         />
-        <mat-hint>Used when a key does not exist in the map.</mat-hint>
+        <mat-hint>Used when a key does not exist in the map. We add https:// if missing.</mat-hint>
+        @if (fallbackError(); as error) {
+          <mat-error>{{ error }}</mat-error>
+        }
       </mat-form-field>
     </div>
 
-    <div class="section">
-      <div class="section-header">
+    <div class="mt-6 grid gap-3 rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+      <div class="flex items-center justify-between gap-3">
         <div>
           <h4>Entries</h4>
           <p class="text-app-muted text-xs">
@@ -88,40 +90,68 @@
         <div class="warning">Duplicate keys found: {{ duplicateKeys().join(', ') }}</div>
       }
       @if (invalidEntries().length) {
-        <div class="warning">Some entries are missing keys or destinations.</div>
+        <div class="warning">Some entries are missing keys or have invalid destinations.</div>
       }
 
-      <div class="entries-grid">
-        @for (entry of entries(); track trackById($index, entry)) {
-          <div class="entry-row">
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Key</mat-label>
-              <input
-                matInput
-                type="text"
-                [value]="entry.key"
-                (input)="updateEntry(entry.id, 'key', $any($event.target).value)"
-              />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Destination</mat-label>
-              <input
-                matInput
-                type="text"
-                [value]="entry.destination"
-                (input)="updateEntry(entry.id, 'destination', $any($event.target).value)"
-              />
-            </mat-form-field>
-            <button mat-icon-button type="button" (click)="removeEntry(entry.id)">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </div>
-        }
-      </div>
+      @if (!showEntries()) {
+        <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted">
+          {{ entriesCount() }} entries loaded. Rendering all rows could be heavy.
+          <button mat-stroked-button type="button" class="mt-2" (click)="showEntries.set(true)">
+            Show entries
+          </button>
+        </div>
+      } @else {
+        <div class="grid gap-3">
+          @for (entry of entries(); track trackById($index, entry)) {
+            <div class="grid items-start gap-3 md:grid-cols-[1fr_1fr_auto]">
+              <mat-form-field
+                appearance="outline"
+                class="w-full"
+                [class.entry-field--invalid]="entryKeyError(entry.id)"
+              >
+                <mat-label>Key</mat-label>
+                <input
+                  matInput
+                  type="text"
+                  [value]="entry.key"
+                  (input)="updateEntry(entry.id, 'key', $any($event.target).value)"
+                  (blur)="markEntryTouched(entry.id, 'key')"
+                  [attr.aria-invalid]="entryKeyError(entry.id) ? true : null"
+                />
+                @if (entryKeyError(entry.id); as error) {
+                  <div class="text-xs text-app-danger">{{ error }}</div>
+                }
+              </mat-form-field>
+              <mat-form-field
+                appearance="outline"
+                class="w-full"
+                [class.entry-field--invalid]="entryDestinationError(entry.id)"
+              >
+                <mat-label>Destination</mat-label>
+                <input
+                  matInput
+                  type="text"
+                  [value]="entry.destination"
+                  (input)="updateEntry(entry.id, 'destination', $any($event.target).value)"
+                  (blur)="onEntryDestinationBlur(entry.id)"
+                  [attr.aria-invalid]="entryDestinationError(entry.id) ? true : null"
+                />
+                <mat-hint>We add https:// if missing.</mat-hint>
+                @if (entryDestinationError(entry.id); as error) {
+                  <div class="text-xs text-app-danger">{{ error }}</div>
+                }
+              </mat-form-field>
+              <button mat-icon-button type="button" (click)="removeEntry(entry.id)" class="mt-2">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
     </div>
 
-    <div class="section">
-      <div class="section-header">
+    <div class="mt-6 grid gap-3 rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+      <div class="flex items-center justify-between gap-3">
         <div>
           <h4>Bulk add</h4>
           <p class="text-app-muted text-xs">Paste rows as <code>key -> destination</code>, comma, or space separated.</p>
@@ -143,13 +173,27 @@
     @if (submitError()) {
       <div class="warning">{{ submitError() }}</div>
     }
+  </div>
 
-    <div class="dialog-actions">
-      <button mat-stroked-button type="button" (click)="onCancel()">Cancel</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="!canSubmit() || loading()">
+  <div mat-dialog-actions class="mt-4 flex items-center justify-end gap-3 px-4 pb-4">
+    <button mat-stroked-button type="button" (click)="onCancel()">Cancel</button>
+    <span
+      class="inline-flex"
+      [matTooltip]="submitTooltip()"
+      [matTooltipDisabled]="canSubmit() || !submitTooltip()"
+      matTooltipClass="tooltip-preline"
+    >
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        [disabled]="!canSubmit() || loading()"
+        [class.opacity-60]="!canSubmit() || loading()"
+        [class.cursor-not-allowed]="!canSubmit() || loading()"
+      >
         <mat-icon>{{ isEdit() ? 'save' : 'add' }}</mat-icon>
         {{ isEdit() ? 'Save map' : 'Create map' }}
       </button>
-    </div>
-  </form>
-</div>
+    </span>
+  </div>
+</form>

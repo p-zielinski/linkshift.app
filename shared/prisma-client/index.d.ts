@@ -8286,7 +8286,7 @@ export namespace Prisma {
   export type RedirectRuleGroupByOutputType = {
     id: string
     source: string
-    destination: string
+    destination: string | null
     statusCode: number
     matchMethod: $Enums.HttpMethod[]
     queryMatch: $Enums.RedirectQueryMatch
@@ -8426,7 +8426,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       source: string
-      destination: string
+      destination: string | null
       statusCode: number
       matchMethod: $Enums.HttpMethod[]
       queryMatch: $Enums.RedirectQueryMatch
@@ -16894,7 +16894,7 @@ export namespace Prisma {
     NOT?: RedirectRuleWhereInput | RedirectRuleWhereInput[]
     id?: StringFilter<"RedirectRule"> | string
     source?: StringFilter<"RedirectRule"> | string
-    destination?: StringFilter<"RedirectRule"> | string
+    destination?: StringNullableFilter<"RedirectRule"> | string | null
     statusCode?: IntFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
     queryMatch?: EnumRedirectQueryMatchFilter<"RedirectRule"> | $Enums.RedirectQueryMatch
@@ -16915,7 +16915,7 @@ export namespace Prisma {
   export type RedirectRuleOrderByWithRelationInput = {
     id?: SortOrder
     source?: SortOrder
-    destination?: SortOrder
+    destination?: SortOrderInput | SortOrder
     statusCode?: SortOrder
     matchMethod?: SortOrder
     queryMatch?: SortOrder
@@ -16940,7 +16940,7 @@ export namespace Prisma {
     OR?: RedirectRuleWhereInput[]
     NOT?: RedirectRuleWhereInput | RedirectRuleWhereInput[]
     source?: StringFilter<"RedirectRule"> | string
-    destination?: StringFilter<"RedirectRule"> | string
+    destination?: StringNullableFilter<"RedirectRule"> | string | null
     statusCode?: IntFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
     queryMatch?: EnumRedirectQueryMatchFilter<"RedirectRule"> | $Enums.RedirectQueryMatch
@@ -16961,7 +16961,7 @@ export namespace Prisma {
   export type RedirectRuleOrderByWithAggregationInput = {
     id?: SortOrder
     source?: SortOrder
-    destination?: SortOrder
+    destination?: SortOrderInput | SortOrder
     statusCode?: SortOrder
     matchMethod?: SortOrder
     queryMatch?: SortOrder
@@ -16987,7 +16987,7 @@ export namespace Prisma {
     NOT?: RedirectRuleScalarWhereWithAggregatesInput | RedirectRuleScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"RedirectRule"> | string
     source?: StringWithAggregatesFilter<"RedirectRule"> | string
-    destination?: StringWithAggregatesFilter<"RedirectRule"> | string
+    destination?: StringNullableWithAggregatesFilter<"RedirectRule"> | string | null
     statusCode?: IntWithAggregatesFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
     queryMatch?: EnumRedirectQueryMatchWithAggregatesFilter<"RedirectRule"> | $Enums.RedirectQueryMatch
@@ -17928,7 +17928,7 @@ export namespace Prisma {
   export type RedirectRuleCreateInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -17947,7 +17947,7 @@ export namespace Prisma {
   export type RedirectRuleUncheckedCreateInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -17966,7 +17966,7 @@ export namespace Prisma {
   export type RedirectRuleUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -17985,7 +17985,7 @@ export namespace Prisma {
   export type RedirectRuleUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -18004,7 +18004,7 @@ export namespace Prisma {
   export type RedirectRuleCreateManyInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -18022,7 +18022,7 @@ export namespace Prisma {
   export type RedirectRuleUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -18038,7 +18038,7 @@ export namespace Prisma {
   export type RedirectRuleUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -21584,7 +21584,7 @@ export namespace Prisma {
   export type RedirectRuleCreateWithoutDomainGroupInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -21602,7 +21602,7 @@ export namespace Prisma {
   export type RedirectRuleUncheckedCreateWithoutDomainGroupInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -21786,7 +21786,7 @@ export namespace Prisma {
     NOT?: RedirectRuleScalarWhereInput | RedirectRuleScalarWhereInput[]
     id?: StringFilter<"RedirectRule"> | string
     source?: StringFilter<"RedirectRule"> | string
-    destination?: StringFilter<"RedirectRule"> | string
+    destination?: StringNullableFilter<"RedirectRule"> | string | null
     statusCode?: IntFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
     queryMatch?: EnumRedirectQueryMatchFilter<"RedirectRule"> | $Enums.RedirectQueryMatch
@@ -22148,7 +22148,7 @@ export namespace Prisma {
   export type RedirectRuleCreateWithoutLinkMapInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -22166,7 +22166,7 @@ export namespace Prisma {
   export type RedirectRuleUncheckedCreateWithoutLinkMapInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -22343,7 +22343,7 @@ export namespace Prisma {
   export type RedirectRuleCreateWithoutHitsHourlyInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -22361,7 +22361,7 @@ export namespace Prisma {
   export type RedirectRuleUncheckedCreateWithoutHitsHourlyInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -22430,7 +22430,7 @@ export namespace Prisma {
   export type RedirectRuleUpdateWithoutHitsHourlyInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -22448,7 +22448,7 @@ export namespace Prisma {
   export type RedirectRuleUncheckedUpdateWithoutHitsHourlyInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -23343,7 +23343,7 @@ export namespace Prisma {
   export type RedirectRuleCreateManyDomainGroupInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -23406,7 +23406,7 @@ export namespace Prisma {
   export type RedirectRuleUpdateWithoutDomainGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -23424,7 +23424,7 @@ export namespace Prisma {
   export type RedirectRuleUncheckedUpdateWithoutDomainGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -23442,7 +23442,7 @@ export namespace Prisma {
   export type RedirectRuleUncheckedUpdateManyWithoutDomainGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -23571,7 +23571,7 @@ export namespace Prisma {
   export type RedirectRuleCreateManyLinkMapInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -23618,7 +23618,7 @@ export namespace Prisma {
   export type RedirectRuleUpdateWithoutLinkMapInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -23636,7 +23636,7 @@ export namespace Prisma {
   export type RedirectRuleUncheckedUpdateWithoutLinkMapInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -23654,7 +23654,7 @@ export namespace Prisma {
   export type RedirectRuleUncheckedUpdateManyWithoutLinkMapInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch

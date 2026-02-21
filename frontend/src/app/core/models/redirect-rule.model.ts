@@ -4,7 +4,7 @@ import { HttpMethod } from './http-method.model';
 export type RedirectRule = {
   id: string;
   source: string;
-  destination: string;
+  destination: string | null;
   statusCode: number;
   matchMethod: HttpMethod[];
   queryMatch: RedirectQueryMatch;
@@ -21,7 +21,7 @@ export type RedirectRule = {
 
 export type CreateRedirectRuleDto = {
   source: string;
-  destination: string;
+  destination?: string | null;
   statusCode?: number;
   matchMethod?: HttpMethod[];
   queryMatch?: RedirectQueryMatch;
@@ -33,7 +33,7 @@ export type CreateRedirectRuleDto = {
 
 export type UpdateRedirectRuleDto = {
   source?: string;
-  destination?: string;
+  destination?: string | null;
   statusCode?: number;
   matchMethod?: HttpMethod[];
   queryMatch?: RedirectQueryMatch;
