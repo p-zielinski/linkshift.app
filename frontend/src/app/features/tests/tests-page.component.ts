@@ -17,7 +17,7 @@ import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { RedirectTestStore } from '../../core/store/redirect-test.store';
 import {
   RedirectTestResultsStore,
-  type RedirectTestRunState
+  type RedirectTestRunState,
 } from '../../core/store/redirect-test-results.store';
 import { RedirectTestFormDialogComponent } from './redirect-test-form-dialog.component';
 import { RedirectTestResultDialogComponent } from './redirect-test-result-dialog.component';
@@ -45,10 +45,10 @@ import { AuthStore } from '../../core/store/auth.store';
     MatSelectModule,
     FormField,
     PageHeaderComponent,
-    TablePaginatorComponent
+    TablePaginatorComponent,
   ],
   templateUrl: './tests-page.component.html',
-  styleUrl: './tests-page.component.css'
+  styleUrl: './tests-page.component.css',
 })
 export class TestsPageComponent {
   private readonly authStore = inject(AuthStore);
@@ -69,7 +69,7 @@ export class TestsPageComponent {
 
   filterModel = signal({
     domainGroupId: '',
-    search: ''
+    search: '',
   });
 
   filterForm = form(this.filterModel, (f) => {
@@ -88,7 +88,7 @@ export class TestsPageComponent {
     const trimmedSearch = search.trim();
     return {
       domainGroupId,
-      ...(trimmedSearch ? { search: trimmedSearch } : {})
+      ...(trimmedSearch ? { search: trimmedSearch } : {}),
     };
   });
 
@@ -102,7 +102,7 @@ export class TestsPageComponent {
     return {
       ...baseFilter,
       limit: this.pageLimit(),
-      ...(cursor ? { startAfterId: cursor } : {})
+      ...(cursor ? { startAfterId: cursor } : {}),
     };
   });
 
@@ -168,7 +168,7 @@ export class TestsPageComponent {
       if (!current && groups.length === 1) {
         this.filterModel.update((model) => ({
           ...model,
-          domainGroupId: groups[0].id
+          domainGroupId: groups[0].id,
         }));
         return;
       }
@@ -176,7 +176,7 @@ export class TestsPageComponent {
       if (current && !hasCurrent) {
         this.filterModel.update((model) => ({
           ...model,
-          domainGroupId: groups.length === 1 ? groups[0].id : ''
+          domainGroupId: groups.length === 1 ? groups[0].id : '',
         }));
       }
     });
@@ -193,7 +193,7 @@ export class TestsPageComponent {
   openCreateDialog(): void {
     if (!this.activeGroupId()) {
       this.snackBar.open('Select a domain group before creating a test.', 'Dismiss', {
-        duration: 4000
+        duration: 4000,
       });
       return;
     }
@@ -204,8 +204,8 @@ export class TestsPageComponent {
       height: 'calc(100vh - 60px)',
       maxHeight: 'calc(100vh - 60px)',
       data: {
-        domainGroupId: this.activeGroupId()
-      }
+        domainGroupId: this.activeGroupId(),
+      },
     });
 
     dialogRef.afterClosed().subscribe((created) => {
@@ -222,8 +222,8 @@ export class TestsPageComponent {
       height: 'calc(100vh - 60px)',
       maxHeight: 'calc(100vh - 60px)',
       data: {
-        test
-      }
+        test,
+      },
     });
 
     dialogRef.afterClosed().subscribe((saved) => {
@@ -240,8 +240,8 @@ export class TestsPageComponent {
         title: 'Delete redirect test',
         message: 'This test will be removed and no longer tracked.',
         confirmLabel: 'Delete',
-        tone: 'warning'
-      }
+        tone: 'warning',
+      },
     });
 
     dialogRef.afterClosed().subscribe((confirmed) => {
@@ -258,20 +258,16 @@ export class TestsPageComponent {
       maxWidth: '94vw',
       data: {
         test,
-        runState: this.resolveRunState(test)
-      }
+        runState: this.resolveRunState(test),
+      },
     });
   }
 
   async runSingleTest(test: RedirectTest): Promise<void> {
-    if (!this.canRunTest(test)) {
-      return;
-    }
-
     this.setRunning(test.id, true);
     try {
       const response = await firstValueFrom(
-        this.redirectRulesApi.simulate([buildSimulationEntry(test)])
+        this.redirectRulesApi.simulate([buildSimulationEntry(test)]),
       );
       const result = response?.results?.[0];
       if (!result) {
@@ -281,15 +277,13 @@ export class TestsPageComponent {
       const lastResult: RedirectTestResult = {
         matched: result.matched,
         statusCode: result.statusCode,
-        target: result.target ?? null
+        target: result.target ?? null,
       };
 
       this.redirectTestResultsStore.setSuccess(test.id, lastResult);
 
       const matches = this.compareResults(test.expectedResult, lastResult);
-      const message = matches
-        ? 'Test passed.'
-        : 'Test failed. Review details for differences.';
+      const message = matches ? 'Test passed.' : 'Test failed. Review details for differences.';
       this.snackBar.open(message, 'Dismiss', { duration: 3000 });
     } catch (error) {
       const message = extractErrorMessage(error, 'Test run failed.');
@@ -298,10 +292,6 @@ export class TestsPageComponent {
     } finally {
       this.setRunning(test.id, false);
     }
-  }
-
-  canRunTest(test: RedirectTest): boolean {
-    return !this.showResultDetails(test) && !this.runningTestIds().has(test.id);
   }
 
   runPendingTests(): void {
@@ -314,8 +304,8 @@ export class TestsPageComponent {
       maxWidth: '94vw',
       disableClose: true,
       data: {
-        domainGroupId: this.activeGroupId()
-      }
+        domainGroupId: this.activeGroupId(),
+      },
     });
   }
 
@@ -389,9 +379,9 @@ export class TestsPageComponent {
     this.redirectTestStore.searchList(
       {
         ...baseFilter,
-        limit: this.pageLimit()
+        limit: this.pageLimit(),
       },
-      true
+      true,
     );
   }
 
@@ -411,7 +401,7 @@ export class TestsPageComponent {
       return {
         label: 'Not run',
         kind: 'pending',
-        tone: 'status-pill status-pill--pending'
+        tone: 'status-pill status-pill--pending',
       };
     }
 
@@ -419,7 +409,7 @@ export class TestsPageComponent {
       return {
         label: 'Error',
         kind: 'danger',
-        tone: 'status-pill status-pill--danger'
+        tone: 'status-pill status-pill--danger',
       };
     }
 
@@ -427,7 +417,7 @@ export class TestsPageComponent {
       return {
         label: 'Needs review',
         kind: 'warning',
-        tone: 'status-pill status-pill--warning'
+        tone: 'status-pill status-pill--warning',
       };
     }
 
@@ -436,14 +426,14 @@ export class TestsPageComponent {
       return {
         label: 'Passed',
         kind: 'success',
-        tone: 'status-pill status-pill--success'
+        tone: 'status-pill status-pill--success',
       };
     }
 
     return {
       label: 'Failed',
       kind: 'danger',
-      tone: 'status-pill status-pill--danger'
+      tone: 'status-pill status-pill--danger',
     };
   }
 
