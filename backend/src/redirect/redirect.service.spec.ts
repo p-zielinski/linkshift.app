@@ -1339,6 +1339,8 @@ describe('RedirectService', () => {
         destination: '',
         statusCode: 302,
         matchMethod: [],
+        pathMatch: 'prefix',
+        queryMatch: 'ignore',
         domainGroupId,
         priority: 0,
         linkMapId: 'link_map_1',

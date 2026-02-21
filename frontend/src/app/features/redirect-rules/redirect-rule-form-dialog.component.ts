@@ -9,13 +9,13 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
-import { form, required, submit, FormField } from '@angular/forms/signals';
+import { form, required, FormField } from '@angular/forms/signals';
 import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { RedirectTestResultsStore } from '../../core/store/redirect-test-results.store';
-import { LinkMapsApiService } from '../../core/api/link-maps-api.service';
+import { LinkMapStore } from '../../core/store/link-map.store';
 import { applyZodField } from '../../core/forms/zod-validators';
 import {
   redirectRuleSchema,
@@ -30,11 +30,10 @@ import type {
   RedirectPathMatch,
 } from '../../core/models/redirect-rule.model';
 import type { LinkMap } from '../../core/models/link-map.model';
-import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
+import { CREATE_ENTITY_ID, getFilterKey } from '../../core/store/entity/entity-store.utils';
 import { HttpMethod } from '../../core/models/http-method.model';
 import { ensureLeadingSlash, splitPathWithQuery } from '../tests/redirect-test.utils';
 import type { RedirectTestFormPrefill } from '../tests/redirect-test-form-dialog.component';
-import { firstValueFrom } from 'rxjs';
 
 type WizardMode = 'guided' | 'fast';
 type RedirectRuleFormModel = {
@@ -48,7 +47,6 @@ type RedirectRuleFormModel = {
   linkMapId: string | null;
   priority: string;
 };
-
 
 const WIZARD_MODE_KEY = 'redirectRulesWizardMode';
 
@@ -91,7 +89,7 @@ export class RedirectRuleFormDialogComponent {
   private readonly redirectRuleStore = inject(RedirectRuleStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
-  private readonly linkMapsApi = inject(LinkMapsApiService);
+  private readonly linkMapStore = inject(LinkMapStore);
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -127,8 +125,7 @@ export class RedirectRuleFormDialogComponent {
   ruleModel = signal({
     domainGroupId: this.rule?.domainGroupId ?? this.data?.domainGroupId ?? '',
     source: this.rule?.source ?? '',
-    destination:
-      this.rule?.destination ?? (this.rule?.linkMapId ? '' : 'https://'),
+    destination: this.rule?.destination ?? (this.rule?.linkMapId ? '' : 'https://'),
     statusCode: String(this.initialStatusCode),
     matchMethod: this.rule?.matchMethod ?? [],
     queryMatch: this.rule?.queryMatch ?? 'exact',
@@ -204,8 +201,22 @@ export class RedirectRuleFormDialogComponent {
     this.isLinkMapRule() ? true : /^https?:\/\//i.test(this.destinationValue()),
   );
   readonly statusCodeOptions = computed(() => redirectRuleStatusCodes);
-  readonly linkMaps = signal<LinkMap[]>([]);
-  readonly linkMapsLoading = signal(false);
+  private readonly linkMapsErrorSequence = signal<number | null>(null);
+  readonly linkMaps = computed(() => {
+    const groupId = this.selectedGroupId();
+    if (!groupId) {
+      return [] as LinkMap[];
+    }
+    return this.linkMapStore.selectList({ domainGroupId: groupId })();
+  });
+  readonly linkMapsLoading = computed(() => {
+    const groupId = this.selectedGroupId();
+    if (!groupId) {
+      return false;
+    }
+    const key = getFilterKey({ domainGroupId: groupId });
+    return !!this.linkMapStore.isLoading()[key];
+  });
   readonly linkMapsError = signal<string | null>(null);
   readonly selectedLinkMap = computed(() => {
     const linkMapId = this.ruleModel().linkMapId;
@@ -623,31 +634,47 @@ export class RedirectRuleFormDialogComponent {
     effect(() => {
       const groupId = this.selectedGroupId();
       if (!groupId) {
-        this.linkMaps.set([]);
         this.linkMapsError.set(null);
+        this.linkMapsErrorSequence.set(null);
         return;
       }
       this.loadLinkMaps(groupId);
     });
-  }
 
-  private async loadLinkMaps(domainGroupId: string): Promise<void> {
-    this.linkMapsLoading.set(true);
-    this.linkMapsError.set(null);
-    try {
-      const maps = await firstValueFrom(this.linkMapsApi.list({ domainGroupId }));
-      this.linkMaps.set(maps);
-      const activeId = this.ruleModel().linkMapId;
-      if (activeId && !maps.find((map) => map.id === activeId)) {
+    effect(() => {
+      const sequenceAtLoad = this.linkMapsErrorSequence();
+      if (sequenceAtLoad === null) {
+        return;
+      }
+      if (this.linkMapsLoading()) {
+        return;
+      }
+      if (this.linkMapStore.errorSequence() > sequenceAtLoad) {
+        this.linkMapsError.set(this.linkMapStore.lastError());
+        this.linkMapStore.clearError();
+      }
+      this.linkMapsErrorSequence.set(null);
+    });
+
+    effect(() => {
+      const linkMapId = this.ruleModel().linkMapId;
+      if (!linkMapId) {
+        return;
+      }
+      if (this.linkMapsLoading() || this.linkMapsError()) {
+        return;
+      }
+      const exists = this.linkMaps().some((map) => map.id === linkMapId);
+      if (!exists) {
         this.ruleModel.update((model) => ({ ...model, linkMapId: null }));
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to load link maps.';
-      this.linkMapsError.set(message);
-      this.linkMaps.set([]);
-    } finally {
-      this.linkMapsLoading.set(false);
-    }
+    });
+  }
+
+  private loadLinkMaps(domainGroupId: string): void {
+    this.linkMapsError.set(null);
+    this.linkMapsErrorSequence.set(this.linkMapStore.errorSequence());
+    this.linkMapStore.searchList({ domainGroupId });
   }
 
   private restoreWizardMode(): void {
@@ -673,44 +700,54 @@ export class RedirectRuleFormDialogComponent {
   }
 
   async onSubmit(event?: Event): Promise<void> {
-    console.log(123);
-
+    console.log('onSubmit triggered');
     event?.preventDefault();
-    await submit(this.ruleForm, async (formValue) => {
-      const value = formValue().value();
-      this.lastSubmittedValue.set(value);
-      const payload = {
-        source: value.source,
-        destination: this.isLinkMapRule() ? null : value.destination,
-        statusCode: Number(value.statusCode),
-        matchMethod: value.matchMethod,
-        queryMatch: value.queryMatch,
-        pathMatch: value.pathMatch,
-        linkMapId: value.linkMapId,
-        priority: Number(value.priority),
-      };
 
-      const key = this.isEdit && this.rule ? this.rule.id : CREATE_ENTITY_ID;
-      this.submitKey.set(key);
-      this.submitErrorSequence.set(this.redirectRuleStore.errorSequence());
-      this.submitLoadingSeen.set(false);
-      this.pendingSubmit.set(true);
+    // The `submit()` utility from '@angular/forms/signals' strictly blocks the callback execution
+    // if the underlying form evaluates to `invalid` based on the schema and `required()` flags.
+    // Because `destination` is empty when `linkMapId` is selected, the strict form schema thinks it's invalid.
+    // By bypassing `submit()`, we rely solely on our own robust `canSubmit` and `submitDisabled` logic
+    // which correctly validates the form conditionally.
 
-      if (this.isEdit && this.rule) {
-        this.redirectRuleStore.upsert({
-          id: this.rule.id,
-          entity: payload,
-        });
-      } else {
-        this.redirectRuleStore.upsert({
-          entity: {
-            ...payload,
-            domainGroupId: value.domainGroupId,
-          },
-        });
-      }
-      return undefined;
-    });
+    // Guard against 'Enter' key presses triggering submission when the form is not fully valid
+    if (this.submitDisabled()) {
+      return;
+    }
+
+    // Extract value safely directly from the signal holding the current state
+    const value = this.ruleModel();
+    this.lastSubmittedValue.set(value);
+
+    const payload = {
+      source: value.source,
+      destination: this.isLinkMapRule() ? null : value.destination,
+      statusCode: Number(value.statusCode),
+      matchMethod: value.matchMethod,
+      queryMatch: value.queryMatch,
+      pathMatch: value.pathMatch,
+      linkMapId: value.linkMapId,
+      priority: Number(value.priority),
+    };
+
+    const key = this.isEdit && this.rule ? this.rule.id : CREATE_ENTITY_ID;
+    this.submitKey.set(key);
+    this.submitErrorSequence.set(this.redirectRuleStore.errorSequence());
+    this.submitLoadingSeen.set(false);
+    this.pendingSubmit.set(true);
+
+    if (this.isEdit && this.rule) {
+      this.redirectRuleStore.upsert({
+        id: this.rule.id,
+        entity: payload,
+      });
+    } else {
+      this.redirectRuleStore.upsert({
+        entity: {
+          ...payload,
+          domainGroupId: value.domainGroupId,
+        },
+      });
+    }
   }
 
   onCancel(): void {

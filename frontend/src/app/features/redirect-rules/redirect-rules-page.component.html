@@ -170,6 +170,14 @@
               >
                 {{ queryMatchIcon(rule) }}
               </mat-icon>
+              @if (rule.linkMapId) {
+                <mat-icon
+                  class="text-[18px] text-app-muted"
+                  [matTooltip]="'Link map rule: ' + rule.linkMapId"
+                >
+                  map
+                </mat-icon>
+              }
             </div>
           </td>
         </ng-container>

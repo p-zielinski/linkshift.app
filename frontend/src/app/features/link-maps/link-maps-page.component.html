@@ -54,19 +54,18 @@
         </ng-container>
 
         <ng-container matColumnDef="caseSensitive">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[140px] max-w-[220px] truncate">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[120px] truncate">
             Case
           </th>
-          <td mat-cell *matCellDef="let map" class="py-3 min-w-[140px] max-w-[220px] truncate">
-            <span
-              class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[12px]"
-              [class.text-app-muted]="!map.caseSensitive"
-            >
-              <mat-icon class="text-[16px]">
-                {{ map.caseSensitive ? 'text_rotation_none' : 'text_fields' }}
+          <td mat-cell *matCellDef="let map" class="py-3">
+            <div class="flex items-center gap-2">
+              <mat-icon class="text-[18px] w-[18px] h-[18px] text-app-muted">
+                {{ map.caseSensitive ? 'match_case' : 'abc' }}
               </mat-icon>
-              {{ map.caseSensitive ? 'Sensitive' : 'Insensitive' }}
-            </span>
+              <span class="text-sm">
+        {{ map.caseSensitive ? 'Sensitive' : 'Insensitive' }}
+      </span>
+            </div>
           </td>
         </ng-container>
 

@@ -12,10 +12,10 @@ import { form, required, FormField } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
 import { LinkMapsApiService } from '../../core/api/link-maps-api.service';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
-import type {
-  LinkMapQueryMatch,
-  LinkMapWithEntries,
-} from '../../core/models/link-map.model';
+import { LinkMapStore } from '../../core/store/link-map.store';
+import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
+import { extractErrorMessage } from '../../core/store/store-error.utils';
+import type { LinkMapQueryMatch, LinkMap, LinkMapEntry } from '../../core/models/link-map.model';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { z } from 'zod';
 
@@ -61,10 +61,7 @@ const isValidDestination = (value: string, allowEmpty: boolean): boolean => {
 
 const fallbackSchema = z
   .string()
-  .refine(
-    (value) => isValidDestination(value, true),
-    'Use a full URL like https://example.com',
-  );
+  .refine((value) => isValidDestination(value, true), 'Use a full URL like https://example.com');
 
 const queryMatchOptions: Array<{ value: LinkMapQueryMatch; label: string; hint: string }> = [
   { value: 'ignore', label: 'Ignore query', hint: 'Only the path part of the key matters.' },
@@ -77,6 +74,8 @@ type EntryRow = {
   key: string;
   destination: string;
 };
+
+type LinkMapDetails = LinkMap & { entries?: LinkMapEntry[] };
 
 export type LinkMapDialogData = {
   domainGroupId?: string;
@@ -109,11 +108,28 @@ export class LinkMapFormDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<LinkMapFormDialogComponent>);
   private readonly data = inject<LinkMapDialogData | null>(MAT_DIALOG_DATA, { optional: true });
   private readonly linkMapsApi = inject(LinkMapsApiService);
+  private readonly linkMapStore = inject(LinkMapStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly pendingSubmit = signal(false);
+  private readonly submitErrorSequence = signal(0);
+  private readonly submitLoadingSeen = signal(false);
+  private readonly activeRequestId = signal<string | null>(null);
+  private readonly pendingEntrySync = signal(false);
+  private readonly entrySyncInProgress = signal(false);
+  private readonly pendingEntries = signal<Array<{ key: string; destination: string }> | null>(null);
+  private readonly existingLoaded = signal(false);
 
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly isEdit = computed(() => !!this.data?.linkMapId);
-  readonly loading = signal(false);
+  readonly loading = computed(() => {
+    if (this.entrySyncInProgress()) {
+      return true;
+    }
+    if (this.isSaving()) {
+      return true;
+    }
+    return this.detailsLoading();
+  });
   readonly bulkText = signal('');
   readonly bulkError = signal<string | null>(null);
   readonly submitError = signal<string | null>(null);
@@ -153,9 +169,7 @@ export class LinkMapFormDialogComponent {
 
   readonly queryMatchOptions = queryMatchOptions;
   readonly queryMatchHint = computed(() => {
-    const match = queryMatchOptions.find(
-      (option) => option.value === this.mapModel().queryMatch,
-    );
+    const match = queryMatchOptions.find((option) => option.value === this.mapModel().queryMatch);
     return match?.hint ?? '';
   });
 
@@ -173,15 +187,86 @@ export class LinkMapFormDialogComponent {
     return group ? `${group.name} (${group.id})` : groupId;
   });
   readonly submitTooltip = computed(() => this.buildSubmitTooltip());
+  readonly detailsLoading = computed(() => {
+    const id = this.data?.linkMapId;
+    if (!id) {
+      return false;
+    }
+    return !!this.linkMapStore.isLoading()[id];
+  });
+  readonly isSaving = computed(() => {
+    const requestId = this.activeRequestId();
+    if (!requestId) {
+      return false;
+    }
+    return !!this.linkMapStore.isLoading()[requestId];
+  });
+  readonly existingMap = computed(() => {
+    const id = this.data?.linkMapId;
+    if (!id) {
+      return null;
+    }
+    return this.linkMapStore.selectById(id)();
+  });
 
   constructor() {
     this.domainGroupStore.searchList();
-    this.loadExisting();
+    if (this.data?.linkMapId) {
+      this.linkMapStore.searchDetails(this.data.linkMapId, true);
+    }
 
     effect(() => {
       this.mapModel();
       this.duplicateKeys();
       this.invalidEntries();
+    });
+
+    effect(() => {
+      const map = this.existingMap();
+      if (!map || this.existingLoaded() || this.detailsLoading()) {
+        return;
+      }
+      if (map.entries === undefined) {
+        return;
+      }
+      this.populateFromMap(map);
+      this.existingLoaded.set(true);
+    });
+
+    effect(() => {
+      if (!this.pendingSubmit()) {
+        return;
+      }
+
+      const saving = this.isSaving();
+      if (saving) {
+        if (!this.submitLoadingSeen()) {
+          this.submitLoadingSeen.set(true);
+        }
+        return;
+      }
+
+      if (!this.submitLoadingSeen()) {
+        return;
+      }
+
+      const hadError = this.linkMapStore.errorSequence() > this.submitErrorSequence();
+      if (hadError) {
+        this.submitError.set(this.linkMapStore.lastError() ?? 'Unable to save link map.');
+        this.linkMapStore.clearError();
+        this.resetSubmitState();
+        return;
+      }
+
+      if (this.pendingEntrySync()) {
+        if (!this.entrySyncInProgress()) {
+          void this.syncEntries();
+        }
+        return;
+      }
+
+      this.resetSubmitState();
+      this.dialogRef.close({ saved: true } as LinkMapDialogResult);
     });
   }
 
@@ -200,10 +285,7 @@ export class LinkMapFormDialogComponent {
   addEntry(): void {
     const nextCount = this.entries().length + 1;
     this.showEntries.set(nextCount <= 2000);
-    this.entries.update((rows) => [
-      ...rows,
-      { id: this.createRowId(), key: '', destination: '' },
-    ]);
+    this.entries.update((rows) => [...rows, { id: this.createRowId(), key: '', destination: '' }]);
   }
 
   removeEntry(id: string): void {
@@ -278,7 +360,11 @@ export class LinkMapFormDialogComponent {
         errors.push(`Line ${index + 1} is invalid.`);
         return;
       }
-      parsed.push({ id: this.createRowId(), key, destination: this.normalizeDestination(destination) });
+      parsed.push({
+        id: this.createRowId(),
+        key,
+        destination: this.normalizeDestination(destination),
+      });
     });
 
     if (errors.length) {
@@ -305,41 +391,37 @@ export class LinkMapFormDialogComponent {
       return;
     }
 
-    const payload = this.buildPayload();
+    const entriesPayload = this.buildEntriesPayload();
+    this.linkMapStore.clearError();
+    this.submitErrorSequence.set(this.linkMapStore.errorSequence());
+    this.submitLoadingSeen.set(false);
+    this.pendingSubmit.set(true);
+    this.pendingEntrySync.set(false);
+    this.entrySyncInProgress.set(false);
 
-    try {
-      this.loading.set(true);
-      if (this.isEdit() && this.data?.linkMapId) {
-        await firstValueFrom(this.linkMapsApi.update(this.data.linkMapId, payload));
-        await firstValueFrom(
-          this.linkMapsApi.upsertEntries(this.data.linkMapId, {
-            mode: 'replace',
-            entries: payload.entries ?? [],
-          }),
-        );
-      } else {
-        await firstValueFrom(this.linkMapsApi.create(payload));
-      }
-      this.dialogRef.close({ saved: true } as LinkMapDialogResult);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to save link map.';
-      this.submitError.set(message);
-    } finally {
-      this.loading.set(false);
+    if (this.isEdit() && this.data?.linkMapId) {
+      this.pendingEntrySync.set(true);
+      this.activeRequestId.set(this.data.linkMapId);
+      this.setPendingEntries(entriesPayload);
+      this.linkMapStore.upsert({
+        id: this.data.linkMapId,
+        entity: this.buildUpdatePayload(),
+      });
+      return;
     }
+
+    this.activeRequestId.set(CREATE_ENTITY_ID);
+    this.linkMapStore.upsert({
+      entity: this.buildCreatePayload(entriesPayload),
+    });
   }
 
   onCancel(): void {
     this.dialogRef.close({ saved: false } as LinkMapDialogResult);
   }
 
-  private buildPayload() {
+  private buildCreatePayload(entries: Array<{ key: string; destination: string }>) {
     const model = this.mapModel();
-    const entries = this.entries().map((entry) => ({
-      key: entry.key.trim(),
-      destination: this.normalizeDestination(entry.destination),
-    }));
-
     const fallback = this.normalizeDestination(model.fallbackDestination);
 
     return {
@@ -351,34 +433,78 @@ export class LinkMapFormDialogComponent {
       entries,
     };
   }
+  
+  private buildUpdatePayload() {
+    const model = this.mapModel();
+    const fallback = this.normalizeDestination(model.fallbackDestination);
 
-  private async loadExisting(): Promise<void> {
-    if (!this.data?.linkMapId) {
+    return {
+      name: model.name.trim(),
+      caseSensitive: model.caseSensitive,
+      queryMatch: model.queryMatch,
+      fallbackDestination: fallback || null,
+    };
+  }
+
+  private buildEntriesPayload(): Array<{ key: string; destination: string }> {
+    return this.entries().map((entry) => ({
+      key: entry.key.trim(),
+      destination: this.normalizeDestination(entry.destination),
+    }));
+  }
+
+  private setPendingEntries(entries: Array<{ key: string; destination: string }>): void {
+    this.pendingEntries.set(entries);
+  }
+
+  private populateFromMap(map: LinkMapDetails): void {
+    if (!map) {
       return;
     }
+    this.mapModel.set({
+      name: map.name ?? '',
+      domainGroupId: map.domainGroupId ?? '',
+      caseSensitive: map.caseSensitive ?? false,
+      queryMatch: (map.queryMatch ?? 'ignore') as LinkMapQueryMatch,
+      fallbackDestination: map.fallbackDestination ?? '',
+    });
+    const entries = (map.entries ?? []).map((entry) => ({
+      id: entry.id,
+      key: entry.key,
+      destination: entry.destination,
+    }));
+    this.entries.set(entries);
+    this.showEntries.set(entries.length <= 2000);
+  }
 
-    this.loading.set(true);
+  private resetSubmitState(): void {
+    this.pendingSubmit.set(false);
+    this.submitLoadingSeen.set(false);
+    this.pendingEntrySync.set(false);
+    this.entrySyncInProgress.set(false);
+    this.activeRequestId.set(null);
+    this.pendingEntries.set(null);
+  }
+
+  private async syncEntries(): Promise<void> {
+    if (!this.data?.linkMapId) {
+      this.resetSubmitState();
+      return;
+    }
+    const entries = this.pendingEntries() ?? [];
+    this.entrySyncInProgress.set(true);
     try {
-      const map = await firstValueFrom(this.linkMapsApi.get(this.data.linkMapId));
-      if (!map) {
-        return;
-      }
-      this.mapModel.set({
-        name: map.name,
-        domainGroupId: map.domainGroupId,
-        caseSensitive: map.caseSensitive,
-        queryMatch: map.queryMatch,
-        fallbackDestination: map.fallbackDestination ?? '',
-      });
-      const entries = map.entries.map((entry) => ({
-        id: entry.id,
-        key: entry.key,
-        destination: entry.destination,
-      }));
-      this.entries.set(entries);
-      this.showEntries.set(entries.length <= 2000);
-    } finally {
-      this.loading.set(false);
+      await firstValueFrom(
+        this.linkMapsApi.upsertEntries(this.data.linkMapId, {
+          mode: 'replace',
+          entries,
+        }),
+      );
+      this.resetSubmitState();
+      this.dialogRef.close({ saved: true } as LinkMapDialogResult);
+    } catch (error: unknown) {
+      this.submitError.set(extractErrorMessage(error, 'Unable to save link map.'));
+      this.resetSubmitState();
     }
   }
 
@@ -388,11 +514,7 @@ export class LinkMapFormDialogComponent {
     const duplicates: string[] = [];
 
     for (const entry of this.entries()) {
-      const normalizedKey = this.normalizeKey(
-        entry.key,
-        model.caseSensitive,
-        model.queryMatch,
-      );
+      const normalizedKey = this.normalizeKey(entry.key, model.caseSensitive, model.queryMatch);
       if (!normalizedKey) {
         continue;
       }
@@ -441,11 +563,7 @@ export class LinkMapFormDialogComponent {
     return errors;
   }
 
-  private normalizeKey(
-    key: string,
-    caseSensitive: boolean,
-    queryMatch: LinkMapQueryMatch,
-  ): string {
+  private normalizeKey(key: string, caseSensitive: boolean, queryMatch: LinkMapQueryMatch): string {
     const trimmed = key.trim();
     if (!trimmed) return '';
     const normalized = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
@@ -527,10 +645,7 @@ export class LinkMapFormDialogComponent {
     });
   }
 
-  private shouldShowEntryError(
-    entryId: string,
-    field: 'key' | 'destination',
-  ): boolean {
+  private shouldShowEntryError(entryId: string, field: 'key' | 'destination'): boolean {
     if (this.submitAttempted()) {
       return true;
     }
@@ -548,8 +663,7 @@ export class LinkMapFormDialogComponent {
     }
     if (!this.mapForm.domainGroupId().valid()) {
       messages.push(
-        this.getFieldErrorMessage(this.mapForm.domainGroupId()) ??
-          'Domain group is required.',
+        this.getFieldErrorMessage(this.mapForm.domainGroupId()) ?? 'Domain group is required.',
       );
     }
     if (!this.mapForm.fallbackDestination().valid()) {

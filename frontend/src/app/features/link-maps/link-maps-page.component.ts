@@ -10,11 +10,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { form, required, FormField } from '@angular/forms/signals';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
-import { LinkMapsApiService } from '../../core/api/link-maps-api.service';
+import { LinkMapStore } from '../../core/store/link-map.store';
 import type { LinkMap } from '../../core/models/link-map.model';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { LinkMapFormDialogComponent, LinkMapDialogResult } from './link-map-form-dialog.component';
-import { firstValueFrom } from 'rxjs';
+import { getFilterKey } from '../../core/store/entity/entity-store.utils';
 
 @Component({
   selector: 'app-link-maps-page',
@@ -37,7 +37,7 @@ import { firstValueFrom } from 'rxjs';
 })
 export class LinkMapsPageComponent {
   private readonly domainGroupStore = inject(DomainGroupStore);
-  private readonly linkMapsApi = inject(LinkMapsApiService);
+  private readonly linkMapStore = inject(LinkMapStore);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -49,13 +49,64 @@ export class LinkMapsPageComponent {
     required(f.domainGroupId);
   });
 
-  readonly linkMaps = signal<LinkMap[]>([]);
-  readonly loading = signal(false);
+  readonly linkMaps = computed(() => {
+    const groupId = this.activeGroupId();
+    if (!groupId) {
+      return [] as LinkMap[];
+    }
+    return this.linkMapStore.selectList({ domainGroupId: groupId })();
+  });
+  readonly loading = computed(() => {
+    const groupId = this.activeGroupId();
+    if (!groupId) {
+      return false;
+    }
+    const key = getFilterKey({ domainGroupId: groupId });
+    return !!this.linkMapStore.isLoading()[key];
+  });
 
   readonly activeGroupId = computed(() => this.filterModel().domainGroupId || '');
 
+  private readonly pendingDeleteId = signal<string | null>(null);
+  private readonly deleteErrorSequence = signal(0);
+  private readonly deleteLoadingSeen = signal(false);
+  private readonly listErrorSequence = signal<number | null>(null);
+
   constructor() {
     this.domainGroupStore.searchList();
+
+    effect(() => {
+      const pendingId = this.pendingDeleteId();
+      if (!pendingId) {
+        return;
+      }
+
+      const loading = this.linkMapStore.isLoading()[pendingId] ?? false;
+      if (loading) {
+        if (!this.deleteLoadingSeen()) {
+          this.deleteLoadingSeen.set(true);
+        }
+        return;
+      }
+
+      if (!this.deleteLoadingSeen()) {
+        return;
+      }
+
+      const hadError = this.linkMapStore.errorSequence() > this.deleteErrorSequence();
+      this.pendingDeleteId.set(null);
+      this.deleteLoadingSeen.set(false);
+
+      if (hadError) {
+        this.snackBar.open(this.linkMapStore.lastError() ?? 'Unable to delete link map.', 'Dismiss', {
+          duration: 4000,
+        });
+        this.linkMapStore.clearError();
+        return;
+      }
+
+      this.snackBar.open('Link map deleted.', 'Dismiss', { duration: 3000 });
+    });
 
     effect(() => {
       const groups = this.domainGroups();
@@ -70,10 +121,28 @@ export class LinkMapsPageComponent {
     effect(() => {
       const groupId = this.activeGroupId();
       if (!groupId) {
-        this.linkMaps.set([]);
+        this.listErrorSequence.set(null);
         return;
       }
-      this.loadLinkMaps(groupId);
+      this.listErrorSequence.set(this.linkMapStore.errorSequence());
+      this.linkMapStore.searchList({ domainGroupId: groupId });
+    });
+
+    effect(() => {
+      const sequenceAtLoad = this.listErrorSequence();
+      if (sequenceAtLoad === null) {
+        return;
+      }
+      if (this.loading()) {
+        return;
+      }
+      if (this.linkMapStore.errorSequence() > sequenceAtLoad) {
+        this.snackBar.open(this.linkMapStore.lastError() ?? 'Unable to load link maps.', 'Dismiss', {
+          duration: 4000,
+        });
+        this.linkMapStore.clearError();
+      }
+      this.listErrorSequence.set(null);
     });
   }
 
@@ -93,7 +162,7 @@ export class LinkMapsPageComponent {
 
     dialogRef.afterClosed().subscribe((result: LinkMapDialogResult | boolean) => {
       if (typeof result !== 'boolean' && result?.saved) {
-        this.loadLinkMaps(this.activeGroupId());
+        this.linkMapStore.searchList({ domainGroupId: this.activeGroupId() }, true);
       }
     });
   }
@@ -107,20 +176,17 @@ export class LinkMapsPageComponent {
 
     dialogRef.afterClosed().subscribe((result: LinkMapDialogResult | boolean) => {
       if (typeof result !== 'boolean' && result?.saved) {
-        this.loadLinkMaps(this.activeGroupId());
+        this.linkMapStore.searchList({ domainGroupId: this.activeGroupId() }, true);
       }
     });
   }
 
-  async deleteMap(map: LinkMap): Promise<void> {
-    try {
-      await firstValueFrom(this.linkMapsApi.delete(map.id));
-      this.loadLinkMaps(this.activeGroupId());
-      this.snackBar.open('Link map deleted.', 'Dismiss', { duration: 3000 });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to delete link map.';
-      this.snackBar.open(message, 'Dismiss', { duration: 4000 });
-    }
+  deleteMap(map: LinkMap): void {
+    this.linkMapStore.clearError();
+    this.deleteErrorSequence.set(this.linkMapStore.errorSequence());
+    this.pendingDeleteId.set(map.id);
+    this.deleteLoadingSeen.set(false);
+    this.linkMapStore.remove(map.id);
   }
 
   formatQueryMatch(map: LinkMap): string {
@@ -153,17 +219,4 @@ export class LinkMapsPageComponent {
     return 'Query match: exact (path + query)';
   }
 
-  private async loadLinkMaps(groupId: string): Promise<void> {
-    this.loading.set(true);
-    try {
-      const maps = await firstValueFrom(this.linkMapsApi.list({ domainGroupId: groupId }));
-      this.linkMaps.set(maps);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to load link maps.';
-      this.snackBar.open(message, 'Dismiss', { duration: 4000 });
-      this.linkMaps.set([]);
-    } finally {
-      this.loading.set(false);
-    }
-  }
 }
