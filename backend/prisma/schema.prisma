@@ -126,6 +126,7 @@ model DomainGroup {
   organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   domains       Domain[]
   redirectRules RedirectRule[]
+  linkMaps      LinkMap[]
   redirectTests RedirectTest[]
 
   @@index([organizationId])
@@ -157,6 +158,7 @@ model RedirectRule {
   matchMethod   HttpMethod[] @default([]) // Empty array means all methods.
   queryMatch    RedirectQueryMatch @default(exact)
   pathMatch     RedirectPathMatch @default(exact)
+  linkMapId     String?
   isBlocked     Boolean  @default(false)
   blockedAt     DateTime?
   priority      Int      @default(0) // For rule ordering (higher priority = evaluated first)
@@ -166,6 +168,7 @@ model RedirectRule {
   deletedAt     DateTime?
 
   domainGroup DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
+  linkMap    LinkMap? @relation(fields: [linkMapId], references: [id], onDelete: SetNull)
   hitsHourly RedirectRuleHitsHourly[]
 
   @@index([domainGroupId])
@@ -179,6 +182,42 @@ model RedirectRule {
 
     // Optional but recommended for performance of list queries
   @@index([domainGroupId, deletedAt, priority, createdAt, id])
+}
+
+model LinkMap {
+  id                  String   @id
+  name                String
+  domainGroupId       String
+  caseSensitive       Boolean  @default(false)
+  queryMatch          RedirectQueryMatch @default(ignore)
+  fallbackDestination String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  deletedAt           DateTime?
+
+  domainGroup  DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
+  entries      LinkMapEntry[]
+  redirectRules RedirectRule[]
+
+  @@index([domainGroupId])
+  @@index([deletedAt])
+}
+
+model LinkMapEntry {
+  id            String   @id
+  linkMapId     String
+  key           String
+  keyNormalized String
+  destination   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  linkMap LinkMap @relation(fields: [linkMapId], references: [id], onDelete: Cascade)
+
+  @@unique([linkMapId, keyNormalized])
+  @@index([linkMapId])
+  @@index([deletedAt])
 }
 
 model RedirectRuleHitsHourly {

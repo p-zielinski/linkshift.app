@@ -13,6 +13,7 @@ import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
 import { Logger } from 'nestjs-pino';
+import { LinkMapService } from '../link-map/link-map.service';
 
 const mockPrismaService = {
   domain: {
@@ -47,6 +48,7 @@ describe('RedirectService', () => {
   let prisma: PrismaService;
   let organizationService: OrganizationService;
   let cacheManagerService: CacheManagerService;
+  let linkMapService: LinkMapService;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -143,6 +145,12 @@ describe('RedirectService', () => {
           },
         },
         {
+          provide: LinkMapService,
+          useValue: {
+            resolveLinkMapDestination: jest.fn().mockResolvedValue(null),
+          },
+        },
+        {
           provide: Logger,
           useValue: {
             log: jest.fn(),
@@ -159,6 +167,7 @@ describe('RedirectService', () => {
     prisma = module.get<PrismaService>(PrismaService);
     organizationService = module.get<OrganizationService>(OrganizationService);
     cacheManagerService = module.get<CacheManagerService>(CacheManagerService);
+    linkMapService = module.get<LinkMapService>(LinkMapService);
 
     (prisma.domain.findMany as jest.Mock).mockResolvedValue([]);
   });
@@ -254,7 +263,7 @@ describe('RedirectService', () => {
       const req = createMockRequest(
         'http://sub.my-domain.com/blog/cool-article',
       );
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe(
         'https://new-blog.com/posts/cool-article?from=MY-DOMAIN',
@@ -270,7 +279,7 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://site.com/go/docs/api/v1');
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe('https://example.com/docs/api/v1');
     });
@@ -294,8 +303,8 @@ describe('RedirectService', () => {
       const reqGet = createMockRequest('http://test.com/', {}, 'GET');
       const reqPost = createMockRequest('http://test.com/', {}, 'POST');
 
-      expect(service.getRedirect(reqGet, rules)).toBe('/get-only');
-      expect(service.getRedirect(reqPost, rules)).toBe('/any');
+      expect(await service.getRedirect(reqGet, rules)).toBe('/get-only');
+      expect(await service.getRedirect(reqPost, rules)).toBe('/any');
     });
 
     it('should skip rule when matchMethod does not match', async () => {
@@ -308,7 +317,7 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://test.com/', {}, 'GET');
-      expect(service.getRedirect(req, rules)).toBeNull();
+      expect(await service.getRedirect(req, rules)).toBeNull();
     });
   });
 
@@ -323,7 +332,7 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://test.com/test?foo=bar');
-      expect(service.getRedirect(req, rules)).toBe('/matched');
+      expect(await service.getRedirect(req, rules)).toBe('/matched');
     });
 
     it('should require exact query when queryMatch is exact', async () => {
@@ -336,7 +345,7 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://test.com/test?foo=bar');
-      expect(service.getRedirect(req, rules)).toBeNull();
+      expect(await service.getRedirect(req, rules)).toBeNull();
     });
 
     it('should allow subset query match', async () => {
@@ -349,7 +358,7 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://test.com/test?foo=bar&extra=1');
-      expect(service.getRedirect(req, rules)).toBe('/matched');
+      expect(await service.getRedirect(req, rules)).toBe('/matched');
     });
 
     it('should reject subset query match when required params are missing', async () => {
@@ -362,7 +371,7 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://test.com/test?extra=1');
-      expect(service.getRedirect(req, rules)).toBeNull();
+      expect(await service.getRedirect(req, rules)).toBeNull();
     });
 
     it('should match prefix paths when pathMatch is prefix', async () => {
@@ -376,7 +385,7 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://test.com/v1/users');
-      expect(service.getRedirect(req, rules)).toBe('/matched');
+      expect(await service.getRedirect(req, rules)).toBe('/matched');
     });
 
     it('should require exact query for prefix matches when queryMatch is exact', async () => {
@@ -392,8 +401,8 @@ describe('RedirectService', () => {
       const req = createMockRequest('http://test.com/v1/users?333=1');
       const reqWithExtra = createMockRequest('http://test.com/v1/users?333=1&x=2');
 
-      expect(service.getRedirect(req, rules)).toBe('/matched');
-      expect(service.getRedirect(reqWithExtra, rules)).toBeNull();
+      expect(await service.getRedirect(req, rules)).toBe('/matched');
+      expect(await service.getRedirect(reqWithExtra, rules)).toBeNull();
     });
 
     it('should not match prefix paths across boundaries', async () => {
@@ -407,7 +416,56 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://test.com/v11/users');
-      expect(service.getRedirect(req, rules)).toBeNull();
+      expect(await service.getRedirect(req, rules)).toBeNull();
+    });
+  });
+
+  describe('Link Map Rules', () => {
+    it('should resolve link map destination when rule matches', async () => {
+      (linkMapService.resolveLinkMapDestination as jest.Mock).mockResolvedValue(
+        'https://target.com',
+      );
+
+      const rules: RedirectRule[] = [
+        {
+          source: '/short',
+          destination: 'https://placeholder.com',
+          pathMatch: 'prefix',
+          queryMatch: 'ignore',
+          linkMapId: 'lmap_123',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/short/abc');
+      const result = await service.getRedirect(req, rules);
+
+      expect(result).toBe('https://target.com');
+      expect(linkMapService.resolveLinkMapDestination).toHaveBeenCalled();
+    });
+
+    it('should skip link map rule when no entry or fallback is found', async () => {
+      (linkMapService.resolveLinkMapDestination as jest.Mock).mockResolvedValue(
+        null,
+      );
+
+      const rules: RedirectRule[] = [
+        {
+          source: '/short',
+          destination: 'https://placeholder.com',
+          pathMatch: 'prefix',
+          queryMatch: 'ignore',
+          linkMapId: 'lmap_123',
+        },
+        {
+          source: '/short/abc',
+          destination: 'https://fallback.com',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/short/abc');
+      const result = await service.getRedirect(req, rules);
+
+      expect(result).toBe('https://fallback.com');
     });
   });
 
@@ -422,7 +480,7 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://deep.sub.example.co.uk/path');
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toContain('fqdn=deep.sub.example.co.uk');
       expect(result).toContain('label=deep.sub.example.co');
@@ -436,7 +494,7 @@ describe('RedirectService', () => {
         { source: '*', destination: 'root={domain.root}' },
       ];
       const req = createMockRequest('http://localhost/test');
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
       expect(result).toBe('root=localhost');
     });
 
@@ -448,7 +506,7 @@ describe('RedirectService', () => {
         },
       ];
       const req = createMockRequest('http://site.com/user/123?foo=bar');
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
       expect(result).toBe('s0=user|s1=123|q=bar');
     });
   });
@@ -461,7 +519,7 @@ describe('RedirectService', () => {
       const req = createMockRequest('http://test.com/');
       const dateSpy = jest.spyOn(Date, 'now').mockReturnValue(1700000000000);
 
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe('https://site.com?ts=1700000000000');
       dateSpy.mockRestore();
@@ -477,7 +535,7 @@ describe('RedirectService', () => {
       const req = createMockRequest('http://test.com/');
       const dateSpy = jest.spyOn(Date, 'now').mockReturnValue(1700000000000);
 
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe(
         `https://site.com?ts=${new Date(1700000000000).toISOString()}`,
@@ -492,7 +550,7 @@ describe('RedirectService', () => {
       const req = createMockRequest('http://test.com/');
       const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
 
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe('https://site.com?bucket=50');
       randomSpy.mockRestore();
@@ -508,7 +566,7 @@ describe('RedirectService', () => {
       const req = createMockRequest('http://test.com/');
       const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
 
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe(`https://site.com?ts=${new Date(0).toISOString()}`);
       randomSpy.mockRestore();
@@ -521,7 +579,7 @@ describe('RedirectService', () => {
       const req = createMockRequest('http://test.com/');
       const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
 
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe('https://site.com?bucket=0');
       randomSpy.mockRestore();
@@ -534,7 +592,7 @@ describe('RedirectService', () => {
       const req = createMockRequest('http://test.com/');
       const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
 
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe('https://site.com?bucket=-5');
       randomSpy.mockRestore();
@@ -551,7 +609,7 @@ describe('RedirectService', () => {
       const req = createMockRequest('http://test.com/');
       const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.7);
 
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe('https://site.com?bucket=0.07');
       randomSpy.mockRestore();
@@ -577,7 +635,7 @@ describe('RedirectService', () => {
         .spyOn((service as any).logger, 'error')
         .mockImplementation();
 
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBeNull();
       expect(loggerSpy).toHaveBeenCalledWith('Error processing redirect rule', {
@@ -603,7 +661,7 @@ describe('RedirectService', () => {
       const req = createMockRequest('http://test.com/path');
       jest.spyOn((service as any).logger, 'error').mockImplementation();
 
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe('/safe-fallback');
     });
@@ -623,7 +681,7 @@ describe('RedirectService', () => {
       const req = createMockRequest(
         `http://site.com/?var=${encodeURIComponent(inputValue)}`,
       );
-      return service.getRedirect(req, rules);
+      return await service.getRedirect(req, rules);
     };
 
     it('should handle "to_lower_case"', async () => {
@@ -720,7 +778,7 @@ describe('RedirectService', () => {
         { source: /^\/admin/, destination: 'http://admin.com' },
       ];
       const req = createMockRequest('http://site.com/user');
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
       expect(result).toBeNull();
     });
 
@@ -732,7 +790,7 @@ describe('RedirectService', () => {
       ];
       const req = createMockRequest('http://site.com/?val=test');
 
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe('test');
       expect(warnSpy).toHaveBeenCalledWith('Unknown manipulator', {
@@ -745,7 +803,7 @@ describe('RedirectService', () => {
         { source: '*', destination: 'http://site.com/{missing_var}' },
       ];
       const req = createMockRequest('http://site.com/');
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe('http://site.com/{missing_var}');
     });
@@ -756,7 +814,7 @@ describe('RedirectService', () => {
       ];
       const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
       const req = createMockRequest('http://site.com/');
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
       expect(result).toBe('Random: 500000');
       randomSpy.mockRestore();
     });
@@ -775,7 +833,7 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://site.com/?val=safe');
-      const result = service.getRedirect(req, rules);
+      const result = await service.getRedirect(req, rules);
 
       expect(result).toBe('safe');
       expect(loggerSpy).toHaveBeenCalledWith('Error applying manipulator', {
