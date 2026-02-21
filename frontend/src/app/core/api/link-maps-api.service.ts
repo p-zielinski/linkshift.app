@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import type { Observable } from 'rxjs';
+import { map, throwError, type Observable } from 'rxjs';
 import { API_CONFIG } from '../config/api-config';
 import type {
   LinkMap,
@@ -11,6 +11,7 @@ import type {
   UpsertLinkMapEntriesDto,
   DeleteLinkMapEntriesDto,
 } from '../models/link-map.model';
+import type { QueryResult } from '../models/query-result.model';
 import { buildHttpParams } from './api.utils';
 
 @Injectable({ providedIn: 'root' })
@@ -19,9 +20,17 @@ export class LinkMapsApiService {
   private readonly apiConfig = inject(API_CONFIG);
   private readonly apiUrl = `${this.apiConfig.baseUrl}/api/v1/link-maps`;
 
-  list(query: LinkMapListQuery): Observable<LinkMap[]> {
+  list(query?: LinkMapListQuery): Observable<QueryResult<LinkMap>> {
+    if (!query) {
+      return throwError(() => new Error('Missing link map query'));
+    }
     const params = buildHttpParams(query);
-    return this.http.get<LinkMap[]>(this.apiUrl, { params });
+    return this.http.get<LinkMap[]>(this.apiUrl, { params }).pipe(
+      map((items) => ({
+        data: items,
+        hasMore: false
+      }))
+    );
   }
 
   get(id: string): Observable<LinkMapWithEntries> {

@@ -30,13 +30,30 @@ type LinkMapEntryContext = {
   query: URLSearchParams;
 };
 
+type LinkMapRawEntry = {
+  id: string;
+  key: string;
+  keyNormalized: string;
+  destination: string;
+  pathNormalized: string;
+  queryString: string;
+};
+
+type LinkMapRawData = {
+  id: string;
+  domainGroupId: string;
+  caseSensitive: boolean;
+  queryMatch: LinkMapQueryMatch;
+  fallbackDestination: string | null;
+  entries: LinkMapRawEntry[];
+};
+
 type LinkMapContext = {
   id: string;
   domainGroupId: string;
   caseSensitive: boolean;
   queryMatch: LinkMapQueryMatch;
   fallbackDestination: string | null;
-  entries: LinkMapEntryContext[];
   entriesByKey: Map<string, LinkMapEntryContext>;
   entriesByPath: Map<string, LinkMapEntryContext[]>;
 };
@@ -205,10 +222,7 @@ export class LinkMapService {
       );
     }
 
-    if (
-      data.caseSensitive !== undefined ||
-      data.queryMatch !== undefined
-    ) {
+    if (data.caseSensitive !== undefined || data.queryMatch !== undefined) {
       const normalized = this.normalizeEntries(
         existing.entries.map((entry) => ({
           key: entry.key,
@@ -274,6 +288,24 @@ export class LinkMapService {
         new NotFoundError({
           requestId: this.clsService.getId(),
           details: `Link map with id ${id} not found`,
+        }),
+      );
+    }
+
+    const linkedRules = await this.prisma.redirectRule.count({
+      where: {
+        linkMapId: id,
+        deletedAt: null,
+        domainGroup: { organizationId, deletedAt: null },
+      },
+    });
+
+    if (linkedRules > 0) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Link map is assigned to redirect rules and cannot be deleted.',
+          relatedObjectParameter: 'linkMapId',
         }),
       );
     }
@@ -426,10 +458,7 @@ export class LinkMapService {
       return null;
     }
 
-    const normalizedPath = this.normalizePath(
-      keyPath,
-      context.caseSensitive,
-    );
+    const normalizedPath = this.normalizePath(keyPath, context.caseSensitive);
 
     if (context.queryMatch === 'ignore') {
       const entry = context.entriesByKey.get(normalizedPath);
@@ -454,7 +483,9 @@ export class LinkMapService {
 
     const requestQuery = this.normalizeQuery(query, context.caseSensitive);
     for (const entry of entries) {
-      if (this.isQuerySubset(entry.query, requestQuery, context.caseSensitive)) {
+      if (
+        this.isQuerySubset(entry.query, requestQuery, context.caseSensitive)
+      ) {
         return entry.destination;
       }
     }
@@ -466,11 +497,12 @@ export class LinkMapService {
     linkMapId: string,
   ): Promise<LinkMapContext | null> {
     const cacheKey = this.getLinkMapCacheKey(linkMapId);
-    const cached = await this.cacheManagerService.getCustomCache<LinkMapContext | null>(
-      cacheKey,
-    );
+    const cached =
+      await this.cacheManagerService.getCustomCache<LinkMapRawData | null>(
+        cacheKey,
+      );
     if (cached !== undefined) {
-      return cached;
+      return cached ? this.buildContext(cached) : null;
     }
 
     const map = await this.prisma.linkMap.findFirst({
@@ -483,13 +515,13 @@ export class LinkMapService {
       return null;
     }
 
-    const context = this.buildContext(map);
+    const rawData = this.buildRawData(map);
     await this.cacheManagerService.setCustomCache(
       cacheKey,
-      context,
+      rawData,
       LINK_MAP_CACHE_TTL_SECONDS,
     );
-    return context;
+    return this.buildContext(rawData);
   }
 
   private getLinkMapCacheKey(linkMapId: string): string {
@@ -502,7 +534,7 @@ export class LinkMapService {
     );
   }
 
-  private buildContext(map: {
+  private buildRawData(map: {
     id: string;
     domainGroupId: string;
     caseSensitive: boolean;
@@ -514,36 +546,20 @@ export class LinkMapService {
       keyNormalized: string;
       destination: string;
     }>;
-  }): LinkMapContext {
-    const entriesByKey = new Map<string, LinkMapEntryContext>();
-    const entriesByPath = new Map<string, LinkMapEntryContext[]>();
-
+  }): LinkMapRawData {
     const entries = map.entries.map((entry) => {
       const { path, query } = this.parseKey(entry.key);
       const pathNormalized = this.normalizePath(path, map.caseSensitive);
-      const entryContext: LinkMapEntryContext = {
+      const normalizedQuery = this.normalizeQuery(query, map.caseSensitive);
+      return {
         id: entry.id,
         key: entry.key,
         keyNormalized: entry.keyNormalized,
         destination: entry.destination,
         pathNormalized,
-        query: this.normalizeQuery(query, map.caseSensitive),
+        queryString: normalizedQuery.toString(),
       };
-
-      entriesByKey.set(entry.keyNormalized, entryContext);
-
-      const list = entriesByPath.get(pathNormalized) ?? [];
-      list.push(entryContext);
-      entriesByPath.set(pathNormalized, list);
-
-      return entryContext;
     });
-
-    for (const list of entriesByPath.values()) {
-      list.sort(
-        (a, b) => this.countQueryParams(b.query) - this.countQueryParams(a.query),
-      );
-    }
 
     return {
       id: map.id,
@@ -552,6 +568,46 @@ export class LinkMapService {
       queryMatch: map.queryMatch ?? 'ignore',
       fallbackDestination: map.fallbackDestination ?? null,
       entries,
+    };
+  }
+
+  private buildContext(rawData: LinkMapRawData): LinkMapContext {
+    const entriesByKey = new Map<string, LinkMapEntryContext>();
+    const entriesByPath = new Map<string, LinkMapEntryContext[]>();
+
+    for (const entry of rawData.entries) {
+      const entryContext: LinkMapEntryContext = {
+        id: entry.id,
+        key: entry.key,
+        keyNormalized: entry.keyNormalized,
+        destination: entry.destination,
+        pathNormalized: entry.pathNormalized,
+        query: new URLSearchParams(entry.queryString),
+      };
+
+      entriesByKey.set(entry.keyNormalized, entryContext);
+
+      const list = entriesByPath.get(entry.pathNormalized);
+      if (list) {
+        list.push(entryContext);
+      } else {
+        entriesByPath.set(entry.pathNormalized, [entryContext]);
+      }
+    }
+
+    for (const list of entriesByPath.values()) {
+      list.sort(
+        (a, b) =>
+          this.countQueryParams(b.query) - this.countQueryParams(a.query),
+      );
+    }
+
+    return {
+      id: rawData.id,
+      domainGroupId: rawData.domainGroupId,
+      caseSensitive: rawData.caseSensitive,
+      queryMatch: rawData.queryMatch ?? 'ignore',
+      fallbackDestination: rawData.fallbackDestination ?? null,
       entriesByKey,
       entriesByPath,
     };
@@ -690,7 +746,9 @@ export class LinkMapService {
     const expectedMap = this.toQueryMap(
       this.normalizeQuery(expected, caseSensitive),
     );
-    const actualMap = this.toQueryMap(this.normalizeQuery(actual, caseSensitive));
+    const actualMap = this.toQueryMap(
+      this.normalizeQuery(actual, caseSensitive),
+    );
 
     if (expectedMap.size === 0) {
       return true;
