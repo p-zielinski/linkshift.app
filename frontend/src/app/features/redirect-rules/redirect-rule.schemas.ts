@@ -14,7 +14,9 @@ export const redirectRuleSchema = z.object({
     .refine(
       (value) => /^https?:\/\/.+/i.test(value.trim()),
       'Destination must be a full URL starting with http:// or https://'
-    ),
+    )
+    .nullable()
+    .optional(),
   statusCode: z
     .coerce
     .number({ invalid_type_error: 'Status code must be a number' })

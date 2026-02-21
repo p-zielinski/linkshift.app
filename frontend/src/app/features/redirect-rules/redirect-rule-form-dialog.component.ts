@@ -27,7 +27,7 @@ import {
 import type {
   RedirectRule,
   RedirectQueryMatch,
-  RedirectPathMatch
+  RedirectPathMatch,
 } from '../../core/models/redirect-rule.model';
 import type { LinkMap } from '../../core/models/link-map.model';
 import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
@@ -48,6 +48,7 @@ type RedirectRuleFormModel = {
   linkMapId: string | null;
   priority: string;
 };
+
 
 const WIZARD_MODE_KEY = 'redirectRulesWizardMode';
 
@@ -126,7 +127,8 @@ export class RedirectRuleFormDialogComponent {
   ruleModel = signal({
     domainGroupId: this.rule?.domainGroupId ?? this.data?.domainGroupId ?? '',
     source: this.rule?.source ?? '',
-    destination: this.rule?.destination ?? 'https://',
+    destination:
+      this.rule?.destination ?? (this.rule?.linkMapId ? '' : 'https://'),
     statusCode: String(this.initialStatusCode),
     matchMethod: this.rule?.matchMethod ?? [],
     queryMatch: this.rule?.queryMatch ?? 'exact',
@@ -199,7 +201,7 @@ export class RedirectRuleFormDialogComponent {
   private readonly sourceValue = computed(() => this.ruleModel().source.trim());
   private readonly destinationValue = computed(() => this.ruleModel().destination.trim());
   private readonly destinationHasProtocol = computed(() =>
-    /^https?:\/\//i.test(this.destinationValue()),
+    this.isLinkMapRule() ? true : /^https?:\/\//i.test(this.destinationValue()),
   );
   readonly statusCodeOptions = computed(() => redirectRuleStatusCodes);
   readonly linkMaps = signal<LinkMap[]>([]);
@@ -248,16 +250,18 @@ export class RedirectRuleFormDialogComponent {
 
   matchValid = computed(
     () =>
-      this.ruleForm.source().valid() &&
-      this.sourceValue().length > 0 &&
-      !this.linkMapSourceIssue(),
+      this.ruleForm.source().valid() && this.sourceValue().length > 0 && !this.linkMapSourceIssue(),
   );
-  destinationValid = computed(
-    () =>
+  destinationValid = computed(() => {
+    if (this.isLinkMapRule()) {
+      return true;
+    }
+    return (
       this.ruleForm.destination().valid() &&
       this.destinationValue().length > 0 &&
-      this.destinationHasProtocol(),
-  );
+      this.destinationHasProtocol()
+    );
+  });
   statusValid = computed(() => this.ruleForm.statusCode().valid());
   canSubmit = computed(() => {
     return (
@@ -269,7 +273,7 @@ export class RedirectRuleFormDialogComponent {
       this.ruleForm.queryMatch().valid() &&
       this.ruleForm.pathMatch().valid() &&
       this.sourceValue().length > 0 &&
-      this.destinationValue().length > 0 &&
+      (this.isLinkMapRule() || this.destinationValue().length > 0) &&
       !this.linkMapSourceIssue() &&
       !this.linkMapMissing()
     );
@@ -296,13 +300,15 @@ export class RedirectRuleFormDialogComponent {
     }
 
     const destinationValue = this.destinationValue();
-    if (!destinationValue) {
-      errors.add('Destination is required.');
-    } else if (!this.destinationHasProtocol()) {
-      errors.add('Destination must be a full URL starting with http:// or https://.');
-    } else if (!this.ruleForm.destination().valid()) {
-      const message = this.getFieldErrorMessage(this.ruleForm.destination());
-      errors.add(message ?? 'Destination is invalid.');
+    if (!this.isLinkMapRule()) {
+      if (!destinationValue) {
+        errors.add('Destination is required.');
+      } else if (!this.destinationHasProtocol()) {
+        errors.add('Destination must be a full URL starting with http:// or https://.');
+      } else if (!this.ruleForm.destination().valid()) {
+        const message = this.getFieldErrorMessage(this.ruleForm.destination());
+        errors.add(message ?? 'Destination is invalid.');
+      }
     }
 
     if (!this.ruleForm.statusCode().valid()) {
@@ -606,16 +612,9 @@ export class RedirectRuleFormDialogComponent {
         this.ruleModel.update((model) => ({ ...model, queryMatch: 'ignore' }));
       }
 
-      const selected = this.selectedLinkMap();
       const destinationValue = this.destinationValue();
-      if (
-        selected?.fallbackDestination &&
-        (!destinationValue || destinationValue === 'https://')
-      ) {
-        this.ruleModel.update((model) => ({
-          ...model,
-          destination: selected.fallbackDestination ?? model.destination,
-        }));
+      if (destinationValue) {
+        this.ruleModel.update((model) => ({ ...model, destination: '' }));
       }
     });
   }
@@ -636,17 +635,14 @@ export class RedirectRuleFormDialogComponent {
     this.linkMapsLoading.set(true);
     this.linkMapsError.set(null);
     try {
-      const maps = await firstValueFrom(
-        this.linkMapsApi.list({ domainGroupId }),
-      );
+      const maps = await firstValueFrom(this.linkMapsApi.list({ domainGroupId }));
       this.linkMaps.set(maps);
       const activeId = this.ruleModel().linkMapId;
       if (activeId && !maps.find((map) => map.id === activeId)) {
         this.ruleModel.update((model) => ({ ...model, linkMapId: null }));
       }
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Unable to load link maps.';
+      const message = error instanceof Error ? error.message : 'Unable to load link maps.';
       this.linkMapsError.set(message);
       this.linkMaps.set([]);
     } finally {
@@ -677,13 +673,15 @@ export class RedirectRuleFormDialogComponent {
   }
 
   async onSubmit(event?: Event): Promise<void> {
+    console.log(123);
+
     event?.preventDefault();
     await submit(this.ruleForm, async (formValue) => {
       const value = formValue().value();
       this.lastSubmittedValue.set(value);
       const payload = {
         source: value.source,
-        destination: value.destination,
+        destination: this.isLinkMapRule() ? null : value.destination,
         statusCode: Number(value.statusCode),
         matchMethod: value.matchMethod,
         queryMatch: value.queryMatch,

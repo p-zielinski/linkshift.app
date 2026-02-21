@@ -196,9 +196,9 @@
             mat-cell
             *matCellDef="let rule"
             class="py-3 min-w-[150px] max-w-[250px] truncate"
-            [matTooltip]="rule.destination"
+            [matTooltip]="rule.destination || 'No destination (link map)'"
           >
-            {{ rule.destination }}
+            {{ rule.destination || '—' }}
           </td>
         </ng-container>
 

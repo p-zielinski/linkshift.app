@@ -82,6 +82,9 @@ describe('RedirectService', () => {
               delete: jest.fn(),
               count: jest.fn(),
             },
+            linkMap: {
+              findFirst: jest.fn(),
+            },
             redirectRuleHitsHourly: {
               groupBy: jest.fn(),
             },
@@ -1320,6 +1323,88 @@ describe('RedirectService', () => {
       });
 
       expect(prisma.redirectRule.create).toHaveBeenCalled();
+    });
+
+    it('should allow link map rules without destination', async () => {
+      (prisma.redirectRule.create as jest.Mock).mockResolvedValue({
+        id: 'rule_link_map',
+        domainGroupId,
+      });
+      (prisma.linkMap.findFirst as jest.Mock).mockResolvedValue({
+        id: 'link_map_1',
+      });
+
+      await service.createRule(organizationId, {
+        source: '/short',
+        destination: '',
+        statusCode: 302,
+        matchMethod: [],
+        domainGroupId,
+        priority: 0,
+        linkMapId: 'link_map_1',
+      });
+
+      expect(prisma.redirectRule.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            destination: null,
+          }),
+        }),
+      );
+    });
+
+    it('should update link map rule with null destination', async () => {
+      (prisma.redirectRule.findFirst as jest.Mock).mockResolvedValue({
+        id: 'rule_link_map_update',
+        source: '/short',
+        destination: null,
+        statusCode: 302,
+        matchMethod: [],
+        queryMatch: 'ignore',
+        pathMatch: 'prefix',
+        linkMapId: 'link_map_1',
+        domainGroupId,
+      });
+      (prisma.linkMap.findFirst as jest.Mock).mockResolvedValue({
+        id: 'link_map_1',
+      });
+      (prisma.redirectRule.update as jest.Mock).mockResolvedValue({
+        id: 'rule_link_map_update',
+        domainGroupId,
+      });
+
+      await service.updateRule('rule_link_map_update', organizationId, {
+        linkMapId: 'link_map_1',
+        destination: null,
+      });
+
+      expect(prisma.redirectRule.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            destination: null,
+          }),
+        }),
+      );
+    });
+
+    it('should require destination when removing link map', async () => {
+      (prisma.redirectRule.findFirst as jest.Mock).mockResolvedValue({
+        id: 'rule_link_map_remove',
+        source: '/short',
+        destination: null,
+        statusCode: 302,
+        matchMethod: [],
+        queryMatch: 'ignore',
+        pathMatch: 'prefix',
+        linkMapId: 'link_map_1',
+        domainGroupId,
+      });
+
+      await expect(
+        service.updateRule('rule_link_map_remove', organizationId, {
+          linkMapId: null,
+        }),
+      ).rejects.toThrow();
     });
 
     it('should reject duplicate matchMethod values', async () => {

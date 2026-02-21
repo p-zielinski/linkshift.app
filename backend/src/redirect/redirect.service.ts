@@ -81,6 +81,7 @@ export enum InvalidationTargetType {
   DOMAIN_GROUP_ID = 'domainGroupId',
 }
 
+
 /**
  * Explicit targets for cache invalidation to avoid ambiguous logic.
  */
@@ -92,7 +93,7 @@ type CacheInvalidationTarget =
 export interface RedirectRule {
   id?: string;
   source: string | RegExp;
-  destination: string;
+  destination: string | null;
   statusCode?: number;
   matchMethod?: HttpMethod[];
   queryMatch?: 'exact' | 'ignore' | 'subset';
@@ -885,9 +886,20 @@ export class RedirectService {
     }
 
     // 3. Validate logic
+    const hasLinkMap = Boolean(data.linkMapId);
+    if (!hasLinkMap && !data.destination) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Destination is required when no link map is selected.',
+          relatedObjectParameter: 'destination',
+        }),
+      );
+    }
+
     const validationResult = this.ruleValidator.validate(
       data.source,
-      data.destination,
+      hasLinkMap ? 'https://linkmap.local' : (data.destination as string),
     );
     if (!validationResult.isValid) {
       return throwHttpException(
@@ -901,10 +913,12 @@ export class RedirectService {
       );
     }
 
-    await this.validateDestinationSafety(data.destination, {
-      organizationId,
-      domainGroupId: data.domainGroupId,
-    });
+    if (!hasLinkMap) {
+      await this.validateDestinationSafety(data.destination!, {
+        organizationId,
+        domainGroupId: data.domainGroupId,
+      });
+    }
 
     await this.validateLinkMapRule({
       organizationId,
@@ -921,7 +935,7 @@ export class RedirectService {
       data: {
         id: createCustomCuid(AppEntity.RedirectRule, 32),
         source: data.source,
-        destination: data.destination,
+        destination: hasLinkMap ? null : (data.destination as string),
         statusCode: data.statusCode,
         matchMethod,
         queryMatch: data.queryMatch ?? 'exact',
@@ -964,11 +978,23 @@ export class RedirectService {
 
     // 2. Validate logic if fields changed
     const sourceToValidate = data.source ?? existing.source;
-    const destinationToValidate = data.destination ?? existing.destination;
-
+    const effectiveLinkMapId =
+      data.linkMapId !== undefined ? data.linkMapId : existing.linkMapId;
+    const destinationToValidate =
+      data.destination !== undefined ? data.destination : existing.destination;
+    const hasLinkMap = Boolean(effectiveLinkMapId);
+    if (!hasLinkMap && !destinationToValidate) {
+      return throwHttpException(
+        new BadRequestError({
+          details: 'Destination is required when no link map is selected.',
+          requestId: this.clsService.getId(),
+          relatedObjectParameter: 'destination',
+        }),
+      );
+    }
     const validationResult = this.ruleValidator.validate(
       sourceToValidate,
-      destinationToValidate,
+      hasLinkMap ? 'https://linkmap.local' : (destinationToValidate as string),
     );
     if (!validationResult.isValid) {
       return throwHttpException(
@@ -982,17 +1008,18 @@ export class RedirectService {
       );
     }
 
-    await this.validateDestinationSafety(destinationToValidate, {
-      ruleId: existing.id,
-      organizationId,
-      domainGroupId: existing.domainGroupId,
-    });
+    if (!hasLinkMap) {
+      await this.validateDestinationSafety(destinationToValidate as string, {
+        ruleId: existing.id,
+        organizationId,
+        domainGroupId: existing.domainGroupId,
+      });
+    }
 
     await this.validateLinkMapRule({
       organizationId,
       domainGroupId: existing.domainGroupId,
-      linkMapId:
-        data.linkMapId !== undefined ? data.linkMapId : existing.linkMapId,
+      linkMapId: effectiveLinkMapId,
       source: data.source ?? existing.source,
       pathMatch: data.pathMatch ?? existing.pathMatch,
       queryMatch: data.queryMatch ?? existing.queryMatch,
@@ -1009,7 +1036,9 @@ export class RedirectService {
       updateData.source = data.source;
     }
     if (data.destination !== undefined) {
-      updateData.destination = data.destination;
+      updateData.destination = hasLinkMap ? null : (data.destination as string);
+    } else if (hasLinkMap && existing.destination !== null) {
+      updateData.destination = null;
     }
     if (data.statusCode !== undefined) {
       updateData.statusCode = data.statusCode;
@@ -1596,7 +1625,7 @@ export class RedirectService {
         req.method,
         variables,
       );
-      if (result) {
+      if (result !== null) {
         if (rule.linkMapId) {
           const linkMapTarget = await this.resolveLinkMapTarget(
             rule,
@@ -1618,7 +1647,7 @@ export class RedirectService {
     rules: {
       id?: string;
       source: string;
-      destination: string;
+      destination: string | null;
       statusCode: number;
       matchMethod: HttpMethod[];
       queryMatch?: 'exact' | 'ignore' | 'subset';
@@ -1634,7 +1663,7 @@ export class RedirectService {
         return {
           id: rule.id,
           source: new RegExp(pattern, flags),
-          destination: rule.destination,
+          destination: rule.destination ?? '',
           statusCode: rule.statusCode,
           matchMethod: rule.matchMethod,
           queryMatch: rule.queryMatch,
@@ -1646,7 +1675,7 @@ export class RedirectService {
       return {
         id: rule.id,
         source: rule.source,
-        destination: rule.destination,
+        destination: rule.destination ?? '',
         statusCode: rule.statusCode,
         matchMethod: rule.matchMethod,
         queryMatch: rule.queryMatch,
@@ -1855,7 +1884,7 @@ export class RedirectService {
     variables: Record<string, string | undefined>,
   ): string | null {
     try {
-      let target = rule.destination;
+      let target = rule.destination ?? '';
       let isMatch = false;
       const pathMatch = rule.pathMatch ?? 'exact';
       const queryMatch = rule.queryMatch ?? 'exact';

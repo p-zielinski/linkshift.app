@@ -19,11 +19,52 @@ import type {
 import { applyZodField } from '../../core/forms/zod-validators';
 import { z } from 'zod';
 
-const destinationSchema = z
+const normalizeDestinationValue = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '';
+  }
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('//')) {
+    return `https:${trimmed}`;
+  }
+  if (trimmed.includes('://')) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+};
+
+const isValidDestination = (value: string, allowEmpty: boolean): boolean => {
+  const normalized = normalizeDestinationValue(value);
+  if (!normalized) {
+    return allowEmpty;
+  }
+  try {
+    const url = new URL(normalized);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return false;
+    }
+    const host = url.hostname;
+    if (host === 'localhost') {
+      return true;
+    }
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
+      return true;
+    }
+    return host.includes('.');
+  } catch {
+    return false;
+  }
+};
+
+const fallbackSchema = z
   .string()
-  .min(1, 'Destination is required')
-  .refine((value) => /^https?:\/\//i.test(value.trim()), 'Destination must start with http:// or https://');
-const fallbackSchema = z.union([destinationSchema, z.literal('')]);
+  .refine(
+    (value) => isValidDestination(value, true),
+    'Use a full URL like https://example.com',
+  );
 
 const queryMatchOptions: Array<{ value: LinkMapQueryMatch; label: string; hint: string }> = [
   { value: 'ignore', label: 'Ignore query', hint: 'Only the path part of the key matters.' },
@@ -76,6 +117,9 @@ export class LinkMapFormDialogComponent {
   readonly bulkText = signal('');
   readonly bulkError = signal<string | null>(null);
   readonly submitError = signal<string | null>(null);
+  readonly showEntries = signal(true);
+  readonly submitAttempted = signal(false);
+  readonly entryTouched = signal<Record<string, { key?: boolean; destination?: boolean }>>({});
 
   readonly mapModel = signal({
     name: '',
@@ -96,10 +140,12 @@ export class LinkMapFormDialogComponent {
 
   readonly duplicateKeys = computed(() => this.getDuplicateKeys());
   readonly invalidEntries = computed(() => this.getInvalidEntries());
+  readonly entryErrors = computed(() => this.getEntryErrors());
   readonly canSubmit = computed(() => {
     return (
       this.mapForm.name().valid() &&
       this.mapForm.domainGroupId().valid() &&
+      this.mapForm.fallbackDestination().valid() &&
       this.duplicateKeys().length === 0 &&
       this.invalidEntries().length === 0
     );
@@ -114,6 +160,19 @@ export class LinkMapFormDialogComponent {
   });
 
   readonly title = computed(() => (this.isEdit() ? 'Edit link map' : 'Create link map'));
+  readonly nameError = computed(() => this.getFieldError(this.mapForm.name()));
+  readonly domainGroupError = computed(() => this.getFieldError(this.mapForm.domainGroupId()));
+  readonly fallbackError = computed(() => this.getFieldError(this.mapForm.fallbackDestination()));
+  readonly entriesCount = computed(() => this.entries().length);
+  readonly selectedGroupLabel = computed(() => {
+    const groupId = this.mapModel().domainGroupId;
+    if (!groupId) {
+      return '';
+    }
+    const group = this.domainGroups().find((item) => item.id === groupId);
+    return group ? `${group.name} (${group.id})` : groupId;
+  });
+  readonly submitTooltip = computed(() => this.buildSubmitTooltip());
 
   constructor() {
     this.domainGroupStore.searchList();
@@ -139,6 +198,8 @@ export class LinkMapFormDialogComponent {
   }
 
   addEntry(): void {
+    const nextCount = this.entries().length + 1;
+    this.showEntries.set(nextCount <= 2000);
     this.entries.update((rows) => [
       ...rows,
       { id: this.createRowId(), key: '', destination: '' },
@@ -147,12 +208,39 @@ export class LinkMapFormDialogComponent {
 
   removeEntry(id: string): void {
     this.entries.update((rows) => rows.filter((row) => row.id !== id));
+    const touched = { ...this.entryTouched() };
+    delete touched[id];
+    this.entryTouched.set(touched);
   }
 
   updateEntry(id: string, field: 'key' | 'destination', value: string): void {
+    this.markEntryTouched(id, field);
     this.entries.update((rows) =>
       rows.map((row) => (row.id === id ? { ...row, [field]: value } : row)),
     );
+  }
+
+  normalizeEntryDestination(id: string): void {
+    const row = this.entries().find((entry) => entry.id === id);
+    if (!row) {
+      return;
+    }
+    const normalized = this.normalizeDestination(row.destination);
+    if (normalized !== row.destination) {
+      this.updateEntry(id, 'destination', normalized);
+    }
+  }
+
+  onEntryDestinationBlur(id: string): void {
+    this.markEntryTouched(id, 'destination');
+    this.normalizeEntryDestination(id);
+  }
+
+  normalizeFallbackDestination(): void {
+    const normalized = this.normalizeDestination(this.mapModel().fallbackDestination);
+    if (normalized !== this.mapModel().fallbackDestination) {
+      this.mapModel.update((model) => ({ ...model, fallbackDestination: normalized }));
+    }
   }
 
   addBulkEntries(): void {
@@ -190,7 +278,7 @@ export class LinkMapFormDialogComponent {
         errors.push(`Line ${index + 1} is invalid.`);
         return;
       }
-      parsed.push({ id: this.createRowId(), key, destination });
+      parsed.push({ id: this.createRowId(), key, destination: this.normalizeDestination(destination) });
     });
 
     if (errors.length) {
@@ -200,16 +288,20 @@ export class LinkMapFormDialogComponent {
 
     this.bulkError.set(null);
     this.bulkText.set('');
+    const nextCount = this.entries().length + parsed.length;
+    this.showEntries.set(nextCount <= 2000);
     this.entries.update((rows) => [...rows, ...parsed]);
   }
 
   async onSubmit(event?: Event): Promise<void> {
     event?.preventDefault();
     this.submitError.set(null);
+    this.submitAttempted.set(true);
 
     if (!this.canSubmit()) {
       this.mapForm.name().markAsTouched();
       this.mapForm.domainGroupId().markAsTouched();
+      this.mapForm.fallbackDestination().markAsTouched();
       return;
     }
 
@@ -245,15 +337,17 @@ export class LinkMapFormDialogComponent {
     const model = this.mapModel();
     const entries = this.entries().map((entry) => ({
       key: entry.key.trim(),
-      destination: entry.destination.trim(),
+      destination: this.normalizeDestination(entry.destination),
     }));
+
+    const fallback = this.normalizeDestination(model.fallbackDestination);
 
     return {
       name: model.name.trim(),
       domainGroupId: model.domainGroupId,
       caseSensitive: model.caseSensitive,
       queryMatch: model.queryMatch,
-      fallbackDestination: model.fallbackDestination?.trim() || null,
+      fallbackDestination: fallback || null,
       entries,
     };
   }
@@ -276,13 +370,13 @@ export class LinkMapFormDialogComponent {
         queryMatch: map.queryMatch,
         fallbackDestination: map.fallbackDestination ?? '',
       });
-      this.entries.set(
-        map.entries.map((entry) => ({
-          id: entry.id,
-          key: entry.key,
-          destination: entry.destination,
-        })),
-      );
+      const entries = map.entries.map((entry) => ({
+        id: entry.id,
+        key: entry.key,
+        destination: entry.destination,
+      }));
+      this.entries.set(entries);
+      this.showEntries.set(entries.length <= 2000);
     } finally {
       this.loading.set(false);
     }
@@ -319,11 +413,32 @@ export class LinkMapFormDialogComponent {
         invalid.push(entry.key);
         continue;
       }
-      if (!/^https?:\/\//i.test(entry.destination.trim())) {
+      if (!isValidDestination(entry.destination, false)) {
         invalid.push(entry.key);
       }
     }
     return invalid;
+  }
+
+  private getEntryErrors(): Map<string, { key?: string; destination?: string }> {
+    const errors = new Map<string, { key?: string; destination?: string }>();
+    for (const entry of this.entries()) {
+      const entryErrors: { key?: string; destination?: string } = {};
+      if (!entry.key.trim()) {
+        entryErrors.key = 'Add a short key (for example promo or spring-sale).';
+      }
+      if (!entry.destination.trim()) {
+        entryErrors.destination = 'Add a destination URL.';
+      } else {
+        if (!isValidDestination(entry.destination, false)) {
+          entryErrors.destination = 'Use a full URL like https://example.com.';
+        }
+      }
+      if (entryErrors.key || entryErrors.destination) {
+        errors.set(entry.id, entryErrors);
+      }
+    }
+    return errors;
   }
 
   private normalizeKey(
@@ -361,6 +476,96 @@ export class LinkMapFormDialogComponent {
 
     const query = entries.map(([k, v]) => `${k}=${v}`).join('&');
     return query ? `${pathNormalized}?${query}` : pathNormalized;
+  }
+
+  private normalizeDestination(value: string): string {
+    return normalizeDestinationValue(value);
+  }
+
+  private getFieldError(field: any): string | null {
+    if (!field.touched()) {
+      return null;
+    }
+    const errors = field.errors?.();
+    if (!errors || errors.length === 0) {
+      return null;
+    }
+    return errors[0].message ?? 'Invalid value';
+  }
+
+  private getFieldErrorMessage(field: any): string | null {
+    const errors = field.errors?.();
+    if (!errors || errors.length === 0) {
+      return null;
+    }
+    return errors[0].message ?? null;
+  }
+
+  entryKeyError(entryId: string): string | null {
+    if (!this.shouldShowEntryError(entryId, 'key')) {
+      return null;
+    }
+    return this.entryErrors().get(entryId)?.key ?? null;
+  }
+
+  entryDestinationError(entryId: string): string | null {
+    if (!this.shouldShowEntryError(entryId, 'destination')) {
+      return null;
+    }
+    return this.entryErrors().get(entryId)?.destination ?? null;
+  }
+
+  markEntryTouched(entryId: string, field: 'key' | 'destination'): void {
+    const touched = this.entryTouched();
+    const existing = touched[entryId] ?? {};
+    if (existing[field]) {
+      return;
+    }
+    this.entryTouched.set({
+      ...touched,
+      [entryId]: { ...existing, [field]: true },
+    });
+  }
+
+  private shouldShowEntryError(
+    entryId: string,
+    field: 'key' | 'destination',
+  ): boolean {
+    if (this.submitAttempted()) {
+      return true;
+    }
+    return Boolean(this.entryTouched()[entryId]?.[field]);
+  }
+
+  private buildSubmitTooltip(): string {
+    if (this.canSubmit()) {
+      return '';
+    }
+
+    const messages: string[] = [];
+    if (!this.mapForm.name().valid()) {
+      messages.push(this.getFieldErrorMessage(this.mapForm.name()) ?? 'Name is required.');
+    }
+    if (!this.mapForm.domainGroupId().valid()) {
+      messages.push(
+        this.getFieldErrorMessage(this.mapForm.domainGroupId()) ??
+          'Domain group is required.',
+      );
+    }
+    if (!this.mapForm.fallbackDestination().valid()) {
+      messages.push(
+        this.getFieldErrorMessage(this.mapForm.fallbackDestination()) ??
+          'Fallback destination is invalid.',
+      );
+    }
+    if (this.duplicateKeys().length > 0) {
+      messages.push('Remove duplicate keys.');
+    }
+    if (this.invalidEntries().length > 0) {
+      messages.push('Fix entries with missing keys or invalid destinations.');
+    }
+
+    return messages.join('\n');
   }
 
   private createRowId(): string {

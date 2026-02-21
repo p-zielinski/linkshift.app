@@ -58,6 +58,16 @@ export class LinkMapsPageComponent {
     this.domainGroupStore.searchList();
 
     effect(() => {
+      const groups = this.domainGroups();
+      if (groups.length === 1 && !this.filterModel().domainGroupId) {
+        this.filterModel.update((model) => ({
+          ...model,
+          domainGroupId: groups[0].id,
+        }));
+      }
+    });
+
+    effect(() => {
       const groupId = this.activeGroupId();
       if (!groupId) {
         this.linkMaps.set([]);
