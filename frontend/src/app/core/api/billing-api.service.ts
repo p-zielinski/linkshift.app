@@ -38,6 +38,9 @@ export type PlanLimits = {
   maxTotalTests: number;
   maxUsers: number;
   redirectionLimitPerMinute: number;
+  maxLinkMaps: number;
+  maxLinkMapEntriesTotal: number;
+  maxLinkMapEntriesPerMap: number;
 };
 
 export type BillingPlanPrice = {

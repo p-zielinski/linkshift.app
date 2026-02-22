@@ -186,10 +186,34 @@ exports.Prisma.RedirectRuleScalarFieldEnum = {
   matchMethod: 'matchMethod',
   queryMatch: 'queryMatch',
   pathMatch: 'pathMatch',
+  linkMapId: 'linkMapId',
   isBlocked: 'isBlocked',
   blockedAt: 'blockedAt',
   priority: 'priority',
   domainGroupId: 'domainGroupId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.LinkMapScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  domainGroupId: 'domainGroupId',
+  caseSensitive: 'caseSensitive',
+  queryMatch: 'queryMatch',
+  fallbackDestination: 'fallbackDestination',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.LinkMapEntryScalarFieldEnum = {
+  id: 'id',
+  linkMapId: 'linkMapId',
+  key: 'key',
+  keyNormalized: 'keyNormalized',
+  destination: 'destination',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
@@ -309,6 +333,8 @@ exports.Prisma.ModelName = {
   DomainGroup: 'DomainGroup',
   Domain: 'Domain',
   RedirectRule: 'RedirectRule',
+  LinkMap: 'LinkMap',
+  LinkMapEntry: 'LinkMapEntry',
   RedirectRuleHitsHourly: 'RedirectRuleHitsHourly',
   RedirectTest: 'RedirectTest',
   BillingCheckoutSession: 'BillingCheckoutSession',

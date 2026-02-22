@@ -98,6 +98,7 @@ const CSR_ROUTES = [
   '/profile',
   '/organization',
   '/domains',
+  '/link-maps',
   '/domain-groups',
   '/redirect-rules',
   '/tests',

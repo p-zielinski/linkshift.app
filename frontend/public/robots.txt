@@ -16,6 +16,7 @@ Disallow: /dashboard
 Disallow: /profile
 Disallow: /organization
 Disallow: /domains
+Disallow: /link-maps
 Disallow: /domain-groups
 Disallow: /redirect-rules
 Disallow: /tests

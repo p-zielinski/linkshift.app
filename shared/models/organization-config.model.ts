@@ -47,6 +47,9 @@ export class OrganizationSubscription {
     maxTotalTests: 30,
     maxUsers: 1,
     redirectionLimitPerMinute: 10,
+    maxLinkMaps: 1,
+    maxLinkMapEntriesTotal: 100,
+    maxLinkMapEntriesPerMap: 100,
   };
 
   constructor(partial?: Partial<OrganizationSubscription>) {
