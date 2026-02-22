@@ -51,6 +51,12 @@ const NAV_ITEMS: NavItem[] = [
     requiresDomainGroups: true,
   },
   {
+    label: 'Link Maps',
+    route: '/link-maps',
+    icon: 'map',
+    requiresDomainGroups: true,
+  },
+  {
     label: 'Tests',
     route: '/tests',
     icon: 'science',

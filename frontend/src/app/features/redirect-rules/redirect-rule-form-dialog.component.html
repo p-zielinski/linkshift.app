@@ -82,7 +82,13 @@
           </mat-form-field>
 
           <div class="grid gap-4 sm:grid-cols-2">
-            <mat-form-field appearance="outline" class="w-full">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+              [class.pointer-events-none]="isLinkMapRule()"
+              [class.opacity-60]="isLinkMapRule()"
+              [attr.aria-disabled]="isLinkMapRule() ? true : null"
+            >
               <mat-label>Path match</mat-label>
               <mat-select [formField]="field('pathMatch')">
                 @for (option of pathMatchOptions; track option) {
@@ -97,7 +103,13 @@
               }
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="w-full">
+            <mat-form-field
+              appearance="outline"
+              class="w-full"
+              [class.pointer-events-none]="isLinkMapRule()"
+              [class.opacity-60]="isLinkMapRule()"
+              [attr.aria-disabled]="isLinkMapRule() ? true : null"
+            >
               <mat-label>Query match</mat-label>
               <mat-select [formField]="field('queryMatch')">
                 @for (option of queryMatchOptions; track option) {
@@ -117,6 +129,53 @@
                 <mat-error>{{ error }}</mat-error>
               }
             </mat-form-field>
+          </div>
+
+          <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="font-semibold text-app-text">Link map routing (optional)</span>
+              @if (linkMapsLoading()) {
+                <span>Loading maps...</span>
+              }
+            </div>
+            <div class="mt-2 grid gap-3">
+              <div>
+                Link maps resolve destinations from a short key. The key is the path after your source prefix
+                (<code>/short</code> + request <code>/short/abc</code> → key <code>abc</code>).
+              </div>
+              <div>
+                Query matching for link maps is configured on the map itself (exact, ignore, subset). The redirect
+                rule always ignores the query and only provides the prefix + key.
+              </div>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Link map</mat-label>
+                <mat-select [formField]="field('linkMapId')">
+                  <mat-option [value]="null">None</mat-option>
+                  @for (map of linkMaps(); track map.id) {
+                    <mat-option [value]="map.id">
+                      {{ map.name }}
+                    </mat-option>
+                  }
+                </mat-select>
+                <mat-hint>When selected, path match becomes prefix and query match is ignored.</mat-hint>
+              </mat-form-field>
+              @if (linkMapsError()) {
+                <div class="text-app-danger">{{ linkMapsError() }}</div>
+              }
+              @if (selectedLinkMap(); as map) {
+                <div class="grid gap-1 text-[11px] text-app-muted">
+                  <div>Map query: {{ formatQueryMatch(map.queryMatch) }}</div>
+                  <div>Case sensitive: {{ map.caseSensitive ? 'yes' : 'no' }}</div>
+                  <div>Fallback: {{ map.fallbackDestination || 'none' }}</div>
+                </div>
+              }
+              @if (linkMapSourceIssue()) {
+                <div class="text-app-danger">{{ linkMapSourceIssue() }}</div>
+              }
+              @if (linkMapMissing()) {
+                <div class="text-app-danger">{{ linkMapMissing() }}</div>
+              }
+            </div>
           </div>
 
           <div
@@ -211,16 +270,23 @@
       <mat-step [completed]="destinationValid()">
         <ng-template matStepLabel>Destination</ng-template>
         <div class="mt-4 grid gap-4">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Destination</mat-label>
-            <input matInput type="text" [formField]="field('destination')" />
-            <mat-hint>
-              Must start with <code>http://</code> or <code>https://</code>.
-            </mat-hint>
-            @if (destinationError(); as error) {
-              <mat-error>{{ error }}</mat-error>
-            }
-          </mat-form-field>
+          @if (!isLinkMapRule()) {
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Destination</mat-label>
+              <input matInput type="text" [formField]="field('destination')" />
+              <mat-hint>
+                Must start with <code>http://</code> or <code>https://</code>.
+              </mat-hint>
+              @if (destinationError(); as error) {
+                <mat-error>{{ error }}</mat-error>
+              }
+            </mat-form-field>
+          } @else {
+            <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted">
+              Destination is not required because this rule uses a link map. The map resolves the final destination
+              and can define its own fallback.
+            </div>
+          }
 
           <mat-accordion class="grid gap-2">
             <mat-expansion-panel>
@@ -416,6 +482,10 @@
                 <span>{{ formatQueryMatch(ruleModel().queryMatch) }}</span>
               </div>
               <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-app-muted">Link map</span>
+                <span>{{ selectedLinkMap()?.name || '—' }}</span>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-2">
                 <span class="text-app-muted">Status</span>
                 <span>{{ ruleModel().statusCode }}</span>
               </div>
@@ -475,7 +545,13 @@
         </mat-form-field>
 
         <div class="grid gap-4 sm:grid-cols-2">
-          <mat-form-field appearance="outline" class="w-full">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+            [class.pointer-events-none]="isLinkMapRule()"
+            [class.opacity-60]="isLinkMapRule()"
+            [attr.aria-disabled]="isLinkMapRule() ? true : null"
+          >
             <mat-label>Path match</mat-label>
             <mat-select [formField]="field('pathMatch')">
               @for (option of pathMatchOptions; track option) {
@@ -490,7 +566,13 @@
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
+          <mat-form-field
+            appearance="outline"
+            class="w-full"
+            [class.pointer-events-none]="isLinkMapRule()"
+            [class.opacity-60]="isLinkMapRule()"
+            [attr.aria-disabled]="isLinkMapRule() ? true : null"
+          >
             <mat-label>Query match</mat-label>
             <mat-select [formField]="field('queryMatch')">
               @for (option of queryMatchOptions; track option) {
@@ -513,13 +595,37 @@
         </div>
 
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Destination</mat-label>
-          <input matInput type="text" [formField]="field('destination')" />
-          <mat-hint>Must start with <code>http://</code> or <code>https://</code>.</mat-hint>
-          @if (destinationError(); as error) {
-            <mat-error>{{ error }}</mat-error>
-          }
+          <mat-label>Link map (optional)</mat-label>
+          <mat-select [formField]="field('linkMapId')">
+            <mat-option [value]="null">None</mat-option>
+            @for (map of linkMaps(); track map.id) {
+              <mat-option [value]="map.id">{{ map.name }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Link maps use the path prefix as a key lookup (for example /short/abc → abc).</mat-hint>
         </mat-form-field>
+        @if (linkMapsError()) {
+          <div class="text-app-danger text-xs">{{ linkMapsError() }}</div>
+        }
+        @if (linkMapSourceIssue()) {
+          <div class="text-app-danger text-xs">{{ linkMapSourceIssue() }}</div>
+        }
+
+        @if (!isLinkMapRule()) {
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Destination</mat-label>
+            <input matInput type="text" [formField]="field('destination')" />
+            <mat-hint>Must start with <code>http://</code> or <code>https://</code>.</mat-hint>
+            @if (destinationError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+        } @else {
+          <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted">
+            Destination is not required because this rule uses a link map. The map resolves the final destination
+            and can define its own fallback.
+          </div>
+        }
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Status code</mat-label>

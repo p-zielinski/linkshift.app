@@ -4,11 +4,12 @@ import { HttpMethod } from './http-method.model';
 export type RedirectRule = {
   id: string;
   source: string;
-  destination: string;
+  destination: string | null;
   statusCode: number;
   matchMethod: HttpMethod[];
   queryMatch: RedirectQueryMatch;
   pathMatch: RedirectPathMatch;
+  linkMapId?: string | null;
   priority: number;
   domainGroupId: string;
   createdAt: string;
@@ -20,22 +21,24 @@ export type RedirectRule = {
 
 export type CreateRedirectRuleDto = {
   source: string;
-  destination: string;
+  destination?: string | null;
   statusCode?: number;
   matchMethod?: HttpMethod[];
   queryMatch?: RedirectQueryMatch;
   pathMatch?: RedirectPathMatch;
+  linkMapId?: string | null;
   priority?: number;
   domainGroupId: string;
 };
 
 export type UpdateRedirectRuleDto = {
   source?: string;
-  destination?: string;
+  destination?: string | null;
   statusCode?: number;
   matchMethod?: HttpMethod[];
   queryMatch?: RedirectQueryMatch;
   pathMatch?: RedirectPathMatch;
+  linkMapId?: string | null;
   priority?: number;
 };
 

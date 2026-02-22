@@ -9,12 +9,13 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
-import { form, required, submit, FormField } from '@angular/forms/signals';
+import { form, required, FormField } from '@angular/forms/signals';
 import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { RedirectTestResultsStore } from '../../core/store/redirect-test-results.store';
+import { LinkMapStore } from '../../core/store/link-map.store';
 import { applyZodField } from '../../core/forms/zod-validators';
 import {
   redirectRuleSchema,
@@ -26,9 +27,10 @@ import {
 import type {
   RedirectRule,
   RedirectQueryMatch,
-  RedirectPathMatch
+  RedirectPathMatch,
 } from '../../core/models/redirect-rule.model';
-import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
+import type { LinkMap } from '../../core/models/link-map.model';
+import { CREATE_ENTITY_ID, getFilterKey } from '../../core/store/entity/entity-store.utils';
 import { HttpMethod } from '../../core/models/http-method.model';
 import { ensureLeadingSlash, splitPathWithQuery } from '../tests/redirect-test.utils';
 import type { RedirectTestFormPrefill } from '../tests/redirect-test-form-dialog.component';
@@ -42,6 +44,7 @@ type RedirectRuleFormModel = {
   matchMethod: HttpMethod[];
   queryMatch: RedirectQueryMatch;
   pathMatch: RedirectPathMatch;
+  linkMapId: string | null;
   priority: string;
 };
 
@@ -86,6 +89,7 @@ export class RedirectRuleFormDialogComponent {
   private readonly redirectRuleStore = inject(RedirectRuleStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
+  private readonly linkMapStore = inject(LinkMapStore);
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -114,17 +118,19 @@ export class RedirectRuleFormDialogComponent {
     const groupId = this.ruleModel().domainGroupId;
     return this.groupMap()[groupId]?.name ?? groupId;
   });
+  readonly selectedGroupId = computed(() => this.ruleModel().domainGroupId);
 
   private readonly initialStatusCode = this.rule?.statusCode ?? 302;
 
   ruleModel = signal({
     domainGroupId: this.rule?.domainGroupId ?? this.data?.domainGroupId ?? '',
     source: this.rule?.source ?? '',
-    destination: this.rule?.destination ?? 'https://',
+    destination: this.rule?.destination ?? (this.rule?.linkMapId ? '' : 'https://'),
     statusCode: String(this.initialStatusCode),
     matchMethod: this.rule?.matchMethod ?? [],
     queryMatch: this.rule?.queryMatch ?? 'exact',
     pathMatch: this.rule?.pathMatch ?? 'exact',
+    linkMapId: this.rule?.linkMapId ?? null,
     priority: String(this.rule?.priority ?? 0),
   });
 
@@ -150,6 +156,7 @@ export class RedirectRuleFormDialogComponent {
     applyZodField(f.matchMethod, redirectRuleSchema.shape.matchMethod);
     applyZodField(f.queryMatch, redirectRuleSchema.shape.queryMatch);
     applyZodField(f.pathMatch, redirectRuleSchema.shape.pathMatch);
+    applyZodField(f.linkMapId, redirectRuleSchema.shape.linkMapId);
     applyZodField(f.priority, redirectRuleSchema.shape.priority);
   });
 
@@ -191,17 +198,81 @@ export class RedirectRuleFormDialogComponent {
   private readonly sourceValue = computed(() => this.ruleModel().source.trim());
   private readonly destinationValue = computed(() => this.ruleModel().destination.trim());
   private readonly destinationHasProtocol = computed(() =>
-    /^https?:\/\//i.test(this.destinationValue()),
+    this.isLinkMapRule() ? true : /^https?:\/\//i.test(this.destinationValue()),
   );
   readonly statusCodeOptions = computed(() => redirectRuleStatusCodes);
+  private readonly linkMapsErrorSequence = signal<number | null>(null);
+  readonly linkMaps = computed(() => {
+    const groupId = this.selectedGroupId();
+    if (!groupId) {
+      return [] as LinkMap[];
+    }
+    return this.linkMapStore.selectList({ domainGroupId: groupId })();
+  });
+  readonly linkMapsLoading = computed(() => {
+    const groupId = this.selectedGroupId();
+    if (!groupId) {
+      return false;
+    }
+    const key = getFilterKey({ domainGroupId: groupId });
+    return !!this.linkMapStore.isLoading()[key];
+  });
+  readonly linkMapsError = signal<string | null>(null);
+  readonly selectedLinkMap = computed(() => {
+    const linkMapId = this.ruleModel().linkMapId;
+    if (!linkMapId) {
+      return null;
+    }
+    return this.linkMaps().find((map) => map.id === linkMapId) ?? null;
+  });
+  readonly isLinkMapRule = computed(() => Boolean(this.ruleModel().linkMapId));
+  readonly linkMapSourceIssue = computed(() => {
+    if (!this.isLinkMapRule()) {
+      return null;
+    }
+    const source = this.sourceValue();
+    if (!source) {
+      return 'Source is required for link map rules.';
+    }
+    if (source === '*') {
+      return 'Link map rules cannot use a catch-all (*).';
+    }
+    if (source.includes('?')) {
+      return 'Link map rules cannot include query params in the source.';
+    }
+    if (source.startsWith('/') && source.lastIndexOf('/') > 0) {
+      return 'Link map rules do not support regex sources.';
+    }
+    return null;
+  });
+  readonly linkMapMissing = computed(() => {
+    const linkMapId = this.ruleModel().linkMapId;
+    if (!linkMapId) {
+      return null;
+    }
+    if (this.linkMapsLoading()) {
+      return null;
+    }
+    if (this.linkMapsError()) {
+      return null;
+    }
+    return this.selectedLinkMap() ? null : 'Selected link map is missing for this domain group.';
+  });
 
-  matchValid = computed(() => this.ruleForm.source().valid() && this.sourceValue().length > 0);
-  destinationValid = computed(
+  matchValid = computed(
     () =>
+      this.ruleForm.source().valid() && this.sourceValue().length > 0 && !this.linkMapSourceIssue(),
+  );
+  destinationValid = computed(() => {
+    if (this.isLinkMapRule()) {
+      return true;
+    }
+    return (
       this.ruleForm.destination().valid() &&
       this.destinationValue().length > 0 &&
-      this.destinationHasProtocol(),
-  );
+      this.destinationHasProtocol()
+    );
+  });
   statusValid = computed(() => this.ruleForm.statusCode().valid());
   canSubmit = computed(() => {
     return (
@@ -213,7 +284,9 @@ export class RedirectRuleFormDialogComponent {
       this.ruleForm.queryMatch().valid() &&
       this.ruleForm.pathMatch().valid() &&
       this.sourceValue().length > 0 &&
-      this.destinationValue().length > 0
+      (this.isLinkMapRule() || this.destinationValue().length > 0) &&
+      !this.linkMapSourceIssue() &&
+      !this.linkMapMissing()
     );
   });
   readonly submitDisabled = computed(
@@ -238,13 +311,15 @@ export class RedirectRuleFormDialogComponent {
     }
 
     const destinationValue = this.destinationValue();
-    if (!destinationValue) {
-      errors.add('Destination is required.');
-    } else if (!this.destinationHasProtocol()) {
-      errors.add('Destination must be a full URL starting with http:// or https://.');
-    } else if (!this.ruleForm.destination().valid()) {
-      const message = this.getFieldErrorMessage(this.ruleForm.destination());
-      errors.add(message ?? 'Destination is invalid.');
+    if (!this.isLinkMapRule()) {
+      if (!destinationValue) {
+        errors.add('Destination is required.');
+      } else if (!this.destinationHasProtocol()) {
+        errors.add('Destination must be a full URL starting with http:// or https://.');
+      } else if (!this.ruleForm.destination().valid()) {
+        const message = this.getFieldErrorMessage(this.ruleForm.destination());
+        errors.add(message ?? 'Destination is invalid.');
+      }
     }
 
     if (!this.ruleForm.statusCode().valid()) {
@@ -265,6 +340,14 @@ export class RedirectRuleFormDialogComponent {
     if (!this.ruleForm.pathMatch().valid()) {
       const message = this.getFieldErrorMessage(this.ruleForm.pathMatch());
       errors.add(message ?? 'Path match is invalid.');
+    }
+
+    if (this.linkMapSourceIssue()) {
+      errors.add(this.linkMapSourceIssue() ?? 'Link map rule source is invalid.');
+    }
+
+    if (this.linkMapMissing()) {
+      errors.add(this.linkMapMissing() ?? 'Link map selection is invalid.');
     }
 
     if (!this.ruleForm.priority().valid()) {
@@ -466,6 +549,8 @@ export class RedirectRuleFormDialogComponent {
     this.domainGroupStore.searchList();
     this.restoreWizardMode();
     this.observeViewport();
+    this.observeLinkMapSelection();
+    this.observeLinkMapList();
 
     effect(() => {
       if (!this.pendingSubmit()) {
@@ -525,6 +610,73 @@ export class RedirectRuleFormDialogComponent {
       });
   }
 
+  private observeLinkMapSelection(): void {
+    effect(() => {
+      if (!this.isLinkMapRule()) {
+        return;
+      }
+
+      if (this.ruleModel().pathMatch !== 'prefix') {
+        this.ruleModel.update((model) => ({ ...model, pathMatch: 'prefix' }));
+      }
+      if (this.ruleModel().queryMatch !== 'ignore') {
+        this.ruleModel.update((model) => ({ ...model, queryMatch: 'ignore' }));
+      }
+
+      const destinationValue = this.destinationValue();
+      if (destinationValue) {
+        this.ruleModel.update((model) => ({ ...model, destination: '' }));
+      }
+    });
+  }
+
+  private observeLinkMapList(): void {
+    effect(() => {
+      const groupId = this.selectedGroupId();
+      if (!groupId) {
+        this.linkMapsError.set(null);
+        this.linkMapsErrorSequence.set(null);
+        return;
+      }
+      this.loadLinkMaps(groupId);
+    });
+
+    effect(() => {
+      const sequenceAtLoad = this.linkMapsErrorSequence();
+      if (sequenceAtLoad === null) {
+        return;
+      }
+      if (this.linkMapsLoading()) {
+        return;
+      }
+      if (this.linkMapStore.errorSequence() > sequenceAtLoad) {
+        this.linkMapsError.set(this.linkMapStore.lastError());
+        this.linkMapStore.clearError();
+      }
+      this.linkMapsErrorSequence.set(null);
+    });
+
+    effect(() => {
+      const linkMapId = this.ruleModel().linkMapId;
+      if (!linkMapId) {
+        return;
+      }
+      if (this.linkMapsLoading() || this.linkMapsError()) {
+        return;
+      }
+      const exists = this.linkMaps().some((map) => map.id === linkMapId);
+      if (!exists) {
+        this.ruleModel.update((model) => ({ ...model, linkMapId: null }));
+      }
+    });
+  }
+
+  private loadLinkMaps(domainGroupId: string): void {
+    this.linkMapsError.set(null);
+    this.linkMapsErrorSequence.set(this.linkMapStore.errorSequence());
+    this.linkMapStore.searchList({ domainGroupId });
+  }
+
   private restoreWizardMode(): void {
     try {
       const stored =
@@ -548,41 +700,54 @@ export class RedirectRuleFormDialogComponent {
   }
 
   async onSubmit(event?: Event): Promise<void> {
+    console.log('onSubmit triggered');
     event?.preventDefault();
-    await submit(this.ruleForm, async (formValue) => {
-      const value = formValue().value();
-      this.lastSubmittedValue.set(value);
-      const payload = {
-        source: value.source,
-        destination: value.destination,
-        statusCode: Number(value.statusCode),
-        matchMethod: value.matchMethod,
-        queryMatch: value.queryMatch,
-        pathMatch: value.pathMatch,
-        priority: Number(value.priority),
-      };
 
-      const key = this.isEdit && this.rule ? this.rule.id : CREATE_ENTITY_ID;
-      this.submitKey.set(key);
-      this.submitErrorSequence.set(this.redirectRuleStore.errorSequence());
-      this.submitLoadingSeen.set(false);
-      this.pendingSubmit.set(true);
+    // The `submit()` utility from '@angular/forms/signals' strictly blocks the callback execution
+    // if the underlying form evaluates to `invalid` based on the schema and `required()` flags.
+    // Because `destination` is empty when `linkMapId` is selected, the strict form schema thinks it's invalid.
+    // By bypassing `submit()`, we rely solely on our own robust `canSubmit` and `submitDisabled` logic
+    // which correctly validates the form conditionally.
 
-      if (this.isEdit && this.rule) {
-        this.redirectRuleStore.upsert({
-          id: this.rule.id,
-          entity: payload,
-        });
-      } else {
-        this.redirectRuleStore.upsert({
-          entity: {
-            ...payload,
-            domainGroupId: value.domainGroupId,
-          },
-        });
-      }
-      return undefined;
-    });
+    // Guard against 'Enter' key presses triggering submission when the form is not fully valid
+    if (this.submitDisabled()) {
+      return;
+    }
+
+    // Extract value safely directly from the signal holding the current state
+    const value = this.ruleModel();
+    this.lastSubmittedValue.set(value);
+
+    const payload = {
+      source: value.source,
+      destination: this.isLinkMapRule() ? null : value.destination,
+      statusCode: Number(value.statusCode),
+      matchMethod: value.matchMethod,
+      queryMatch: value.queryMatch,
+      pathMatch: value.pathMatch,
+      linkMapId: value.linkMapId,
+      priority: Number(value.priority),
+    };
+
+    const key = this.isEdit && this.rule ? this.rule.id : CREATE_ENTITY_ID;
+    this.submitKey.set(key);
+    this.submitErrorSequence.set(this.redirectRuleStore.errorSequence());
+    this.submitLoadingSeen.set(false);
+    this.pendingSubmit.set(true);
+
+    if (this.isEdit && this.rule) {
+      this.redirectRuleStore.upsert({
+        id: this.rule.id,
+        entity: payload,
+      });
+    } else {
+      this.redirectRuleStore.upsert({
+        entity: {
+          ...payload,
+          domainGroupId: value.domainGroupId,
+        },
+      });
+    }
   }
 
   onCancel(): void {
@@ -612,7 +777,7 @@ export class RedirectRuleFormDialogComponent {
       query,
       method: model.matchMethod.length === 1 ? model.matchMethod[0] : '',
       expectedStatusCode: model.statusCode,
-      expectedTarget: model.destination.trim(),
+      expectedTarget: model.linkMapId ? '' : model.destination.trim(),
     };
   }
 

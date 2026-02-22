@@ -44,6 +44,16 @@ export type Domain = $Result.DefaultSelection<Prisma.$DomainPayload>
  */
 export type RedirectRule = $Result.DefaultSelection<Prisma.$RedirectRulePayload>
 /**
+ * Model LinkMap
+ * 
+ */
+export type LinkMap = $Result.DefaultSelection<Prisma.$LinkMapPayload>
+/**
+ * Model LinkMapEntry
+ * 
+ */
+export type LinkMapEntry = $Result.DefaultSelection<Prisma.$LinkMapEntryPayload>
+/**
  * Model RedirectRuleHitsHourly
  * 
  */
@@ -302,6 +312,26 @@ export class PrismaClient<
     * ```
     */
   get redirectRule(): Prisma.RedirectRuleDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.linkMap`: Exposes CRUD operations for the **LinkMap** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more LinkMaps
+    * const linkMaps = await prisma.linkMap.findMany()
+    * ```
+    */
+  get linkMap(): Prisma.LinkMapDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.linkMapEntry`: Exposes CRUD operations for the **LinkMapEntry** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more LinkMapEntries
+    * const linkMapEntries = await prisma.linkMapEntry.findMany()
+    * ```
+    */
+  get linkMapEntry(): Prisma.LinkMapEntryDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.redirectRuleHitsHourly`: Exposes CRUD operations for the **RedirectRuleHitsHourly** model.
@@ -782,6 +812,8 @@ export namespace Prisma {
     DomainGroup: 'DomainGroup',
     Domain: 'Domain',
     RedirectRule: 'RedirectRule',
+    LinkMap: 'LinkMap',
+    LinkMapEntry: 'LinkMapEntry',
     RedirectRuleHitsHourly: 'RedirectRuleHitsHourly',
     RedirectTest: 'RedirectTest',
     BillingCheckoutSession: 'BillingCheckoutSession',
@@ -801,7 +833,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "organization" | "user" | "organizationInvite" | "domainGroup" | "domain" | "redirectRule" | "redirectRuleHitsHourly" | "redirectTest" | "billingCheckoutSession" | "customPlan"
+      modelProps: "organization" | "user" | "organizationInvite" | "domainGroup" | "domain" | "redirectRule" | "linkMap" | "linkMapEntry" | "redirectRuleHitsHourly" | "redirectTest" | "billingCheckoutSession" | "customPlan"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1249,6 +1281,154 @@ export namespace Prisma {
           }
         }
       }
+      LinkMap: {
+        payload: Prisma.$LinkMapPayload<ExtArgs>
+        fields: Prisma.LinkMapFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.LinkMapFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.LinkMapFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapPayload>
+          }
+          findFirst: {
+            args: Prisma.LinkMapFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.LinkMapFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapPayload>
+          }
+          findMany: {
+            args: Prisma.LinkMapFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapPayload>[]
+          }
+          create: {
+            args: Prisma.LinkMapCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapPayload>
+          }
+          createMany: {
+            args: Prisma.LinkMapCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.LinkMapCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapPayload>[]
+          }
+          delete: {
+            args: Prisma.LinkMapDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapPayload>
+          }
+          update: {
+            args: Prisma.LinkMapUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapPayload>
+          }
+          deleteMany: {
+            args: Prisma.LinkMapDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.LinkMapUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.LinkMapUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapPayload>[]
+          }
+          upsert: {
+            args: Prisma.LinkMapUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapPayload>
+          }
+          aggregate: {
+            args: Prisma.LinkMapAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateLinkMap>
+          }
+          groupBy: {
+            args: Prisma.LinkMapGroupByArgs<ExtArgs>
+            result: $Utils.Optional<LinkMapGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.LinkMapCountArgs<ExtArgs>
+            result: $Utils.Optional<LinkMapCountAggregateOutputType> | number
+          }
+        }
+      }
+      LinkMapEntry: {
+        payload: Prisma.$LinkMapEntryPayload<ExtArgs>
+        fields: Prisma.LinkMapEntryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.LinkMapEntryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapEntryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.LinkMapEntryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapEntryPayload>
+          }
+          findFirst: {
+            args: Prisma.LinkMapEntryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapEntryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.LinkMapEntryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapEntryPayload>
+          }
+          findMany: {
+            args: Prisma.LinkMapEntryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapEntryPayload>[]
+          }
+          create: {
+            args: Prisma.LinkMapEntryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapEntryPayload>
+          }
+          createMany: {
+            args: Prisma.LinkMapEntryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.LinkMapEntryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapEntryPayload>[]
+          }
+          delete: {
+            args: Prisma.LinkMapEntryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapEntryPayload>
+          }
+          update: {
+            args: Prisma.LinkMapEntryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapEntryPayload>
+          }
+          deleteMany: {
+            args: Prisma.LinkMapEntryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.LinkMapEntryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.LinkMapEntryUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapEntryPayload>[]
+          }
+          upsert: {
+            args: Prisma.LinkMapEntryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkMapEntryPayload>
+          }
+          aggregate: {
+            args: Prisma.LinkMapEntryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateLinkMapEntry>
+          }
+          groupBy: {
+            args: Prisma.LinkMapEntryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<LinkMapEntryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.LinkMapEntryCountArgs<ExtArgs>
+            result: $Utils.Optional<LinkMapEntryCountAggregateOutputType> | number
+          }
+        }
+      }
       RedirectRuleHitsHourly: {
         payload: Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>
         fields: Prisma.RedirectRuleHitsHourlyFieldRefs
@@ -1659,6 +1839,8 @@ export namespace Prisma {
     domainGroup?: DomainGroupOmit
     domain?: DomainOmit
     redirectRule?: RedirectRuleOmit
+    linkMap?: LinkMapOmit
+    linkMapEntry?: LinkMapEntryOmit
     redirectRuleHitsHourly?: RedirectRuleHitsHourlyOmit
     redirectTest?: RedirectTestOmit
     billingCheckoutSession?: BillingCheckoutSessionOmit
@@ -1870,12 +2052,14 @@ export namespace Prisma {
   export type DomainGroupCountOutputType = {
     domains: number
     redirectRules: number
+    linkMaps: number
     redirectTests: number
   }
 
   export type DomainGroupCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     domains?: boolean | DomainGroupCountOutputTypeCountDomainsArgs
     redirectRules?: boolean | DomainGroupCountOutputTypeCountRedirectRulesArgs
+    linkMaps?: boolean | DomainGroupCountOutputTypeCountLinkMapsArgs
     redirectTests?: boolean | DomainGroupCountOutputTypeCountRedirectTestsArgs
   }
 
@@ -1902,6 +2086,13 @@ export namespace Prisma {
    */
   export type DomainGroupCountOutputTypeCountRedirectRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: RedirectRuleWhereInput
+  }
+
+  /**
+   * DomainGroupCountOutputType without action
+   */
+  export type DomainGroupCountOutputTypeCountLinkMapsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LinkMapWhereInput
   }
 
   /**
@@ -1940,6 +2131,46 @@ export namespace Prisma {
    */
   export type RedirectRuleCountOutputTypeCountHitsHourlyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: RedirectRuleHitsHourlyWhereInput
+  }
+
+
+  /**
+   * Count Type LinkMapCountOutputType
+   */
+
+  export type LinkMapCountOutputType = {
+    entries: number
+    redirectRules: number
+  }
+
+  export type LinkMapCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    entries?: boolean | LinkMapCountOutputTypeCountEntriesArgs
+    redirectRules?: boolean | LinkMapCountOutputTypeCountRedirectRulesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * LinkMapCountOutputType without action
+   */
+  export type LinkMapCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapCountOutputType
+     */
+    select?: LinkMapCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * LinkMapCountOutputType without action
+   */
+  export type LinkMapCountOutputTypeCountEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LinkMapEntryWhereInput
+  }
+
+  /**
+   * LinkMapCountOutputType without action
+   */
+  export type LinkMapCountOutputTypeCountRedirectRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: RedirectRuleWhereInput
   }
 
 
@@ -5746,6 +5977,7 @@ export namespace Prisma {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     domains?: boolean | DomainGroup$domainsArgs<ExtArgs>
     redirectRules?: boolean | DomainGroup$redirectRulesArgs<ExtArgs>
+    linkMaps?: boolean | DomainGroup$linkMapsArgs<ExtArgs>
     redirectTests?: boolean | DomainGroup$redirectTestsArgs<ExtArgs>
     _count?: boolean | DomainGroupCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["domainGroup"]>
@@ -5784,6 +6016,7 @@ export namespace Prisma {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     domains?: boolean | DomainGroup$domainsArgs<ExtArgs>
     redirectRules?: boolean | DomainGroup$redirectRulesArgs<ExtArgs>
+    linkMaps?: boolean | DomainGroup$linkMapsArgs<ExtArgs>
     redirectTests?: boolean | DomainGroup$redirectTestsArgs<ExtArgs>
     _count?: boolean | DomainGroupCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -5800,6 +6033,7 @@ export namespace Prisma {
       organization: Prisma.$OrganizationPayload<ExtArgs>
       domains: Prisma.$DomainPayload<ExtArgs>[]
       redirectRules: Prisma.$RedirectRulePayload<ExtArgs>[]
+      linkMaps: Prisma.$LinkMapPayload<ExtArgs>[]
       redirectTests: Prisma.$RedirectTestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -6206,6 +6440,7 @@ export namespace Prisma {
     organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     domains<T extends DomainGroup$domainsArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroup$domainsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DomainPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     redirectRules<T extends DomainGroup$redirectRulesArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroup$redirectRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    linkMaps<T extends DomainGroup$linkMapsArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroup$linkMapsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     redirectTests<T extends DomainGroup$redirectTestsArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroup$redirectTestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -6683,6 +6918,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: RedirectRuleScalarFieldEnum | RedirectRuleScalarFieldEnum[]
+  }
+
+  /**
+   * DomainGroup.linkMaps
+   */
+  export type DomainGroup$linkMapsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapInclude<ExtArgs> | null
+    where?: LinkMapWhereInput
+    orderBy?: LinkMapOrderByWithRelationInput | LinkMapOrderByWithRelationInput[]
+    cursor?: LinkMapWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LinkMapScalarFieldEnum | LinkMapScalarFieldEnum[]
   }
 
   /**
@@ -7828,6 +8087,7 @@ export namespace Prisma {
     statusCode: number | null
     queryMatch: $Enums.RedirectQueryMatch | null
     pathMatch: $Enums.RedirectPathMatch | null
+    linkMapId: string | null
     isBlocked: boolean | null
     blockedAt: Date | null
     priority: number | null
@@ -7844,6 +8104,7 @@ export namespace Prisma {
     statusCode: number | null
     queryMatch: $Enums.RedirectQueryMatch | null
     pathMatch: $Enums.RedirectPathMatch | null
+    linkMapId: string | null
     isBlocked: boolean | null
     blockedAt: Date | null
     priority: number | null
@@ -7861,6 +8122,7 @@ export namespace Prisma {
     matchMethod: number
     queryMatch: number
     pathMatch: number
+    linkMapId: number
     isBlocked: number
     blockedAt: number
     priority: number
@@ -7889,6 +8151,7 @@ export namespace Prisma {
     statusCode?: true
     queryMatch?: true
     pathMatch?: true
+    linkMapId?: true
     isBlocked?: true
     blockedAt?: true
     priority?: true
@@ -7905,6 +8168,7 @@ export namespace Prisma {
     statusCode?: true
     queryMatch?: true
     pathMatch?: true
+    linkMapId?: true
     isBlocked?: true
     blockedAt?: true
     priority?: true
@@ -7922,6 +8186,7 @@ export namespace Prisma {
     matchMethod?: true
     queryMatch?: true
     pathMatch?: true
+    linkMapId?: true
     isBlocked?: true
     blockedAt?: true
     priority?: true
@@ -8021,11 +8286,12 @@ export namespace Prisma {
   export type RedirectRuleGroupByOutputType = {
     id: string
     source: string
-    destination: string
+    destination: string | null
     statusCode: number
     matchMethod: $Enums.HttpMethod[]
     queryMatch: $Enums.RedirectQueryMatch
     pathMatch: $Enums.RedirectPathMatch
+    linkMapId: string | null
     isBlocked: boolean
     blockedAt: Date | null
     priority: number
@@ -8062,6 +8328,7 @@ export namespace Prisma {
     matchMethod?: boolean
     queryMatch?: boolean
     pathMatch?: boolean
+    linkMapId?: boolean
     isBlocked?: boolean
     blockedAt?: boolean
     priority?: boolean
@@ -8070,6 +8337,7 @@ export namespace Prisma {
     updatedAt?: boolean
     deletedAt?: boolean
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+    linkMap?: boolean | RedirectRule$linkMapArgs<ExtArgs>
     hitsHourly?: boolean | RedirectRule$hitsHourlyArgs<ExtArgs>
     _count?: boolean | RedirectRuleCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["redirectRule"]>
@@ -8082,6 +8350,7 @@ export namespace Prisma {
     matchMethod?: boolean
     queryMatch?: boolean
     pathMatch?: boolean
+    linkMapId?: boolean
     isBlocked?: boolean
     blockedAt?: boolean
     priority?: boolean
@@ -8090,6 +8359,7 @@ export namespace Prisma {
     updatedAt?: boolean
     deletedAt?: boolean
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+    linkMap?: boolean | RedirectRule$linkMapArgs<ExtArgs>
   }, ExtArgs["result"]["redirectRule"]>
 
   export type RedirectRuleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -8100,6 +8370,7 @@ export namespace Prisma {
     matchMethod?: boolean
     queryMatch?: boolean
     pathMatch?: boolean
+    linkMapId?: boolean
     isBlocked?: boolean
     blockedAt?: boolean
     priority?: boolean
@@ -8108,6 +8379,7 @@ export namespace Prisma {
     updatedAt?: boolean
     deletedAt?: boolean
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+    linkMap?: boolean | RedirectRule$linkMapArgs<ExtArgs>
   }, ExtArgs["result"]["redirectRule"]>
 
   export type RedirectRuleSelectScalar = {
@@ -8118,6 +8390,7 @@ export namespace Prisma {
     matchMethod?: boolean
     queryMatch?: boolean
     pathMatch?: boolean
+    linkMapId?: boolean
     isBlocked?: boolean
     blockedAt?: boolean
     priority?: boolean
@@ -8127,33 +8400,38 @@ export namespace Prisma {
     deletedAt?: boolean
   }
 
-  export type RedirectRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "source" | "destination" | "statusCode" | "matchMethod" | "queryMatch" | "pathMatch" | "isBlocked" | "blockedAt" | "priority" | "domainGroupId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["redirectRule"]>
+  export type RedirectRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "source" | "destination" | "statusCode" | "matchMethod" | "queryMatch" | "pathMatch" | "linkMapId" | "isBlocked" | "blockedAt" | "priority" | "domainGroupId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["redirectRule"]>
   export type RedirectRuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+    linkMap?: boolean | RedirectRule$linkMapArgs<ExtArgs>
     hitsHourly?: boolean | RedirectRule$hitsHourlyArgs<ExtArgs>
     _count?: boolean | RedirectRuleCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type RedirectRuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+    linkMap?: boolean | RedirectRule$linkMapArgs<ExtArgs>
   }
   export type RedirectRuleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+    linkMap?: boolean | RedirectRule$linkMapArgs<ExtArgs>
   }
 
   export type $RedirectRulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "RedirectRule"
     objects: {
       domainGroup: Prisma.$DomainGroupPayload<ExtArgs>
+      linkMap: Prisma.$LinkMapPayload<ExtArgs> | null
       hitsHourly: Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       source: string
-      destination: string
+      destination: string | null
       statusCode: number
       matchMethod: $Enums.HttpMethod[]
       queryMatch: $Enums.RedirectQueryMatch
       pathMatch: $Enums.RedirectPathMatch
+      linkMapId: string | null
       isBlocked: boolean
       blockedAt: Date | null
       priority: number
@@ -8556,6 +8834,7 @@ export namespace Prisma {
   export interface Prisma__RedirectRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     domainGroup<T extends DomainGroupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroupDefaultArgs<ExtArgs>>): Prisma__DomainGroupClient<$Result.GetResult<Prisma.$DomainGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    linkMap<T extends RedirectRule$linkMapArgs<ExtArgs> = {}>(args?: Subset<T, RedirectRule$linkMapArgs<ExtArgs>>): Prisma__LinkMapClient<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     hitsHourly<T extends RedirectRule$hitsHourlyArgs<ExtArgs> = {}>(args?: Subset<T, RedirectRule$hitsHourlyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectRuleHitsHourlyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -8593,6 +8872,7 @@ export namespace Prisma {
     readonly matchMethod: FieldRef<"RedirectRule", 'HttpMethod[]'>
     readonly queryMatch: FieldRef<"RedirectRule", 'RedirectQueryMatch'>
     readonly pathMatch: FieldRef<"RedirectRule", 'RedirectPathMatch'>
+    readonly linkMapId: FieldRef<"RedirectRule", 'String'>
     readonly isBlocked: FieldRef<"RedirectRule", 'Boolean'>
     readonly blockedAt: FieldRef<"RedirectRule", 'DateTime'>
     readonly priority: FieldRef<"RedirectRule", 'Int'>
@@ -8996,6 +9276,25 @@ export namespace Prisma {
   }
 
   /**
+   * RedirectRule.linkMap
+   */
+  export type RedirectRule$linkMapArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapInclude<ExtArgs> | null
+    where?: LinkMapWhereInput
+  }
+
+  /**
    * RedirectRule.hitsHourly
    */
   export type RedirectRule$hitsHourlyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -9035,6 +9334,2271 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: RedirectRuleInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model LinkMap
+   */
+
+  export type AggregateLinkMap = {
+    _count: LinkMapCountAggregateOutputType | null
+    _min: LinkMapMinAggregateOutputType | null
+    _max: LinkMapMaxAggregateOutputType | null
+  }
+
+  export type LinkMapMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    domainGroupId: string | null
+    caseSensitive: boolean | null
+    queryMatch: $Enums.RedirectQueryMatch | null
+    fallbackDestination: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type LinkMapMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    domainGroupId: string | null
+    caseSensitive: boolean | null
+    queryMatch: $Enums.RedirectQueryMatch | null
+    fallbackDestination: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type LinkMapCountAggregateOutputType = {
+    id: number
+    name: number
+    domainGroupId: number
+    caseSensitive: number
+    queryMatch: number
+    fallbackDestination: number
+    createdAt: number
+    updatedAt: number
+    deletedAt: number
+    _all: number
+  }
+
+
+  export type LinkMapMinAggregateInputType = {
+    id?: true
+    name?: true
+    domainGroupId?: true
+    caseSensitive?: true
+    queryMatch?: true
+    fallbackDestination?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type LinkMapMaxAggregateInputType = {
+    id?: true
+    name?: true
+    domainGroupId?: true
+    caseSensitive?: true
+    queryMatch?: true
+    fallbackDestination?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type LinkMapCountAggregateInputType = {
+    id?: true
+    name?: true
+    domainGroupId?: true
+    caseSensitive?: true
+    queryMatch?: true
+    fallbackDestination?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+    _all?: true
+  }
+
+  export type LinkMapAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LinkMap to aggregate.
+     */
+    where?: LinkMapWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LinkMaps to fetch.
+     */
+    orderBy?: LinkMapOrderByWithRelationInput | LinkMapOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: LinkMapWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LinkMaps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LinkMaps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned LinkMaps
+    **/
+    _count?: true | LinkMapCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: LinkMapMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: LinkMapMaxAggregateInputType
+  }
+
+  export type GetLinkMapAggregateType<T extends LinkMapAggregateArgs> = {
+        [P in keyof T & keyof AggregateLinkMap]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateLinkMap[P]>
+      : GetScalarType<T[P], AggregateLinkMap[P]>
+  }
+
+
+
+
+  export type LinkMapGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LinkMapWhereInput
+    orderBy?: LinkMapOrderByWithAggregationInput | LinkMapOrderByWithAggregationInput[]
+    by: LinkMapScalarFieldEnum[] | LinkMapScalarFieldEnum
+    having?: LinkMapScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: LinkMapCountAggregateInputType | true
+    _min?: LinkMapMinAggregateInputType
+    _max?: LinkMapMaxAggregateInputType
+  }
+
+  export type LinkMapGroupByOutputType = {
+    id: string
+    name: string
+    domainGroupId: string
+    caseSensitive: boolean
+    queryMatch: $Enums.RedirectQueryMatch
+    fallbackDestination: string | null
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date | null
+    _count: LinkMapCountAggregateOutputType | null
+    _min: LinkMapMinAggregateOutputType | null
+    _max: LinkMapMaxAggregateOutputType | null
+  }
+
+  type GetLinkMapGroupByPayload<T extends LinkMapGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<LinkMapGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof LinkMapGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], LinkMapGroupByOutputType[P]>
+            : GetScalarType<T[P], LinkMapGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type LinkMapSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    domainGroupId?: boolean
+    caseSensitive?: boolean
+    queryMatch?: boolean
+    fallbackDestination?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+    entries?: boolean | LinkMap$entriesArgs<ExtArgs>
+    redirectRules?: boolean | LinkMap$redirectRulesArgs<ExtArgs>
+    _count?: boolean | LinkMapCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["linkMap"]>
+
+  export type LinkMapSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    domainGroupId?: boolean
+    caseSensitive?: boolean
+    queryMatch?: boolean
+    fallbackDestination?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["linkMap"]>
+
+  export type LinkMapSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    domainGroupId?: boolean
+    caseSensitive?: boolean
+    queryMatch?: boolean
+    fallbackDestination?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["linkMap"]>
+
+  export type LinkMapSelectScalar = {
+    id?: boolean
+    name?: boolean
+    domainGroupId?: boolean
+    caseSensitive?: boolean
+    queryMatch?: boolean
+    fallbackDestination?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+  }
+
+  export type LinkMapOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "domainGroupId" | "caseSensitive" | "queryMatch" | "fallbackDestination" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["linkMap"]>
+  export type LinkMapInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+    entries?: boolean | LinkMap$entriesArgs<ExtArgs>
+    redirectRules?: boolean | LinkMap$redirectRulesArgs<ExtArgs>
+    _count?: boolean | LinkMapCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type LinkMapIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }
+  export type LinkMapIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }
+
+  export type $LinkMapPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "LinkMap"
+    objects: {
+      domainGroup: Prisma.$DomainGroupPayload<ExtArgs>
+      entries: Prisma.$LinkMapEntryPayload<ExtArgs>[]
+      redirectRules: Prisma.$RedirectRulePayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      domainGroupId: string
+      caseSensitive: boolean
+      queryMatch: $Enums.RedirectQueryMatch
+      fallbackDestination: string | null
+      createdAt: Date
+      updatedAt: Date
+      deletedAt: Date | null
+    }, ExtArgs["result"]["linkMap"]>
+    composites: {}
+  }
+
+  type LinkMapGetPayload<S extends boolean | null | undefined | LinkMapDefaultArgs> = $Result.GetResult<Prisma.$LinkMapPayload, S>
+
+  type LinkMapCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<LinkMapFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: LinkMapCountAggregateInputType | true
+    }
+
+  export interface LinkMapDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['LinkMap'], meta: { name: 'LinkMap' } }
+    /**
+     * Find zero or one LinkMap that matches the filter.
+     * @param {LinkMapFindUniqueArgs} args - Arguments to find a LinkMap
+     * @example
+     * // Get one LinkMap
+     * const linkMap = await prisma.linkMap.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends LinkMapFindUniqueArgs>(args: SelectSubset<T, LinkMapFindUniqueArgs<ExtArgs>>): Prisma__LinkMapClient<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one LinkMap that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {LinkMapFindUniqueOrThrowArgs} args - Arguments to find a LinkMap
+     * @example
+     * // Get one LinkMap
+     * const linkMap = await prisma.linkMap.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends LinkMapFindUniqueOrThrowArgs>(args: SelectSubset<T, LinkMapFindUniqueOrThrowArgs<ExtArgs>>): Prisma__LinkMapClient<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first LinkMap that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapFindFirstArgs} args - Arguments to find a LinkMap
+     * @example
+     * // Get one LinkMap
+     * const linkMap = await prisma.linkMap.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends LinkMapFindFirstArgs>(args?: SelectSubset<T, LinkMapFindFirstArgs<ExtArgs>>): Prisma__LinkMapClient<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first LinkMap that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapFindFirstOrThrowArgs} args - Arguments to find a LinkMap
+     * @example
+     * // Get one LinkMap
+     * const linkMap = await prisma.linkMap.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends LinkMapFindFirstOrThrowArgs>(args?: SelectSubset<T, LinkMapFindFirstOrThrowArgs<ExtArgs>>): Prisma__LinkMapClient<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more LinkMaps that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all LinkMaps
+     * const linkMaps = await prisma.linkMap.findMany()
+     * 
+     * // Get first 10 LinkMaps
+     * const linkMaps = await prisma.linkMap.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const linkMapWithIdOnly = await prisma.linkMap.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends LinkMapFindManyArgs>(args?: SelectSubset<T, LinkMapFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a LinkMap.
+     * @param {LinkMapCreateArgs} args - Arguments to create a LinkMap.
+     * @example
+     * // Create one LinkMap
+     * const LinkMap = await prisma.linkMap.create({
+     *   data: {
+     *     // ... data to create a LinkMap
+     *   }
+     * })
+     * 
+     */
+    create<T extends LinkMapCreateArgs>(args: SelectSubset<T, LinkMapCreateArgs<ExtArgs>>): Prisma__LinkMapClient<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many LinkMaps.
+     * @param {LinkMapCreateManyArgs} args - Arguments to create many LinkMaps.
+     * @example
+     * // Create many LinkMaps
+     * const linkMap = await prisma.linkMap.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends LinkMapCreateManyArgs>(args?: SelectSubset<T, LinkMapCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many LinkMaps and returns the data saved in the database.
+     * @param {LinkMapCreateManyAndReturnArgs} args - Arguments to create many LinkMaps.
+     * @example
+     * // Create many LinkMaps
+     * const linkMap = await prisma.linkMap.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many LinkMaps and only return the `id`
+     * const linkMapWithIdOnly = await prisma.linkMap.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends LinkMapCreateManyAndReturnArgs>(args?: SelectSubset<T, LinkMapCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a LinkMap.
+     * @param {LinkMapDeleteArgs} args - Arguments to delete one LinkMap.
+     * @example
+     * // Delete one LinkMap
+     * const LinkMap = await prisma.linkMap.delete({
+     *   where: {
+     *     // ... filter to delete one LinkMap
+     *   }
+     * })
+     * 
+     */
+    delete<T extends LinkMapDeleteArgs>(args: SelectSubset<T, LinkMapDeleteArgs<ExtArgs>>): Prisma__LinkMapClient<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one LinkMap.
+     * @param {LinkMapUpdateArgs} args - Arguments to update one LinkMap.
+     * @example
+     * // Update one LinkMap
+     * const linkMap = await prisma.linkMap.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends LinkMapUpdateArgs>(args: SelectSubset<T, LinkMapUpdateArgs<ExtArgs>>): Prisma__LinkMapClient<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more LinkMaps.
+     * @param {LinkMapDeleteManyArgs} args - Arguments to filter LinkMaps to delete.
+     * @example
+     * // Delete a few LinkMaps
+     * const { count } = await prisma.linkMap.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends LinkMapDeleteManyArgs>(args?: SelectSubset<T, LinkMapDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LinkMaps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many LinkMaps
+     * const linkMap = await prisma.linkMap.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends LinkMapUpdateManyArgs>(args: SelectSubset<T, LinkMapUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LinkMaps and returns the data updated in the database.
+     * @param {LinkMapUpdateManyAndReturnArgs} args - Arguments to update many LinkMaps.
+     * @example
+     * // Update many LinkMaps
+     * const linkMap = await prisma.linkMap.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more LinkMaps and only return the `id`
+     * const linkMapWithIdOnly = await prisma.linkMap.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends LinkMapUpdateManyAndReturnArgs>(args: SelectSubset<T, LinkMapUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one LinkMap.
+     * @param {LinkMapUpsertArgs} args - Arguments to update or create a LinkMap.
+     * @example
+     * // Update or create a LinkMap
+     * const linkMap = await prisma.linkMap.upsert({
+     *   create: {
+     *     // ... data to create a LinkMap
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the LinkMap we want to update
+     *   }
+     * })
+     */
+    upsert<T extends LinkMapUpsertArgs>(args: SelectSubset<T, LinkMapUpsertArgs<ExtArgs>>): Prisma__LinkMapClient<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of LinkMaps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapCountArgs} args - Arguments to filter LinkMaps to count.
+     * @example
+     * // Count the number of LinkMaps
+     * const count = await prisma.linkMap.count({
+     *   where: {
+     *     // ... the filter for the LinkMaps we want to count
+     *   }
+     * })
+    **/
+    count<T extends LinkMapCountArgs>(
+      args?: Subset<T, LinkMapCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], LinkMapCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a LinkMap.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends LinkMapAggregateArgs>(args: Subset<T, LinkMapAggregateArgs>): Prisma.PrismaPromise<GetLinkMapAggregateType<T>>
+
+    /**
+     * Group by LinkMap.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends LinkMapGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: LinkMapGroupByArgs['orderBy'] }
+        : { orderBy?: LinkMapGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, LinkMapGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetLinkMapGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the LinkMap model
+   */
+  readonly fields: LinkMapFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for LinkMap.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__LinkMapClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    domainGroup<T extends DomainGroupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroupDefaultArgs<ExtArgs>>): Prisma__DomainGroupClient<$Result.GetResult<Prisma.$DomainGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    entries<T extends LinkMap$entriesArgs<ExtArgs> = {}>(args?: Subset<T, LinkMap$entriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkMapEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    redirectRules<T extends LinkMap$redirectRulesArgs<ExtArgs> = {}>(args?: Subset<T, LinkMap$redirectRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the LinkMap model
+   */
+  interface LinkMapFieldRefs {
+    readonly id: FieldRef<"LinkMap", 'String'>
+    readonly name: FieldRef<"LinkMap", 'String'>
+    readonly domainGroupId: FieldRef<"LinkMap", 'String'>
+    readonly caseSensitive: FieldRef<"LinkMap", 'Boolean'>
+    readonly queryMatch: FieldRef<"LinkMap", 'RedirectQueryMatch'>
+    readonly fallbackDestination: FieldRef<"LinkMap", 'String'>
+    readonly createdAt: FieldRef<"LinkMap", 'DateTime'>
+    readonly updatedAt: FieldRef<"LinkMap", 'DateTime'>
+    readonly deletedAt: FieldRef<"LinkMap", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * LinkMap findUnique
+   */
+  export type LinkMapFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkMap to fetch.
+     */
+    where: LinkMapWhereUniqueInput
+  }
+
+  /**
+   * LinkMap findUniqueOrThrow
+   */
+  export type LinkMapFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkMap to fetch.
+     */
+    where: LinkMapWhereUniqueInput
+  }
+
+  /**
+   * LinkMap findFirst
+   */
+  export type LinkMapFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkMap to fetch.
+     */
+    where?: LinkMapWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LinkMaps to fetch.
+     */
+    orderBy?: LinkMapOrderByWithRelationInput | LinkMapOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LinkMaps.
+     */
+    cursor?: LinkMapWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LinkMaps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LinkMaps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LinkMaps.
+     */
+    distinct?: LinkMapScalarFieldEnum | LinkMapScalarFieldEnum[]
+  }
+
+  /**
+   * LinkMap findFirstOrThrow
+   */
+  export type LinkMapFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkMap to fetch.
+     */
+    where?: LinkMapWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LinkMaps to fetch.
+     */
+    orderBy?: LinkMapOrderByWithRelationInput | LinkMapOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LinkMaps.
+     */
+    cursor?: LinkMapWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LinkMaps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LinkMaps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LinkMaps.
+     */
+    distinct?: LinkMapScalarFieldEnum | LinkMapScalarFieldEnum[]
+  }
+
+  /**
+   * LinkMap findMany
+   */
+  export type LinkMapFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkMaps to fetch.
+     */
+    where?: LinkMapWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LinkMaps to fetch.
+     */
+    orderBy?: LinkMapOrderByWithRelationInput | LinkMapOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing LinkMaps.
+     */
+    cursor?: LinkMapWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LinkMaps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LinkMaps.
+     */
+    skip?: number
+    distinct?: LinkMapScalarFieldEnum | LinkMapScalarFieldEnum[]
+  }
+
+  /**
+   * LinkMap create
+   */
+  export type LinkMapCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapInclude<ExtArgs> | null
+    /**
+     * The data needed to create a LinkMap.
+     */
+    data: XOR<LinkMapCreateInput, LinkMapUncheckedCreateInput>
+  }
+
+  /**
+   * LinkMap createMany
+   */
+  export type LinkMapCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many LinkMaps.
+     */
+    data: LinkMapCreateManyInput | LinkMapCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * LinkMap createManyAndReturn
+   */
+  export type LinkMapCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * The data used to create many LinkMaps.
+     */
+    data: LinkMapCreateManyInput | LinkMapCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * LinkMap update
+   */
+  export type LinkMapUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapInclude<ExtArgs> | null
+    /**
+     * The data needed to update a LinkMap.
+     */
+    data: XOR<LinkMapUpdateInput, LinkMapUncheckedUpdateInput>
+    /**
+     * Choose, which LinkMap to update.
+     */
+    where: LinkMapWhereUniqueInput
+  }
+
+  /**
+   * LinkMap updateMany
+   */
+  export type LinkMapUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update LinkMaps.
+     */
+    data: XOR<LinkMapUpdateManyMutationInput, LinkMapUncheckedUpdateManyInput>
+    /**
+     * Filter which LinkMaps to update
+     */
+    where?: LinkMapWhereInput
+    /**
+     * Limit how many LinkMaps to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * LinkMap updateManyAndReturn
+   */
+  export type LinkMapUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * The data used to update LinkMaps.
+     */
+    data: XOR<LinkMapUpdateManyMutationInput, LinkMapUncheckedUpdateManyInput>
+    /**
+     * Filter which LinkMaps to update
+     */
+    where?: LinkMapWhereInput
+    /**
+     * Limit how many LinkMaps to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * LinkMap upsert
+   */
+  export type LinkMapUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapInclude<ExtArgs> | null
+    /**
+     * The filter to search for the LinkMap to update in case it exists.
+     */
+    where: LinkMapWhereUniqueInput
+    /**
+     * In case the LinkMap found by the `where` argument doesn't exist, create a new LinkMap with this data.
+     */
+    create: XOR<LinkMapCreateInput, LinkMapUncheckedCreateInput>
+    /**
+     * In case the LinkMap was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<LinkMapUpdateInput, LinkMapUncheckedUpdateInput>
+  }
+
+  /**
+   * LinkMap delete
+   */
+  export type LinkMapDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapInclude<ExtArgs> | null
+    /**
+     * Filter which LinkMap to delete.
+     */
+    where: LinkMapWhereUniqueInput
+  }
+
+  /**
+   * LinkMap deleteMany
+   */
+  export type LinkMapDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LinkMaps to delete
+     */
+    where?: LinkMapWhereInput
+    /**
+     * Limit how many LinkMaps to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * LinkMap.entries
+   */
+  export type LinkMap$entriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryInclude<ExtArgs> | null
+    where?: LinkMapEntryWhereInput
+    orderBy?: LinkMapEntryOrderByWithRelationInput | LinkMapEntryOrderByWithRelationInput[]
+    cursor?: LinkMapEntryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LinkMapEntryScalarFieldEnum | LinkMapEntryScalarFieldEnum[]
+  }
+
+  /**
+   * LinkMap.redirectRules
+   */
+  export type LinkMap$redirectRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the RedirectRule
+     */
+    select?: RedirectRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the RedirectRule
+     */
+    omit?: RedirectRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: RedirectRuleInclude<ExtArgs> | null
+    where?: RedirectRuleWhereInput
+    orderBy?: RedirectRuleOrderByWithRelationInput | RedirectRuleOrderByWithRelationInput[]
+    cursor?: RedirectRuleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: RedirectRuleScalarFieldEnum | RedirectRuleScalarFieldEnum[]
+  }
+
+  /**
+   * LinkMap without action
+   */
+  export type LinkMapDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMap
+     */
+    select?: LinkMapSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMap
+     */
+    omit?: LinkMapOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model LinkMapEntry
+   */
+
+  export type AggregateLinkMapEntry = {
+    _count: LinkMapEntryCountAggregateOutputType | null
+    _min: LinkMapEntryMinAggregateOutputType | null
+    _max: LinkMapEntryMaxAggregateOutputType | null
+  }
+
+  export type LinkMapEntryMinAggregateOutputType = {
+    id: string | null
+    linkMapId: string | null
+    key: string | null
+    keyNormalized: string | null
+    destination: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type LinkMapEntryMaxAggregateOutputType = {
+    id: string | null
+    linkMapId: string | null
+    key: string | null
+    keyNormalized: string | null
+    destination: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type LinkMapEntryCountAggregateOutputType = {
+    id: number
+    linkMapId: number
+    key: number
+    keyNormalized: number
+    destination: number
+    createdAt: number
+    updatedAt: number
+    deletedAt: number
+    _all: number
+  }
+
+
+  export type LinkMapEntryMinAggregateInputType = {
+    id?: true
+    linkMapId?: true
+    key?: true
+    keyNormalized?: true
+    destination?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type LinkMapEntryMaxAggregateInputType = {
+    id?: true
+    linkMapId?: true
+    key?: true
+    keyNormalized?: true
+    destination?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type LinkMapEntryCountAggregateInputType = {
+    id?: true
+    linkMapId?: true
+    key?: true
+    keyNormalized?: true
+    destination?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+    _all?: true
+  }
+
+  export type LinkMapEntryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LinkMapEntry to aggregate.
+     */
+    where?: LinkMapEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LinkMapEntries to fetch.
+     */
+    orderBy?: LinkMapEntryOrderByWithRelationInput | LinkMapEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: LinkMapEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LinkMapEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LinkMapEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned LinkMapEntries
+    **/
+    _count?: true | LinkMapEntryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: LinkMapEntryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: LinkMapEntryMaxAggregateInputType
+  }
+
+  export type GetLinkMapEntryAggregateType<T extends LinkMapEntryAggregateArgs> = {
+        [P in keyof T & keyof AggregateLinkMapEntry]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateLinkMapEntry[P]>
+      : GetScalarType<T[P], AggregateLinkMapEntry[P]>
+  }
+
+
+
+
+  export type LinkMapEntryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LinkMapEntryWhereInput
+    orderBy?: LinkMapEntryOrderByWithAggregationInput | LinkMapEntryOrderByWithAggregationInput[]
+    by: LinkMapEntryScalarFieldEnum[] | LinkMapEntryScalarFieldEnum
+    having?: LinkMapEntryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: LinkMapEntryCountAggregateInputType | true
+    _min?: LinkMapEntryMinAggregateInputType
+    _max?: LinkMapEntryMaxAggregateInputType
+  }
+
+  export type LinkMapEntryGroupByOutputType = {
+    id: string
+    linkMapId: string
+    key: string
+    keyNormalized: string
+    destination: string
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date | null
+    _count: LinkMapEntryCountAggregateOutputType | null
+    _min: LinkMapEntryMinAggregateOutputType | null
+    _max: LinkMapEntryMaxAggregateOutputType | null
+  }
+
+  type GetLinkMapEntryGroupByPayload<T extends LinkMapEntryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<LinkMapEntryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof LinkMapEntryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], LinkMapEntryGroupByOutputType[P]>
+            : GetScalarType<T[P], LinkMapEntryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type LinkMapEntrySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    linkMapId?: boolean
+    key?: boolean
+    keyNormalized?: boolean
+    destination?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    linkMap?: boolean | LinkMapDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["linkMapEntry"]>
+
+  export type LinkMapEntrySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    linkMapId?: boolean
+    key?: boolean
+    keyNormalized?: boolean
+    destination?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    linkMap?: boolean | LinkMapDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["linkMapEntry"]>
+
+  export type LinkMapEntrySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    linkMapId?: boolean
+    key?: boolean
+    keyNormalized?: boolean
+    destination?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    linkMap?: boolean | LinkMapDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["linkMapEntry"]>
+
+  export type LinkMapEntrySelectScalar = {
+    id?: boolean
+    linkMapId?: boolean
+    key?: boolean
+    keyNormalized?: boolean
+    destination?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+  }
+
+  export type LinkMapEntryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "linkMapId" | "key" | "keyNormalized" | "destination" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["linkMapEntry"]>
+  export type LinkMapEntryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    linkMap?: boolean | LinkMapDefaultArgs<ExtArgs>
+  }
+  export type LinkMapEntryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    linkMap?: boolean | LinkMapDefaultArgs<ExtArgs>
+  }
+  export type LinkMapEntryIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    linkMap?: boolean | LinkMapDefaultArgs<ExtArgs>
+  }
+
+  export type $LinkMapEntryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "LinkMapEntry"
+    objects: {
+      linkMap: Prisma.$LinkMapPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      linkMapId: string
+      key: string
+      keyNormalized: string
+      destination: string
+      createdAt: Date
+      updatedAt: Date
+      deletedAt: Date | null
+    }, ExtArgs["result"]["linkMapEntry"]>
+    composites: {}
+  }
+
+  type LinkMapEntryGetPayload<S extends boolean | null | undefined | LinkMapEntryDefaultArgs> = $Result.GetResult<Prisma.$LinkMapEntryPayload, S>
+
+  type LinkMapEntryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<LinkMapEntryFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: LinkMapEntryCountAggregateInputType | true
+    }
+
+  export interface LinkMapEntryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['LinkMapEntry'], meta: { name: 'LinkMapEntry' } }
+    /**
+     * Find zero or one LinkMapEntry that matches the filter.
+     * @param {LinkMapEntryFindUniqueArgs} args - Arguments to find a LinkMapEntry
+     * @example
+     * // Get one LinkMapEntry
+     * const linkMapEntry = await prisma.linkMapEntry.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends LinkMapEntryFindUniqueArgs>(args: SelectSubset<T, LinkMapEntryFindUniqueArgs<ExtArgs>>): Prisma__LinkMapEntryClient<$Result.GetResult<Prisma.$LinkMapEntryPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one LinkMapEntry that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {LinkMapEntryFindUniqueOrThrowArgs} args - Arguments to find a LinkMapEntry
+     * @example
+     * // Get one LinkMapEntry
+     * const linkMapEntry = await prisma.linkMapEntry.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends LinkMapEntryFindUniqueOrThrowArgs>(args: SelectSubset<T, LinkMapEntryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__LinkMapEntryClient<$Result.GetResult<Prisma.$LinkMapEntryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first LinkMapEntry that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapEntryFindFirstArgs} args - Arguments to find a LinkMapEntry
+     * @example
+     * // Get one LinkMapEntry
+     * const linkMapEntry = await prisma.linkMapEntry.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends LinkMapEntryFindFirstArgs>(args?: SelectSubset<T, LinkMapEntryFindFirstArgs<ExtArgs>>): Prisma__LinkMapEntryClient<$Result.GetResult<Prisma.$LinkMapEntryPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first LinkMapEntry that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapEntryFindFirstOrThrowArgs} args - Arguments to find a LinkMapEntry
+     * @example
+     * // Get one LinkMapEntry
+     * const linkMapEntry = await prisma.linkMapEntry.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends LinkMapEntryFindFirstOrThrowArgs>(args?: SelectSubset<T, LinkMapEntryFindFirstOrThrowArgs<ExtArgs>>): Prisma__LinkMapEntryClient<$Result.GetResult<Prisma.$LinkMapEntryPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more LinkMapEntries that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapEntryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all LinkMapEntries
+     * const linkMapEntries = await prisma.linkMapEntry.findMany()
+     * 
+     * // Get first 10 LinkMapEntries
+     * const linkMapEntries = await prisma.linkMapEntry.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const linkMapEntryWithIdOnly = await prisma.linkMapEntry.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends LinkMapEntryFindManyArgs>(args?: SelectSubset<T, LinkMapEntryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkMapEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a LinkMapEntry.
+     * @param {LinkMapEntryCreateArgs} args - Arguments to create a LinkMapEntry.
+     * @example
+     * // Create one LinkMapEntry
+     * const LinkMapEntry = await prisma.linkMapEntry.create({
+     *   data: {
+     *     // ... data to create a LinkMapEntry
+     *   }
+     * })
+     * 
+     */
+    create<T extends LinkMapEntryCreateArgs>(args: SelectSubset<T, LinkMapEntryCreateArgs<ExtArgs>>): Prisma__LinkMapEntryClient<$Result.GetResult<Prisma.$LinkMapEntryPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many LinkMapEntries.
+     * @param {LinkMapEntryCreateManyArgs} args - Arguments to create many LinkMapEntries.
+     * @example
+     * // Create many LinkMapEntries
+     * const linkMapEntry = await prisma.linkMapEntry.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends LinkMapEntryCreateManyArgs>(args?: SelectSubset<T, LinkMapEntryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many LinkMapEntries and returns the data saved in the database.
+     * @param {LinkMapEntryCreateManyAndReturnArgs} args - Arguments to create many LinkMapEntries.
+     * @example
+     * // Create many LinkMapEntries
+     * const linkMapEntry = await prisma.linkMapEntry.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many LinkMapEntries and only return the `id`
+     * const linkMapEntryWithIdOnly = await prisma.linkMapEntry.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends LinkMapEntryCreateManyAndReturnArgs>(args?: SelectSubset<T, LinkMapEntryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkMapEntryPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a LinkMapEntry.
+     * @param {LinkMapEntryDeleteArgs} args - Arguments to delete one LinkMapEntry.
+     * @example
+     * // Delete one LinkMapEntry
+     * const LinkMapEntry = await prisma.linkMapEntry.delete({
+     *   where: {
+     *     // ... filter to delete one LinkMapEntry
+     *   }
+     * })
+     * 
+     */
+    delete<T extends LinkMapEntryDeleteArgs>(args: SelectSubset<T, LinkMapEntryDeleteArgs<ExtArgs>>): Prisma__LinkMapEntryClient<$Result.GetResult<Prisma.$LinkMapEntryPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one LinkMapEntry.
+     * @param {LinkMapEntryUpdateArgs} args - Arguments to update one LinkMapEntry.
+     * @example
+     * // Update one LinkMapEntry
+     * const linkMapEntry = await prisma.linkMapEntry.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends LinkMapEntryUpdateArgs>(args: SelectSubset<T, LinkMapEntryUpdateArgs<ExtArgs>>): Prisma__LinkMapEntryClient<$Result.GetResult<Prisma.$LinkMapEntryPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more LinkMapEntries.
+     * @param {LinkMapEntryDeleteManyArgs} args - Arguments to filter LinkMapEntries to delete.
+     * @example
+     * // Delete a few LinkMapEntries
+     * const { count } = await prisma.linkMapEntry.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends LinkMapEntryDeleteManyArgs>(args?: SelectSubset<T, LinkMapEntryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LinkMapEntries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapEntryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many LinkMapEntries
+     * const linkMapEntry = await prisma.linkMapEntry.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends LinkMapEntryUpdateManyArgs>(args: SelectSubset<T, LinkMapEntryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LinkMapEntries and returns the data updated in the database.
+     * @param {LinkMapEntryUpdateManyAndReturnArgs} args - Arguments to update many LinkMapEntries.
+     * @example
+     * // Update many LinkMapEntries
+     * const linkMapEntry = await prisma.linkMapEntry.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more LinkMapEntries and only return the `id`
+     * const linkMapEntryWithIdOnly = await prisma.linkMapEntry.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends LinkMapEntryUpdateManyAndReturnArgs>(args: SelectSubset<T, LinkMapEntryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkMapEntryPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one LinkMapEntry.
+     * @param {LinkMapEntryUpsertArgs} args - Arguments to update or create a LinkMapEntry.
+     * @example
+     * // Update or create a LinkMapEntry
+     * const linkMapEntry = await prisma.linkMapEntry.upsert({
+     *   create: {
+     *     // ... data to create a LinkMapEntry
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the LinkMapEntry we want to update
+     *   }
+     * })
+     */
+    upsert<T extends LinkMapEntryUpsertArgs>(args: SelectSubset<T, LinkMapEntryUpsertArgs<ExtArgs>>): Prisma__LinkMapEntryClient<$Result.GetResult<Prisma.$LinkMapEntryPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of LinkMapEntries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapEntryCountArgs} args - Arguments to filter LinkMapEntries to count.
+     * @example
+     * // Count the number of LinkMapEntries
+     * const count = await prisma.linkMapEntry.count({
+     *   where: {
+     *     // ... the filter for the LinkMapEntries we want to count
+     *   }
+     * })
+    **/
+    count<T extends LinkMapEntryCountArgs>(
+      args?: Subset<T, LinkMapEntryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], LinkMapEntryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a LinkMapEntry.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapEntryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends LinkMapEntryAggregateArgs>(args: Subset<T, LinkMapEntryAggregateArgs>): Prisma.PrismaPromise<GetLinkMapEntryAggregateType<T>>
+
+    /**
+     * Group by LinkMapEntry.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkMapEntryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends LinkMapEntryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: LinkMapEntryGroupByArgs['orderBy'] }
+        : { orderBy?: LinkMapEntryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, LinkMapEntryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetLinkMapEntryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the LinkMapEntry model
+   */
+  readonly fields: LinkMapEntryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for LinkMapEntry.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__LinkMapEntryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    linkMap<T extends LinkMapDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LinkMapDefaultArgs<ExtArgs>>): Prisma__LinkMapClient<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the LinkMapEntry model
+   */
+  interface LinkMapEntryFieldRefs {
+    readonly id: FieldRef<"LinkMapEntry", 'String'>
+    readonly linkMapId: FieldRef<"LinkMapEntry", 'String'>
+    readonly key: FieldRef<"LinkMapEntry", 'String'>
+    readonly keyNormalized: FieldRef<"LinkMapEntry", 'String'>
+    readonly destination: FieldRef<"LinkMapEntry", 'String'>
+    readonly createdAt: FieldRef<"LinkMapEntry", 'DateTime'>
+    readonly updatedAt: FieldRef<"LinkMapEntry", 'DateTime'>
+    readonly deletedAt: FieldRef<"LinkMapEntry", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * LinkMapEntry findUnique
+   */
+  export type LinkMapEntryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkMapEntry to fetch.
+     */
+    where: LinkMapEntryWhereUniqueInput
+  }
+
+  /**
+   * LinkMapEntry findUniqueOrThrow
+   */
+  export type LinkMapEntryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkMapEntry to fetch.
+     */
+    where: LinkMapEntryWhereUniqueInput
+  }
+
+  /**
+   * LinkMapEntry findFirst
+   */
+  export type LinkMapEntryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkMapEntry to fetch.
+     */
+    where?: LinkMapEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LinkMapEntries to fetch.
+     */
+    orderBy?: LinkMapEntryOrderByWithRelationInput | LinkMapEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LinkMapEntries.
+     */
+    cursor?: LinkMapEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LinkMapEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LinkMapEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LinkMapEntries.
+     */
+    distinct?: LinkMapEntryScalarFieldEnum | LinkMapEntryScalarFieldEnum[]
+  }
+
+  /**
+   * LinkMapEntry findFirstOrThrow
+   */
+  export type LinkMapEntryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkMapEntry to fetch.
+     */
+    where?: LinkMapEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LinkMapEntries to fetch.
+     */
+    orderBy?: LinkMapEntryOrderByWithRelationInput | LinkMapEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LinkMapEntries.
+     */
+    cursor?: LinkMapEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LinkMapEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LinkMapEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LinkMapEntries.
+     */
+    distinct?: LinkMapEntryScalarFieldEnum | LinkMapEntryScalarFieldEnum[]
+  }
+
+  /**
+   * LinkMapEntry findMany
+   */
+  export type LinkMapEntryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkMapEntries to fetch.
+     */
+    where?: LinkMapEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LinkMapEntries to fetch.
+     */
+    orderBy?: LinkMapEntryOrderByWithRelationInput | LinkMapEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing LinkMapEntries.
+     */
+    cursor?: LinkMapEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LinkMapEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LinkMapEntries.
+     */
+    skip?: number
+    distinct?: LinkMapEntryScalarFieldEnum | LinkMapEntryScalarFieldEnum[]
+  }
+
+  /**
+   * LinkMapEntry create
+   */
+  export type LinkMapEntryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryInclude<ExtArgs> | null
+    /**
+     * The data needed to create a LinkMapEntry.
+     */
+    data: XOR<LinkMapEntryCreateInput, LinkMapEntryUncheckedCreateInput>
+  }
+
+  /**
+   * LinkMapEntry createMany
+   */
+  export type LinkMapEntryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many LinkMapEntries.
+     */
+    data: LinkMapEntryCreateManyInput | LinkMapEntryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * LinkMapEntry createManyAndReturn
+   */
+  export type LinkMapEntryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * The data used to create many LinkMapEntries.
+     */
+    data: LinkMapEntryCreateManyInput | LinkMapEntryCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * LinkMapEntry update
+   */
+  export type LinkMapEntryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryInclude<ExtArgs> | null
+    /**
+     * The data needed to update a LinkMapEntry.
+     */
+    data: XOR<LinkMapEntryUpdateInput, LinkMapEntryUncheckedUpdateInput>
+    /**
+     * Choose, which LinkMapEntry to update.
+     */
+    where: LinkMapEntryWhereUniqueInput
+  }
+
+  /**
+   * LinkMapEntry updateMany
+   */
+  export type LinkMapEntryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update LinkMapEntries.
+     */
+    data: XOR<LinkMapEntryUpdateManyMutationInput, LinkMapEntryUncheckedUpdateManyInput>
+    /**
+     * Filter which LinkMapEntries to update
+     */
+    where?: LinkMapEntryWhereInput
+    /**
+     * Limit how many LinkMapEntries to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * LinkMapEntry updateManyAndReturn
+   */
+  export type LinkMapEntryUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * The data used to update LinkMapEntries.
+     */
+    data: XOR<LinkMapEntryUpdateManyMutationInput, LinkMapEntryUncheckedUpdateManyInput>
+    /**
+     * Filter which LinkMapEntries to update
+     */
+    where?: LinkMapEntryWhereInput
+    /**
+     * Limit how many LinkMapEntries to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * LinkMapEntry upsert
+   */
+  export type LinkMapEntryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryInclude<ExtArgs> | null
+    /**
+     * The filter to search for the LinkMapEntry to update in case it exists.
+     */
+    where: LinkMapEntryWhereUniqueInput
+    /**
+     * In case the LinkMapEntry found by the `where` argument doesn't exist, create a new LinkMapEntry with this data.
+     */
+    create: XOR<LinkMapEntryCreateInput, LinkMapEntryUncheckedCreateInput>
+    /**
+     * In case the LinkMapEntry was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<LinkMapEntryUpdateInput, LinkMapEntryUncheckedUpdateInput>
+  }
+
+  /**
+   * LinkMapEntry delete
+   */
+  export type LinkMapEntryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryInclude<ExtArgs> | null
+    /**
+     * Filter which LinkMapEntry to delete.
+     */
+    where: LinkMapEntryWhereUniqueInput
+  }
+
+  /**
+   * LinkMapEntry deleteMany
+   */
+  export type LinkMapEntryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LinkMapEntries to delete
+     */
+    where?: LinkMapEntryWhereInput
+    /**
+     * Limit how many LinkMapEntries to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * LinkMapEntry without action
+   */
+  export type LinkMapEntryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkMapEntry
+     */
+    select?: LinkMapEntrySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkMapEntry
+     */
+    omit?: LinkMapEntryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkMapEntryInclude<ExtArgs> | null
   }
 
 
@@ -13628,6 +16192,7 @@ export namespace Prisma {
     matchMethod: 'matchMethod',
     queryMatch: 'queryMatch',
     pathMatch: 'pathMatch',
+    linkMapId: 'linkMapId',
     isBlocked: 'isBlocked',
     blockedAt: 'blockedAt',
     priority: 'priority',
@@ -13638,6 +16203,35 @@ export namespace Prisma {
   };
 
   export type RedirectRuleScalarFieldEnum = (typeof RedirectRuleScalarFieldEnum)[keyof typeof RedirectRuleScalarFieldEnum]
+
+
+  export const LinkMapScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    domainGroupId: 'domainGroupId',
+    caseSensitive: 'caseSensitive',
+    queryMatch: 'queryMatch',
+    fallbackDestination: 'fallbackDestination',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+  };
+
+  export type LinkMapScalarFieldEnum = (typeof LinkMapScalarFieldEnum)[keyof typeof LinkMapScalarFieldEnum]
+
+
+  export const LinkMapEntryScalarFieldEnum: {
+    id: 'id',
+    linkMapId: 'linkMapId',
+    key: 'key',
+    keyNormalized: 'keyNormalized',
+    destination: 'destination',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+  };
+
+  export type LinkMapEntryScalarFieldEnum = (typeof LinkMapEntryScalarFieldEnum)[keyof typeof LinkMapEntryScalarFieldEnum]
 
 
   export const RedirectRuleHitsHourlyScalarFieldEnum: {
@@ -14175,6 +16769,7 @@ export namespace Prisma {
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     domains?: DomainListRelationFilter
     redirectRules?: RedirectRuleListRelationFilter
+    linkMaps?: LinkMapListRelationFilter
     redirectTests?: RedirectTestListRelationFilter
   }
 
@@ -14188,6 +16783,7 @@ export namespace Prisma {
     organization?: OrganizationOrderByWithRelationInput
     domains?: DomainOrderByRelationAggregateInput
     redirectRules?: RedirectRuleOrderByRelationAggregateInput
+    linkMaps?: LinkMapOrderByRelationAggregateInput
     redirectTests?: RedirectTestOrderByRelationAggregateInput
   }
 
@@ -14204,6 +16800,7 @@ export namespace Prisma {
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     domains?: DomainListRelationFilter
     redirectRules?: RedirectRuleListRelationFilter
+    linkMaps?: LinkMapListRelationFilter
     redirectTests?: RedirectTestListRelationFilter
   }, "id">
 
@@ -14297,11 +16894,12 @@ export namespace Prisma {
     NOT?: RedirectRuleWhereInput | RedirectRuleWhereInput[]
     id?: StringFilter<"RedirectRule"> | string
     source?: StringFilter<"RedirectRule"> | string
-    destination?: StringFilter<"RedirectRule"> | string
+    destination?: StringNullableFilter<"RedirectRule"> | string | null
     statusCode?: IntFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
     queryMatch?: EnumRedirectQueryMatchFilter<"RedirectRule"> | $Enums.RedirectQueryMatch
     pathMatch?: EnumRedirectPathMatchFilter<"RedirectRule"> | $Enums.RedirectPathMatch
+    linkMapId?: StringNullableFilter<"RedirectRule"> | string | null
     isBlocked?: BoolFilter<"RedirectRule"> | boolean
     blockedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     priority?: IntFilter<"RedirectRule"> | number
@@ -14310,17 +16908,19 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"RedirectRule"> | Date | string
     deletedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     domainGroup?: XOR<DomainGroupScalarRelationFilter, DomainGroupWhereInput>
+    linkMap?: XOR<LinkMapNullableScalarRelationFilter, LinkMapWhereInput> | null
     hitsHourly?: RedirectRuleHitsHourlyListRelationFilter
   }
 
   export type RedirectRuleOrderByWithRelationInput = {
     id?: SortOrder
     source?: SortOrder
-    destination?: SortOrder
+    destination?: SortOrderInput | SortOrder
     statusCode?: SortOrder
     matchMethod?: SortOrder
     queryMatch?: SortOrder
     pathMatch?: SortOrder
+    linkMapId?: SortOrderInput | SortOrder
     isBlocked?: SortOrder
     blockedAt?: SortOrderInput | SortOrder
     priority?: SortOrder
@@ -14329,6 +16929,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
     domainGroup?: DomainGroupOrderByWithRelationInput
+    linkMap?: LinkMapOrderByWithRelationInput
     hitsHourly?: RedirectRuleHitsHourlyOrderByRelationAggregateInput
   }
 
@@ -14339,11 +16940,12 @@ export namespace Prisma {
     OR?: RedirectRuleWhereInput[]
     NOT?: RedirectRuleWhereInput | RedirectRuleWhereInput[]
     source?: StringFilter<"RedirectRule"> | string
-    destination?: StringFilter<"RedirectRule"> | string
+    destination?: StringNullableFilter<"RedirectRule"> | string | null
     statusCode?: IntFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
     queryMatch?: EnumRedirectQueryMatchFilter<"RedirectRule"> | $Enums.RedirectQueryMatch
     pathMatch?: EnumRedirectPathMatchFilter<"RedirectRule"> | $Enums.RedirectPathMatch
+    linkMapId?: StringNullableFilter<"RedirectRule"> | string | null
     isBlocked?: BoolFilter<"RedirectRule"> | boolean
     blockedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     priority?: IntFilter<"RedirectRule"> | number
@@ -14352,17 +16954,19 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"RedirectRule"> | Date | string
     deletedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     domainGroup?: XOR<DomainGroupScalarRelationFilter, DomainGroupWhereInput>
+    linkMap?: XOR<LinkMapNullableScalarRelationFilter, LinkMapWhereInput> | null
     hitsHourly?: RedirectRuleHitsHourlyListRelationFilter
   }, "id" | "priority_createdAt_id">
 
   export type RedirectRuleOrderByWithAggregationInput = {
     id?: SortOrder
     source?: SortOrder
-    destination?: SortOrder
+    destination?: SortOrderInput | SortOrder
     statusCode?: SortOrder
     matchMethod?: SortOrder
     queryMatch?: SortOrder
     pathMatch?: SortOrder
+    linkMapId?: SortOrderInput | SortOrder
     isBlocked?: SortOrder
     blockedAt?: SortOrderInput | SortOrder
     priority?: SortOrder
@@ -14383,11 +16987,12 @@ export namespace Prisma {
     NOT?: RedirectRuleScalarWhereWithAggregatesInput | RedirectRuleScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"RedirectRule"> | string
     source?: StringWithAggregatesFilter<"RedirectRule"> | string
-    destination?: StringWithAggregatesFilter<"RedirectRule"> | string
+    destination?: StringNullableWithAggregatesFilter<"RedirectRule"> | string | null
     statusCode?: IntWithAggregatesFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
     queryMatch?: EnumRedirectQueryMatchWithAggregatesFilter<"RedirectRule"> | $Enums.RedirectQueryMatch
     pathMatch?: EnumRedirectPathMatchWithAggregatesFilter<"RedirectRule"> | $Enums.RedirectPathMatch
+    linkMapId?: StringNullableWithAggregatesFilter<"RedirectRule"> | string | null
     isBlocked?: BoolWithAggregatesFilter<"RedirectRule"> | boolean
     blockedAt?: DateTimeNullableWithAggregatesFilter<"RedirectRule"> | Date | string | null
     priority?: IntWithAggregatesFilter<"RedirectRule"> | number
@@ -14395,6 +17000,158 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"RedirectRule"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"RedirectRule"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"RedirectRule"> | Date | string | null
+  }
+
+  export type LinkMapWhereInput = {
+    AND?: LinkMapWhereInput | LinkMapWhereInput[]
+    OR?: LinkMapWhereInput[]
+    NOT?: LinkMapWhereInput | LinkMapWhereInput[]
+    id?: StringFilter<"LinkMap"> | string
+    name?: StringFilter<"LinkMap"> | string
+    domainGroupId?: StringFilter<"LinkMap"> | string
+    caseSensitive?: BoolFilter<"LinkMap"> | boolean
+    queryMatch?: EnumRedirectQueryMatchFilter<"LinkMap"> | $Enums.RedirectQueryMatch
+    fallbackDestination?: StringNullableFilter<"LinkMap"> | string | null
+    createdAt?: DateTimeFilter<"LinkMap"> | Date | string
+    updatedAt?: DateTimeFilter<"LinkMap"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"LinkMap"> | Date | string | null
+    domainGroup?: XOR<DomainGroupScalarRelationFilter, DomainGroupWhereInput>
+    entries?: LinkMapEntryListRelationFilter
+    redirectRules?: RedirectRuleListRelationFilter
+  }
+
+  export type LinkMapOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    domainGroupId?: SortOrder
+    caseSensitive?: SortOrder
+    queryMatch?: SortOrder
+    fallbackDestination?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    domainGroup?: DomainGroupOrderByWithRelationInput
+    entries?: LinkMapEntryOrderByRelationAggregateInput
+    redirectRules?: RedirectRuleOrderByRelationAggregateInput
+  }
+
+  export type LinkMapWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: LinkMapWhereInput | LinkMapWhereInput[]
+    OR?: LinkMapWhereInput[]
+    NOT?: LinkMapWhereInput | LinkMapWhereInput[]
+    name?: StringFilter<"LinkMap"> | string
+    domainGroupId?: StringFilter<"LinkMap"> | string
+    caseSensitive?: BoolFilter<"LinkMap"> | boolean
+    queryMatch?: EnumRedirectQueryMatchFilter<"LinkMap"> | $Enums.RedirectQueryMatch
+    fallbackDestination?: StringNullableFilter<"LinkMap"> | string | null
+    createdAt?: DateTimeFilter<"LinkMap"> | Date | string
+    updatedAt?: DateTimeFilter<"LinkMap"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"LinkMap"> | Date | string | null
+    domainGroup?: XOR<DomainGroupScalarRelationFilter, DomainGroupWhereInput>
+    entries?: LinkMapEntryListRelationFilter
+    redirectRules?: RedirectRuleListRelationFilter
+  }, "id">
+
+  export type LinkMapOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    domainGroupId?: SortOrder
+    caseSensitive?: SortOrder
+    queryMatch?: SortOrder
+    fallbackDestination?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    _count?: LinkMapCountOrderByAggregateInput
+    _max?: LinkMapMaxOrderByAggregateInput
+    _min?: LinkMapMinOrderByAggregateInput
+  }
+
+  export type LinkMapScalarWhereWithAggregatesInput = {
+    AND?: LinkMapScalarWhereWithAggregatesInput | LinkMapScalarWhereWithAggregatesInput[]
+    OR?: LinkMapScalarWhereWithAggregatesInput[]
+    NOT?: LinkMapScalarWhereWithAggregatesInput | LinkMapScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"LinkMap"> | string
+    name?: StringWithAggregatesFilter<"LinkMap"> | string
+    domainGroupId?: StringWithAggregatesFilter<"LinkMap"> | string
+    caseSensitive?: BoolWithAggregatesFilter<"LinkMap"> | boolean
+    queryMatch?: EnumRedirectQueryMatchWithAggregatesFilter<"LinkMap"> | $Enums.RedirectQueryMatch
+    fallbackDestination?: StringNullableWithAggregatesFilter<"LinkMap"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"LinkMap"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"LinkMap"> | Date | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"LinkMap"> | Date | string | null
+  }
+
+  export type LinkMapEntryWhereInput = {
+    AND?: LinkMapEntryWhereInput | LinkMapEntryWhereInput[]
+    OR?: LinkMapEntryWhereInput[]
+    NOT?: LinkMapEntryWhereInput | LinkMapEntryWhereInput[]
+    id?: StringFilter<"LinkMapEntry"> | string
+    linkMapId?: StringFilter<"LinkMapEntry"> | string
+    key?: StringFilter<"LinkMapEntry"> | string
+    keyNormalized?: StringFilter<"LinkMapEntry"> | string
+    destination?: StringFilter<"LinkMapEntry"> | string
+    createdAt?: DateTimeFilter<"LinkMapEntry"> | Date | string
+    updatedAt?: DateTimeFilter<"LinkMapEntry"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"LinkMapEntry"> | Date | string | null
+    linkMap?: XOR<LinkMapScalarRelationFilter, LinkMapWhereInput>
+  }
+
+  export type LinkMapEntryOrderByWithRelationInput = {
+    id?: SortOrder
+    linkMapId?: SortOrder
+    key?: SortOrder
+    keyNormalized?: SortOrder
+    destination?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    linkMap?: LinkMapOrderByWithRelationInput
+  }
+
+  export type LinkMapEntryWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    linkMapId_keyNormalized?: LinkMapEntryLinkMapIdKeyNormalizedCompoundUniqueInput
+    AND?: LinkMapEntryWhereInput | LinkMapEntryWhereInput[]
+    OR?: LinkMapEntryWhereInput[]
+    NOT?: LinkMapEntryWhereInput | LinkMapEntryWhereInput[]
+    linkMapId?: StringFilter<"LinkMapEntry"> | string
+    key?: StringFilter<"LinkMapEntry"> | string
+    keyNormalized?: StringFilter<"LinkMapEntry"> | string
+    destination?: StringFilter<"LinkMapEntry"> | string
+    createdAt?: DateTimeFilter<"LinkMapEntry"> | Date | string
+    updatedAt?: DateTimeFilter<"LinkMapEntry"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"LinkMapEntry"> | Date | string | null
+    linkMap?: XOR<LinkMapScalarRelationFilter, LinkMapWhereInput>
+  }, "id" | "linkMapId_keyNormalized">
+
+  export type LinkMapEntryOrderByWithAggregationInput = {
+    id?: SortOrder
+    linkMapId?: SortOrder
+    key?: SortOrder
+    keyNormalized?: SortOrder
+    destination?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    _count?: LinkMapEntryCountOrderByAggregateInput
+    _max?: LinkMapEntryMaxOrderByAggregateInput
+    _min?: LinkMapEntryMinOrderByAggregateInput
+  }
+
+  export type LinkMapEntryScalarWhereWithAggregatesInput = {
+    AND?: LinkMapEntryScalarWhereWithAggregatesInput | LinkMapEntryScalarWhereWithAggregatesInput[]
+    OR?: LinkMapEntryScalarWhereWithAggregatesInput[]
+    NOT?: LinkMapEntryScalarWhereWithAggregatesInput | LinkMapEntryScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"LinkMapEntry"> | string
+    linkMapId?: StringWithAggregatesFilter<"LinkMapEntry"> | string
+    key?: StringWithAggregatesFilter<"LinkMapEntry"> | string
+    keyNormalized?: StringWithAggregatesFilter<"LinkMapEntry"> | string
+    destination?: StringWithAggregatesFilter<"LinkMapEntry"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"LinkMapEntry"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"LinkMapEntry"> | Date | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"LinkMapEntry"> | Date | string | null
   }
 
   export type RedirectRuleHitsHourlyWhereInput = {
@@ -15037,6 +17794,7 @@ export namespace Prisma {
     organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
     domains?: DomainCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
+    linkMaps?: LinkMapCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
   }
 
@@ -15049,6 +17807,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
+    linkMaps?: LinkMapUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
   }
 
@@ -15061,6 +17820,7 @@ export namespace Prisma {
     organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
     domains?: DomainUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
+    linkMaps?: LinkMapUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
   }
 
@@ -15073,6 +17833,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
+    linkMaps?: LinkMapUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
 
@@ -15167,7 +17928,7 @@ export namespace Prisma {
   export type RedirectRuleCreateInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -15179,17 +17940,19 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     domainGroup: DomainGroupCreateNestedOneWithoutRedirectRulesInput
+    linkMap?: LinkMapCreateNestedOneWithoutRedirectRulesInput
     hitsHourly?: RedirectRuleHitsHourlyCreateNestedManyWithoutRedirectRuleInput
   }
 
   export type RedirectRuleUncheckedCreateInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
     pathMatch?: $Enums.RedirectPathMatch
+    linkMapId?: string | null
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
@@ -15203,7 +17966,7 @@ export namespace Prisma {
   export type RedirectRuleUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -15215,17 +17978,19 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domainGroup?: DomainGroupUpdateOneRequiredWithoutRedirectRulesNestedInput
+    linkMap?: LinkMapUpdateOneWithoutRedirectRulesNestedInput
     hitsHourly?: RedirectRuleHitsHourlyUpdateManyWithoutRedirectRuleNestedInput
   }
 
   export type RedirectRuleUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
     pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
+    linkMapId?: NullableStringFieldUpdateOperationsInput | string | null
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
@@ -15239,11 +18004,12 @@ export namespace Prisma {
   export type RedirectRuleCreateManyInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
     pathMatch?: $Enums.RedirectPathMatch
+    linkMapId?: string | null
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
@@ -15256,7 +18022,7 @@ export namespace Prisma {
   export type RedirectRuleUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -15272,15 +18038,183 @@ export namespace Prisma {
   export type RedirectRuleUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
     pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
+    linkMapId?: NullableStringFieldUpdateOperationsInput | string | null
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
     domainGroupId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkMapCreateInput = {
+    id: string
+    name: string
+    caseSensitive?: boolean
+    queryMatch?: $Enums.RedirectQueryMatch
+    fallbackDestination?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    domainGroup: DomainGroupCreateNestedOneWithoutLinkMapsInput
+    entries?: LinkMapEntryCreateNestedManyWithoutLinkMapInput
+    redirectRules?: RedirectRuleCreateNestedManyWithoutLinkMapInput
+  }
+
+  export type LinkMapUncheckedCreateInput = {
+    id: string
+    name: string
+    domainGroupId: string
+    caseSensitive?: boolean
+    queryMatch?: $Enums.RedirectQueryMatch
+    fallbackDestination?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    entries?: LinkMapEntryUncheckedCreateNestedManyWithoutLinkMapInput
+    redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutLinkMapInput
+  }
+
+  export type LinkMapUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    caseSensitive?: BoolFieldUpdateOperationsInput | boolean
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    fallbackDestination?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    domainGroup?: DomainGroupUpdateOneRequiredWithoutLinkMapsNestedInput
+    entries?: LinkMapEntryUpdateManyWithoutLinkMapNestedInput
+    redirectRules?: RedirectRuleUpdateManyWithoutLinkMapNestedInput
+  }
+
+  export type LinkMapUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    caseSensitive?: BoolFieldUpdateOperationsInput | boolean
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    fallbackDestination?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    entries?: LinkMapEntryUncheckedUpdateManyWithoutLinkMapNestedInput
+    redirectRules?: RedirectRuleUncheckedUpdateManyWithoutLinkMapNestedInput
+  }
+
+  export type LinkMapCreateManyInput = {
+    id: string
+    name: string
+    domainGroupId: string
+    caseSensitive?: boolean
+    queryMatch?: $Enums.RedirectQueryMatch
+    fallbackDestination?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type LinkMapUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    caseSensitive?: BoolFieldUpdateOperationsInput | boolean
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    fallbackDestination?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkMapUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    caseSensitive?: BoolFieldUpdateOperationsInput | boolean
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    fallbackDestination?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkMapEntryCreateInput = {
+    id: string
+    key: string
+    keyNormalized: string
+    destination: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    linkMap: LinkMapCreateNestedOneWithoutEntriesInput
+  }
+
+  export type LinkMapEntryUncheckedCreateInput = {
+    id: string
+    linkMapId: string
+    key: string
+    keyNormalized: string
+    destination: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type LinkMapEntryUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyNormalized?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    linkMap?: LinkMapUpdateOneRequiredWithoutEntriesNestedInput
+  }
+
+  export type LinkMapEntryUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    linkMapId?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyNormalized?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkMapEntryCreateManyInput = {
+    id: string
+    linkMapId: string
+    key: string
+    keyNormalized: string
+    destination: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type LinkMapEntryUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyNormalized?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkMapEntryUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    linkMapId?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyNormalized?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -16015,11 +18949,21 @@ export namespace Prisma {
     none?: RedirectRuleWhereInput
   }
 
+  export type LinkMapListRelationFilter = {
+    every?: LinkMapWhereInput
+    some?: LinkMapWhereInput
+    none?: LinkMapWhereInput
+  }
+
   export type DomainOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type RedirectRuleOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type LinkMapOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -16115,6 +19059,11 @@ export namespace Prisma {
     not?: NestedEnumRedirectPathMatchFilter<$PrismaModel> | $Enums.RedirectPathMatch
   }
 
+  export type LinkMapNullableScalarRelationFilter = {
+    is?: LinkMapWhereInput | null
+    isNot?: LinkMapWhereInput | null
+  }
+
   export type RedirectRulePriorityCreatedAtIdCompoundUniqueInput = {
     priority: number
     createdAt: Date | string
@@ -16129,6 +19078,7 @@ export namespace Prisma {
     matchMethod?: SortOrder
     queryMatch?: SortOrder
     pathMatch?: SortOrder
+    linkMapId?: SortOrder
     isBlocked?: SortOrder
     blockedAt?: SortOrder
     priority?: SortOrder
@@ -16150,6 +19100,7 @@ export namespace Prisma {
     statusCode?: SortOrder
     queryMatch?: SortOrder
     pathMatch?: SortOrder
+    linkMapId?: SortOrder
     isBlocked?: SortOrder
     blockedAt?: SortOrder
     priority?: SortOrder
@@ -16166,6 +19117,7 @@ export namespace Prisma {
     statusCode?: SortOrder
     queryMatch?: SortOrder
     pathMatch?: SortOrder
+    linkMapId?: SortOrder
     isBlocked?: SortOrder
     blockedAt?: SortOrder
     priority?: SortOrder
@@ -16214,6 +19166,95 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumRedirectPathMatchFilter<$PrismaModel>
     _max?: NestedEnumRedirectPathMatchFilter<$PrismaModel>
+  }
+
+  export type LinkMapEntryListRelationFilter = {
+    every?: LinkMapEntryWhereInput
+    some?: LinkMapEntryWhereInput
+    none?: LinkMapEntryWhereInput
+  }
+
+  export type LinkMapEntryOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type LinkMapCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    domainGroupId?: SortOrder
+    caseSensitive?: SortOrder
+    queryMatch?: SortOrder
+    fallbackDestination?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type LinkMapMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    domainGroupId?: SortOrder
+    caseSensitive?: SortOrder
+    queryMatch?: SortOrder
+    fallbackDestination?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type LinkMapMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    domainGroupId?: SortOrder
+    caseSensitive?: SortOrder
+    queryMatch?: SortOrder
+    fallbackDestination?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type LinkMapScalarRelationFilter = {
+    is?: LinkMapWhereInput
+    isNot?: LinkMapWhereInput
+  }
+
+  export type LinkMapEntryLinkMapIdKeyNormalizedCompoundUniqueInput = {
+    linkMapId: string
+    keyNormalized: string
+  }
+
+  export type LinkMapEntryCountOrderByAggregateInput = {
+    id?: SortOrder
+    linkMapId?: SortOrder
+    key?: SortOrder
+    keyNormalized?: SortOrder
+    destination?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type LinkMapEntryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    linkMapId?: SortOrder
+    key?: SortOrder
+    keyNormalized?: SortOrder
+    destination?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type LinkMapEntryMinOrderByAggregateInput = {
+    id?: SortOrder
+    linkMapId?: SortOrder
+    key?: SortOrder
+    keyNormalized?: SortOrder
+    destination?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
   }
 
   export type RedirectRuleScalarRelationFilter = {
@@ -16905,6 +19946,13 @@ export namespace Prisma {
     connect?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
   }
 
+  export type LinkMapCreateNestedManyWithoutDomainGroupInput = {
+    create?: XOR<LinkMapCreateWithoutDomainGroupInput, LinkMapUncheckedCreateWithoutDomainGroupInput> | LinkMapCreateWithoutDomainGroupInput[] | LinkMapUncheckedCreateWithoutDomainGroupInput[]
+    connectOrCreate?: LinkMapCreateOrConnectWithoutDomainGroupInput | LinkMapCreateOrConnectWithoutDomainGroupInput[]
+    createMany?: LinkMapCreateManyDomainGroupInputEnvelope
+    connect?: LinkMapWhereUniqueInput | LinkMapWhereUniqueInput[]
+  }
+
   export type RedirectTestCreateNestedManyWithoutDomainGroupInput = {
     create?: XOR<RedirectTestCreateWithoutDomainGroupInput, RedirectTestUncheckedCreateWithoutDomainGroupInput> | RedirectTestCreateWithoutDomainGroupInput[] | RedirectTestUncheckedCreateWithoutDomainGroupInput[]
     connectOrCreate?: RedirectTestCreateOrConnectWithoutDomainGroupInput | RedirectTestCreateOrConnectWithoutDomainGroupInput[]
@@ -16924,6 +19972,13 @@ export namespace Prisma {
     connectOrCreate?: RedirectRuleCreateOrConnectWithoutDomainGroupInput | RedirectRuleCreateOrConnectWithoutDomainGroupInput[]
     createMany?: RedirectRuleCreateManyDomainGroupInputEnvelope
     connect?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
+  }
+
+  export type LinkMapUncheckedCreateNestedManyWithoutDomainGroupInput = {
+    create?: XOR<LinkMapCreateWithoutDomainGroupInput, LinkMapUncheckedCreateWithoutDomainGroupInput> | LinkMapCreateWithoutDomainGroupInput[] | LinkMapUncheckedCreateWithoutDomainGroupInput[]
+    connectOrCreate?: LinkMapCreateOrConnectWithoutDomainGroupInput | LinkMapCreateOrConnectWithoutDomainGroupInput[]
+    createMany?: LinkMapCreateManyDomainGroupInputEnvelope
+    connect?: LinkMapWhereUniqueInput | LinkMapWhereUniqueInput[]
   }
 
   export type RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput = {
@@ -16969,6 +20024,20 @@ export namespace Prisma {
     deleteMany?: RedirectRuleScalarWhereInput | RedirectRuleScalarWhereInput[]
   }
 
+  export type LinkMapUpdateManyWithoutDomainGroupNestedInput = {
+    create?: XOR<LinkMapCreateWithoutDomainGroupInput, LinkMapUncheckedCreateWithoutDomainGroupInput> | LinkMapCreateWithoutDomainGroupInput[] | LinkMapUncheckedCreateWithoutDomainGroupInput[]
+    connectOrCreate?: LinkMapCreateOrConnectWithoutDomainGroupInput | LinkMapCreateOrConnectWithoutDomainGroupInput[]
+    upsert?: LinkMapUpsertWithWhereUniqueWithoutDomainGroupInput | LinkMapUpsertWithWhereUniqueWithoutDomainGroupInput[]
+    createMany?: LinkMapCreateManyDomainGroupInputEnvelope
+    set?: LinkMapWhereUniqueInput | LinkMapWhereUniqueInput[]
+    disconnect?: LinkMapWhereUniqueInput | LinkMapWhereUniqueInput[]
+    delete?: LinkMapWhereUniqueInput | LinkMapWhereUniqueInput[]
+    connect?: LinkMapWhereUniqueInput | LinkMapWhereUniqueInput[]
+    update?: LinkMapUpdateWithWhereUniqueWithoutDomainGroupInput | LinkMapUpdateWithWhereUniqueWithoutDomainGroupInput[]
+    updateMany?: LinkMapUpdateManyWithWhereWithoutDomainGroupInput | LinkMapUpdateManyWithWhereWithoutDomainGroupInput[]
+    deleteMany?: LinkMapScalarWhereInput | LinkMapScalarWhereInput[]
+  }
+
   export type RedirectTestUpdateManyWithoutDomainGroupNestedInput = {
     create?: XOR<RedirectTestCreateWithoutDomainGroupInput, RedirectTestUncheckedCreateWithoutDomainGroupInput> | RedirectTestCreateWithoutDomainGroupInput[] | RedirectTestUncheckedCreateWithoutDomainGroupInput[]
     connectOrCreate?: RedirectTestCreateOrConnectWithoutDomainGroupInput | RedirectTestCreateOrConnectWithoutDomainGroupInput[]
@@ -17011,6 +20080,20 @@ export namespace Prisma {
     deleteMany?: RedirectRuleScalarWhereInput | RedirectRuleScalarWhereInput[]
   }
 
+  export type LinkMapUncheckedUpdateManyWithoutDomainGroupNestedInput = {
+    create?: XOR<LinkMapCreateWithoutDomainGroupInput, LinkMapUncheckedCreateWithoutDomainGroupInput> | LinkMapCreateWithoutDomainGroupInput[] | LinkMapUncheckedCreateWithoutDomainGroupInput[]
+    connectOrCreate?: LinkMapCreateOrConnectWithoutDomainGroupInput | LinkMapCreateOrConnectWithoutDomainGroupInput[]
+    upsert?: LinkMapUpsertWithWhereUniqueWithoutDomainGroupInput | LinkMapUpsertWithWhereUniqueWithoutDomainGroupInput[]
+    createMany?: LinkMapCreateManyDomainGroupInputEnvelope
+    set?: LinkMapWhereUniqueInput | LinkMapWhereUniqueInput[]
+    disconnect?: LinkMapWhereUniqueInput | LinkMapWhereUniqueInput[]
+    delete?: LinkMapWhereUniqueInput | LinkMapWhereUniqueInput[]
+    connect?: LinkMapWhereUniqueInput | LinkMapWhereUniqueInput[]
+    update?: LinkMapUpdateWithWhereUniqueWithoutDomainGroupInput | LinkMapUpdateWithWhereUniqueWithoutDomainGroupInput[]
+    updateMany?: LinkMapUpdateManyWithWhereWithoutDomainGroupInput | LinkMapUpdateManyWithWhereWithoutDomainGroupInput[]
+    deleteMany?: LinkMapScalarWhereInput | LinkMapScalarWhereInput[]
+  }
+
   export type RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput = {
     create?: XOR<RedirectTestCreateWithoutDomainGroupInput, RedirectTestUncheckedCreateWithoutDomainGroupInput> | RedirectTestCreateWithoutDomainGroupInput[] | RedirectTestUncheckedCreateWithoutDomainGroupInput[]
     connectOrCreate?: RedirectTestCreateOrConnectWithoutDomainGroupInput | RedirectTestCreateOrConnectWithoutDomainGroupInput[]
@@ -17047,6 +20130,12 @@ export namespace Prisma {
     create?: XOR<DomainGroupCreateWithoutRedirectRulesInput, DomainGroupUncheckedCreateWithoutRedirectRulesInput>
     connectOrCreate?: DomainGroupCreateOrConnectWithoutRedirectRulesInput
     connect?: DomainGroupWhereUniqueInput
+  }
+
+  export type LinkMapCreateNestedOneWithoutRedirectRulesInput = {
+    create?: XOR<LinkMapCreateWithoutRedirectRulesInput, LinkMapUncheckedCreateWithoutRedirectRulesInput>
+    connectOrCreate?: LinkMapCreateOrConnectWithoutRedirectRulesInput
+    connect?: LinkMapWhereUniqueInput
   }
 
   export type RedirectRuleHitsHourlyCreateNestedManyWithoutRedirectRuleInput = {
@@ -17092,6 +20181,16 @@ export namespace Prisma {
     update?: XOR<XOR<DomainGroupUpdateToOneWithWhereWithoutRedirectRulesInput, DomainGroupUpdateWithoutRedirectRulesInput>, DomainGroupUncheckedUpdateWithoutRedirectRulesInput>
   }
 
+  export type LinkMapUpdateOneWithoutRedirectRulesNestedInput = {
+    create?: XOR<LinkMapCreateWithoutRedirectRulesInput, LinkMapUncheckedCreateWithoutRedirectRulesInput>
+    connectOrCreate?: LinkMapCreateOrConnectWithoutRedirectRulesInput
+    upsert?: LinkMapUpsertWithoutRedirectRulesInput
+    disconnect?: LinkMapWhereInput | boolean
+    delete?: LinkMapWhereInput | boolean
+    connect?: LinkMapWhereUniqueInput
+    update?: XOR<XOR<LinkMapUpdateToOneWithWhereWithoutRedirectRulesInput, LinkMapUpdateWithoutRedirectRulesInput>, LinkMapUncheckedUpdateWithoutRedirectRulesInput>
+  }
+
   export type RedirectRuleHitsHourlyUpdateManyWithoutRedirectRuleNestedInput = {
     create?: XOR<RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput, RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput> | RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput[] | RedirectRuleHitsHourlyUncheckedCreateWithoutRedirectRuleInput[]
     connectOrCreate?: RedirectRuleHitsHourlyCreateOrConnectWithoutRedirectRuleInput | RedirectRuleHitsHourlyCreateOrConnectWithoutRedirectRuleInput[]
@@ -17118,6 +20217,118 @@ export namespace Prisma {
     update?: RedirectRuleHitsHourlyUpdateWithWhereUniqueWithoutRedirectRuleInput | RedirectRuleHitsHourlyUpdateWithWhereUniqueWithoutRedirectRuleInput[]
     updateMany?: RedirectRuleHitsHourlyUpdateManyWithWhereWithoutRedirectRuleInput | RedirectRuleHitsHourlyUpdateManyWithWhereWithoutRedirectRuleInput[]
     deleteMany?: RedirectRuleHitsHourlyScalarWhereInput | RedirectRuleHitsHourlyScalarWhereInput[]
+  }
+
+  export type DomainGroupCreateNestedOneWithoutLinkMapsInput = {
+    create?: XOR<DomainGroupCreateWithoutLinkMapsInput, DomainGroupUncheckedCreateWithoutLinkMapsInput>
+    connectOrCreate?: DomainGroupCreateOrConnectWithoutLinkMapsInput
+    connect?: DomainGroupWhereUniqueInput
+  }
+
+  export type LinkMapEntryCreateNestedManyWithoutLinkMapInput = {
+    create?: XOR<LinkMapEntryCreateWithoutLinkMapInput, LinkMapEntryUncheckedCreateWithoutLinkMapInput> | LinkMapEntryCreateWithoutLinkMapInput[] | LinkMapEntryUncheckedCreateWithoutLinkMapInput[]
+    connectOrCreate?: LinkMapEntryCreateOrConnectWithoutLinkMapInput | LinkMapEntryCreateOrConnectWithoutLinkMapInput[]
+    createMany?: LinkMapEntryCreateManyLinkMapInputEnvelope
+    connect?: LinkMapEntryWhereUniqueInput | LinkMapEntryWhereUniqueInput[]
+  }
+
+  export type RedirectRuleCreateNestedManyWithoutLinkMapInput = {
+    create?: XOR<RedirectRuleCreateWithoutLinkMapInput, RedirectRuleUncheckedCreateWithoutLinkMapInput> | RedirectRuleCreateWithoutLinkMapInput[] | RedirectRuleUncheckedCreateWithoutLinkMapInput[]
+    connectOrCreate?: RedirectRuleCreateOrConnectWithoutLinkMapInput | RedirectRuleCreateOrConnectWithoutLinkMapInput[]
+    createMany?: RedirectRuleCreateManyLinkMapInputEnvelope
+    connect?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
+  }
+
+  export type LinkMapEntryUncheckedCreateNestedManyWithoutLinkMapInput = {
+    create?: XOR<LinkMapEntryCreateWithoutLinkMapInput, LinkMapEntryUncheckedCreateWithoutLinkMapInput> | LinkMapEntryCreateWithoutLinkMapInput[] | LinkMapEntryUncheckedCreateWithoutLinkMapInput[]
+    connectOrCreate?: LinkMapEntryCreateOrConnectWithoutLinkMapInput | LinkMapEntryCreateOrConnectWithoutLinkMapInput[]
+    createMany?: LinkMapEntryCreateManyLinkMapInputEnvelope
+    connect?: LinkMapEntryWhereUniqueInput | LinkMapEntryWhereUniqueInput[]
+  }
+
+  export type RedirectRuleUncheckedCreateNestedManyWithoutLinkMapInput = {
+    create?: XOR<RedirectRuleCreateWithoutLinkMapInput, RedirectRuleUncheckedCreateWithoutLinkMapInput> | RedirectRuleCreateWithoutLinkMapInput[] | RedirectRuleUncheckedCreateWithoutLinkMapInput[]
+    connectOrCreate?: RedirectRuleCreateOrConnectWithoutLinkMapInput | RedirectRuleCreateOrConnectWithoutLinkMapInput[]
+    createMany?: RedirectRuleCreateManyLinkMapInputEnvelope
+    connect?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
+  }
+
+  export type DomainGroupUpdateOneRequiredWithoutLinkMapsNestedInput = {
+    create?: XOR<DomainGroupCreateWithoutLinkMapsInput, DomainGroupUncheckedCreateWithoutLinkMapsInput>
+    connectOrCreate?: DomainGroupCreateOrConnectWithoutLinkMapsInput
+    upsert?: DomainGroupUpsertWithoutLinkMapsInput
+    connect?: DomainGroupWhereUniqueInput
+    update?: XOR<XOR<DomainGroupUpdateToOneWithWhereWithoutLinkMapsInput, DomainGroupUpdateWithoutLinkMapsInput>, DomainGroupUncheckedUpdateWithoutLinkMapsInput>
+  }
+
+  export type LinkMapEntryUpdateManyWithoutLinkMapNestedInput = {
+    create?: XOR<LinkMapEntryCreateWithoutLinkMapInput, LinkMapEntryUncheckedCreateWithoutLinkMapInput> | LinkMapEntryCreateWithoutLinkMapInput[] | LinkMapEntryUncheckedCreateWithoutLinkMapInput[]
+    connectOrCreate?: LinkMapEntryCreateOrConnectWithoutLinkMapInput | LinkMapEntryCreateOrConnectWithoutLinkMapInput[]
+    upsert?: LinkMapEntryUpsertWithWhereUniqueWithoutLinkMapInput | LinkMapEntryUpsertWithWhereUniqueWithoutLinkMapInput[]
+    createMany?: LinkMapEntryCreateManyLinkMapInputEnvelope
+    set?: LinkMapEntryWhereUniqueInput | LinkMapEntryWhereUniqueInput[]
+    disconnect?: LinkMapEntryWhereUniqueInput | LinkMapEntryWhereUniqueInput[]
+    delete?: LinkMapEntryWhereUniqueInput | LinkMapEntryWhereUniqueInput[]
+    connect?: LinkMapEntryWhereUniqueInput | LinkMapEntryWhereUniqueInput[]
+    update?: LinkMapEntryUpdateWithWhereUniqueWithoutLinkMapInput | LinkMapEntryUpdateWithWhereUniqueWithoutLinkMapInput[]
+    updateMany?: LinkMapEntryUpdateManyWithWhereWithoutLinkMapInput | LinkMapEntryUpdateManyWithWhereWithoutLinkMapInput[]
+    deleteMany?: LinkMapEntryScalarWhereInput | LinkMapEntryScalarWhereInput[]
+  }
+
+  export type RedirectRuleUpdateManyWithoutLinkMapNestedInput = {
+    create?: XOR<RedirectRuleCreateWithoutLinkMapInput, RedirectRuleUncheckedCreateWithoutLinkMapInput> | RedirectRuleCreateWithoutLinkMapInput[] | RedirectRuleUncheckedCreateWithoutLinkMapInput[]
+    connectOrCreate?: RedirectRuleCreateOrConnectWithoutLinkMapInput | RedirectRuleCreateOrConnectWithoutLinkMapInput[]
+    upsert?: RedirectRuleUpsertWithWhereUniqueWithoutLinkMapInput | RedirectRuleUpsertWithWhereUniqueWithoutLinkMapInput[]
+    createMany?: RedirectRuleCreateManyLinkMapInputEnvelope
+    set?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
+    disconnect?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
+    delete?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
+    connect?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
+    update?: RedirectRuleUpdateWithWhereUniqueWithoutLinkMapInput | RedirectRuleUpdateWithWhereUniqueWithoutLinkMapInput[]
+    updateMany?: RedirectRuleUpdateManyWithWhereWithoutLinkMapInput | RedirectRuleUpdateManyWithWhereWithoutLinkMapInput[]
+    deleteMany?: RedirectRuleScalarWhereInput | RedirectRuleScalarWhereInput[]
+  }
+
+  export type LinkMapEntryUncheckedUpdateManyWithoutLinkMapNestedInput = {
+    create?: XOR<LinkMapEntryCreateWithoutLinkMapInput, LinkMapEntryUncheckedCreateWithoutLinkMapInput> | LinkMapEntryCreateWithoutLinkMapInput[] | LinkMapEntryUncheckedCreateWithoutLinkMapInput[]
+    connectOrCreate?: LinkMapEntryCreateOrConnectWithoutLinkMapInput | LinkMapEntryCreateOrConnectWithoutLinkMapInput[]
+    upsert?: LinkMapEntryUpsertWithWhereUniqueWithoutLinkMapInput | LinkMapEntryUpsertWithWhereUniqueWithoutLinkMapInput[]
+    createMany?: LinkMapEntryCreateManyLinkMapInputEnvelope
+    set?: LinkMapEntryWhereUniqueInput | LinkMapEntryWhereUniqueInput[]
+    disconnect?: LinkMapEntryWhereUniqueInput | LinkMapEntryWhereUniqueInput[]
+    delete?: LinkMapEntryWhereUniqueInput | LinkMapEntryWhereUniqueInput[]
+    connect?: LinkMapEntryWhereUniqueInput | LinkMapEntryWhereUniqueInput[]
+    update?: LinkMapEntryUpdateWithWhereUniqueWithoutLinkMapInput | LinkMapEntryUpdateWithWhereUniqueWithoutLinkMapInput[]
+    updateMany?: LinkMapEntryUpdateManyWithWhereWithoutLinkMapInput | LinkMapEntryUpdateManyWithWhereWithoutLinkMapInput[]
+    deleteMany?: LinkMapEntryScalarWhereInput | LinkMapEntryScalarWhereInput[]
+  }
+
+  export type RedirectRuleUncheckedUpdateManyWithoutLinkMapNestedInput = {
+    create?: XOR<RedirectRuleCreateWithoutLinkMapInput, RedirectRuleUncheckedCreateWithoutLinkMapInput> | RedirectRuleCreateWithoutLinkMapInput[] | RedirectRuleUncheckedCreateWithoutLinkMapInput[]
+    connectOrCreate?: RedirectRuleCreateOrConnectWithoutLinkMapInput | RedirectRuleCreateOrConnectWithoutLinkMapInput[]
+    upsert?: RedirectRuleUpsertWithWhereUniqueWithoutLinkMapInput | RedirectRuleUpsertWithWhereUniqueWithoutLinkMapInput[]
+    createMany?: RedirectRuleCreateManyLinkMapInputEnvelope
+    set?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
+    disconnect?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
+    delete?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
+    connect?: RedirectRuleWhereUniqueInput | RedirectRuleWhereUniqueInput[]
+    update?: RedirectRuleUpdateWithWhereUniqueWithoutLinkMapInput | RedirectRuleUpdateWithWhereUniqueWithoutLinkMapInput[]
+    updateMany?: RedirectRuleUpdateManyWithWhereWithoutLinkMapInput | RedirectRuleUpdateManyWithWhereWithoutLinkMapInput[]
+    deleteMany?: RedirectRuleScalarWhereInput | RedirectRuleScalarWhereInput[]
+  }
+
+  export type LinkMapCreateNestedOneWithoutEntriesInput = {
+    create?: XOR<LinkMapCreateWithoutEntriesInput, LinkMapUncheckedCreateWithoutEntriesInput>
+    connectOrCreate?: LinkMapCreateOrConnectWithoutEntriesInput
+    connect?: LinkMapWhereUniqueInput
+  }
+
+  export type LinkMapUpdateOneRequiredWithoutEntriesNestedInput = {
+    create?: XOR<LinkMapCreateWithoutEntriesInput, LinkMapUncheckedCreateWithoutEntriesInput>
+    connectOrCreate?: LinkMapCreateOrConnectWithoutEntriesInput
+    upsert?: LinkMapUpsertWithoutEntriesInput
+    connect?: LinkMapWhereUniqueInput
+    update?: XOR<XOR<LinkMapUpdateToOneWithWhereWithoutEntriesInput, LinkMapUpdateWithoutEntriesInput>, LinkMapUncheckedUpdateWithoutEntriesInput>
   }
 
   export type RedirectRuleCreateNestedOneWithoutHitsHourlyInput = {
@@ -17549,6 +20760,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     domains?: DomainCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
+    linkMaps?: LinkMapCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
   }
 
@@ -17560,6 +20772,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
+    linkMaps?: LinkMapUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
   }
 
@@ -18371,7 +21584,7 @@ export namespace Prisma {
   export type RedirectRuleCreateWithoutDomainGroupInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -18382,17 +21595,19 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    linkMap?: LinkMapCreateNestedOneWithoutRedirectRulesInput
     hitsHourly?: RedirectRuleHitsHourlyCreateNestedManyWithoutRedirectRuleInput
   }
 
   export type RedirectRuleUncheckedCreateWithoutDomainGroupInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
     pathMatch?: $Enums.RedirectPathMatch
+    linkMapId?: string | null
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
@@ -18409,6 +21624,42 @@ export namespace Prisma {
 
   export type RedirectRuleCreateManyDomainGroupInputEnvelope = {
     data: RedirectRuleCreateManyDomainGroupInput | RedirectRuleCreateManyDomainGroupInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type LinkMapCreateWithoutDomainGroupInput = {
+    id: string
+    name: string
+    caseSensitive?: boolean
+    queryMatch?: $Enums.RedirectQueryMatch
+    fallbackDestination?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    entries?: LinkMapEntryCreateNestedManyWithoutLinkMapInput
+    redirectRules?: RedirectRuleCreateNestedManyWithoutLinkMapInput
+  }
+
+  export type LinkMapUncheckedCreateWithoutDomainGroupInput = {
+    id: string
+    name: string
+    caseSensitive?: boolean
+    queryMatch?: $Enums.RedirectQueryMatch
+    fallbackDestination?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    entries?: LinkMapEntryUncheckedCreateNestedManyWithoutLinkMapInput
+    redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutLinkMapInput
+  }
+
+  export type LinkMapCreateOrConnectWithoutDomainGroupInput = {
+    where: LinkMapWhereUniqueInput
+    create: XOR<LinkMapCreateWithoutDomainGroupInput, LinkMapUncheckedCreateWithoutDomainGroupInput>
+  }
+
+  export type LinkMapCreateManyDomainGroupInputEnvelope = {
+    data: LinkMapCreateManyDomainGroupInput | LinkMapCreateManyDomainGroupInput[]
     skipDuplicates?: boolean
   }
 
@@ -18535,11 +21786,12 @@ export namespace Prisma {
     NOT?: RedirectRuleScalarWhereInput | RedirectRuleScalarWhereInput[]
     id?: StringFilter<"RedirectRule"> | string
     source?: StringFilter<"RedirectRule"> | string
-    destination?: StringFilter<"RedirectRule"> | string
+    destination?: StringNullableFilter<"RedirectRule"> | string | null
     statusCode?: IntFilter<"RedirectRule"> | number
     matchMethod?: EnumHttpMethodNullableListFilter<"RedirectRule">
     queryMatch?: EnumRedirectQueryMatchFilter<"RedirectRule"> | $Enums.RedirectQueryMatch
     pathMatch?: EnumRedirectPathMatchFilter<"RedirectRule"> | $Enums.RedirectPathMatch
+    linkMapId?: StringNullableFilter<"RedirectRule"> | string | null
     isBlocked?: BoolFilter<"RedirectRule"> | boolean
     blockedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
     priority?: IntFilter<"RedirectRule"> | number
@@ -18547,6 +21799,37 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"RedirectRule"> | Date | string
     updatedAt?: DateTimeFilter<"RedirectRule"> | Date | string
     deletedAt?: DateTimeNullableFilter<"RedirectRule"> | Date | string | null
+  }
+
+  export type LinkMapUpsertWithWhereUniqueWithoutDomainGroupInput = {
+    where: LinkMapWhereUniqueInput
+    update: XOR<LinkMapUpdateWithoutDomainGroupInput, LinkMapUncheckedUpdateWithoutDomainGroupInput>
+    create: XOR<LinkMapCreateWithoutDomainGroupInput, LinkMapUncheckedCreateWithoutDomainGroupInput>
+  }
+
+  export type LinkMapUpdateWithWhereUniqueWithoutDomainGroupInput = {
+    where: LinkMapWhereUniqueInput
+    data: XOR<LinkMapUpdateWithoutDomainGroupInput, LinkMapUncheckedUpdateWithoutDomainGroupInput>
+  }
+
+  export type LinkMapUpdateManyWithWhereWithoutDomainGroupInput = {
+    where: LinkMapScalarWhereInput
+    data: XOR<LinkMapUpdateManyMutationInput, LinkMapUncheckedUpdateManyWithoutDomainGroupInput>
+  }
+
+  export type LinkMapScalarWhereInput = {
+    AND?: LinkMapScalarWhereInput | LinkMapScalarWhereInput[]
+    OR?: LinkMapScalarWhereInput[]
+    NOT?: LinkMapScalarWhereInput | LinkMapScalarWhereInput[]
+    id?: StringFilter<"LinkMap"> | string
+    name?: StringFilter<"LinkMap"> | string
+    domainGroupId?: StringFilter<"LinkMap"> | string
+    caseSensitive?: BoolFilter<"LinkMap"> | boolean
+    queryMatch?: EnumRedirectQueryMatchFilter<"LinkMap"> | $Enums.RedirectQueryMatch
+    fallbackDestination?: StringNullableFilter<"LinkMap"> | string | null
+    createdAt?: DateTimeFilter<"LinkMap"> | Date | string
+    updatedAt?: DateTimeFilter<"LinkMap"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"LinkMap"> | Date | string | null
   }
 
   export type RedirectTestUpsertWithWhereUniqueWithoutDomainGroupInput = {
@@ -18573,6 +21856,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
     redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
+    linkMaps?: LinkMapCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
   }
 
@@ -18584,6 +21868,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
+    linkMaps?: LinkMapUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
   }
 
@@ -18611,6 +21896,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
     redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
+    linkMaps?: LinkMapUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
   }
 
@@ -18622,6 +21908,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
+    linkMaps?: LinkMapUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
 
@@ -18633,6 +21920,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
     domains?: DomainCreateNestedManyWithoutDomainGroupInput
+    linkMaps?: LinkMapCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
   }
 
@@ -18644,12 +21932,44 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
+    linkMaps?: LinkMapUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
   }
 
   export type DomainGroupCreateOrConnectWithoutRedirectRulesInput = {
     where: DomainGroupWhereUniqueInput
     create: XOR<DomainGroupCreateWithoutRedirectRulesInput, DomainGroupUncheckedCreateWithoutRedirectRulesInput>
+  }
+
+  export type LinkMapCreateWithoutRedirectRulesInput = {
+    id: string
+    name: string
+    caseSensitive?: boolean
+    queryMatch?: $Enums.RedirectQueryMatch
+    fallbackDestination?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    domainGroup: DomainGroupCreateNestedOneWithoutLinkMapsInput
+    entries?: LinkMapEntryCreateNestedManyWithoutLinkMapInput
+  }
+
+  export type LinkMapUncheckedCreateWithoutRedirectRulesInput = {
+    id: string
+    name: string
+    domainGroupId: string
+    caseSensitive?: boolean
+    queryMatch?: $Enums.RedirectQueryMatch
+    fallbackDestination?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    entries?: LinkMapEntryUncheckedCreateNestedManyWithoutLinkMapInput
+  }
+
+  export type LinkMapCreateOrConnectWithoutRedirectRulesInput = {
+    where: LinkMapWhereUniqueInput
+    create: XOR<LinkMapCreateWithoutRedirectRulesInput, LinkMapUncheckedCreateWithoutRedirectRulesInput>
   }
 
   export type RedirectRuleHitsHourlyCreateWithoutRedirectRuleInput = {
@@ -18697,6 +22017,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
     domains?: DomainUpdateManyWithoutDomainGroupNestedInput
+    linkMaps?: LinkMapUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
   }
 
@@ -18708,7 +22029,45 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
+    linkMaps?: LinkMapUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
+  }
+
+  export type LinkMapUpsertWithoutRedirectRulesInput = {
+    update: XOR<LinkMapUpdateWithoutRedirectRulesInput, LinkMapUncheckedUpdateWithoutRedirectRulesInput>
+    create: XOR<LinkMapCreateWithoutRedirectRulesInput, LinkMapUncheckedCreateWithoutRedirectRulesInput>
+    where?: LinkMapWhereInput
+  }
+
+  export type LinkMapUpdateToOneWithWhereWithoutRedirectRulesInput = {
+    where?: LinkMapWhereInput
+    data: XOR<LinkMapUpdateWithoutRedirectRulesInput, LinkMapUncheckedUpdateWithoutRedirectRulesInput>
+  }
+
+  export type LinkMapUpdateWithoutRedirectRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    caseSensitive?: BoolFieldUpdateOperationsInput | boolean
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    fallbackDestination?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    domainGroup?: DomainGroupUpdateOneRequiredWithoutLinkMapsNestedInput
+    entries?: LinkMapEntryUpdateManyWithoutLinkMapNestedInput
+  }
+
+  export type LinkMapUncheckedUpdateWithoutRedirectRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    caseSensitive?: BoolFieldUpdateOperationsInput | boolean
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    fallbackDestination?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    entries?: LinkMapEntryUncheckedUpdateManyWithoutLinkMapNestedInput
   }
 
   export type RedirectRuleHitsHourlyUpsertWithWhereUniqueWithoutRedirectRuleInput = {
@@ -18727,10 +22086,69 @@ export namespace Prisma {
     data: XOR<RedirectRuleHitsHourlyUpdateManyMutationInput, RedirectRuleHitsHourlyUncheckedUpdateManyWithoutRedirectRuleInput>
   }
 
-  export type RedirectRuleCreateWithoutHitsHourlyInput = {
+  export type DomainGroupCreateWithoutLinkMapsInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
+    domains?: DomainCreateNestedManyWithoutDomainGroupInput
+    redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
+    redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
+  }
+
+  export type DomainGroupUncheckedCreateWithoutLinkMapsInput = {
+    id: string
+    name: string
+    organizationId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
+    redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
+    redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
+  }
+
+  export type DomainGroupCreateOrConnectWithoutLinkMapsInput = {
+    where: DomainGroupWhereUniqueInput
+    create: XOR<DomainGroupCreateWithoutLinkMapsInput, DomainGroupUncheckedCreateWithoutLinkMapsInput>
+  }
+
+  export type LinkMapEntryCreateWithoutLinkMapInput = {
+    id: string
+    key: string
+    keyNormalized: string
+    destination: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type LinkMapEntryUncheckedCreateWithoutLinkMapInput = {
+    id: string
+    key: string
+    keyNormalized: string
+    destination: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type LinkMapEntryCreateOrConnectWithoutLinkMapInput = {
+    where: LinkMapEntryWhereUniqueInput
+    create: XOR<LinkMapEntryCreateWithoutLinkMapInput, LinkMapEntryUncheckedCreateWithoutLinkMapInput>
+  }
+
+  export type LinkMapEntryCreateManyLinkMapInputEnvelope = {
+    data: LinkMapEntryCreateManyLinkMapInput | LinkMapEntryCreateManyLinkMapInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type RedirectRuleCreateWithoutLinkMapInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
@@ -18742,16 +22160,213 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     domainGroup: DomainGroupCreateNestedOneWithoutRedirectRulesInput
+    hitsHourly?: RedirectRuleHitsHourlyCreateNestedManyWithoutRedirectRuleInput
+  }
+
+  export type RedirectRuleUncheckedCreateWithoutLinkMapInput = {
+    id: string
+    source: string
+    destination?: string | null
+    statusCode?: number
+    matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: $Enums.RedirectQueryMatch
+    pathMatch?: $Enums.RedirectPathMatch
+    isBlocked?: boolean
+    blockedAt?: Date | string | null
+    priority?: number
+    domainGroupId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    hitsHourly?: RedirectRuleHitsHourlyUncheckedCreateNestedManyWithoutRedirectRuleInput
+  }
+
+  export type RedirectRuleCreateOrConnectWithoutLinkMapInput = {
+    where: RedirectRuleWhereUniqueInput
+    create: XOR<RedirectRuleCreateWithoutLinkMapInput, RedirectRuleUncheckedCreateWithoutLinkMapInput>
+  }
+
+  export type RedirectRuleCreateManyLinkMapInputEnvelope = {
+    data: RedirectRuleCreateManyLinkMapInput | RedirectRuleCreateManyLinkMapInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type DomainGroupUpsertWithoutLinkMapsInput = {
+    update: XOR<DomainGroupUpdateWithoutLinkMapsInput, DomainGroupUncheckedUpdateWithoutLinkMapsInput>
+    create: XOR<DomainGroupCreateWithoutLinkMapsInput, DomainGroupUncheckedCreateWithoutLinkMapsInput>
+    where?: DomainGroupWhereInput
+  }
+
+  export type DomainGroupUpdateToOneWithWhereWithoutLinkMapsInput = {
+    where?: DomainGroupWhereInput
+    data: XOR<DomainGroupUpdateWithoutLinkMapsInput, DomainGroupUncheckedUpdateWithoutLinkMapsInput>
+  }
+
+  export type DomainGroupUpdateWithoutLinkMapsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
+    domains?: DomainUpdateManyWithoutDomainGroupNestedInput
+    redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
+    redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
+  }
+
+  export type DomainGroupUncheckedUpdateWithoutLinkMapsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
+    redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
+    redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
+  }
+
+  export type LinkMapEntryUpsertWithWhereUniqueWithoutLinkMapInput = {
+    where: LinkMapEntryWhereUniqueInput
+    update: XOR<LinkMapEntryUpdateWithoutLinkMapInput, LinkMapEntryUncheckedUpdateWithoutLinkMapInput>
+    create: XOR<LinkMapEntryCreateWithoutLinkMapInput, LinkMapEntryUncheckedCreateWithoutLinkMapInput>
+  }
+
+  export type LinkMapEntryUpdateWithWhereUniqueWithoutLinkMapInput = {
+    where: LinkMapEntryWhereUniqueInput
+    data: XOR<LinkMapEntryUpdateWithoutLinkMapInput, LinkMapEntryUncheckedUpdateWithoutLinkMapInput>
+  }
+
+  export type LinkMapEntryUpdateManyWithWhereWithoutLinkMapInput = {
+    where: LinkMapEntryScalarWhereInput
+    data: XOR<LinkMapEntryUpdateManyMutationInput, LinkMapEntryUncheckedUpdateManyWithoutLinkMapInput>
+  }
+
+  export type LinkMapEntryScalarWhereInput = {
+    AND?: LinkMapEntryScalarWhereInput | LinkMapEntryScalarWhereInput[]
+    OR?: LinkMapEntryScalarWhereInput[]
+    NOT?: LinkMapEntryScalarWhereInput | LinkMapEntryScalarWhereInput[]
+    id?: StringFilter<"LinkMapEntry"> | string
+    linkMapId?: StringFilter<"LinkMapEntry"> | string
+    key?: StringFilter<"LinkMapEntry"> | string
+    keyNormalized?: StringFilter<"LinkMapEntry"> | string
+    destination?: StringFilter<"LinkMapEntry"> | string
+    createdAt?: DateTimeFilter<"LinkMapEntry"> | Date | string
+    updatedAt?: DateTimeFilter<"LinkMapEntry"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"LinkMapEntry"> | Date | string | null
+  }
+
+  export type RedirectRuleUpsertWithWhereUniqueWithoutLinkMapInput = {
+    where: RedirectRuleWhereUniqueInput
+    update: XOR<RedirectRuleUpdateWithoutLinkMapInput, RedirectRuleUncheckedUpdateWithoutLinkMapInput>
+    create: XOR<RedirectRuleCreateWithoutLinkMapInput, RedirectRuleUncheckedCreateWithoutLinkMapInput>
+  }
+
+  export type RedirectRuleUpdateWithWhereUniqueWithoutLinkMapInput = {
+    where: RedirectRuleWhereUniqueInput
+    data: XOR<RedirectRuleUpdateWithoutLinkMapInput, RedirectRuleUncheckedUpdateWithoutLinkMapInput>
+  }
+
+  export type RedirectRuleUpdateManyWithWhereWithoutLinkMapInput = {
+    where: RedirectRuleScalarWhereInput
+    data: XOR<RedirectRuleUpdateManyMutationInput, RedirectRuleUncheckedUpdateManyWithoutLinkMapInput>
+  }
+
+  export type LinkMapCreateWithoutEntriesInput = {
+    id: string
+    name: string
+    caseSensitive?: boolean
+    queryMatch?: $Enums.RedirectQueryMatch
+    fallbackDestination?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    domainGroup: DomainGroupCreateNestedOneWithoutLinkMapsInput
+    redirectRules?: RedirectRuleCreateNestedManyWithoutLinkMapInput
+  }
+
+  export type LinkMapUncheckedCreateWithoutEntriesInput = {
+    id: string
+    name: string
+    domainGroupId: string
+    caseSensitive?: boolean
+    queryMatch?: $Enums.RedirectQueryMatch
+    fallbackDestination?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutLinkMapInput
+  }
+
+  export type LinkMapCreateOrConnectWithoutEntriesInput = {
+    where: LinkMapWhereUniqueInput
+    create: XOR<LinkMapCreateWithoutEntriesInput, LinkMapUncheckedCreateWithoutEntriesInput>
+  }
+
+  export type LinkMapUpsertWithoutEntriesInput = {
+    update: XOR<LinkMapUpdateWithoutEntriesInput, LinkMapUncheckedUpdateWithoutEntriesInput>
+    create: XOR<LinkMapCreateWithoutEntriesInput, LinkMapUncheckedCreateWithoutEntriesInput>
+    where?: LinkMapWhereInput
+  }
+
+  export type LinkMapUpdateToOneWithWhereWithoutEntriesInput = {
+    where?: LinkMapWhereInput
+    data: XOR<LinkMapUpdateWithoutEntriesInput, LinkMapUncheckedUpdateWithoutEntriesInput>
+  }
+
+  export type LinkMapUpdateWithoutEntriesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    caseSensitive?: BoolFieldUpdateOperationsInput | boolean
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    fallbackDestination?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    domainGroup?: DomainGroupUpdateOneRequiredWithoutLinkMapsNestedInput
+    redirectRules?: RedirectRuleUpdateManyWithoutLinkMapNestedInput
+  }
+
+  export type LinkMapUncheckedUpdateWithoutEntriesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    caseSensitive?: BoolFieldUpdateOperationsInput | boolean
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    fallbackDestination?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    redirectRules?: RedirectRuleUncheckedUpdateManyWithoutLinkMapNestedInput
+  }
+
+  export type RedirectRuleCreateWithoutHitsHourlyInput = {
+    id: string
+    source: string
+    destination?: string | null
+    statusCode?: number
+    matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: $Enums.RedirectQueryMatch
+    pathMatch?: $Enums.RedirectPathMatch
+    isBlocked?: boolean
+    blockedAt?: Date | string | null
+    priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    domainGroup: DomainGroupCreateNestedOneWithoutRedirectRulesInput
+    linkMap?: LinkMapCreateNestedOneWithoutRedirectRulesInput
   }
 
   export type RedirectRuleUncheckedCreateWithoutHitsHourlyInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
     pathMatch?: $Enums.RedirectPathMatch
+    linkMapId?: string | null
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
@@ -18815,7 +22430,7 @@ export namespace Prisma {
   export type RedirectRuleUpdateWithoutHitsHourlyInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -18827,16 +22442,18 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domainGroup?: DomainGroupUpdateOneRequiredWithoutRedirectRulesNestedInput
+    linkMap?: LinkMapUpdateOneWithoutRedirectRulesNestedInput
   }
 
   export type RedirectRuleUncheckedUpdateWithoutHitsHourlyInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
     pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
+    linkMapId?: NullableStringFieldUpdateOperationsInput | string | null
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
@@ -18931,6 +22548,7 @@ export namespace Prisma {
     organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
     domains?: DomainCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
+    linkMaps?: LinkMapCreateNestedManyWithoutDomainGroupInput
   }
 
   export type DomainGroupUncheckedCreateWithoutRedirectTestsInput = {
@@ -18942,6 +22560,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
+    linkMaps?: LinkMapUncheckedCreateNestedManyWithoutDomainGroupInput
   }
 
   export type DomainGroupCreateOrConnectWithoutRedirectTestsInput = {
@@ -19010,6 +22629,7 @@ export namespace Prisma {
     organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
     domains?: DomainUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
+    linkMaps?: LinkMapUpdateManyWithoutDomainGroupNestedInput
   }
 
   export type DomainGroupUncheckedUpdateWithoutRedirectTestsInput = {
@@ -19021,6 +22641,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
+    linkMaps?: LinkMapUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
 
   export type OrganizationCreateWithoutCheckoutSessionsInput = {
@@ -19412,6 +23033,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
+    linkMaps?: LinkMapUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
   }
 
@@ -19423,6 +23045,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
+    linkMaps?: LinkMapUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
 
@@ -19720,14 +23343,26 @@ export namespace Prisma {
   export type RedirectRuleCreateManyDomainGroupInput = {
     id: string
     source: string
-    destination: string
+    destination?: string | null
     statusCode?: number
     matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: $Enums.RedirectQueryMatch
     pathMatch?: $Enums.RedirectPathMatch
+    linkMapId?: string | null
     isBlocked?: boolean
     blockedAt?: Date | string | null
     priority?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type LinkMapCreateManyDomainGroupInput = {
+    id: string
+    name: string
+    caseSensitive?: boolean
+    queryMatch?: $Enums.RedirectQueryMatch
+    fallbackDestination?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -19771,7 +23406,7 @@ export namespace Prisma {
   export type RedirectRuleUpdateWithoutDomainGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
@@ -19782,17 +23417,19 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    linkMap?: LinkMapUpdateOneWithoutRedirectRulesNestedInput
     hitsHourly?: RedirectRuleHitsHourlyUpdateManyWithoutRedirectRuleNestedInput
   }
 
   export type RedirectRuleUncheckedUpdateWithoutDomainGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
     pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
+    linkMapId?: NullableStringFieldUpdateOperationsInput | string | null
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
@@ -19805,14 +23442,52 @@ export namespace Prisma {
   export type RedirectRuleUncheckedUpdateManyWithoutDomainGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     source?: StringFieldUpdateOperationsInput | string
-    destination?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
     statusCode?: IntFieldUpdateOperationsInput | number
     matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
     queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
     pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
+    linkMapId?: NullableStringFieldUpdateOperationsInput | string | null
     isBlocked?: BoolFieldUpdateOperationsInput | boolean
     blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkMapUpdateWithoutDomainGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    caseSensitive?: BoolFieldUpdateOperationsInput | boolean
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    fallbackDestination?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    entries?: LinkMapEntryUpdateManyWithoutLinkMapNestedInput
+    redirectRules?: RedirectRuleUpdateManyWithoutLinkMapNestedInput
+  }
+
+  export type LinkMapUncheckedUpdateWithoutDomainGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    caseSensitive?: BoolFieldUpdateOperationsInput | boolean
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    fallbackDestination?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    entries?: LinkMapEntryUncheckedUpdateManyWithoutLinkMapNestedInput
+    redirectRules?: RedirectRuleUncheckedUpdateManyWithoutLinkMapNestedInput
+  }
+
+  export type LinkMapUncheckedUpdateManyWithoutDomainGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    caseSensitive?: BoolFieldUpdateOperationsInput | boolean
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    fallbackDestination?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -19881,6 +23556,116 @@ export namespace Prisma {
     hits?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type LinkMapEntryCreateManyLinkMapInput = {
+    id: string
+    key: string
+    keyNormalized: string
+    destination: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type RedirectRuleCreateManyLinkMapInput = {
+    id: string
+    source: string
+    destination?: string | null
+    statusCode?: number
+    matchMethod?: RedirectRuleCreatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: $Enums.RedirectQueryMatch
+    pathMatch?: $Enums.RedirectPathMatch
+    isBlocked?: boolean
+    blockedAt?: Date | string | null
+    priority?: number
+    domainGroupId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type LinkMapEntryUpdateWithoutLinkMapInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyNormalized?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkMapEntryUncheckedUpdateWithoutLinkMapInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyNormalized?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkMapEntryUncheckedUpdateManyWithoutLinkMapInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    key?: StringFieldUpdateOperationsInput | string
+    keyNormalized?: StringFieldUpdateOperationsInput | string
+    destination?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type RedirectRuleUpdateWithoutLinkMapInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
+    statusCode?: IntFieldUpdateOperationsInput | number
+    matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
+    isBlocked?: BoolFieldUpdateOperationsInput | boolean
+    blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    domainGroup?: DomainGroupUpdateOneRequiredWithoutRedirectRulesNestedInput
+    hitsHourly?: RedirectRuleHitsHourlyUpdateManyWithoutRedirectRuleNestedInput
+  }
+
+  export type RedirectRuleUncheckedUpdateWithoutLinkMapInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
+    statusCode?: IntFieldUpdateOperationsInput | number
+    matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
+    isBlocked?: BoolFieldUpdateOperationsInput | boolean
+    blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    hitsHourly?: RedirectRuleHitsHourlyUncheckedUpdateManyWithoutRedirectRuleNestedInput
+  }
+
+  export type RedirectRuleUncheckedUpdateManyWithoutLinkMapInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    destination?: NullableStringFieldUpdateOperationsInput | string | null
+    statusCode?: IntFieldUpdateOperationsInput | number
+    matchMethod?: RedirectRuleUpdatematchMethodInput | $Enums.HttpMethod[]
+    queryMatch?: EnumRedirectQueryMatchFieldUpdateOperationsInput | $Enums.RedirectQueryMatch
+    pathMatch?: EnumRedirectPathMatchFieldUpdateOperationsInput | $Enums.RedirectPathMatch
+    isBlocked?: BoolFieldUpdateOperationsInput | boolean
+    blockedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    priority?: IntFieldUpdateOperationsInput | number
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
 

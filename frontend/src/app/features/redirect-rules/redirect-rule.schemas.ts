@@ -14,7 +14,9 @@ export const redirectRuleSchema = z.object({
     .refine(
       (value) => /^https?:\/\/.+/i.test(value.trim()),
       'Destination must be a full URL starting with http:// or https://'
-    ),
+    )
+    .nullable()
+    .optional(),
   statusCode: z
     .coerce
     .number({ invalid_type_error: 'Status code must be a number' })
@@ -24,6 +26,7 @@ export const redirectRuleSchema = z.object({
     .refine((value) => new Set(value).size === value.length, 'Match methods must be unique'),
   queryMatch: z.enum(queryMatches),
   pathMatch: z.enum(pathMatches),
+  linkMapId: z.string().optional().nullable(),
   priority: z
     .coerce
     .number({ invalid_type_error: 'Priority must be a number' })

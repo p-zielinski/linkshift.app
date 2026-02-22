@@ -31,6 +31,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       'Template variables and modifiers',
       'Conditional routing by request context',
       'Path prefix and query match modes',
+      'Link maps for short links',
       'SSL included on every domain',
     ],
     heroPanelTitle: 'Switching checklist',
@@ -103,6 +104,11 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         description: 'Use path prefix matching with query exact, ignore, or subset rules.',
       },
       {
+        icon: 'map',
+        title: 'Link maps for short links',
+        description: 'Create key-based maps with fallback destinations for campaigns.',
+      },
+      {
         icon: 'lock',
         title: 'HTTPS by default',
         description: 'SSL is included for every domain so requests are served securely.',
@@ -168,6 +174,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       'Domain groups keep rules aligned',
       'Conditional routing by method or time',
       'Path prefix and query match modes',
+      'Link maps for short links',
       'Placeholders and modifiers for precision',
     ],
     heroPanelTitle: 'Operational advantages',
@@ -231,6 +238,11 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         description: 'Match path prefixes and tune query matching with exact, ignore, or subset.',
       },
       {
+        icon: 'map',
+        title: 'Link maps',
+        description: 'Resolve short keys into destinations with optional fallbacks.',
+      },
+      {
         icon: 'manage_search',
         title: 'Regex capture groups',
         description: 'Use $1, $2, and more to build dynamic destinations.',
@@ -283,6 +295,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       'Domain groups unify rule ownership',
       'Condition-based routing',
       'Path prefix and query match modes',
+      'Link maps for short links',
       'Transparent rule syntax',
     ],
     heroPanelTitle: 'What you gain',
@@ -340,6 +353,11 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         icon: 'manage_search',
         title: 'Match mode flexibility',
         description: 'Use path prefix matching and query exact, ignore, or subset rules.',
+      },
+      {
+        icon: 'map',
+        title: 'Link maps',
+        description: 'Resolve short keys into destinations with fallback routing.',
       },
       {
         icon: 'terminal',
@@ -454,7 +472,7 @@ export class AlternativePageComponent {
         title: `${this.siteConfig.name} | ${next.seoTitle}`,
         description: next.seoDescription,
         canonicalPath: `/alternatives/${next.slug}`,
-        keywords: 'redirect alternatives, domain group redirects, regex redirects, redirect rules',
+        keywords: 'redirect alternatives, domain group redirects, regex redirects, redirect rules, link maps',
       });
     });
   }

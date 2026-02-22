@@ -59,6 +59,11 @@ const FEATURES: MarketingFeature[] = [
     description: 'Use path prefix matching with query exact, ignore, or subset rules.'
   },
   {
+    icon: 'map',
+    title: 'Link maps for short links',
+    description: 'Resolve short keys into destinations with fallback routing and case controls.'
+  },
+  {
     icon: 'shield',
     title: 'Organization-aware limits',
     description: 'Respect domain group, domain, and rule limits per organization.'
@@ -166,6 +171,7 @@ export class HomePageComponent implements OnInit {
     'Regex sources with capture groups',
     'Template variables and modifiers',
     'Conditional routing by context',
+    'Link maps for short links',
     'SSL included on every domain'
   ];
 
@@ -173,10 +179,10 @@ export class HomePageComponent implements OnInit {
     this.seo.updateTags({
       title: `${this.siteConfig.name} | Domain group redirect automation`,
       description:
-        'Create domain groups, attach domains, and publish redirect rules with regex, placeholders, conditional routing, and advanced match modes. Built for teams managing complex redirect inventories.',
+        'Create domain groups, attach domains, and publish redirect rules with regex, placeholders, conditional routing, advanced match modes, and reusable link maps. Built for teams managing complex redirect inventories.',
       canonicalPath: '/home',
       keywords:
-        'redirect rules, domain groups, regex redirects, placeholder redirects, conditional routing, path prefix matching, query subset matching, redirect management'
+        'redirect rules, domain groups, regex redirects, placeholder redirects, conditional routing, path prefix matching, query subset matching, link maps, short link routing, redirect management'
     });
   }
 }

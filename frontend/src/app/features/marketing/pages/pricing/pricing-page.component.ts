@@ -33,7 +33,7 @@ export class PricingPageComponent implements OnInit {
         'Compare plans for redirect governance, domain group management, and audit-ready routing workflows.',
       canonicalPath: '/pricing',
       keywords:
-        'redirect management pricing, domain group governance, redirect rules plans',
+        'redirect management pricing, domain group governance, redirect rules plans, link maps',
     });
   }
 }

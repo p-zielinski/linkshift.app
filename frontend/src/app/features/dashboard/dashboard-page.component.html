@@ -226,6 +226,12 @@
         </div>
         <div class="text-[13px] text-app-muted">Rules per group limit</div>
       </div>
+      <div class="rounded-2xl bg-app-accent-soft p-4">
+        <div class="text-[22px] font-semibold">
+          {{ limits().maxLinkMapEntriesPerMap }}
+        </div>
+        <div class="text-[13px] text-app-muted">Link map entries per map</div>
+      </div>
       <div
         class="rounded-2xl p-4"
         [class.bg-app-accent-soft]="!ruleLimitReached()"
@@ -243,6 +249,44 @@
           [class.text-app-muted]="!ruleLimitReached()"
         >
           Rules
+        </div>
+      </div>
+      <div
+        class="rounded-2xl p-4"
+        [class.bg-app-accent-soft]="!linkMapLimitReached()"
+        [class.bg-red-50]="linkMapLimitReached()"
+      >
+        <div
+          class="text-[22px] font-semibold"
+          [class.text-red-700]="linkMapLimitReached()"
+        >
+          {{ usage()?.linkMaps ?? '-' }} / {{ limits().maxLinkMaps }}
+        </div>
+        <div
+          class="text-[13px]"
+          [class.text-red-600]="linkMapLimitReached()"
+          [class.text-app-muted]="!linkMapLimitReached()"
+        >
+          Link maps
+        </div>
+      </div>
+      <div
+        class="rounded-2xl p-4"
+        [class.bg-app-accent-soft]="!linkMapEntriesLimitReached()"
+        [class.bg-red-50]="linkMapEntriesLimitReached()"
+      >
+        <div
+          class="text-[22px] font-semibold"
+          [class.text-red-700]="linkMapEntriesLimitReached()"
+        >
+          {{ usage()?.linkMapEntries ?? '-' }} / {{ limits().maxLinkMapEntriesTotal }}
+        </div>
+        <div
+          class="text-[13px]"
+          [class.text-red-600]="linkMapEntriesLimitReached()"
+          [class.text-app-muted]="!linkMapEntriesLimitReached()"
+        >
+          Link map entries
         </div>
       </div>
       <div
