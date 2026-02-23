@@ -19,8 +19,7 @@ export class EmailService {
   constructor(
     private readonly configService: ConfigService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async sendVerificationEmail(params: {
     email: string;
@@ -270,7 +269,8 @@ export class EmailService {
     text: string;
     html?: string;
   }): Promise<void> {
-    const authorizationToken = this.configService.get<string>('ZEPTOMAIL_API_KEY') ?? '';
+    const authorizationToken =
+      this.configService.get<string>('ZEPTOMAIL_API_KEY') ?? '';
     const apiUrl =
       this.configService.get<string>('ZEPTOMAIL_API_URL') ??
       'https://api.zeptomail.com/v1.1/email';
@@ -297,7 +297,7 @@ export class EmailService {
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        Authorization: authorizationToken,
+        Authorization: `Zoho-enczapikey ${authorizationToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
@@ -356,8 +356,7 @@ export class EmailService {
 
   private getAppUrl(): string {
     return (
-      this.configService.get<string>('APP_WEB_URL') ??
-      'http://localhost:4200'
+      this.configService.get<string>('APP_WEB_URL') ?? 'http://localhost:4200'
     );
   }
 
