@@ -21,7 +21,7 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     configs:
-      - source: caddyfile_v20
+      - source: caddyfile_v23
         target: /etc/caddy/Caddyfile
     networks:
       - inter-stack
@@ -186,7 +186,7 @@ configs:
     file: ./config/promtail.yaml
   dozzle_users_v5:
     file: config/dozzle.users.yml
-  caddyfile_v20:
+  caddyfile_v23:
     file: ./config/Caddyfile
 
 secrets:
