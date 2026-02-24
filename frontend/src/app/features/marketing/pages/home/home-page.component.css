@@ -77,3 +77,28 @@
   color: var(--app-accent);
   margin-bottom: 8px;
 }
+
+.demo-video-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  background: var(--app-surface);
+  box-shadow: 0 18px 40px rgba(31, 24, 28, 0.08);
+}
+
+.demo-video-element {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.demo-video-element {
+  background: #000000;
+}
+
+.demo-video-note {
+  font-size: 13px;
+  color: var(--app-muted);
+}

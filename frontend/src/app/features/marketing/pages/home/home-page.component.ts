@@ -1,9 +1,10 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, PLATFORM_ID, ViewChild, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
+import type Plyr from 'plyr';
 import { SITE_CONFIG } from '../../../../core/config/site-config';
 import { SeoService } from '../../../../core/seo/seo.service';
 import { MarketingHeroComponent } from '../../components/marketing-hero/marketing-hero.component';
@@ -156,15 +157,26 @@ const FAQ_ITEMS: MarketingFaqItem[] = [
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.css'
 })
-export class HomePageComponent implements OnInit {
+export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly seo = inject(SeoService);
   readonly siteConfig = inject(SITE_CONFIG);
+  private readonly platformId = inject(PLATFORM_ID);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
+  private player: Plyr | null = null;
+
+  @ViewChild('demoVideo', { static: false })
+  private demoVideo?: ElementRef<HTMLVideoElement>;
 
   readonly workflowSteps = WORKFLOW_STEPS;
   readonly features = FEATURES;
   readonly examples = EXAMPLES;
   readonly faqItems = FAQ_ITEMS;
   readonly modelCards = MODEL_CARDS;
+  readonly demoVideoOptions: Plyr.Options = {
+    controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+    settings: ['speed'],
+    speed: { selected: 1, options: [0.75, 1, 1.25, 1.5] }
+  };
 
   readonly heroHighlights = [
     'Domain groups with shared rules',
@@ -184,5 +196,18 @@ export class HomePageComponent implements OnInit {
       keywords:
         'redirect rules, domain groups, regex redirects, placeholder redirects, conditional routing, path prefix matching, query subset matching, link maps, short link routing, redirect management'
     });
+  }
+
+  async ngAfterViewInit(): Promise<void> {
+    if (!this.isBrowser || !this.demoVideo?.nativeElement) {
+      return;
+    }
+    const { default: PlyrConstructor } = await import('plyr');
+    this.player = new PlyrConstructor(this.demoVideo.nativeElement, this.demoVideoOptions);
+  }
+
+  ngOnDestroy(): void {
+    this.player?.destroy();
+    this.player = null;
   }
 }
