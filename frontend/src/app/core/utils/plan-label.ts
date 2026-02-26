@@ -14,8 +14,6 @@ export function formatPlanLabel(
       return 'Pro';
     case OrganizationPlan.FREE:
       return 'Free';
-    case OrganizationPlan.CUSTOM:
-      return 'Custom';
     default:
       return plan === 'STARTER' ? 'Basic' : plan ? String(plan) : '';
   }
