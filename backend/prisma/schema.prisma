@@ -57,7 +57,6 @@ model Organization {
   users        User[]
   domainGroups DomainGroup[]
   checkoutSessions BillingCheckoutSession[]
-  customPlans CustomPlan[]
   redirectTests RedirectTest[]
   invites OrganizationInvite[]
   redirectRuleHitsHourly RedirectRuleHitsHourly[]
@@ -281,24 +280,4 @@ model BillingCheckoutSession {
   @@index([status])
   @@index([providerCheckoutId])
   @@index([providerSubscriptionId])
-}
-
-model CustomPlan {
-  id               String   @id
-  organizationId   String
-  name             String
-  description      String?
-  monthlyVariantId String?
-  yearlyVariantId  String?
-  limits           Json
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  deletedAt        DateTime?
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId])
-  @@index([deletedAt])
-  @@index([monthlyVariantId])
-  @@index([yearlyVariantId])
 }

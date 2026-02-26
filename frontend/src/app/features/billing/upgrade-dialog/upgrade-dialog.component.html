@@ -21,15 +21,11 @@
   <app-pricing-plans
     [actionMode]="'select'"
     [currentPlan]="data.currentPlan"
-    [customLink]="'/contact'"
     [planBlockReasons]="planBlockReasons()"
-    [customPlans]="customPlansStore.plans()"
-    [customPlanBlockReasons]="customPlanBlockReasons()"
     (planSelected)="onPlanSelected($event)"
-    (customRequested)="onCustomRequested()"
   ></app-pricing-plans>
   <div class="mt-4 text-[12px] text-app-muted">
-    Need a custom plan? Use the contact page to request a tailored setup.
+    Need higher limits? Contact support to request an additional plan tier available to everyone.
   </div>
 </div>
 
