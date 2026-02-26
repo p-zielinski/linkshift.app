@@ -11,6 +11,7 @@ import { CacheManagerService, DataType } from '../cache/cache-manager.service';
 import {
   CHECKOUT_PLANS,
   PlanLimits,
+  PLAN_LIMITS,
   getPlanLimits,
   getVariantIdForPlan,
 } from './billing.config';
@@ -45,26 +46,6 @@ type BillingPlanCatalog = {
   updatedAt: string;
 };
 
-type CustomPlanPricing = {
-  amount: number;
-  currency: string;
-  variantId: string;
-};
-
-type CustomPlanCatalogItem = {
-  id: string;
-  name: string;
-  description: string | null;
-  limits: PlanLimits;
-  monthly: CustomPlanPricing | null;
-  yearly: CustomPlanPricing | null;
-};
-
-type CustomPlanCatalog = {
-  plans: CustomPlanCatalogItem[];
-  updatedAt: string;
-};
-
 @Injectable()
 export class BillingService {
   private readonly variantIds: {
@@ -78,7 +59,6 @@ export class BillingService {
   private readonly defaultCancelUrl: string;
   private readonly planCatalogCacheKey = 'BILLING_PLANS_CATALOG_V1';
   private readonly planCatalogTtlSeconds = 15 * 60;
-  private readonly customPlanCatalogTtlSeconds = 10 * 60;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -173,32 +153,7 @@ export class BillingService {
         successUrl: params.successUrl,
       });
     }
-
-    const customPlan = await this.findCustomPlanByVariant({
-      organizationId: params.organizationId,
-      variantId: params.variantId,
-    });
-    if (!customPlan) {
-      throw new Error('Unknown Lemon Squeezy variant for checkout.');
-    }
-
-    return this.createCheckoutInternal({
-      organizationId: params.organizationId,
-      userId: params.userId,
-      plan: OrganizationPlan.CUSTOM,
-      planName: customPlan.name,
-      customPlanId: customPlan.id,
-      interval: customPlan.interval,
-      variantId: customPlan.variantId,
-      variantIds: customPlan.variantIds,
-      customData: {
-        plan: OrganizationPlan.CUSTOM,
-        interval: customPlan.interval,
-        customPlanId: customPlan.id,
-        planName: customPlan.name,
-      },
-      successUrl: params.successUrl,
-    });
+    throw new Error('Unknown Lemon Squeezy variant for checkout.');
   }
 
   async getCustomerPortalUrl(organizationId: string): Promise<string> {
@@ -273,13 +228,17 @@ export class BillingService {
       });
     }
 
+    const limits = Object.entries(PLAN_LIMITS).reduce(
+      (acc, [plan, planLimits]) => {
+        acc[plan as OrganizationPlan] = planLimits;
+        return acc;
+      },
+      {} as Partial<Record<OrganizationPlan, PlanLimits>>,
+    );
+
     const catalog: BillingPlanCatalog = {
       plans,
-      limits: {
-        [OrganizationPlan.FREE]: getPlanLimits(OrganizationPlan.FREE),
-        [OrganizationPlan.BASIC]: getPlanLimits(OrganizationPlan.BASIC),
-        [OrganizationPlan.PRO]: getPlanLimits(OrganizationPlan.PRO),
-      },
+      limits,
       updatedAt: new Date().toISOString(),
     };
 
@@ -292,132 +251,12 @@ export class BillingService {
     return catalog;
   }
 
-  async getCustomPlanCatalog(
-    organizationId: string,
-  ): Promise<CustomPlanCatalog> {
-    const cacheKey = `BILLING_CUSTOM_PLANS:${organizationId}`;
-    const cached =
-      await this.cacheManagerService.getCustomCache<CustomPlanCatalog>(
-        cacheKey,
-      );
-    if (cached) {
-      return cached;
-    }
-
-    const customPlans = await this.prisma.customPlan.findMany({
-      where: { organizationId, deletedAt: null },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (customPlans.length === 0) {
-      const emptyCatalog: CustomPlanCatalog = {
-        plans: [],
-        updatedAt: new Date().toISOString(),
-      };
-      await this.cacheManagerService.setCustomCache(
-        cacheKey,
-        emptyCatalog,
-        this.customPlanCatalogTtlSeconds,
-      );
-      return emptyCatalog;
-    }
-
-    const variantIds = customPlans
-      .flatMap((plan) => [plan.monthlyVariantId, plan.yearlyVariantId])
-      .filter((entry): entry is string => !!entry);
-    const variants = await this.fetchPlanVariants(variantIds);
-
-    const plans: CustomPlanCatalogItem[] = customPlans.map((plan) => {
-      const monthlyPricing = plan.monthlyVariantId
-        ? this.extractCustomPlanPricing(variants, plan.monthlyVariantId)
-        : null;
-      const yearlyPricing = plan.yearlyVariantId
-        ? this.extractCustomPlanPricing(variants, plan.yearlyVariantId)
-        : null;
-
-      return {
-        id: plan.id,
-        name: plan.name,
-        description: plan.description ?? null,
-        limits: plan.limits as PlanLimits,
-        monthly: monthlyPricing,
-        yearly: yearlyPricing,
-      };
-    });
-
-    const catalog: CustomPlanCatalog = {
-      plans,
-      updatedAt: new Date().toISOString(),
-    };
-
-    await this.cacheManagerService.setCustomCache(
-      cacheKey,
-      catalog,
-      this.customPlanCatalogTtlSeconds,
-    );
-
-    return catalog;
-  }
-
-  async createCustomPlanCheckout(params: {
-    organizationId: string;
-    userId: string;
-    customPlanId: string;
-    variantId: string;
-    successUrl?: string;
-    cancelUrl?: string;
-  }) {
-    const customPlan = await this.prisma.customPlan.findFirst({
-      where: {
-        id: params.customPlanId,
-        organizationId: params.organizationId,
-        deletedAt: null,
-      },
-    });
-    if (!customPlan) {
-      throw new Error('Custom plan not found for organization.');
-    }
-
-    const variantId = params.variantId;
-    const interval =
-      variantId === customPlan.yearlyVariantId ? 'YEARLY' : 'MONTHLY';
-    if (
-      variantId !== customPlan.monthlyVariantId &&
-      variantId !== customPlan.yearlyVariantId
-    ) {
-      throw new Error('Variant does not belong to custom plan.');
-    }
-
-    const variantIds = [
-      customPlan.monthlyVariantId,
-      customPlan.yearlyVariantId,
-    ].filter((entry): entry is string => !!entry);
-
-    return this.createCheckoutInternal({
-      organizationId: params.organizationId,
-      userId: params.userId,
-      plan: OrganizationPlan.CUSTOM,
-      planName: customPlan.name,
-      customPlanId: customPlan.id,
-      interval,
-      variantId,
-      variantIds,
-      customData: {
-        plan: OrganizationPlan.CUSTOM,
-        interval,
-        customPlanId: customPlan.id,
-        planName: customPlan.name,
-      },
-      successUrl: params.successUrl,
-    });
-  }
 
   private async createCheckoutInternal(params: {
     organizationId: string;
     userId: string;
     plan: OrganizationPlan;
     planName?: string | null;
-    customPlanId?: string | null;
     interval: BillingInterval;
     variantId: string;
     variantIds: string[];
@@ -455,7 +294,6 @@ export class BillingService {
           organizationName: organization.name,
           email: user.email,
           interval: params.interval,
-          customPlanId: params.customPlanId ?? null,
           planName: params.planName ?? null,
         },
       },
@@ -543,61 +381,17 @@ export class BillingService {
       return;
     }
 
-    const customPlanId =
-      customData.customPlanId ?? customData.custom_plan_id ?? null;
     const variantIdStr = attributes.variant_id
       ? String(attributes.variant_id)
       : null;
-    const customPlan = customPlanId
-      ? await this.prisma.customPlan.findFirst({
-          where: {
-            id: String(customPlanId),
-            organizationId: orgId,
-            deletedAt: null,
-          },
-        })
-      : variantIdStr
-        ? await this.prisma.customPlan.findFirst({
-            where: {
-              organizationId: orgId,
-              deletedAt: null,
-              OR: [
-                { monthlyVariantId: variantIdStr },
-                { yearlyVariantId: variantIdStr },
-              ],
-            },
-          })
-        : null;
-
-    const requestedCustom =
-      (customData.plan ?? '').toString().toUpperCase() ===
-      OrganizationPlan.CUSTOM;
-    if (requestedCustom && !customPlan) {
-      this.logger.warn('Custom plan missing for webhook payload', {
-        eventName,
-        organizationId: orgId,
-        customPlanId,
-        variantId: variantIdStr,
-      });
-      return;
-    }
-
-    const plan = customPlan
-      ? OrganizationPlan.CUSTOM
-      : this.resolvePlan(customData.plan, attributes.variant_id);
+    const plan = this.resolvePlan(customData.plan, attributes.variant_id);
     const status = this.resolveStatus(attributes.status, eventName);
-    const limits = customPlan
-      ? (customPlan.limits as PlanLimits)
-      : getPlanLimits(
-          plan as Exclude<OrganizationPlan, OrganizationPlan.CUSTOM>,
-        );
-    const planName =
-      customPlan?.name ?? customData.planName ?? customData.plan_name ?? null;
+    const limits = getPlanLimits(plan);
+    const planName = customData.planName ?? customData.plan_name ?? null;
 
     const pricingFallback = variantIdStr
       ? await this.resolvePricingFromVariant({
           variantId: variantIdStr,
-          customPlan,
         })
       : null;
     const rawAmount = this.parseAmount(
@@ -607,7 +401,7 @@ export class BillingService {
     const resolvedInterval = intervalValue
       ? this.mapInterval(intervalValue)
       : pricingFallback?.interval ??
-        this.resolveIntervalFromVariantId(variantIdStr, customPlan) ??
+        this.resolveIntervalFromVariantId(variantIdStr) ??
         'MONTHLY';
 
     const resolvedAmount =
@@ -625,7 +419,6 @@ export class BillingService {
       {
         plan,
         planName,
-        customPlanId: customPlan?.id ?? null,
         status,
         providerSubscriptionId: subscriptionId,
         providerCustomerId: attributes.customer_id ?? null,
@@ -696,7 +489,6 @@ export class BillingService {
     details: {
       plan: OrganizationPlan;
       planName: string | null;
-      customPlanId: string | null;
       status: OrganizationStatus;
       providerSubscriptionId: string | null;
       providerCustomerId: string | null;
@@ -732,18 +524,13 @@ export class BillingService {
     const nextSubscription = new OrganizationSubscription({
       plan: details.plan,
       planName: details.planName ?? null,
-      customPlanId: details.customPlanId ?? null,
       status: details.status,
       activeFrom: details.activeFrom ?? previous.activeFrom,
       activeUntil: details.activeUntil,
       amount: details.amount ?? previous.amount,
       currency: details.currency ?? previous.currency,
       interval: details.interval ?? previous.interval,
-      limits:
-        details.limits ??
-        getPlanLimits(
-          details.plan as Exclude<OrganizationPlan, OrganizationPlan.CUSTOM>,
-        ),
+      limits: details.limits ?? getPlanLimits(details.plan),
       provider: 'LEMON_SQUEEZY',
       providerSubscriptionId: details.providerSubscriptionId,
       providerCustomerId: details.providerCustomerId,
@@ -1057,46 +844,6 @@ export class BillingService {
     return null;
   }
 
-  private async findCustomPlanByVariant(params: {
-    organizationId: string;
-    variantId: string;
-  }): Promise<{
-    id: string;
-    name: string;
-    interval: BillingInterval;
-    variantId: string;
-    variantIds: string[];
-  } | null> {
-    const customPlan = await this.prisma.customPlan.findFirst({
-      where: {
-        organizationId: params.organizationId,
-        deletedAt: null,
-        OR: [
-          { monthlyVariantId: params.variantId },
-          { yearlyVariantId: params.variantId },
-        ],
-      },
-    });
-    if (!customPlan) {
-      return null;
-    }
-
-    const interval =
-      params.variantId === customPlan.yearlyVariantId ? 'YEARLY' : 'MONTHLY';
-    const variantIds = [
-      customPlan.monthlyVariantId,
-      customPlan.yearlyVariantId,
-    ].filter((entry): entry is string => !!entry);
-
-    return {
-      id: customPlan.id,
-      name: customPlan.name,
-      interval,
-      variantId: params.variantId,
-      variantIds,
-    };
-  }
-
   private getPlanVariantDefinitions(): Array<{
     plan: OrganizationPlan;
     interval: BillingInterval;
@@ -1128,19 +875,9 @@ export class BillingService {
 
   private resolveIntervalFromVariantId(
     variantId: string | null,
-    customPlan: { monthlyVariantId?: string | null; yearlyVariantId?: string | null } | null,
   ): BillingInterval | null {
     if (!variantId) {
       return null;
-    }
-
-    if (customPlan) {
-      if (variantId === customPlan.yearlyVariantId) {
-        return 'YEARLY';
-      }
-      if (variantId === customPlan.monthlyVariantId) {
-        return 'MONTHLY';
-      }
     }
 
     const match = this.getPlanVariantDefinitions().find(
@@ -1151,18 +888,9 @@ export class BillingService {
 
   private async resolvePricingFromVariant(params: {
     variantId: string;
-    customPlan: { monthlyVariantId?: string | null; yearlyVariantId?: string | null } | null;
   }): Promise<{ amount: number; currency: string; interval: BillingInterval } | null> {
     if (!params.variantId) {
       return null;
-    }
-
-    if (params.customPlan) {
-      const variants = await this.fetchPlanVariants([params.variantId]);
-      const variant = variants.get(params.variantId);
-      if (variant) {
-        return this.extractVariantPricing(variant);
-      }
     }
 
     const catalog = await this.getPlanCatalog();
@@ -1238,35 +966,17 @@ export class BillingService {
     return { amount, currency, interval };
   }
 
-  private extractCustomPlanPricing(
-    variants: Map<string, { id?: string; attributes?: Record<string, any> }>,
-    variantId: string,
-  ): CustomPlanPricing | null {
-    const variant = variants.get(String(variantId));
-    if (!variant) {
-      return null;
-    }
-    const pricing = this.extractVariantPricing(variant);
-    return {
-      amount: pricing.amount,
-      currency: pricing.currency,
-      variantId: String(variantId),
-    };
-  }
-
   private resolvePlan(
     plan: string | null | undefined,
     variantId: string | number | null | undefined,
   ): OrganizationPlan {
     const normalized = (plan ?? '').toString().toUpperCase();
-    if (normalized === String(OrganizationPlan.BASIC)) {
-      return OrganizationPlan.BASIC;
-    }
     if (normalized === 'STARTER') {
       return OrganizationPlan.BASIC;
     }
-    if (normalized === String(OrganizationPlan.PRO)) {
-      return OrganizationPlan.PRO;
+    const knownPlans = Object.values(OrganizationPlan) as string[];
+    if (knownPlans.includes(normalized)) {
+      return normalized as OrganizationPlan;
     }
 
     const variantIdStr = variantId ? String(variantId) : null;
@@ -1427,9 +1137,6 @@ export class BillingService {
     }
     if (plan === OrganizationPlan.FREE) {
       return 'Free';
-    }
-    if (plan === OrganizationPlan.CUSTOM) {
-      return 'Custom';
     }
     return String(plan);
   }

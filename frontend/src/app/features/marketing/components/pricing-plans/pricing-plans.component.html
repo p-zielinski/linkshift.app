@@ -70,10 +70,6 @@
             <button mat-stroked-button disabled type="button">
               Current plan
             </button>
-          } @else if (plan.key === 'CUSTOM') {
-            <button mat-stroked-button type="button" (click)="requestCustomPlan()">
-              Request a custom plan
-            </button>
           } @else if (!isSelectablePlan(plan.key)) {
             <span
               [matTooltip]="getPlanBlockedReason(plan.key)"
@@ -99,85 +95,3 @@
     </mat-card>
   }
 </div>
-
-@if (customPlanCards().length > 0) {
-  <div class="custom-section">
-    <div class="text-[12px] uppercase tracking-[0.12em] text-app-muted">
-      Custom plans
-    </div>
-    <div class="pricing-grid custom-grid">
-      @for (plan of customPlanCards(); track plan.id) {
-        <mat-card class="pricing-card">
-          <div class="plan-header">
-            <div>
-              <div class="plan-title-row">
-                <div class="plan-name">{{ plan.name }}</div>
-                <div class="plan-badge">Custom</div>
-              </div>
-              @if (plan.description) {
-                <div class="plan-description text-[13px] text-app-muted">
-                  {{ plan.description }}
-                </div>
-              }
-            </div>
-            <div class="plan-price">
-              <div class="price-amount">{{ plan.price }}</div>
-              <div class="price-note text-[12px] text-app-muted">{{ plan.priceNote }}</div>
-              @if (plan.savingsNote) {
-                <div class="price-savings text-[11px] text-emerald-700">
-                  {{ plan.savingsNote }}
-                </div>
-              }
-            </div>
-          </div>
-          <div class="plan-limits">
-            @for (limit of plan.limits; track limit) {
-              <span class="limit-chip">{{ limit }}</span>
-            }
-          </div>
-          <div class="plan-features">
-            <div class="feature-row">
-              <mat-icon>check_circle</mat-icon>
-              <span>Custom limits tailored to your org</span>
-            </div>
-            <div class="feature-row">
-              <mat-icon>check_circle</mat-icon>
-              <span>Monthly or yearly billing only</span>
-            </div>
-            <div class="feature-row">
-              <mat-icon>check_circle</mat-icon>
-              <span>Priority support and onboarding</span>
-            </div>
-          </div>
-          <div class="plan-actions">
-            @if (actionMode() === 'link') {
-              <a mat-stroked-button [routerLink]="customLink()">
-                Request a custom plan
-              </a>
-            } @else {
-              @if (isCustomPlanBlocked(plan.id, plan.pricing)) {
-                <span
-                  [matTooltip]="getCustomPlanBlockedReason(plan.id, plan.pricing)"
-                  [matTooltipDisabled]="!getCustomPlanBlockedReason(plan.id, plan.pricing)"
-                  matTooltipPosition="above"
-                >
-                  <button mat-stroked-button disabled type="button">
-                    Downgrade unavailable
-                  </button>
-                </span>
-              } @else {
-                <button
-                  mat-flat-button
-                  type="button"
-                  (click)="selectCustomPlan(plan.id, plan.pricing)"
-                >
-                  Choose custom plan
-                </button>
-              }
-            }
-          </div>
-        </mat-card>
-      }
-    </div>
-  </div>
-}

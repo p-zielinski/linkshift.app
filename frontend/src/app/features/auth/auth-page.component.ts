@@ -29,6 +29,7 @@ import {
 import { SITE_CONFIG } from '../../core/config/site-config';
 import { BillingPlansStore } from '../../core/store/billing-plans.store';
 import { APP_CONFIG } from '../../core/config/app-runtime-config';
+import { formatLimitSummary } from '../../core/utils/plan-limits';
 
 @Component({
   selector: 'app-auth-page',
@@ -144,24 +145,27 @@ export class AuthPageComponent {
 
   readonly plans = computed(() => {
     const interval = this.registerModel().billingInterval ?? 'MONTHLY';
+    const limits = this.billingPlansStore.limits();
+    const summaryFor = (plan: OrganizationPlan) =>
+      limits?.[plan] ? formatLimitSummary(limits[plan]!) : 'Limits loading...';
     return [
       {
         id: OrganizationPlan.FREE,
         title: 'Free',
         price: '0 EUR',
-        note: '1 domain group • 1 domain • 15 rules • 1 seat • 10 redirects/min'
+        note: summaryFor(OrganizationPlan.FREE)
       },
       {
         id: OrganizationPlan.BASIC,
         title: 'Basic',
         price: this.formatPlanPrice(OrganizationPlan.BASIC, interval),
-        note: '1 domain group • 10 domains • 250 rules • 3 seats • 50 redirects/min'
+        note: summaryFor(OrganizationPlan.BASIC)
       },
       {
         id: OrganizationPlan.PRO,
         title: 'Pro',
         price: this.formatPlanPrice(OrganizationPlan.PRO, interval),
-        note: '2 domain groups • 15 domains • 500 rules • 5 seats • 100 redirects/min'
+        note: summaryFor(OrganizationPlan.PRO)
       }
     ];
   });
