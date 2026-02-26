@@ -6,10 +6,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import {
-  BillingInterval,
-  OrganizationPlan,
-} from '@shared/models/organization-config.model';
+import { BillingInterval, OrganizationPlan } from '@shared/models/organization-config.model';
 import { BillingPlansStore } from '../../../../core/store/billing-plans.store';
 import type { BillingPlanPrice } from '../../../../core/api/billing-api.service';
 import { formatLimitChips } from '../../../../core/utils/plan-limits';
@@ -49,7 +46,7 @@ const PRICING_PLANS: PricingPlanBase[] = [
       'Domain group governance',
       'SSL included for every domain',
       'Shared redirect audit log',
-      'Email support within 48h',
+      'Email support',
     ],
     ctaLabel: 'Start free',
     ctaLink: '/auth',
@@ -87,9 +84,7 @@ const PRICING_PLANS: PricingPlanBase[] = [
 ];
 
 const PLAN_ORDER = PRICING_PLANS.map((plan) => plan.key);
-const PLAN_METADATA = new Map(
-  PRICING_PLANS.map((plan) => [plan.key, plan]),
-);
+const PLAN_METADATA = new Map(PRICING_PLANS.map((plan) => [plan.key, plan]));
 
 @Component({
   selector: 'app-pricing-plans',
@@ -112,8 +107,7 @@ export class PricingPlansComponent {
   readonly compact = input<boolean>(false);
   readonly actionMode = input<'link' | 'select'>('link');
   readonly currentPlan = input<OrganizationPlan | null>(null);
-  readonly planBlockReasons =
-    input<Partial<Record<OrganizationPlan, string>> | null>(null);
+  readonly planBlockReasons = input<Partial<Record<OrganizationPlan, string>> | null>(null);
   readonly planSelected = output<PricingPlanSelection>();
   readonly billingInterval = signal<BillingInterval>('MONTHLY');
 
@@ -190,8 +184,7 @@ export class PricingPlansComponent {
 
   private buildFallbackPlan(plan: OrganizationPlan): PricingPlanBase {
     const normalized = String(plan);
-    const name =
-      normalized.charAt(0) + normalized.slice(1).toLowerCase();
+    const name = normalized.charAt(0) + normalized.slice(1).toLowerCase();
     return {
       key: plan,
       name,
@@ -260,10 +253,7 @@ export class PricingPlansComponent {
     return !!this.getPlanBlockedReason(plan);
   }
 
-  private getPlanPrice(
-    plan: OrganizationPlan,
-    interval: BillingInterval,
-  ): BillingPlanPrice | null {
+  private getPlanPrice(plan: OrganizationPlan, interval: BillingInterval): BillingPlanPrice | null {
     return this.pricingByPlan().get(`${plan}:${interval}`) ?? null;
   }
 
@@ -271,15 +261,11 @@ export class PricingPlansComponent {
     if (!Number.isFinite(amount)) {
       return `-- ${currency}`;
     }
-    const normalized =
-      Math.round(amount) === amount ? amount.toFixed(0) : amount.toFixed(2);
+    const normalized = Math.round(amount) === amount ? amount.toFixed(0) : amount.toFixed(2);
     return `${normalized} ${currency}`;
   }
 
-  private getSavingsNote(
-    plan: OrganizationPlan,
-    currency: string,
-  ): string | null {
+  private getSavingsNote(plan: OrganizationPlan, currency: string): string | null {
     if (this.billingInterval() !== 'YEARLY') {
       return null;
     }
@@ -294,5 +280,4 @@ export class PricingPlansComponent {
     }
     return `Save ${this.formatPrice(savings, currency)} per year`;
   }
-
 }

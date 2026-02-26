@@ -38,11 +38,12 @@ import type {
   RedirectTestResult
 } from '../../core/models/redirect-test.model';
 import { extractErrorMessage } from '../../core/store/store-error.utils';
-import { filter, firstValueFrom, take } from 'rxjs';
+import { combineLatest, filter, firstValueFrom, take } from 'rxjs';
 import { RedirectRuleFormDialogComponent } from './redirect-rule-form-dialog.component';
 import type { RedirectRuleDialogResult } from './redirect-rule-form-dialog.component';
 import type { RedirectRule } from '../../core/models/redirect-rule.model';
 import { AuthStore } from '../../core/store/auth.store';
+import { getFilterKey } from '../../core/store/entity/entity-store.utils';
 
 @Component({
   selector: 'app-redirect-rules-page',
@@ -375,14 +376,21 @@ export class RedirectRulesPageComponent {
   }
 
   private openTestWizard(prefill: RedirectTestFormPrefill): void {
-    this.dialog.open(RedirectTestFormDialogComponent, {
+    const groupId = prefill.domainGroupId ?? this.activeGroupId();
+    const dialogRef = this.dialog.open(RedirectTestFormDialogComponent, {
       width: 'calc(100vw - 60px)',
       maxWidth: 'calc(100vw - 60px)',
       height: 'calc(100vh - 60px)',
       maxHeight: 'calc(100vh - 60px)',
       data: {
-        domainGroupId: prefill.domainGroupId ?? this.activeGroupId(),
+        domainGroupId: groupId,
         prefill
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((created) => {
+      if (created && groupId && this.activeGroupId() === groupId) {
+        this.loadTestsSnapshot(groupId);
       }
     });
   }
@@ -480,11 +488,17 @@ export class RedirectRulesPageComponent {
           ...(cursor ? { startAfterId: cursor } : {})
         };
 
-        this.redirectTestStore.searchList(filterParams);
-        const result = await firstValueFrom(
+        const filterKey = getFilterKey(filterParams);
+        this.redirectTestStore.searchList(filterParams, true);
+        const [result] = await firstValueFrom(
           runInInjectionContext(this.envInjector, () =>
-            toObservable(this.redirectTestStore.selectListResult(filterParams)).pipe(
-              filter((value) => value !== null),
+            combineLatest([
+              toObservable(this.redirectTestStore.selectListResult(filterParams)),
+              toObservable(
+                computed(() => this.redirectTestStore.isLoading()[filterKey] ?? false)
+              )
+            ]).pipe(
+              filter(([value, loading]) => value !== null && !loading),
               take(1)
             )
           )
