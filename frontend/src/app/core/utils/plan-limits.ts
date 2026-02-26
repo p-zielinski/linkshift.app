@@ -5,11 +5,19 @@ const pluralize = (value: number, singular: string, plural: string) =>
 
 export const formatLimitChips = (limits: PlanLimits): string[] => [
   `${limits.maxDomainGroups} ${pluralize(limits.maxDomainGroups, 'domain group', 'domain groups')}`,
-  `${limits.maxTotalDomains} ${pluralize(limits.maxTotalDomains, 'domain', 'domains')}`,
-  `${limits.maxTotalRules} ${pluralize(limits.maxTotalRules, 'rule', 'rules')}`,
-  `${limits.maxTotalTests} ${pluralize(limits.maxTotalTests, 'test', 'tests')}`,
+  `${limits.maxDomainsPerGroup} ${pluralize(limits.maxDomainsPerGroup, 'domain per group', 'domains per group')}`,
+  `${limits.maxTotalDomains} ${pluralize(limits.maxTotalDomains, 'total domain', 'total domains')}`,
+
+  `${limits.maxRulesPerGroup} ${pluralize(limits.maxRulesPerGroup, 'rule per group', 'rules per group')}`,
+  `${limits.maxTotalRules} ${pluralize(limits.maxTotalRules, 'total rule', 'total rules')}`,
+
+  `${limits.maxTestsPerGroup} ${pluralize(limits.maxTestsPerGroup, 'test per group', 'tests per group')}`,
+  `${limits.maxTotalTests} ${pluralize(limits.maxTotalTests, 'total test', 'total tests')}`,
+
   `${limits.maxLinkMaps} ${pluralize(limits.maxLinkMaps, 'link map', 'link maps')}`,
-  `${limits.maxLinkMapEntriesTotal} ${pluralize(limits.maxLinkMapEntriesTotal, 'link map entry', 'link map entries')}`,
+  `${limits.maxLinkMapEntriesPerMap} ${pluralize(limits.maxLinkMapEntriesPerMap, 'entry per link map', 'entries per link map')}`,
+  `${limits.maxLinkMapEntriesTotal} ${pluralize(limits.maxLinkMapEntriesTotal, 'total link map entry', 'total link map entries')}`,
+
   `${limits.maxUsers} ${pluralize(limits.maxUsers, 'seat', 'seats')}`,
   `${limits.redirectionLimitPerMinute} redirects/min`,
 ];
@@ -17,8 +25,8 @@ export const formatLimitChips = (limits: PlanLimits): string[] => [
 export const formatLimitSummary = (limits: PlanLimits): string =>
   [
     `${limits.maxDomainGroups} ${pluralize(limits.maxDomainGroups, 'domain group', 'domain groups')}`,
-    `${limits.maxTotalDomains} ${pluralize(limits.maxTotalDomains, 'domain', 'domains')}`,
-    `${limits.maxTotalRules} ${pluralize(limits.maxTotalRules, 'rule', 'rules')}`,
+    `${limits.maxTotalDomains} ${pluralize(limits.maxTotalDomains, 'total domain', 'total domains')}`,
+    `${limits.maxTotalRules} ${pluralize(limits.maxTotalRules, 'total rule', 'total rules')}`,
     `${limits.maxUsers} ${pluralize(limits.maxUsers, 'seat', 'seats')}`,
     `${limits.redirectionLimitPerMinute} redirects/min`,
   ].join(' • ');
