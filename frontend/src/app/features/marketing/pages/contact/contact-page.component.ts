@@ -7,7 +7,7 @@ import { SITE_CONFIG } from '../../../../core/config/site-config';
 import { SeoService } from '../../../../core/seo/seo.service';
 import { MarketingSectionComponent } from '../../components/marketing-section/marketing-section.component';
 
-type ContactTopic = 'Bug report' | 'Feature request' | 'Custom plan';
+type ContactTopic = 'Bug report' | 'Feature request' | 'Higher limits';
 
 @Component({
   selector: 'app-contact-page',
@@ -40,19 +40,19 @@ export class ContactPageComponent implements OnInit {
       subject: 'Feature request',
     },
     {
-      title: 'Custom plan',
-      description: 'Send traffic volume, domain count, and governance needs for a tailored quote.',
+      title: 'Higher limits',
+      description: 'Share the limits you need so we can add a new public plan tier.',
       icon: 'tune',
-      subject: 'Custom plan inquiry',
+      subject: 'Higher limits request',
     },
   ];
 
   ngOnInit(): void {
     this.seo.updateTags({
       title: `${this.siteConfig.name} | Contact`,
-      description: 'Report bugs, suggest features, or request a custom plan for LinkShift.',
+      description: 'Report bugs, suggest features, or request higher limits for LinkShift.',
       canonicalPath: '/contact',
-      keywords: 'contact, bug report, feature request, custom plan',
+      keywords: 'contact, bug report, feature request, higher limits',
     });
   }
 

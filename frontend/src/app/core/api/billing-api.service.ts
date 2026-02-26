@@ -57,26 +57,6 @@ export type BillingPlanCatalog = {
   updatedAt: string;
 };
 
-export type CustomPlanPricing = {
-  amount: number;
-  currency: string;
-  variantId: string;
-};
-
-export type CustomPlanCatalogItem = {
-  id: string;
-  name: string;
-  description: string | null;
-  limits: PlanLimits;
-  monthly: CustomPlanPricing | null;
-  yearly: CustomPlanPricing | null;
-};
-
-export type CustomPlanCatalog = {
-  plans: CustomPlanCatalogItem[];
-  updatedAt: string;
-};
-
 @Injectable({
   providedIn: 'root',
 })
@@ -97,20 +77,6 @@ export class BillingApiService {
 
   getPlans(): Observable<BillingPlanCatalog> {
     return this.http.get<BillingPlanCatalog>(`${this.apiUrl}/plans`);
-  }
-
-  getCustomPlans(): Observable<CustomPlanCatalog> {
-    return this.http.get<CustomPlanCatalog>(`${this.apiUrl}/custom-plans`);
-  }
-
-  createCustomPlanCheckout(
-    customPlanId: string,
-    variantId: string,
-  ): Observable<CheckoutResponse> {
-    return this.http.post<CheckoutResponse>(
-      `${this.apiUrl}/custom-plans/${customPlanId}/checkout`,
-      { variantId },
-    );
   }
 
   getCheckoutSession(sessionId: string): Observable<CheckoutSessionResponse> {

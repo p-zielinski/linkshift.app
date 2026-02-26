@@ -2,7 +2,6 @@ export enum OrganizationPlan {
   FREE = 'FREE',
   BASIC = 'BASIC',
   PRO = 'PRO',
-  CUSTOM = 'CUSTOM',
 }
 
 export type BillingInterval = 'MONTHLY' | 'YEARLY';
@@ -19,7 +18,6 @@ export enum OrganizationStatus {
 export class OrganizationSubscription {
   plan: OrganizationPlan = OrganizationPlan.FREE;
   planName: string | null = null;
-  customPlanId: string | null = null;
   status: OrganizationStatus = OrganizationStatus.ACTIVE;
   provider: 'LEMON_SQUEEZY' | 'MANUAL' | null = null;
   providerCustomerId: string | null = null;
