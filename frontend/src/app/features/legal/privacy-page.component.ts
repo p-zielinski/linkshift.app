@@ -11,5 +11,5 @@ import { SITE_CONFIG } from '../../core/config/site-config';
 })
 export class PrivacyPageComponent {
   readonly siteConfig = inject(SITE_CONFIG);
-  readonly updatedAt = '2026-02-05';
+  readonly updatedAt = '2026-02-26';
 }
