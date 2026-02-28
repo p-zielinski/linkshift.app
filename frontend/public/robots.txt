@@ -29,4 +29,4 @@ Disallow: /reset-password
 Disallow: /invite
 
 # Sitemap location (update with your actual domain)
-Sitemap: https://linkshift.app/
+Sitemap: https://linkshift.app/sitemap.xml
