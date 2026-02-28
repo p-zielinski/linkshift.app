@@ -1,0 +1,39 @@
+# LinkShift.App - Domain-group routing & redirect management
+
+> Technical documentation and service overview for LinkShift.App. This site provides structured guidance on managing complex URL redirects using domain groups, shared rules, regex, and conditional logic.
+
+## Core Content
+
+### Product Features
+- **Domain Group Management**: Logic for creating groups, attaching domains, and blueprints. [https://linkshift.app/home]
+- **Redirect Rules**: Regex support, capture groups, and ordered rule execution. [https://linkshift.app/home]
+- **Advanced Variables**: Support for `{path}`, `{query.*}`, `{segments.*}`, and `{domain.fqdn}`. [https://linkshift.app/home]
+- **Conditional Routing**: Methods for request-aware and time-based destinations. [https://linkshift.app/home]
+
+### Business & Pricing
+- **Pricing Plans**: Details on Free, Basic, and Pro tiers. [https://linkshift.app/pricing]
+- **Comparison**: See how LinkShift compares to other solutions. [https://linkshift.app/alternatives/]
+
+### Legal & Compliance (Allowed for indexing)
+- **Terms of Service**: [https://linkshift.app/terms]
+- **Privacy Policy**: [https://linkshift.app/privacy]
+- **Cookie Policy**: [https://linkshift.app/cookies]
+
+## Implementation Details
+
+### Workflow
+1. Create a Domain Group.
+2. Define Redirect Rules (Path prefix, Regex, or Link Maps).
+3. Attach Domains and Publish.
+
+## Technical Constraints & Boundaries
+
+### Non-Crawlable Areas (Private App Shell)
+The following paths are restricted to authenticated users and should not be indexed or crawled by LLMs:
+- **Dashboard & Management**: `/dashboard`, `/organization`, `/domains`, `/link-maps`, `/domain-groups`, `/redirect-rules`.
+- **User Profiles**: `/profile`.
+- **Auth System**: `/auth`, `/verify-email`, `/reset-password`, `/invite`.
+- **System Internals**: `/tests`, `/legal/consent`.
+
+### Support
+- **Contact**: For integration help or support, visit [https://linkshift.app/contact].
