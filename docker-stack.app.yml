@@ -62,7 +62,7 @@ services:
       - jwt_secret
       - jwt_refresh_secret
       - sentry_dsn
-      - lemon_squeezy_api_key2
+      - lemon_squeezy_api_key
       - lemon_squeezy_webhook_secret
       - zeptomail_api_key3
       - web_risk_api_key
@@ -118,7 +118,7 @@ secrets:
     external: true
   sentry_dsn:
     external: true
-  lemon_squeezy_api_key2:
+  lemon_squeezy_api_key:
     external: true
   lemon_squeezy_webhook_secret:
     external: true
