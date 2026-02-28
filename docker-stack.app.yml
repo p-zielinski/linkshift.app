@@ -87,7 +87,7 @@ services:
       - backblaze-application-key
     environment:
       - HOST_ID=eu1
-      - DATABASE=core
+      - DATABASE=linkshift
       - DB_HOST=postgres
       - DB_USER=postgres
       - DB_PASSWORD_FILE=/run/secrets/db-password
