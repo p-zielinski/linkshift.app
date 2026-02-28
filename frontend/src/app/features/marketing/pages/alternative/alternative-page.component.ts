@@ -57,14 +57,14 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         description: 'Use ordering and conditions to avoid conflicts.',
       },
     ],
-    heroPanelNote: 'Rules live with the group, so edits propagate to every domain.',
+    heroPanelNote: 'Rules live with the group, so edits propagate to domains in the group.',
     comparisonTitle: 'When redirect inventories outgrow simple lists',
     comparisonSubtitle:
-      'When every domain needs the same logic, domain groups keep routing consistent and auditable.',
+      'When multiple domains need the same logic, domain groups keep routing consistent and auditable.',
     comparisonCards: [
       {
         title: 'Group-driven governance',
-        description: 'Keep the rule set in one place and apply it to every domain in the group.',
+        description: 'Keep the rule set in one place and apply it to domains in the group.',
         bullets: [
           'Single rule inventory per group',
           'Shared priority ordering',
@@ -112,7 +112,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         icon: 'lock',
         title: 'HTTPS support',
-        description: 'SSL support is available for every domain so requests are served securely.',
+        description: 'SSL support is available for domains so requests are served securely.',
       },
       {
         icon: 'data_object',
@@ -138,7 +138,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         description: 'Carry the capture group and origin domain into the target.',
         source: '/^\\/promo\\/(\\d+)$/',
         destination: 'https://app.example.com/campaign/$1?from={domain.fqdn}',
-        note: 'Works across every domain attached to the group.',
+        note: 'Works across domains attached to the group.',
       },
       {
         title: 'Preserve query parameters',
@@ -162,7 +162,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
     ctaNote: '30-day satisfaction guarantee. Refunds available with no explanation required.',
     seoTitle: 'Redirect.pizza alternative for domain groups',
     seoDescription:
-      'Compare LinkShift.app with Redirect.pizza. Use domain groups, regex sources, placeholders, and conditional routing to manage large redirect inventories.',
+      'Explore LinkShift.app as an alternative to Redirect.pizza with domain groups, regex sources, placeholders, and conditional routing for large redirect inventories.',
   },
   'redirect-proxy': {
     slug: 'redirect-proxy',
@@ -193,7 +193,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         icon: 'corporate_fare',
         title: 'Multi-domain readiness',
-        description: 'Attach multiple domains and inherit the same logic instantly.',
+        description: 'Attach multiple domains and inherit the same logic without rework.',
       },
     ],
     heroPanelNote: 'Domain groups remove the need to duplicate rules per host.',
@@ -284,7 +284,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
     ctaNote: '30-day satisfaction guarantee. Refunds available with no explanation required.',
     seoTitle: 'Redirect proxy alternative for structured rules',
     seoDescription:
-      'Switch from proxy-based redirects to a domain-group model with regex sources, placeholders, and conditional routing.',
+      'Consider a domain-group model with regex sources, placeholders, and conditional routing instead of proxy-based redirects.',
   },
   'managed-redirects': {
     slug: 'managed-redirects',
@@ -340,7 +340,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         title: 'Ready for scale',
         description: 'Expand domain groups without rewriting existing rules.',
-        bullets: ['Attach domains instantly', 'Group-level limits', 'Fast rule updates'],
+        bullets: ['Attach domains without rework', 'Group-level limits', 'Simplified rule updates'],
       },
     ],
     featuresTitle: 'Built for redirect teams',
@@ -401,7 +401,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
     ctaNote: '30-day satisfaction guarantee. Refunds available with no explanation required.',
     seoTitle: 'Managed redirects alternative with domain groups',
     seoDescription:
-      'Organize managed redirects with domain groups, regex sources, placeholders, and conditional routing.',
+      'Organize redirects with domain groups, regex sources, placeholders, and conditional routing.',
   },
 };
 
@@ -475,7 +475,8 @@ export class AlternativePageComponent {
         title: `${this.siteConfig.name} | ${next.seoTitle}`,
         description: next.seoDescription,
         canonicalPath: `/alternatives/${next.slug}`,
-        keywords: 'redirect alternatives, domain group redirects, regex redirects, redirect rules, link maps',
+        keywords:
+          'redirect alternatives, domain group redirects, regex redirects, redirect rules, link maps',
       });
     });
   }

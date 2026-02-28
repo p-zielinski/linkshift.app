@@ -69,7 +69,7 @@ const PRICING_PLANS: PricingPlanBase[] = [
     key: OrganizationPlan.PRO,
     name: 'Pro',
     description: 'For high-traffic sites that need stricter governance.',
-    badge: 'Most popular',
+    badge: 'Featured',
     featured: true,
     features: [
       'Role-based access controls',
