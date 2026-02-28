@@ -21,20 +21,20 @@ import { MarketingCtaComponent } from '../../components/marketing-cta/marketing-
 const ALTERNATIVES: Record<string, AlternativeContent> = {
   'redirect-pizza': {
     slug: 'redirect-pizza',
-    eyebrow: 'Alternative comparison',
+    eyebrow: 'Alternative overview',
     title: 'Redirect.pizza alternative for domain-group redirects',
     subtitle:
       'Built for teams that need grouped domains, structured rules, and predictable routing across multiple environments.',
     highlights: [
-      'Domain groups as a first-class object',
+      'Domain groups for shared rule ownership',
       'Regex sources with capture groups',
       'Template variables and modifiers',
       'Conditional routing by request context',
       'Path prefix and query match modes',
       'Link maps for short links',
-      'SSL included on every domain',
+      'SSL support for custom domains',
     ],
-    heroPanelTitle: 'Switching checklist',
+    heroPanelTitle: 'Implementation checklist',
     heroPanelItems: [
       {
         icon: 'layers',
@@ -57,8 +57,8 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         description: 'Use ordering and conditions to avoid conflicts.',
       },
     ],
-    heroPanelNote: 'Rules live with the group, so edits propagate instantly to every domain.',
-    comparisonTitle: 'Why teams move beyond simple redirect lists',
+    heroPanelNote: 'Rules live with the group, so edits propagate to every domain.',
+    comparisonTitle: 'When redirect inventories outgrow simple lists',
     comparisonSubtitle:
       'When every domain needs the same logic, domain groups keep routing consistent and auditable.',
     comparisonCards: [
@@ -76,7 +76,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         description: 'Match, transform, and route traffic without brittle edge scripts.',
         bullets: [
           'Regex sources with capture groups',
-          'Placeholders like {path} and {query.*}',
+          'Request placeholders like {path} and {query.*}',
           'Modifiers such as :url_encode',
         ],
       },
@@ -106,12 +106,13 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         icon: 'map',
         title: 'Link maps for short links',
-        description: 'Create key-based maps with fallback destinations for campaigns.',
+        description:
+          'Create prefix-based maps to generate large sets of short links, with optional query-aware matching.',
       },
       {
         icon: 'lock',
-        title: 'HTTPS by default',
-        description: 'SSL is included for every domain so requests are served securely.',
+        title: 'HTTPS support',
+        description: 'SSL support is available for every domain so requests are served securely.',
       },
       {
         icon: 'data_object',
@@ -165,7 +166,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
   },
   'redirect-proxy': {
     slug: 'redirect-proxy',
-    eyebrow: 'Alternative comparison',
+    eyebrow: 'Alternative overview',
     title: 'Redirect proxy alternative with domain-group control',
     subtitle:
       'Run redirects without proxy scripts. Model your domains, rules, and conditions in a structured UI.',
@@ -196,9 +197,9 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       },
     ],
     heroPanelNote: 'Domain groups remove the need to duplicate rules per host.',
-    comparisonTitle: 'Why teams replace proxy-based redirect stacks',
+    comparisonTitle: 'Considerations for proxy-based redirect stacks',
     comparisonSubtitle:
-      'Proxy rules are powerful, but they become hard to audit once traffic grows.',
+      'Proxy rules are powerful, but they can become hard to audit once traffic grows.',
     comparisonCards: [
       {
         title: 'Centralized ownership',
@@ -225,7 +226,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       },
     ],
     featuresTitle: 'Purpose-built redirect modeling',
-    featuresSubtitle: 'Replace proxy scripts with explicit redirect rules.',
+    featuresSubtitle: 'Model redirects with explicit rules instead of maintaining proxy scripts.',
     features: [
       {
         icon: 'schema',
@@ -240,7 +241,8 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         icon: 'map',
         title: 'Link maps',
-        description: 'Resolve short keys into destinations with optional fallbacks.',
+        description:
+          'Generate prefix-based short links and decide whether query parameters affect matching.',
       },
       {
         icon: 'manage_search',
@@ -277,7 +279,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
         note: 'Segments and domain variables stay consistent across environments.',
       },
     ],
-    ctaTitle: 'Replace proxy scripts with structured rules',
+    ctaTitle: 'Model redirects with structured rules',
     ctaDescription: 'Create an account and keep routing logic visible, auditable, and grouped.',
     ctaNote: '30-day satisfaction guarantee. Refunds available with no explanation required.',
     seoTitle: 'Redirect proxy alternative for structured rules',
@@ -286,7 +288,7 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
   },
   'managed-redirects': {
     slug: 'managed-redirects',
-    eyebrow: 'Alternative comparison',
+    eyebrow: 'Alternative overview',
     title: 'Managed redirects without losing control',
     subtitle:
       'Keep redirects organized with domain groups while staying in full control of rule logic and validation.',
@@ -317,9 +319,9 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       },
     ],
     heroPanelNote: 'Keep the flexibility of managed redirects with the clarity of explicit rules.',
-    comparisonTitle: 'Managed service outcomes with internal control',
+    comparisonTitle: 'Managed-service outcomes with internal control',
     comparisonSubtitle:
-      'Domain groups let teams keep routing centralized without handing off every change.',
+      'For teams evaluating Short.io, Bitly, or Dub.co, LinkShift is an alternative focused on rule-based routing. We may not match the breadth of analytics those platforms offer, but we do provide link maps and complex redirect rules built on regex and request variables.',
     comparisonCards: [
       {
         title: 'Transparent rule inventory',
@@ -357,7 +359,8 @@ const ALTERNATIVES: Record<string, AlternativeContent> = {
       {
         icon: 'map',
         title: 'Link maps',
-        description: 'Resolve short keys into destinations with fallback routing.',
+        description:
+          'Build prefix-based short-link catalogs with optional query-aware matching and fallbacks.',
       },
       {
         icon: 'terminal',
