@@ -115,11 +115,11 @@ docker login ghcr.io
 
 Build and push images from the repo root:
 ```bash
-docker build -f backend/Dockerfile -t ghcr.io/your-org/redirect-backend:latest .
-docker build -f frontend/Dockerfile -t ghcr.io/your-org/redirect-frontend:latest .
+docker build -f backend/Dockerfile -t ghcr.io/your-org/linkshift-backend:latest .
+docker build -f frontend/Dockerfile -t ghcr.io/your-org/linkshift-frontend:latest .
 
-docker push ghcr.io/your-org/redirect-backend:latest
-docker push ghcr.io/your-org/redirect-frontend:latest
+docker push ghcr.io/your-org/linkshift-backend:latest
+docker push ghcr.io/your-org/linkshift-frontend:latest
 ```
 
 ### 2) Prepare the stack environment

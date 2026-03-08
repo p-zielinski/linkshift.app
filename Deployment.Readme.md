@@ -349,8 +349,8 @@ sudo systemctl start wg-quick@wg0
 Redeploy with a previous image tag:
 
 ```bash
-export BACKEND_IMAGE=ghcr.io/your-org/redirect-backend:<tag>
-export FRONTEND_IMAGE=ghcr.io/your-org/redirect-frontend:<tag>
+export BACKEND_IMAGE=ghcr.io/your-org/linkshift-backend:<tag>
+export FRONTEND_IMAGE=ghcr.io/your-org/linkshift-frontend:<tag>
 
 docker stack deploy -c docker-stack.app.yml ${APP_STACK_NAME}
 ```
