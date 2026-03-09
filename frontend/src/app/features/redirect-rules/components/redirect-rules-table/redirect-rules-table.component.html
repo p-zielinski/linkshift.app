@@ -1,0 +1,166 @@
+<table mat-table [dataSource]="rules()" class="min-w-[960px] w-full mat-elevation-z0">
+  <ng-container matColumnDef="priority">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[80px] max-w-[250px] truncate">
+      Priority
+    </th>
+    <td mat-cell *matCellDef="let rule" class="py-3 min-w-[80px] max-w-[250px] truncate">
+      {{ rule.priority }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="id">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+      Id
+    </th>
+    <td mat-cell *matCellDef="let rule" class="py-3 min-w-[150px] max-w-[250px] truncate">
+      <app-resource-pill
+        [label]="rule.id"
+        [tooltip]="'Redirect rule Id: ' + rule.id"
+      ></app-resource-pill>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="matchMethod">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+      Methods
+    </th>
+    <td mat-cell *matCellDef="let rule" class="py-3 min-w-[150px] max-w-[250px] truncate">
+      {{ formatMatchMethods(rule.matchMethod) }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="matchMode">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[110px] max-w-[250px] truncate">
+      Match
+    </th>
+    <td mat-cell *matCellDef="let rule" class="py-3 min-w-[110px] max-w-[250px] truncate">
+      <div class="flex items-center gap-2">
+        <mat-icon
+          class="text-[18px] text-app-muted"
+          [matTooltip]="pathMatchTooltip(rule)"
+        >
+          {{ pathMatchIcon(rule) }}
+        </mat-icon>
+        <mat-icon
+          class="text-[18px] text-app-muted"
+          [matTooltip]="queryMatchTooltip(rule)"
+        >
+          {{ queryMatchIcon(rule) }}
+        </mat-icon>
+        @if (rule.linkMapId) {
+          <mat-icon
+            class="text-[18px] text-app-muted"
+            [matTooltip]="'Link map rule: ' + rule.linkMapId"
+          >
+            map
+          </mat-icon>
+        }
+      </div>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="source">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+      Source
+    </th>
+    <td
+      mat-cell
+      *matCellDef="let rule"
+      class="py-3 min-w-[150px] max-w-[250px] truncate"
+      [matTooltip]="rule.source"
+    >
+      {{ rule.source }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="destination" sticky>
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+      Destination
+    </th>
+    <td
+      mat-cell
+      *matCellDef="let rule"
+      class="py-3 min-w-[150px] max-w-[250px] truncate"
+      [matTooltip]="rule.destination || 'No destination (link map)'"
+    >
+      {{ rule.destination || '—' }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="statusCode">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[80px] max-w-[250px] truncate">
+      Status
+    </th>
+    <td mat-cell *matCellDef="let rule" class="py-3 min-w-[80px] max-w-[250px] truncate">
+      {{ rule.statusCode }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="state">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[120px] max-w-[250px] truncate">
+      State
+    </th>
+    <td mat-cell *matCellDef="let rule" class="py-3 min-w-[120px] max-w-[250px] truncate">
+      <span [class]="stateClass(rule)">{{ stateLabel(rule) }}</span>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="group">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+      Domain group
+    </th>
+    <td mat-cell *matCellDef="let rule" class="py-3 min-w-[150px] max-w-[250px] truncate">
+      <app-resource-pill
+        [label]="groupLabel(rule.domainGroupId)"
+        [tooltip]="groupTooltip(rule.domainGroupId)"
+      ></app-resource-pill>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="createdAt">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+      Created at
+    </th>
+    <td
+      mat-cell
+      *matCellDef="let rule"
+      class="py-3 min-w-[150px] max-w-[250px] truncate text-[13px] text-app-muted"
+    >
+      {{ rule.createdAt | date:'yyyy-MM-dd HH:mm' }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="actions" stickyEnd>
+    <th mat-header-cell *matHeaderCellDef class="min-w-[180px] max-w-[220px] truncate"></th>
+    <td mat-cell *matCellDef="let rule" class="py-3 min-w-[180px] max-w-[220px] truncate">
+      <div class="flex items-center gap-1">
+        <button
+          mat-icon-button
+          matTooltip="Edit rule"
+          (click)="onEdit(rule)"
+        >
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          color="warn"
+          matTooltip="Delete rule"
+          (click)="onDelete(rule.id)"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="columns"></tr>
+  <tr mat-row *matRowDef="let row; columns: columns"></tr>
+  <tr class="mat-row" *matNoDataRow>
+    <td
+      class="mat-cell px-0 py-6 text-center text-[13px] text-app-muted"
+      [attr.colspan]="columns.length"
+    >
+      No redirect rules found.
+    </td>
+  </tr>
+</table>

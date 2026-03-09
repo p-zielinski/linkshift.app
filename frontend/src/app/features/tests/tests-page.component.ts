@@ -1,24 +1,16 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { debounce, form, required, FormField } from '@angular/forms/signals';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { RedirectTestStore } from '../../core/store/redirect-test.store';
-import {
-  RedirectTestResultsStore,
-  type RedirectTestRunState,
-} from '../../core/store/redirect-test-results.store';
+import { RedirectTestResultsStore } from '../../core/store/redirect-test-results.store';
 import { RedirectTestFormDialogComponent } from './redirect-test-form-dialog.component';
 import { RedirectTestResultDialogComponent } from './redirect-test-result-dialog.component';
 import { RunPendingTestsDialogComponent } from './run-pending-tests-dialog.component';
@@ -28,24 +20,29 @@ import { buildSimulationEntry } from './redirect-test.utils';
 import { extractErrorMessage } from '../../core/store/store-error.utils';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../core/store/auth.store';
+import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
+import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
+import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
+import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
+import { TestsTableComponent } from './components/tests-table/tests-table.component';
 
 @Component({
   selector: 'app-tests-page',
   standalone: true,
   imports: [
-    CommonModule,
-    MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
     MatDialogModule,
     MatSnackBarModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     FormField,
-    PageHeaderComponent,
     TablePaginatorComponent,
+    ResourcePageShellComponent,
+    ResourceCardComponent,
+    ResourceTableCardComponent,
+    DomainGroupSelectComponent,
+    TestsTableComponent,
   ],
   templateUrl: './tests-page.component.html',
   styleUrl: './tests-page.component.css',
@@ -59,7 +56,6 @@ export class TestsPageComponent {
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly redirectRulesApi = inject(RedirectRulesApiService);
 
-  readonly columns = ['path', 'expected', 'result', 'actions'];
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly pageLimitOptions = [100];
   readonly pageLimit = signal(100);
@@ -122,7 +118,9 @@ export class TestsPageComponent {
     return this.redirectTestStore.selectListResult(filter)();
   });
 
+  readonly listReady = computed(() => !!this.listResult());
   readonly hasNextPage = computed(() => !!this.listResult()?.moreStartingAfterId);
+  readonly runStates = computed(() => this.redirectTestResultsStore.results());
 
   constructor() {
     if (this.authStore.isAuthenticated()) {
@@ -258,7 +256,7 @@ export class TestsPageComponent {
       maxWidth: '94vw',
       data: {
         test,
-        runState: this.resolveRunState(test),
+        runState: this.runStates()[test.id] ?? null,
       },
     });
   }
@@ -309,54 +307,6 @@ export class TestsPageComponent {
     });
   }
 
-  formatExpectedResult(test: RedirectTest): string {
-    const expected = test.expectedResult;
-    if (!expected) {
-      return 'Expectation not set';
-    }
-    if (!expected.matched) {
-      return 'No redirect (404)';
-    }
-    if (!expected.target) {
-      return `${expected.statusCode} (missing target)`;
-    }
-    return `${expected.statusCode} -> ${expected.target}`;
-  }
-
-  formatActualResult(test: RedirectTest): string {
-    const runState = this.resolveRunState(test);
-    if (runState?.lastError) {
-      return runState.lastError;
-    }
-    if (!runState?.lastResult) {
-      return '';
-    }
-
-    const { statusCode, target, matched } = runState.lastResult;
-    if (!matched) {
-      return 'No redirect (404)';
-    }
-    if (!target) {
-      return `${statusCode} (no target)`;
-    }
-    return `${statusCode} -> ${target}`;
-  }
-
-  statusLabel(test: RedirectTest): string {
-    const status = this.computeStatus(test);
-    return status.label;
-  }
-
-  statusClass(test: RedirectTest): string {
-    const status = this.computeStatus(test);
-    return status.tone;
-  }
-
-  showResultDetails(test: RedirectTest): boolean {
-    const status = this.computeStatus(test);
-    return status.kind !== 'pending';
-  }
-
   onPageChange(page: number): void {
     this.page.set(page);
   }
@@ -385,66 +335,6 @@ export class TestsPageComponent {
     );
   }
 
-  private resolveRunState(test: RedirectTest): RedirectTestRunState | null {
-    return this.redirectTestResultsStore.results()[test.id] ?? null;
-  }
-
-  private computeStatus(test: RedirectTest): {
-    label: string;
-    kind: 'pending' | 'success' | 'warning' | 'danger';
-    tone: string;
-  } {
-    const runState = this.resolveRunState(test);
-    const expected = test.expectedResult;
-
-    if (!runState || (!runState.lastRunAt && !runState.lastResult && !runState.lastError)) {
-      return {
-        label: 'Not run',
-        kind: 'pending',
-        tone: 'status-pill status-pill--pending',
-      };
-    }
-
-    if (runState.lastError) {
-      return {
-        label: 'Error',
-        kind: 'danger',
-        tone: 'status-pill status-pill--danger',
-      };
-    }
-
-    if (!runState.lastResult || !expected) {
-      return {
-        label: 'Needs review',
-        kind: 'warning',
-        tone: 'status-pill status-pill--warning',
-      };
-    }
-
-    const matches = this.compareResults(expected, runState.lastResult);
-    if (matches) {
-      return {
-        label: 'Passed',
-        kind: 'success',
-        tone: 'status-pill status-pill--success',
-      };
-    }
-
-    return {
-      label: 'Failed',
-      kind: 'danger',
-      tone: 'status-pill status-pill--danger',
-    };
-  }
-
-  private compareResults(expected: RedirectTestResult, actual: RedirectTestResult): boolean {
-    return (
-      expected.matched === actual.matched &&
-      expected.statusCode === actual.statusCode &&
-      (expected.target ?? null) === (actual.target ?? null)
-    );
-  }
-
   private setRunning(testId: string, running: boolean): void {
     this.runningTestIds.update((current) => {
       const next = new Set(current);
@@ -455,5 +345,13 @@ export class TestsPageComponent {
       }
       return next;
     });
+  }
+
+  private compareResults(expected: RedirectTestResult, actual: RedirectTestResult): boolean {
+    return (
+      expected.matched === actual.matched &&
+      expected.statusCode === actual.statusCode &&
+      (expected.target ?? null) === (actual.target ?? null)
+    );
   }
 }

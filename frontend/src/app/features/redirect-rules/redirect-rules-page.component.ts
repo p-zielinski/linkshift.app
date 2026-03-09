@@ -7,20 +7,14 @@ import {
   EnvironmentInjector,
   runInInjectionContext
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { debounce, form, required, FormField } from '@angular/forms/signals';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { ResourcePillComponent } from '../../shared/components/resource-pill/resource-pill.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
@@ -44,25 +38,33 @@ import type { RedirectRuleDialogResult } from './redirect-rule-form-dialog.compo
 import type { RedirectRule } from '../../core/models/redirect-rule.model';
 import { AuthStore } from '../../core/store/auth.store';
 import { getFilterKey } from '../../core/store/entity/entity-store.utils';
+import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
+import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
+import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
+import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
+import { RedirectRulesTableComponent } from './components/redirect-rules-table/redirect-rules-table.component';
+import {
+  RedirectTestsSummaryCardComponent,
+} from './components/redirect-tests-summary-card/redirect-tests-summary-card.component';
 
 @Component({
   selector: 'app-redirect-rules-page',
   standalone: true,
   imports: [
-    CommonModule,
-    MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
     MatDialogModule,
     MatSnackBarModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     FormField,
-    PageHeaderComponent,
-    ResourcePillComponent,
-    TablePaginatorComponent
+    TablePaginatorComponent,
+    ResourcePageShellComponent,
+    ResourceCardComponent,
+    ResourceTableCardComponent,
+    DomainGroupSelectComponent,
+    RedirectRulesTableComponent,
+    RedirectTestsSummaryCardComponent
   ],
   templateUrl: './redirect-rules-page.component.html',
   styleUrl: './redirect-rules-page.component.css'
@@ -77,19 +79,6 @@ export class RedirectRulesPageComponent {
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly envInjector = inject(EnvironmentInjector);
 
-  readonly columns = [
-    'priority',
-    'id',
-    'matchMethod',
-    'matchMode',
-    'source',
-    'destination',
-    'statusCode',
-    'state',
-    'group',
-    'createdAt',
-    'actions'
-  ];
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly pageLimitOptions = [20];
   readonly pageLimit = signal(20);
@@ -397,50 +386,6 @@ export class RedirectRulesPageComponent {
 
   groupLabel(groupId: string): string {
     return this.groupMap()[groupId]?.name ?? groupId;
-  }
-
-  groupTooltip(groupId: string): string {
-    const name = this.groupMap()[groupId]?.name;
-    return name
-      ? `Domain group: ${name} (${groupId})`
-      : `Domain group Id: ${groupId}`;
-  }
-
-  formatMatchMethods(methods: string[] | undefined): string {
-    if (!methods || methods.length === 0) {
-      return 'All';
-    }
-    return methods.join(', ');
-  }
-
-  pathMatchIcon(rule: RedirectRule): string {
-    return rule.pathMatch === 'prefix' ? 'call_split' : 'rule';
-  }
-
-  pathMatchTooltip(rule: RedirectRule): string {
-    return rule.pathMatch === 'prefix'
-      ? 'Path match: prefix (/v1/*)'
-      : 'Path match: exact';
-  }
-
-  queryMatchIcon(rule: RedirectRule): string {
-    if (rule.queryMatch === 'ignore') {
-      return 'search_off';
-    }
-    if (rule.queryMatch === 'subset') {
-      return 'filter_alt';
-    }
-    return 'manage_search';
-  }
-
-  queryMatchTooltip(rule: RedirectRule): string {
-    if (rule.queryMatch === 'ignore') {
-      return 'Query match: ignore';
-    }
-    if (rule.queryMatch === 'subset') {
-      return 'Query match: subset (extra params allowed)';
-    }
-    return 'Query match: exact (includes query)';
   }
 
   onPageChange(page: number): void {
