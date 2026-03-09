@@ -6,6 +6,8 @@
 - Use standalone components with explicit `imports` and typed `input`/`output` APIs.
 - Prefer composition over inheritance: `ResourcePageShell` + `ResourceCard` + `ResourceTableCard`.
 - Use named content slots consistently: `page-actions`, `table-content`, `table-footer`.
+- Use `WizardDialogService.openWizard` for multi-step resource creation flows.
+- Keep wizard step definitions inside the owning component and pass them to `app-wizard`.
 
 ## Styling and Layout
 - Use Tailwind utility classes for layout, spacing, and typography.

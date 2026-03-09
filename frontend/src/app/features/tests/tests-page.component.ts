@@ -11,7 +11,10 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { RedirectTestStore } from '../../core/store/redirect-test.store';
 import { RedirectTestResultsStore } from '../../core/store/redirect-test-results.store';
-import { RedirectTestFormDialogComponent } from './redirect-test-form-dialog.component';
+import {
+  RedirectTestFormDialogComponent,
+  type RedirectTestDialogData,
+} from './redirect-test-form-dialog.component';
 import { RedirectTestResultDialogComponent } from './redirect-test-result-dialog.component';
 import { RunPendingTestsDialogComponent } from './run-pending-tests-dialog.component';
 import type { RedirectTest, RedirectTestResult } from '../../core/models/redirect-test.model';
@@ -25,6 +28,7 @@ import { ResourceCardComponent } from '../../shared/components/resource-card/res
 import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
 import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
 import { TestsTableComponent } from './components/tests-table/tests-table.component';
+import { WizardDialogService } from '../../core/services/wizard-dialog.service';
 
 @Component({
   selector: 'app-tests-page',
@@ -50,6 +54,7 @@ import { TestsTableComponent } from './components/tests-table/tests-table.compon
 export class TestsPageComponent {
   private readonly authStore = inject(AuthStore);
   private readonly dialog = inject(MatDialog);
+  private readonly wizardDialog = inject(WizardDialogService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly redirectTestStore = inject(RedirectTestStore);
   private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
@@ -196,14 +201,12 @@ export class TestsPageComponent {
       return;
     }
 
-    const dialogRef = this.dialog.open(RedirectTestFormDialogComponent, {
-      width: 'calc(100vw - 60px)',
-      maxWidth: 'calc(100vw - 60px)',
-      height: 'calc(100vh - 60px)',
-      maxHeight: 'calc(100vh - 60px)',
-      data: {
-        domainGroupId: this.activeGroupId(),
-      },
+    const dialogRef = this.wizardDialog.openWizard<
+      RedirectTestFormDialogComponent,
+      RedirectTestDialogData,
+      boolean
+    >(RedirectTestFormDialogComponent, {
+      domainGroupId: this.activeGroupId(),
     });
 
     dialogRef.afterClosed().subscribe((created) => {
@@ -214,14 +217,12 @@ export class TestsPageComponent {
   }
 
   openEditDialog(test: RedirectTest): void {
-    const dialogRef = this.dialog.open(RedirectTestFormDialogComponent, {
-      width: 'calc(100vw - 60px)',
-      maxWidth: 'calc(100vw - 60px)',
-      height: 'calc(100vh - 60px)',
-      maxHeight: 'calc(100vh - 60px)',
-      data: {
-        test,
-      },
+    const dialogRef = this.wizardDialog.openWizard<
+      RedirectTestFormDialogComponent,
+      RedirectTestDialogData,
+      boolean
+    >(RedirectTestFormDialogComponent, {
+      test,
     });
 
     dialogRef.afterClosed().subscribe((saved) => {

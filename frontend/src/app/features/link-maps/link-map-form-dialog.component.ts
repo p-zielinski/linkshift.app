@@ -1,23 +1,26 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { form, required, FormField } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
 import { LinkMapsApiService } from '../../core/api/link-maps-api.service';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { LinkMapStore } from '../../core/store/link-map.store';
-import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
 import { extractErrorMessage } from '../../core/store/store-error.utils';
 import type { LinkMapQueryMatch, LinkMap, LinkMapEntry } from '../../core/models/link-map.model';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { z } from 'zod';
+import { WizardComponent, type WizardStep } from '../../shared/components/wizard/wizard.component';
+import {
+  WizardStepDirective,
+  WizardStepSummaryDirective,
+} from '../../shared/components/wizard/wizard-step.directive';
 
 const normalizeDestinationValue = (value: string): string => {
   const trimmed = value.trim();
@@ -84,6 +87,9 @@ export type LinkMapDialogData = {
 
 export type LinkMapDialogResult = {
   saved: boolean;
+  linkMapId?: string;
+  domainGroupId?: string;
+  name?: string;
 };
 
 @Component({
@@ -91,15 +97,16 @@ export type LinkMapDialogResult = {
   standalone: true,
   imports: [
     CommonModule,
-    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
     MatIconModule,
     MatSelectModule,
     MatCheckboxModule,
-    MatTooltipModule,
     FormField,
+    WizardComponent,
+    WizardStepDirective,
+    WizardStepSummaryDirective,
   ],
   templateUrl: './link-map-form-dialog.component.html',
   styleUrl: './link-map-form-dialog.component.css',
@@ -110,26 +117,13 @@ export class LinkMapFormDialogComponent {
   private readonly linkMapsApi = inject(LinkMapsApiService);
   private readonly linkMapStore = inject(LinkMapStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
-  private readonly pendingSubmit = signal(false);
-  private readonly submitErrorSequence = signal(0);
-  private readonly submitLoadingSeen = signal(false);
-  private readonly activeRequestId = signal<string | null>(null);
-  private readonly pendingEntrySync = signal(false);
-  private readonly entrySyncInProgress = signal(false);
-  private readonly pendingEntries = signal<Array<{ key: string; destination: string }> | null>(null);
+  private readonly saving = signal(false);
   private readonly existingLoaded = signal(false);
 
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly isEdit = computed(() => !!this.data?.linkMapId);
-  readonly loading = computed(() => {
-    if (this.entrySyncInProgress()) {
-      return true;
-    }
-    if (this.isSaving()) {
-      return true;
-    }
-    return this.detailsLoading();
-  });
+  readonly domainGroupLocked = computed(() => !!this.data?.domainGroupId);
+  readonly loading = computed(() => this.saving() || this.detailsLoading());
   readonly bulkText = signal('');
   readonly bulkError = signal<string | null>(null);
   readonly submitError = signal<string | null>(null);
@@ -194,13 +188,6 @@ export class LinkMapFormDialogComponent {
     }
     return !!this.linkMapStore.isLoading()[id];
   });
-  readonly isSaving = computed(() => {
-    const requestId = this.activeRequestId();
-    if (!requestId) {
-      return false;
-    }
-    return !!this.linkMapStore.isLoading()[requestId];
-  });
   readonly existingMap = computed(() => {
     const id = this.data?.linkMapId;
     if (!id) {
@@ -208,6 +195,39 @@ export class LinkMapFormDialogComponent {
     }
     return this.linkMapStore.selectById(id)();
   });
+  readonly detailsComplete = computed(() => {
+    return (
+      this.mapForm.name().valid() &&
+      this.mapForm.domainGroupId().valid() &&
+      this.mapForm.fallbackDestination().valid()
+    );
+  });
+  readonly entriesComplete = computed(() => {
+    return this.duplicateKeys().length === 0 && this.invalidEntries().length === 0;
+  });
+  readonly steps = computed<WizardStep[]>(() => [
+    {
+      id: 'details',
+      label: 'Details',
+      title: 'Map details',
+      description: 'Name the map and define how keys are matched.',
+      complete: this.detailsComplete(),
+    },
+    {
+      id: 'entries',
+      label: 'Entries',
+      title: 'Map entries',
+      description: 'Add key to destination mappings for this link map.',
+      complete: this.entriesComplete(),
+    },
+    {
+      id: 'bulk',
+      label: 'Bulk import',
+      title: 'Import entries',
+      description: 'Paste many rows in one go.',
+      complete: true,
+    },
+  ]);
 
   constructor() {
     this.domainGroupStore.searchList();
@@ -233,41 +253,6 @@ export class LinkMapFormDialogComponent {
       this.existingLoaded.set(true);
     });
 
-    effect(() => {
-      if (!this.pendingSubmit()) {
-        return;
-      }
-
-      const saving = this.isSaving();
-      if (saving) {
-        if (!this.submitLoadingSeen()) {
-          this.submitLoadingSeen.set(true);
-        }
-        return;
-      }
-
-      if (!this.submitLoadingSeen()) {
-        return;
-      }
-
-      const hadError = this.linkMapStore.errorSequence() > this.submitErrorSequence();
-      if (hadError) {
-        this.submitError.set(this.linkMapStore.lastError() ?? 'Unable to save link map.');
-        this.linkMapStore.clearError();
-        this.resetSubmitState();
-        return;
-      }
-
-      if (this.pendingEntrySync()) {
-        if (!this.entrySyncInProgress()) {
-          void this.syncEntries();
-        }
-        return;
-      }
-
-      this.resetSubmitState();
-      this.dialogRef.close({ saved: true } as LinkMapDialogResult);
-    });
   }
 
   trackById(_: number, row: EntryRow) {
@@ -379,8 +364,11 @@ export class LinkMapFormDialogComponent {
     this.entries.update((rows) => [...rows, ...parsed]);
   }
 
-  async onSubmit(event?: Event): Promise<void> {
+  async onSave(event?: Event): Promise<void> {
     event?.preventDefault();
+    if (this.saving()) {
+      return;
+    }
     this.submitError.set(null);
     this.submitAttempted.set(true);
 
@@ -392,28 +380,38 @@ export class LinkMapFormDialogComponent {
     }
 
     const entriesPayload = this.buildEntriesPayload();
-    this.linkMapStore.clearError();
-    this.submitErrorSequence.set(this.linkMapStore.errorSequence());
-    this.submitLoadingSeen.set(false);
-    this.pendingSubmit.set(true);
-    this.pendingEntrySync.set(false);
-    this.entrySyncInProgress.set(false);
+    this.saving.set(true);
 
-    if (this.isEdit() && this.data?.linkMapId) {
-      this.pendingEntrySync.set(true);
-      this.activeRequestId.set(this.data.linkMapId);
-      this.setPendingEntries(entriesPayload);
-      this.linkMapStore.upsert({
-        id: this.data.linkMapId,
-        entity: this.buildUpdatePayload(),
-      });
-      return;
+    try {
+      let saved: LinkMap;
+
+      if (this.isEdit() && this.data?.linkMapId) {
+        saved = await firstValueFrom(
+          this.linkMapsApi.update(this.data.linkMapId, this.buildUpdatePayload()),
+        );
+        await firstValueFrom(
+          this.linkMapsApi.upsertEntries(this.data.linkMapId, {
+            mode: 'replace',
+            entries: entriesPayload,
+          }),
+        );
+      } else {
+        saved = await firstValueFrom(this.linkMapsApi.create(this.buildCreatePayload(entriesPayload)));
+      }
+
+      this.linkMapStore.searchDetails(saved.id, true);
+      this.linkMapStore.searchList({ domainGroupId: saved.domainGroupId }, true);
+      this.dialogRef.close({
+        saved: true,
+        linkMapId: saved.id,
+        domainGroupId: saved.domainGroupId,
+        name: saved.name,
+      } as LinkMapDialogResult);
+    } catch (error: unknown) {
+      this.submitError.set(extractErrorMessage(error, 'Unable to save link map.'));
+    } finally {
+      this.saving.set(false);
     }
-
-    this.activeRequestId.set(CREATE_ENTITY_ID);
-    this.linkMapStore.upsert({
-      entity: this.buildCreatePayload(entriesPayload),
-    });
   }
 
   onCancel(): void {
@@ -453,10 +451,6 @@ export class LinkMapFormDialogComponent {
     }));
   }
 
-  private setPendingEntries(entries: Array<{ key: string; destination: string }>): void {
-    this.pendingEntries.set(entries);
-  }
-
   private populateFromMap(map: LinkMapDetails): void {
     if (!map) {
       return;
@@ -475,37 +469,6 @@ export class LinkMapFormDialogComponent {
     }));
     this.entries.set(entries);
     this.showEntries.set(entries.length <= 2000);
-  }
-
-  private resetSubmitState(): void {
-    this.pendingSubmit.set(false);
-    this.submitLoadingSeen.set(false);
-    this.pendingEntrySync.set(false);
-    this.entrySyncInProgress.set(false);
-    this.activeRequestId.set(null);
-    this.pendingEntries.set(null);
-  }
-
-  private async syncEntries(): Promise<void> {
-    if (!this.data?.linkMapId) {
-      this.resetSubmitState();
-      return;
-    }
-    const entries = this.pendingEntries() ?? [];
-    this.entrySyncInProgress.set(true);
-    try {
-      await firstValueFrom(
-        this.linkMapsApi.upsertEntries(this.data.linkMapId, {
-          mode: 'replace',
-          entries,
-        }),
-      );
-      this.resetSubmitState();
-      this.dialogRef.close({ saved: true } as LinkMapDialogResult);
-    } catch (error: unknown) {
-      this.submitError.set(extractErrorMessage(error, 'Unable to save link map.'));
-      this.resetSubmitState();
-    }
   }
 
   private getDuplicateKeys(): string[] {

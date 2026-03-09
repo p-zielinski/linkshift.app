@@ -8,7 +8,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
 import { DomainStore } from '../../core/store/domain.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
-import { DomainFormDialogComponent } from './domain-form-dialog.component';
+import { DomainFormDialogComponent, type DomainDialogData } from './domain-form-dialog.component';
 import type { Domain } from '../../core/models/domain.model';
 import { AuthStore } from '../../core/store/auth.store';
 import { DomainSetupDialogComponent } from './domain-setup-dialog.component';
@@ -17,6 +17,7 @@ import { ResourceCardComponent } from '../../shared/components/resource-card/res
 import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
 import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
 import { DomainsTableComponent } from './components/domains-table/domains-table.component';
+import { WizardDialogService } from '../../core/services/wizard-dialog.service';
 
 @Component({
   selector: 'app-domains-page',
@@ -38,6 +39,7 @@ import { DomainsTableComponent } from './components/domains-table/domains-table.
 export class DomainsPageComponent {
   private readonly authStore = inject(AuthStore);
   private readonly dialog = inject(MatDialog);
+  private readonly wizardDialog = inject(WizardDialogService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly domainStore = inject(DomainStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
@@ -131,11 +133,12 @@ export class DomainsPageComponent {
   }
 
   openCreateDialog(): void {
-    const dialogRef = this.dialog.open(DomainFormDialogComponent, {
-      width: '480px',
-      data: {
-        domainGroupId: this.activeGroupId() || undefined
-      }
+    const dialogRef = this.wizardDialog.openWizard<
+      DomainFormDialogComponent,
+      DomainDialogData,
+      boolean
+    >(DomainFormDialogComponent, {
+      domainGroupId: this.activeGroupId() || undefined
     });
 
     dialogRef.afterClosed().subscribe((created) => {
@@ -146,11 +149,12 @@ export class DomainsPageComponent {
   }
 
   openEditDialog(domain: Domain): void {
-    this.dialog.open(DomainFormDialogComponent, {
-      width: '480px',
-      data: {
-        domain
-      }
+    this.wizardDialog.openWizard<
+      DomainFormDialogComponent,
+      DomainDialogData,
+      boolean
+    >(DomainFormDialogComponent, {
+      domain
     });
   }
 

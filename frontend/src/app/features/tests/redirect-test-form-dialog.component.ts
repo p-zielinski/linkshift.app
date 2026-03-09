@@ -1,11 +1,10 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { MatStepperModule } from '@angular/material/stepper';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { form, required, submit, FormField } from '@angular/forms/signals';
@@ -26,6 +25,11 @@ import {
   stringifyQuery,
   ensureLeadingSlash
 } from './redirect-test.utils';
+import { WizardComponent, type WizardStep } from '../../shared/components/wizard/wizard.component';
+import {
+  WizardStepDirective,
+  WizardStepSummaryDirective,
+} from '../../shared/components/wizard/wizard-step.directive';
 
 const STATUS_CODE_OPTIONS = [301, 302, 307, 308, 404] as const;
 const METHOD_OPTIONS: Array<{ label: string; value: string }> = [
@@ -72,15 +76,16 @@ export type RedirectTestDialogData = {
   standalone: true,
   imports: [
     CommonModule,
-    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
     MatIconModule,
     MatSelectModule,
-    MatStepperModule,
     MatSnackBarModule,
-    FormField
+    FormField,
+    WizardComponent,
+    WizardStepDirective,
+    WizardStepSummaryDirective
   ],
   templateUrl: './redirect-test-form-dialog.component.html',
   styleUrl: './redirect-test-form-dialog.component.css'
@@ -260,6 +265,29 @@ export class RedirectTestFormDialogComponent {
   readonly submitDisabled = computed(
     () => !this.canSubmit() || this.form().submitting() || this.pendingSubmit()
   );
+  readonly steps = computed<WizardStep[]>(() => [
+    {
+      id: 'scope',
+      label: 'Scope',
+      title: 'Request scope',
+      description: 'Choose domain group, hostname, and path.',
+      complete: this.scopeValid(),
+    },
+    {
+      id: 'request',
+      label: 'Request',
+      title: 'Request details',
+      description: 'Optional headers and request properties.',
+      complete: true,
+    },
+    {
+      id: 'expected',
+      label: 'Expected',
+      title: 'Expected outcome',
+      description: 'Define expected status and target.',
+      complete: this.expectationValid(),
+    },
+  ]);
 
   constructor() {
     this.domainGroupStore.searchList();

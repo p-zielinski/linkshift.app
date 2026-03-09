@@ -1,38 +1,40 @@
-<div class="grid gap-4 p-6">
-  <h3 class="m-0 text-lg font-semibold">{{ dialogTitle }}</h3>
-  <form class="grid gap-4" (submit)="onSubmit($event)">
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-label>Domain name</mat-label>
-      <input matInput type="text" [formField]="domainForm.name" />
-      @if (nameError(); as error) {
-        <mat-error>{{ error }}</mat-error>
-      }
-    </mat-form-field>
+<form class="h-full" (submit)="onSubmit($event)" (keydown.enter)="$event.preventDefault()">
+  <app-wizard
+    [title]="dialogTitle"
+    subtitle="Add or update a domain used in routing."
+    [steps]="steps()"
+    [saveLabel]="submitLabel"
+    [saveDisabled]="domainForm().submitting() || !canSubmit()"
+    (save)="onSubmit()"
+    (cancel)="onCancel()"
+  >
+    <ng-template wizardStepSummary="details">
+      <div class="text-xs text-app-muted">{{ domainModel().name || 'No domain yet' }}</div>
+      <div class="text-[11px] text-app-muted">{{ domainModel().domainGroupId || 'Select group' }}</div>
+    </ng-template>
 
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-label>Domain group</mat-label>
-      <mat-select [formField]="domainForm.domainGroupId">
-        @for (group of domainGroups(); track group.id) {
-          <mat-option [value]="group.id">{{ group.name }}</mat-option>
-        }
-      </mat-select>
-      @if (groupError(); as error) {
-        <mat-error>{{ error }}</mat-error>
-      }
-    </mat-form-field>
+    <ng-template wizardStep="details">
+      <div class="grid gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Domain name</mat-label>
+          <input matInput type="text" [formField]="domainForm.name" />
+          @if (nameError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
 
-    <div class="mt-4 flex justify-end gap-3">
-      <button mat-stroked-button type="button" (click)="onCancel()">
-        Cancel
-      </button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="domainForm().submitting()">
-        @if (isEdit) {
-          <mat-icon>save</mat-icon>
-        } @else {
-          <mat-icon>add</mat-icon>
-        }
-        <span>{{ submitLabel }}</span>
-      </button>
-    </div>
-  </form>
-</div>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Domain group</mat-label>
+          <mat-select [formField]="domainForm.domainGroupId">
+            @for (group of domainGroups(); track group.id) {
+              <mat-option [value]="group.id">{{ group.name }}</mat-option>
+            }
+          </mat-select>
+          @if (groupError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </ng-template>
+  </app-wizard>
+</form>

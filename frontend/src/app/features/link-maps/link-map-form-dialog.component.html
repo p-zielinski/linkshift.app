@@ -1,199 +1,215 @@
-<form (submit)="onSubmit($event)" class="flex h-full flex-col">
-  <div mat-dialog-title class="flex w-full items-start justify-between gap-4 text-left px-4 pt-4">
-    <div class="flex-1">
-      <h3 class=" m-0 text-lg font-semibold">{{ title() }}</h3>
-      <p class="text-app-muted text-sm">
-        Store short keys and destinations in a dedicated link map tied to a domain group.
-      </p>
-    </div>
-    <button mat-icon-button type="button" (click)="onCancel()" aria-label="Close">
-      <mat-icon>close</mat-icon>
-    </button>
-  </div>
-
-  <div mat-dialog-content class="flex-1 overflow-auto px-4">
-    <div class="grid gap-4 pt-1">
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Name</mat-label>
-        <input matInput type="text" [formField]="mapForm.name" />
-        @if (nameError(); as error) {
-          <mat-error>{{ error }}</mat-error>
-        }
-      </mat-form-field>
-
-      <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm mb-4 mt-[-4px]">
-        <div class="text-[12px] text-app-muted">Domain group</div>
-        <div class="mt-1 font-medium text-app-foreground">{{ selectedGroupLabel() }}</div>
+<form class="h-full" (submit)="onSave($event)" (keydown.enter)="$event.preventDefault()">
+  <app-wizard
+    [title]="title()"
+    subtitle="Store short keys and destinations in a dedicated link map tied to a domain group."
+    [steps]="steps()"
+    [saveLabel]="isEdit() ? 'Save map' : 'Create map'"
+    [saveDisabled]="!canSubmit() || loading()"
+    [saveTooltip]="submitTooltip()"
+    [saveTooltipDisabled]="!submitTooltip()"
+    (save)="onSave()"
+    (cancel)="onCancel()"
+  >
+    <ng-template wizardStepSummary="details">
+      <div class="text-xs text-app-muted">
+        {{ mapModel().name || 'Unnamed map' }}
       </div>
+      <div class="text-[11px] text-app-muted">{{ selectedGroupLabel() || 'No group' }}</div>
+    </ng-template>
 
-      <div class="grid gap-4 sm:grid-cols-2 items-center">
+    <ng-template wizardStepSummary="entries">
+      <div class="text-xs text-app-muted">{{ entriesCount() }} entries</div>
+      @if (duplicateKeys().length) {
+        <div class="text-[11px] text-app-danger">Duplicates found</div>
+      }
+    </ng-template>
+
+    <ng-template wizardStepSummary="bulk">
+      <div class="text-xs text-app-muted">Paste multiple rows</div>
+    </ng-template>
+
+    <ng-template wizardStep="details">
+      <div class="grid gap-4">
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Query match</mat-label>
-          <mat-select [value]="mapModel().queryMatch" (selectionChange)="onQueryMatchChange($event.value)">
-            @for (option of queryMatchOptions; track option.value) {
-              <mat-option [value]="option.value">
-                {{ option.label }}
-              </mat-option>
-            }
-          </mat-select>
-          <mat-hint>{{ queryMatchHint() }}</mat-hint>
+          <mat-label>Name</mat-label>
+          <input matInput type="text" [formField]="mapForm.name" />
+          @if (nameError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
         </mat-form-field>
 
-        <mat-checkbox
-          [checked]="mapModel().caseSensitive"
-          (change)="onCaseSensitiveChange($event.checked)"
-        >
-          Case sensitive keys
-        </mat-checkbox>
-      </div>
-
-      <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-[12px] text-app-muted">
-        <div class="font-semibold text-app-text">How keys are matched</div>
-        <div class="mt-2 grid gap-1">
-          <div><strong>Ignore</strong> uses the path only, so <code>promo</code> matches <code>promo?utm=1</code>.</div>
-          <div><strong>Exact</strong> requires the query to match exactly.</div>
-          <div><strong>Subset</strong> requires listed params; extra params are allowed.</div>
-          <div>Case sensitivity controls whether <code>Promo</code> matches <code>promo</code>.</div>
-        </div>
-      </div>
-
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Fallback destination (optional)</mat-label>
-        <input
-          matInput
-          type="text"
-          [formField]="mapForm.fallbackDestination"
-          (blur)="normalizeFallbackDestination()"
-        />
-        <mat-hint>Used when a key does not exist in the map. We add https:// if missing.</mat-hint>
-        @if (fallbackError(); as error) {
-          <mat-error>{{ error }}</mat-error>
+        @if (domainGroupLocked()) {
+          <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm">
+            <div class="text-[12px] text-app-muted">Domain group</div>
+            <div class="mt-1 font-medium text-app-foreground">
+              {{ selectedGroupLabel() || 'Select a domain group' }}
+            </div>
+          </div>
+        } @else {
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Domain group</mat-label>
+            <mat-select [formField]="mapForm.domainGroupId">
+              @for (group of domainGroups(); track group.id) {
+                <mat-option [value]="group.id">{{ group.name }}</mat-option>
+              }
+            </mat-select>
+            @if (domainGroupError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
         }
-      </mat-form-field>
-    </div>
 
-    <div class="mt-6 grid gap-3 rounded-[16px] border border-app-border-soft bg-app-surface p-4">
-      <div class="flex items-center justify-between gap-3">
-        <div>
-          <h4>Entries</h4>
-          <p class="text-app-muted text-xs">
-            Keys are matched against the path after the rule prefix. Example key: <code>promo</code>.
-          </p>
+        <div class="grid gap-4 sm:grid-cols-2 items-center">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Query match</mat-label>
+            <mat-select [value]="mapModel().queryMatch" (selectionChange)="onQueryMatchChange($event.value)">
+              @for (option of queryMatchOptions; track option.value) {
+                <mat-option [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+              }
+            </mat-select>
+            <mat-hint>{{ queryMatchHint() }}</mat-hint>
+          </mat-form-field>
+
+          <mat-checkbox
+            [checked]="mapModel().caseSensitive"
+            (change)="onCaseSensitiveChange($event.checked)"
+          >
+            Case sensitive keys
+          </mat-checkbox>
         </div>
-        <button mat-stroked-button type="button" (click)="addEntry()">
-          <mat-icon>add</mat-icon>
-          Add row
-        </button>
+
+        <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-[12px] text-app-muted">
+          <div class="font-semibold text-app-text">How keys are matched</div>
+          <div class="mt-2 grid gap-1">
+            <div><strong>Ignore</strong> uses the path only, so <code>promo</code> matches <code>promo?utm=1</code>.</div>
+            <div><strong>Exact</strong> requires the query to match exactly.</div>
+            <div><strong>Subset</strong> requires listed params; extra params are allowed.</div>
+            <div>Case sensitivity controls whether <code>Promo</code> matches <code>promo</code>.</div>
+          </div>
+        </div>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Fallback destination (optional)</mat-label>
+          <input
+            matInput
+            type="text"
+            [formField]="mapForm.fallbackDestination"
+            (blur)="normalizeFallbackDestination()"
+          />
+          <mat-hint>Used when a key does not exist in the map. We add https:// if missing.</mat-hint>
+          @if (fallbackError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
       </div>
+    </ng-template>
 
-      @if (duplicateKeys().length) {
-        <div class="warning">Duplicate keys found: {{ duplicateKeys().join(', ') }}</div>
-      }
-      @if (invalidEntries().length) {
-        <div class="warning">Some entries are missing keys or have invalid destinations.</div>
-      }
-
-      @if (!showEntries()) {
-        <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted">
-          {{ entriesCount() }} entries loaded. Rendering all rows could be heavy.
-          <button mat-stroked-button type="button" class="mt-2" (click)="showEntries.set(true)">
-            Show entries
+    <ng-template wizardStep="entries">
+      <div class="grid gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h4>Entries</h4>
+            <p class="text-app-muted text-xs">
+              Keys are matched against the path after the rule prefix. Example key: <code>promo</code>.
+            </p>
+          </div>
+          <button mat-stroked-button type="button" (click)="addEntry()">
+            <mat-icon>add</mat-icon>
+            Add row
           </button>
         </div>
-      } @else {
-        <div class="grid gap-3">
-          @for (entry of entries(); track trackById($index, entry)) {
-            <div class="grid items-start gap-3 md:grid-cols-[1fr_1fr_auto]">
-              <mat-form-field
-                appearance="outline"
-                class="w-full"
-                [class.entry-field--invalid]="entryKeyError(entry.id)"
-              >
-                <mat-label>Key</mat-label>
-                <input
-                  matInput
-                  type="text"
-                  [value]="entry.key"
-                  (input)="updateEntry(entry.id, 'key', $any($event.target).value)"
-                  (blur)="markEntryTouched(entry.id, 'key')"
-                  [attr.aria-invalid]="entryKeyError(entry.id) ? true : null"
-                />
-                @if (entryKeyError(entry.id); as error) {
-                  <div class="text-xs text-app-danger">{{ error }}</div>
-                }
-              </mat-form-field>
-              <mat-form-field
-                appearance="outline"
-                class="w-full"
-                [class.entry-field--invalid]="entryDestinationError(entry.id)"
-              >
-                <mat-label>Destination</mat-label>
-                <input
-                  matInput
-                  type="text"
-                  [value]="entry.destination"
-                  (input)="updateEntry(entry.id, 'destination', $any($event.target).value)"
-                  (blur)="onEntryDestinationBlur(entry.id)"
-                  [attr.aria-invalid]="entryDestinationError(entry.id) ? true : null"
-                />
-                <mat-hint>We add https:// if missing.</mat-hint>
-                @if (entryDestinationError(entry.id); as error) {
-                  <div class="text-xs text-app-danger">{{ error }}</div>
-                }
-              </mat-form-field>
-              <button mat-icon-button type="button" (click)="removeEntry(entry.id)" class="mt-2">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-          }
-        </div>
-      }
-    </div>
 
-    <div class="mt-6 grid gap-3 rounded-[16px] border border-app-border-soft bg-app-surface p-4">
-      <div class="flex items-center justify-between gap-3">
+        @if (duplicateKeys().length) {
+          <div class="warning">Duplicate keys found: {{ duplicateKeys().join(', ') }}</div>
+        }
+        @if (invalidEntries().length) {
+          <div class="warning">Some entries are missing keys or have invalid destinations.</div>
+        }
+
+        @if (!showEntries()) {
+          <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted">
+            {{ entriesCount() }} entries loaded. Rendering all rows could be heavy.
+            <button mat-stroked-button type="button" class="mt-2" (click)="showEntries.set(true)">
+              Show entries
+            </button>
+          </div>
+        } @else {
+          <div class="grid gap-3">
+            @for (entry of entries(); track trackById($index, entry)) {
+              <div class="grid items-start gap-3 md:grid-cols-[1fr_1fr_auto]">
+                <mat-form-field
+                  appearance="outline"
+                  class="w-full"
+                  [class.entry-field--invalid]="entryKeyError(entry.id)"
+                >
+                  <mat-label>Key</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    [value]="entry.key"
+                    (input)="updateEntry(entry.id, 'key', $any($event.target).value)"
+                    (blur)="markEntryTouched(entry.id, 'key')"
+                    [attr.aria-invalid]="entryKeyError(entry.id) ? true : null"
+                  />
+                  @if (entryKeyError(entry.id); as error) {
+                    <div class="text-xs text-app-danger">{{ error }}</div>
+                  }
+                </mat-form-field>
+                <mat-form-field
+                  appearance="outline"
+                  class="w-full"
+                  [class.entry-field--invalid]="entryDestinationError(entry.id)"
+                >
+                  <mat-label>Destination</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    [value]="entry.destination"
+                    (input)="updateEntry(entry.id, 'destination', $any($event.target).value)"
+                    (blur)="onEntryDestinationBlur(entry.id)"
+                    [attr.aria-invalid]="entryDestinationError(entry.id) ? true : null"
+                  />
+                  <mat-hint>We add https:// if missing.</mat-hint>
+                  @if (entryDestinationError(entry.id); as error) {
+                    <div class="text-xs text-app-danger">{{ error }}</div>
+                  }
+                </mat-form-field>
+                <button mat-icon-button type="button" (click)="removeEntry(entry.id)" class="mt-2">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="bulk">
+      <div class="grid gap-4">
         <div>
           <h4>Bulk add</h4>
           <p class="text-app-muted text-xs">Paste rows as <code>key -> destination</code>, comma, or space separated.</p>
         </div>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Paste entries</mat-label>
+          <textarea matInput rows="6" [value]="bulkText()" (input)="bulkText.set($any($event.target).value)"></textarea>
+        </mat-form-field>
+        @if (bulkError()) {
+          <div class="warning">{{ bulkError() }}</div>
+        }
+        <button mat-stroked-button type="button" (click)="addBulkEntries()">
+          <mat-icon>playlist_add</mat-icon>
+          Add pasted entries
+        </button>
       </div>
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Paste entries</mat-label>
-        <textarea matInput rows="4" [value]="bulkText()" (input)="bulkText.set($any($event.target).value)"></textarea>
-      </mat-form-field>
-      @if (bulkError()) {
-        <div class="warning">{{ bulkError() }}</div>
-      }
-      <button mat-stroked-button type="button" (click)="addBulkEntries()">
-        <mat-icon>playlist_add</mat-icon>
-        Add pasted entries
-      </button>
-    </div>
+    </ng-template>
 
     @if (submitError()) {
-      <div class="warning">{{ submitError() }}</div>
+      <div wizard-alert class="mt-4">
+        <div class="warning">{{ submitError() }}</div>
+      </div>
     }
-  </div>
-
-  <div mat-dialog-actions class="mt-4 flex items-center justify-end gap-3 px-4 pb-4">
-    <button mat-stroked-button type="button" (click)="onCancel()">Cancel</button>
-    <span
-      class="inline-flex"
-      [matTooltip]="submitTooltip()"
-      [matTooltipDisabled]="canSubmit() || !submitTooltip()"
-      matTooltipClass="tooltip-preline"
-    >
-      <button
-        mat-flat-button
-        color="primary"
-        type="submit"
-        [disabled]="!canSubmit() || loading()"
-        [class.opacity-60]="!canSubmit() || loading()"
-        [class.cursor-not-allowed]="!canSubmit() || loading()"
-      >
-        <mat-icon>{{ isEdit() ? 'save' : 'add' }}</mat-icon>
-        {{ isEdit() ? 'Save map' : 'Create map' }}
-      </button>
-    </span>
-  </div>
+  </app-wizard>
 </form>
