@@ -1,36 +1,33 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { form, required, FormField } from '@angular/forms/signals';
+import { form, required } from '@angular/forms/signals';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { LinkMapStore } from '../../core/store/link-map.store';
 import type { LinkMap } from '../../core/models/link-map.model';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { LinkMapFormDialogComponent, LinkMapDialogResult } from './link-map-form-dialog.component';
 import { getFilterKey } from '../../core/store/entity/entity-store.utils';
+import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
+import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
+import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
+import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
+import { LinkMapsTableComponent } from './components/link-maps-table/link-maps-table.component';
 
 @Component({
   selector: 'app-link-maps-page',
   standalone: true,
   imports: [
-    CommonModule,
-    MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
     MatDialogModule,
     MatSnackBarModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    FormField,
-    PageHeaderComponent,
+    ResourcePageShellComponent,
+    ResourceCardComponent,
+    ResourceTableCardComponent,
+    DomainGroupSelectComponent,
+    LinkMapsTableComponent,
   ],
   templateUrl: './link-maps-page.component.html',
   styleUrl: './link-maps-page.component.css',
@@ -42,7 +39,6 @@ export class LinkMapsPageComponent {
   private readonly snackBar = inject(MatSnackBar);
 
   readonly domainGroups = this.domainGroupStore.selectList();
-  readonly columns = ['name', 'queryMatch', 'caseSensitive', 'fallback', 'actions'];
 
   filterModel = signal({ domainGroupId: '' });
   filterForm = form(this.filterModel, (f) => {
@@ -187,36 +183,6 @@ export class LinkMapsPageComponent {
     this.pendingDeleteId.set(map.id);
     this.deleteLoadingSeen.set(false);
     this.linkMapStore.remove(map.id);
-  }
-
-  formatQueryMatch(map: LinkMap): string {
-    if (map.queryMatch === 'ignore') {
-      return 'Ignore';
-    }
-    if (map.queryMatch === 'subset') {
-      return 'Subset';
-    }
-    return 'Exact';
-  }
-
-  queryMatchIcon(map: LinkMap): string {
-    if (map.queryMatch === 'ignore') {
-      return 'search_off';
-    }
-    if (map.queryMatch === 'subset') {
-      return 'filter_alt';
-    }
-    return 'manage_search';
-  }
-
-  queryMatchTooltip(map: LinkMap): string {
-    if (map.queryMatch === 'ignore') {
-      return 'Query match: ignore (path only)';
-    }
-    if (map.queryMatch === 'subset') {
-      return 'Query match: subset (extra params allowed)';
-    }
-    return 'Query match: exact (path + query)';
   }
 
 }
