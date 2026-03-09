@@ -8,11 +8,12 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { DomainStore } from '../../core/store/domain.store';
 import { DEFAULT_LIST_KEY } from '../../core/store/entity/entity-store.utils';
-import { DomainGroupFormDialogComponent } from './domain-group-form-dialog.component';
+import { DomainGroupFormDialogComponent, type DomainGroupDialogData } from './domain-group-form-dialog.component';
 import type { DomainGroup } from '../../core/models/domain-group.model';
 import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
 import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
 import { DomainGroupsTableComponent } from './components/domain-groups-table/domain-groups-table.component';
+import { WizardDialogService } from '../../core/services/wizard-dialog.service';
 
 @Component({
   selector: 'app-domain-groups-page',
@@ -31,6 +32,7 @@ import { DomainGroupsTableComponent } from './components/domain-groups-table/dom
 })
 export class DomainGroupsPageComponent {
   private readonly dialog = inject(MatDialog);
+  private readonly wizardDialog = inject(WizardDialogService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly domainStore = inject(DomainStore);
@@ -80,17 +82,20 @@ export class DomainGroupsPageComponent {
   }
 
   openCreateDialog(): void {
-    this.dialog.open(DomainGroupFormDialogComponent, {
-      width: '480px'
-    });
+    this.wizardDialog.openWizard<
+      DomainGroupFormDialogComponent,
+      DomainGroupDialogData,
+      boolean
+    >(DomainGroupFormDialogComponent);
   }
 
   openEditDialog(group: DomainGroup): void {
-    this.dialog.open(DomainGroupFormDialogComponent, {
-      width: '480px',
-      data: {
-        group
-      }
+    this.wizardDialog.openWizard<
+      DomainGroupFormDialogComponent,
+      DomainGroupDialogData,
+      boolean
+    >(DomainGroupFormDialogComponent, {
+      group
     });
   }
 

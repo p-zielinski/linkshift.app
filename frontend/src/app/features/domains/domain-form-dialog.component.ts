@@ -2,13 +2,10 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
-  MatDialogModule,
   MatDialogRef
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
 import { form, required, submit, FormField } from '@angular/forms/signals';
@@ -22,6 +19,11 @@ import {
   type LoadingDialogData
 } from '../../shared/components/loading-dialog/loading-dialog.component';
 import type { Domain } from '../../core/models/domain.model';
+import { WizardComponent, type WizardStep } from '../../shared/components/wizard/wizard.component';
+import {
+  WizardStepDirective,
+  WizardStepSummaryDirective,
+} from '../../shared/components/wizard/wizard-step.directive';
 
 export type DomainDialogData = {
   domainGroupId?: string;
@@ -33,15 +35,16 @@ export type DomainDialogData = {
   standalone: true,
   imports: [
     CommonModule,
-    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule,
-    MatIconModule,
     MatSelectModule,
-    FormField
+    FormField,
+    WizardComponent,
+    WizardStepDirective,
+    WizardStepSummaryDirective
   ],
-  templateUrl: './domain-form-dialog.component.html'
+  templateUrl: './domain-form-dialog.component.html',
+  styleUrl: './domain-form-dialog.component.css'
 })
 export class DomainFormDialogComponent {
   private readonly dialog = inject(MatDialog);
@@ -82,6 +85,18 @@ export class DomainFormDialogComponent {
     }
     return !!this.domainStore.isLoading()[requestId];
   });
+  readonly canSubmit = computed(
+    () => this.domainForm.name().valid() && this.domainForm.domainGroupId().valid()
+  );
+  readonly steps = computed<WizardStep[]>(() => [
+    {
+      id: 'details',
+      label: 'Details',
+      title: 'Domain details',
+      description: 'Set the domain name and group.',
+      complete: this.canSubmit(),
+    },
+  ]);
 
   constructor() {
     this.domainGroupStore.searchList();

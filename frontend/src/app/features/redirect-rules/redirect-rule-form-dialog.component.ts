@@ -1,17 +1,12 @@
-import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { MatStepperModule } from '@angular/material/stepper';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { form, required, FormField } from '@angular/forms/signals';
-import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { RedirectTestResultsStore } from '../../core/store/redirect-test-results.store';
@@ -34,8 +29,21 @@ import { CREATE_ENTITY_ID, getFilterKey } from '../../core/store/entity/entity-s
 import { HttpMethod } from '../../core/models/http-method.model';
 import { ensureLeadingSlash, splitPathWithQuery } from '../tests/redirect-test.utils';
 import type { RedirectTestFormPrefill } from '../tests/redirect-test-form-dialog.component';
+import { WizardComponent, type WizardStep } from '../../shared/components/wizard/wizard.component';
+import {
+  WizardStepDirective,
+  WizardStepSummaryDirective,
+} from '../../shared/components/wizard/wizard-step.directive';
+import { WizardDialogService } from '../../core/services/wizard-dialog.service';
+import {
+  LinkMapFormDialogComponent,
+  type LinkMapDialogData,
+  type LinkMapDialogResult,
+} from '../link-maps/link-map-form-dialog.component';
+import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
+import { AuthStore } from '../../core/store/auth.store';
+import { OrganizationConfiguration } from '@shared/models/organization-config.model';
 
-type WizardMode = 'guided' | 'fast';
 type RedirectRuleFormModel = {
   domainGroupId: string;
   source: string;
@@ -48,7 +56,6 @@ type RedirectRuleFormModel = {
   priority: string;
 };
 
-const WIZARD_MODE_KEY = 'redirectRulesWizardMode';
 
 export type RedirectRuleDialogData = {
   domainGroupId?: string;
@@ -66,17 +73,15 @@ export type RedirectRuleDialogResult = {
   standalone: true,
   imports: [
     CommonModule,
-    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatIconModule,
     MatSelectModule,
-    MatStepperModule,
     MatExpansionModule,
-    MatTooltipModule,
-    LayoutModule,
     FormField,
+    WizardComponent,
+    WizardStepDirective,
+    WizardStepSummaryDirective,
   ],
   templateUrl: './redirect-rule-form-dialog.component.html',
   styleUrl: './redirect-rule-form-dialog.component.css',
@@ -90,8 +95,9 @@ export class RedirectRuleFormDialogComponent {
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
   private readonly linkMapStore = inject(LinkMapStore);
-  private readonly breakpointObserver = inject(BreakpointObserver);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly wizardDialog = inject(WizardDialogService);
+  private readonly usageStore = inject(OrganizationUsageStore);
+  private readonly authStore = inject(AuthStore);
 
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly matchMethodOptions = redirectRuleMatchMethods;
@@ -119,6 +125,35 @@ export class RedirectRuleFormDialogComponent {
     return this.groupMap()[groupId]?.name ?? groupId;
   });
   readonly selectedGroupId = computed(() => this.ruleModel().domainGroupId);
+  readonly config = computed(() => {
+    const org = this.authStore.organization();
+    const rawConfig = org?.configuration ?? undefined;
+    return OrganizationConfiguration.fromJson(rawConfig);
+  });
+  readonly limits = computed(() => this.config().activeSubscription.limits);
+  readonly usage = computed(() => this.usageStore.usage());
+  readonly usageLoading = computed(() => this.usageStore.isLoading());
+  readonly usageError = computed(() => this.usageStore.error());
+  readonly linkMapLimitReached = computed(() => {
+    const usage = this.usage();
+    if (!usage) {
+      return false;
+    }
+    return usage.linkMaps >= this.limits().maxLinkMaps;
+  });
+  readonly linkMapCreateDisabled = computed(() => {
+    if (this.usageLoading() || this.usageError()) {
+      return true;
+    }
+    return this.linkMapLimitReached();
+  });
+  readonly linkMapLimitLabel = computed(() => {
+    const usage = this.usage();
+    if (!usage) {
+      return this.usageLoading() ? 'Loading limits...' : 'Usage unavailable.';
+    }
+    return `${usage.linkMaps}/${this.limits().maxLinkMaps} link maps used`;
+  });
 
   private readonly initialStatusCode = this.rule?.statusCode ?? 302;
 
@@ -134,9 +169,6 @@ export class RedirectRuleFormDialogComponent {
     priority: String(this.rule?.priority ?? 0),
   });
 
-  readonly wizardMode = signal<WizardMode>('guided');
-  readonly isCompact = signal(false);
-  readonly effectiveWizardMode = computed(() => (this.isCompact() ? 'fast' : this.wizardMode()));
   readonly pendingSubmit = signal(false);
   private readonly submitKey = signal(CREATE_ENTITY_ID);
   private readonly submitErrorSequence = signal(0);
@@ -357,6 +389,43 @@ export class RedirectRuleFormDialogComponent {
 
     return Array.from(errors).join('\n');
   });
+  readonly steps = computed<WizardStep[]>(() => [
+    {
+      id: 'scope',
+      label: 'Scope',
+      title: 'Scope & priority',
+      description: 'Pick priority for evaluation order.',
+      complete: this.scopeValid(),
+    },
+    {
+      id: 'match',
+      label: 'Match',
+      title: 'Request matching',
+      description: 'Define source, method, and optional link map routing.',
+      complete: this.matchValid() && !this.linkMapMissing(),
+    },
+    {
+      id: 'destination',
+      label: 'Destination',
+      title: 'Destination logic',
+      description: 'Configure destination or use link map routing.',
+      complete: this.destinationValid(),
+    },
+    {
+      id: 'status',
+      label: 'Status',
+      title: 'Status code',
+      description: 'Select redirect status code behavior.',
+      complete: this.statusValid(),
+    },
+    {
+      id: 'summary',
+      label: 'Summary',
+      title: 'Review',
+      description: 'Confirm the rule before saving.',
+      complete: this.canSubmit(),
+    },
+  ]);
 
   readonly variableReferences = [
     {
@@ -547,8 +616,7 @@ export class RedirectRuleFormDialogComponent {
 
   constructor() {
     this.domainGroupStore.searchList();
-    this.restoreWizardMode();
-    this.observeViewport();
+    this.usageStore.loadUsage();
     this.observeLinkMapSelection();
     this.observeLinkMapList();
 
@@ -590,24 +658,6 @@ export class RedirectRuleFormDialogComponent {
         this.dialogRef.close({ saved: true });
       }
     });
-  }
-
-  toggleWizardMode(): void {
-    if (this.isCompact()) {
-      return;
-    }
-    const next: WizardMode = this.wizardMode() === 'guided' ? 'fast' : 'guided';
-    this.wizardMode.set(next);
-    this.persistWizardMode(next);
-  }
-
-  private observeViewport(): void {
-    this.breakpointObserver
-      .observe('(max-width: 768px)')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((state) => {
-        this.isCompact.set(state.matches);
-      });
   }
 
   private observeLinkMapSelection(): void {
@@ -677,30 +727,7 @@ export class RedirectRuleFormDialogComponent {
     this.linkMapStore.searchList({ domainGroupId });
   }
 
-  private restoreWizardMode(): void {
-    try {
-      const stored =
-        typeof window !== 'undefined' ? window.localStorage.getItem(WIZARD_MODE_KEY) : null;
-      if (stored === 'fast' || stored === 'guided') {
-        this.wizardMode.set(stored);
-      }
-    } catch {
-      // Ignore storage errors and keep default.
-    }
-  }
-
-  private persistWizardMode(mode: WizardMode): void {
-    try {
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(WIZARD_MODE_KEY, mode);
-      }
-    } catch {
-      // Ignore storage errors.
-    }
-  }
-
   async onSubmit(event?: Event): Promise<void> {
-    console.log('onSubmit triggered');
     event?.preventDefault();
 
     // The `submit()` utility from '@angular/forms/signals' strictly blocks the callback execution
@@ -752,6 +779,44 @@ export class RedirectRuleFormDialogComponent {
 
   onCancel(): void {
     this.dialogRef.close(false);
+  }
+
+  openCreateLinkMap(): void {
+    if (!this.selectedGroupId() || this.linkMapCreateDisabled()) {
+      return;
+    }
+    this.openLinkMapWizard();
+  }
+
+  openEditLinkMap(): void {
+    const map = this.selectedLinkMap();
+    if (!map) {
+      return;
+    }
+    this.openLinkMapWizard(map.id);
+  }
+
+  private openLinkMapWizard(linkMapId?: string): void {
+    const groupId = this.selectedGroupId();
+    if (!groupId) {
+      return;
+    }
+    const dialogRef = this.wizardDialog.openWizard<
+      LinkMapFormDialogComponent,
+      LinkMapDialogData,
+      LinkMapDialogResult
+    >(LinkMapFormDialogComponent, { domainGroupId: groupId, linkMapId }, 1);
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!result?.saved) {
+        return;
+      }
+      this.linkMapStore.searchList({ domainGroupId: groupId }, true);
+      this.usageStore.loadUsage();
+      if (result.linkMapId) {
+        this.ruleModel.update((model) => ({ ...model, linkMapId: result.linkMapId ?? null }));
+      }
+    });
   }
 
   private buildTestPrefill(model: RedirectRuleFormModel): RedirectTestFormPrefill {

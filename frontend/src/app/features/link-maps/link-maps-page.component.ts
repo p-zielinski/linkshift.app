@@ -1,19 +1,20 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { form, required } from '@angular/forms/signals';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { LinkMapStore } from '../../core/store/link-map.store';
 import type { LinkMap } from '../../core/models/link-map.model';
-import { LinkMapFormDialogComponent, LinkMapDialogResult } from './link-map-form-dialog.component';
+import { LinkMapFormDialogComponent, LinkMapDialogResult, type LinkMapDialogData } from './link-map-form-dialog.component';
 import { getFilterKey } from '../../core/store/entity/entity-store.utils';
 import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
 import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
 import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
 import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
 import { LinkMapsTableComponent } from './components/link-maps-table/link-maps-table.component';
+import { WizardDialogService } from '../../core/services/wizard-dialog.service';
 
 @Component({
   selector: 'app-link-maps-page',
@@ -35,7 +36,7 @@ import { LinkMapsTableComponent } from './components/link-maps-table/link-maps-t
 export class LinkMapsPageComponent {
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly linkMapStore = inject(LinkMapStore);
-  private readonly dialog = inject(MatDialog);
+  private readonly wizardDialog = inject(WizardDialogService);
   private readonly snackBar = inject(MatSnackBar);
 
   readonly domainGroups = this.domainGroupStore.selectList();
@@ -150,28 +151,33 @@ export class LinkMapsPageComponent {
       return;
     }
 
-    const dialogRef = this.dialog.open(LinkMapFormDialogComponent, {
-      width: 'min(960px, 96vw)',
-      maxWidth: '96vw',
-      data: { domainGroupId: this.activeGroupId() },
+    const dialogRef = this.wizardDialog.openWizard<
+      LinkMapFormDialogComponent,
+      LinkMapDialogData,
+      LinkMapDialogResult
+    >(LinkMapFormDialogComponent, {
+      domainGroupId: this.activeGroupId(),
     });
 
-    dialogRef.afterClosed().subscribe((result: LinkMapDialogResult | boolean) => {
-      if (typeof result !== 'boolean' && result?.saved) {
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.saved) {
         this.linkMapStore.searchList({ domainGroupId: this.activeGroupId() }, true);
       }
     });
   }
 
   openEditDialog(map: LinkMap): void {
-    const dialogRef = this.dialog.open(LinkMapFormDialogComponent, {
-      width: 'min(960px, 96vw)',
-      maxWidth: '96vw',
-      data: { linkMapId: map.id, domainGroupId: map.domainGroupId },
+    const dialogRef = this.wizardDialog.openWizard<
+      LinkMapFormDialogComponent,
+      LinkMapDialogData,
+      LinkMapDialogResult
+    >(LinkMapFormDialogComponent, {
+      linkMapId: map.id,
+      domainGroupId: map.domainGroupId,
     });
 
-    dialogRef.afterClosed().subscribe((result: LinkMapDialogResult | boolean) => {
-      if (typeof result !== 'boolean' && result?.saved) {
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.saved) {
         this.linkMapStore.searchList({ domainGroupId: this.activeGroupId() }, true);
       }
     });

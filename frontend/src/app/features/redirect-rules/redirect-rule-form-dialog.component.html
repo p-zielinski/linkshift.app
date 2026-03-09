@@ -1,525 +1,57 @@
-<div class="wizard-shell flex h-full flex-col gap-4 p-4 sm:p-6">
-  <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-    <div class="grid gap-1">
-      <h3 class="m-0 text-lg font-semibold">{{ dialogTitle() }}</h3>
-      <p class="m-0 text-sm text-app-muted">{{ subtitle }}</p>
-    </div>
-    <div class="flex flex-wrap items-center gap-2">
-      @if (!isCompact()) {
-        <button mat-stroked-button type="button" (click)="toggleWizardMode()">
-          {{ effectiveWizardMode() === 'guided' ? 'Switch to fast' : 'Switch to guided' }}
-        </button>
+<form class="h-full" (submit)="onSubmit($event)" (keydown.enter)="$event.preventDefault()">
+  <app-wizard
+    [title]="dialogTitle()"
+    [subtitle]="subtitle"
+    [steps]="steps()"
+    [saveLabel]="submitLabel"
+    [saveDisabled]="submitDisabled()"
+    [saveTooltip]="submitTooltip()"
+    [saveTooltipDisabled]="!submitTooltip()"
+    (save)="onSubmit()"
+    (cancel)="onCancel()"
+  >
+    <ng-template wizardStepSummary="scope">
+      <div class="text-xs text-app-muted">Priority {{ ruleModel().priority }}</div>
+    </ng-template>
+
+    <ng-template wizardStepSummary="match">
+      <div class="text-xs text-app-muted">{{ ruleModel().source || 'No source yet' }}</div>
+      @if (isLinkMapRule()) {
+        <div class="text-[11px] text-app-muted">Link map: {{ selectedLinkMap()?.name || '—' }}</div>
       }
-      <button mat-icon-button type="button" aria-label="Close" (click)="onCancel()">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
-  </div>
+    </ng-template>
 
-  <form class="min-h-0 flex-1" (submit)="onSubmit($event)">
-    @if (effectiveWizardMode() === 'guided') {
-      <mat-stepper #stepper class="wizard-stepper h-full" indicatorType="number">
-        <ng-template matStepperIcon="done" let-index="index">
-          {{ index + 1 }}
-        </ng-template>
-        <ng-template matStepperIcon="edit" let-index="index">
-          {{ index + 1 }}
-        </ng-template>
+    <ng-template wizardStepSummary="destination">
+      <div class="text-xs text-app-muted">
+        {{ isLinkMapRule() ? 'Link map routing' : (ruleModel().destination || 'Destination missing') }}
+      </div>
+    </ng-template>
 
-      <mat-step [completed]="scopeValid()">
-        <ng-template matStepLabel>Scope</ng-template>
-        <div class="mt-4 grid gap-4">
-          <input type="hidden" [formField]="field('domainGroupId')" />
+    <ng-template wizardStepSummary="status">
+      <div class="text-xs text-app-muted">Status {{ ruleModel().statusCode }}</div>
+    </ng-template>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Priority</mat-label>
-            <input matInput type="number" [formField]="field('priority')" />
-            <mat-hint>Higher priority rules are evaluated first (0-1000).</mat-hint>
-            @if (priorityError(); as error) {
-              <mat-error>{{ error }}</mat-error>
-            }
-          </mat-form-field>
-        </div>
+    <ng-template wizardStepSummary="summary">
+      <div class="text-xs text-app-muted">{{ canSubmit() ? 'Ready to save' : 'Review required' }}</div>
+    </ng-template>
 
-        <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            [disabled]="!scopeValid()"
-            (click)="stepper.next()"
-          >
-            Next
-          </button>
-        </div>
-      </mat-step>
-
-      <mat-step [completed]="matchValid()">
-        <ng-template matStepLabel>Match</ng-template>
-        <div class="mt-4 grid gap-4">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Source</mat-label>
-            <input matInput type="text" [formField]="field('source')" />
-            <mat-hint>Use an exact path, <code>/pattern/flags</code> regex, or <code>*</code>.</mat-hint>
-            @if (sourceError(); as error) {
-              <mat-error>{{ error }}</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Request method</mat-label>
-            <mat-select [formField]="field('matchMethod')" multiple>
-              @for (method of matchMethodOptions; track method) {
-                <mat-option [value]="method">
-                  {{ method }}
-                </mat-option>
-              }
-            </mat-select>
-            <mat-hint>Leave empty to match all HTTP methods.</mat-hint>
-            @if (matchMethodError(); as error) {
-              <mat-error>{{ error }}</mat-error>
-            }
-          </mat-form-field>
-
-          <div class="grid gap-4 sm:grid-cols-2">
-            <mat-form-field
-              appearance="outline"
-              class="w-full"
-              [class.pointer-events-none]="isLinkMapRule()"
-              [class.opacity-60]="isLinkMapRule()"
-              [attr.aria-disabled]="isLinkMapRule() ? true : null"
-            >
-              <mat-label>Path match</mat-label>
-              <mat-select [formField]="field('pathMatch')">
-                @for (option of pathMatchOptions; track option) {
-                  <mat-option [value]="option">
-                    {{ option === 'prefix' ? 'Prefix (example /v1/* when /v1)' : 'Exact' }}
-                  </mat-option>
-                }
-              </mat-select>
-              <mat-hint>Prefix matches all nested paths.</mat-hint>
-              @if (pathMatchError(); as error) {
-                <mat-error>{{ error }}</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field
-              appearance="outline"
-              class="w-full"
-              [class.pointer-events-none]="isLinkMapRule()"
-              [class.opacity-60]="isLinkMapRule()"
-              [attr.aria-disabled]="isLinkMapRule() ? true : null"
-            >
-              <mat-label>Query match</mat-label>
-              <mat-select [formField]="field('queryMatch')">
-                @for (option of queryMatchOptions; track option) {
-                  <mat-option [value]="option">
-                    {{
-                      option === 'ignore'
-                        ? 'Ignore query'
-                        : option === 'subset'
-                          ? 'Subset (require listed params)'
-                          : 'Exact (include query)'
-                    }}
-                  </mat-option>
-                }
-              </mat-select>
-              <mat-hint>Ignore makes <code>/path</code> match <code>/path?x=1</code>.</mat-hint>
-              @if (queryMatchError(); as error) {
-                <mat-error>{{ error }}</mat-error>
-              }
-            </mat-form-field>
-          </div>
-
-          <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <span class="font-semibold text-app-text">Link map routing (optional)</span>
-              @if (linkMapsLoading()) {
-                <span>Loading maps...</span>
-              }
-            </div>
-            <div class="mt-2 grid gap-3">
-              <div>
-                Link maps resolve destinations from a short key. The key is the path after your source prefix
-                (<code>/short</code> + request <code>/short/abc</code> → key <code>abc</code>).
-              </div>
-              <div>
-                Query matching for link maps is configured on the map itself (exact, ignore, subset). The redirect
-                rule always ignores the query and only provides the prefix + key.
-              </div>
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Link map</mat-label>
-                <mat-select [formField]="field('linkMapId')">
-                  <mat-option [value]="null">None</mat-option>
-                  @for (map of linkMaps(); track map.id) {
-                    <mat-option [value]="map.id">
-                      {{ map.name }}
-                    </mat-option>
-                  }
-                </mat-select>
-                <mat-hint>When selected, path match becomes prefix and query match is ignored.</mat-hint>
-              </mat-form-field>
-              @if (linkMapsError()) {
-                <div class="text-app-danger">{{ linkMapsError() }}</div>
-              }
-              @if (selectedLinkMap(); as map) {
-                <div class="grid gap-1 text-[11px] text-app-muted">
-                  <div>Map query: {{ formatQueryMatch(map.queryMatch) }}</div>
-                  <div>Case sensitive: {{ map.caseSensitive ? 'yes' : 'no' }}</div>
-                  <div>Fallback: {{ map.fallbackDestination || 'none' }}</div>
-                </div>
-              }
-              @if (linkMapSourceIssue()) {
-                <div class="text-app-danger">{{ linkMapSourceIssue() }}</div>
-              }
-              @if (linkMapMissing()) {
-                <div class="text-app-danger">{{ linkMapMissing() }}</div>
-              }
-            </div>
-          </div>
-
-          <div
-            class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted"
-          >
-            <div class="font-semibold text-app-text">Match modes explained</div>
-            <div class="mt-2 grid gap-2">
-              <div class="text-app-muted">
-                Query rules come from the <code>?...</code> part of the Source field.
-              </div>
-              <div>
-                <span class="font-semibold text-app-text">Path exact:</span>
-                <span>/v1 matches only /v1</span>
-              </div>
-              <div>
-                <span class="font-semibold text-app-text">Path prefix:</span>
-                <span>/v1 matches /v1/users (but not /v11)</span>
-              </div>
-              <div>
-                <span class="font-semibold text-app-text">Query exact:</span>
-                <span>/v1?333=1 matches only the same query</span>
-              </div>
-              <div>
-                <span class="font-semibold text-app-text">Query subset:</span>
-                <span>/v1?333=1 also matches /v1?333=1&x=2</span>
-              </div>
-              <div>
-                <span class="font-semibold text-app-text">Query ignore:</span>
-                <span>/v1 matches /v1?anything=1</span>
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted"
-          >
-            <div class="font-semibold text-app-text">Match examples</div>
-            <div class="mt-2 grid gap-2">
-              <div class="grid gap-1">
-                <span class="font-semibold text-app-text">Exact path</span>
-                <span class="font-mono">/pricing</span>
-              </div>
-              <div class="grid gap-1">
-                <span class="font-semibold text-app-text">Catch-all</span>
-                <span class="font-mono">*</span>
-              </div>
-              <div class="grid gap-1">
-                <span class="font-semibold text-app-text">Regex capture groups ($1, $2, ...)</span>
-                <span class="font-mono">Source: /^\/go\/([^/]+)\/([^/]+)$/</span>
-                <span class="font-mono">Request: /go/docs/api</span>
-                <span class="font-mono">
-                  Destination: https://docs.example.com/target/$1/$2 → https://docs.example.com/target/docs/api
-                </span>
-                <span class="text-app-muted">
-                  Works only when Source is a regex. $1 is the first capture group, $2 is the second.
-                </span>
-              </div>
-              <div class="grid gap-1">
-                <span class="font-semibold text-app-text">Segments indexing (no regex)</span>
-                <span class="font-mono">Source: /go/docs</span>
-                <span class="font-mono">Request: /go/docs</span>
-                <span class="font-mono">
-                  Destination: https://docs.example.com/target/{{ '{' }}segments.1{{ '}' }} →
-                  https://docs.example.com/target/docs
-                </span>
-              </div>
-              <div class="grid gap-1">
-                <span class="font-semibold text-app-text">Query forwarding</span>
-                <span class="font-mono">Source: /go</span>
-                <span class="font-mono">
-                  Destination: https://target.com?ref={{ '{' }}query.ref{{ '}' }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <button mat-stroked-button type="button" (click)="stepper.previous()">Back</button>
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            [disabled]="!matchValid()"
-            (click)="stepper.next()"
-          >
-            Next
-          </button>
-        </div>
-      </mat-step>
-
-      <mat-step [completed]="destinationValid()">
-        <ng-template matStepLabel>Destination</ng-template>
-        <div class="mt-4 grid gap-4">
-          @if (!isLinkMapRule()) {
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Destination</mat-label>
-              <input matInput type="text" [formField]="field('destination')" />
-              <mat-hint>
-                Must start with <code>http://</code> or <code>https://</code>.
-              </mat-hint>
-              @if (destinationError(); as error) {
-                <mat-error>{{ error }}</mat-error>
-              }
-            </mat-form-field>
-          } @else {
-            <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted">
-              Destination is not required because this rule uses a link map. The map resolves the final destination
-              and can define its own fallback.
-            </div>
-          }
-
-          <mat-accordion class="grid gap-2">
-            <mat-expansion-panel>
-              <mat-expansion-panel-header>
-                <mat-panel-title>Variables</mat-panel-title>
-                <mat-panel-description>Use &nbsp;<code>{{ '{' }}variable{{ '}' }}</code>&nbsp; to insert values.</mat-panel-description>
-              </mat-expansion-panel-header>
-              <div class="grid gap-3 text-xs">
-                @for (item of variableReferences; track item.token) {
-                  <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <span class="font-mono font-semibold">{{ item.token }}</span>
-                      <span class="text-app-muted">{{ item.description }}</span>
-                    </div>
-                    <div class="mt-1 font-mono text-app-muted">Example: {{ item.example }}</div>
-                  </div>
-                }
-              </div>
-            </mat-expansion-panel>
-
-            <mat-expansion-panel>
-              <mat-expansion-panel-header>
-                <mat-panel-title>Manipulators</mat-panel-title>
-                <mat-panel-description>
-                  Add modifiers after a variable, e.g. <code>{{ '{' }}path:to_lower_case.url_encode{{ '}' }}</code>.
-                </mat-panel-description>
-              </mat-expansion-panel-header>
-              <div class="grid gap-3 text-xs">
-                <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-app-muted">
-                  Modifiers can also be used on functions, e.g.
-                  <span class="font-mono">{{ '{' }}time():to_iso_string{{ '}' }}</span>.
-                </div>
-                @for (item of manipulatorReferences; track item.token) {
-                  <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <span class="font-mono font-semibold">{{ item.token }}</span>
-                      <span class="text-app-muted">{{ item.description }}</span>
-                    </div>
-                    <div class="mt-1 font-mono text-app-muted">Example: {{ item.example }}</div>
-                  </div>
-                }
-              </div>
-            </mat-expansion-panel>
-
-            <mat-expansion-panel>
-              <mat-expansion-panel-header>
-                <mat-panel-title>Conditional logic</mat-panel-title>
-                <mat-panel-description>Build ternary routing.</mat-panel-description>
-              </mat-expansion-panel-header>
-              <div class="grid gap-3">
-                <div class="grid gap-3 text-xs">
-                  @for (item of operatorReferences; track item.token) {
-                    <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
-                      <div class="flex flex-wrap items-center gap-2">
-                        <span class="font-mono font-semibold">{{ item.token }}</span>
-                        <span class="text-app-muted">{{ item.description }}</span>
-                      </div>
-                      <div class="mt-1 font-mono text-app-muted">Example: {{ item.example }}</div>
-                    </div>
-                  }
-                </div>
-                <div
-                  class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted"
-                >
-                  Example:
-                  <span class="ml-2 font-mono">
-                    {{ '{' }}method{{ '}' }} == 'POST' ? https://example.com/write : https://example.com/read
-                  </span>
-                </div>
-              </div>
-            </mat-expansion-panel>
-
-            <mat-expansion-panel>
-              <mat-expansion-panel-header>
-                <mat-panel-title>Functions</mat-panel-title>
-                <mat-panel-description>Use functions in placeholders or conditions.</mat-panel-description>
-              </mat-expansion-panel-header>
-              <div class="grid gap-3 text-xs">
-                @for (item of functionReferences; track item.token) {
-                  <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <span class="font-mono font-semibold">{{ item.token }}</span>
-                      <span class="text-app-muted">{{ item.description }}</span>
-                    </div>
-                    <div class="mt-1 font-mono text-app-muted">Example: {{ item.example }}</div>
-                  </div>
-                }
-              </div>
-            </mat-expansion-panel>
-          </mat-accordion>
-
-          <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
-            <div class="font-semibold text-app-text">Destination examples</div>
-            <div class="mt-2 grid gap-2 font-mono">
-              <span>https://example.com/{{ '{' }}path{{ '}' }}</span>
-              <span>https://example.com/promo/{{ '{' }}segments.0{{ '}' }}</span>
-              <span>
-                https://site.com?utm={{ '{' }}query.utm{{ '}' }}&amp;src={{ '{' }}domain.root{{ '}' }}
-              </span>
-              <span>https://site.com?ts={{ '{' }}time():to_iso_string{{ '}' }}</span>
-              <span>
-                random(0,100) &lt; 30 ? https://a.com : https://b.com
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <button mat-stroked-button type="button" (click)="stepper.previous()">Back</button>
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            [disabled]="!destinationValid()"
-            (click)="stepper.next()"
-          >
-            Next
-          </button>
-        </div>
-      </mat-step>
-
-      <mat-step [completed]="statusValid()">
-        <ng-template matStepLabel>Status code</ng-template>
-        <div class="mt-4 grid gap-4">
-          <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
-            <div class="font-semibold text-app-text">What this means</div>
-            <div class="mt-2 grid gap-2">
-              <span>301/308 are permanent; 302/307 are temporary.</span>
-              <span>307/308 preserve the HTTP method (POST stays POST).</span>
-              <span>301/302 may be converted to GET by some clients.</span>
-            </div>
-          </div>
-
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Status code</mat-label>
-            <mat-select [formField]="field('statusCode')">
-              @for (code of statusCodeOptions(); track code) {
-                <mat-option [value]="code.toString()">{{ code }}</mat-option>
-              }
-            </mat-select>
-            @if (statusError(); as error) {
-              <mat-error>{{ error }}</mat-error>
-            }
-          </mat-form-field>
-        </div>
-
-        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <button mat-stroked-button type="button" (click)="stepper.previous()">Back</button>
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            [disabled]="!statusValid()"
-            (click)="stepper.next()"
-          >
-            Next
-          </button>
-        </div>
-      </mat-step>
-
-      <mat-step>
-        <ng-template matStepLabel>Summary</ng-template>
-        <div class="mt-4 grid gap-4">
-          <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4 text-sm">
-            <div class="mb-3 text-sm font-semibold">Summary</div>
-            <div class="grid gap-2">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-app-muted">Domain group</span>
-                <span>{{ selectedGroupLabel() }}</span>
-              </div>
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-app-muted">Priority</span>
-                <span>{{ ruleModel().priority }}</span>
-              </div>
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-app-muted">Source</span>
-                <span class="font-mono">{{ ruleModel().source || '—' }}</span>
-              </div>
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-app-muted">Destination</span>
-                <span class="font-mono">{{ ruleModel().destination || '—' }}</span>
-              </div>
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-app-muted">Request method</span>
-                <span>{{ formatMatchMethods(ruleModel().matchMethod) }}</span>
-              </div>
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-app-muted">Path match</span>
-                <span>{{ formatPathMatch(ruleModel().pathMatch) }}</span>
-              </div>
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-app-muted">Query match</span>
-                <span>{{ formatQueryMatch(ruleModel().queryMatch) }}</span>
-              </div>
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-app-muted">Link map</span>
-                <span>{{ selectedLinkMap()?.name || '—' }}</span>
-              </div>
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-app-muted">Status</span>
-                <span>{{ ruleModel().statusCode }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <button mat-stroked-button type="button" (click)="stepper.previous()">Back</button>
-          <span
-            class="inline-flex"
-            [matTooltip]="submitTooltip()"
-            [matTooltipDisabled]="!submitDisabled() || !submitTooltip()"
-            matTooltipClass="wizard-tooltip"
-          >
-            <button
-              mat-flat-button
-              color="primary"
-              type="submit"
-              [disabled]="submitDisabled()"
-              [class.opacity-60]="submitDisabled()"
-              [class.cursor-not-allowed]="submitDisabled()"
-            >
-              <mat-icon>{{ isEdit ? 'save' : 'add' }}</mat-icon>
-              <span>{{ submitLabel }}</span>
-            </button>
-          </span>
-        </div>
-      </mat-step>
-      </mat-stepper>
-    } @else {
+    <ng-template wizardStep="scope">
       <div class="grid gap-4">
         <input type="hidden" [formField]="field('domainGroupId')" />
 
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Priority</mat-label>
+          <input matInput type="number" [formField]="field('priority')" />
+          <mat-hint>Higher priority rules are evaluated first (0-1000).</mat-hint>
+          @if (priorityError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="match">
+      <div class="grid gap-4">
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Source</mat-label>
           <input matInput type="text" [formField]="field('source')" />
@@ -587,35 +119,168 @@
                 </mat-option>
               }
             </mat-select>
-            <mat-hint>Subset allows extra query params.</mat-hint>
+            <mat-hint>Ignore makes <code>/path</code> match <code>/path?x=1</code>.</mat-hint>
             @if (queryMatchError(); as error) {
               <mat-error>{{ error }}</mat-error>
             }
           </mat-form-field>
         </div>
 
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Link map (optional)</mat-label>
-          <mat-select [formField]="field('linkMapId')">
-            <mat-option [value]="null">None</mat-option>
-            @for (map of linkMaps(); track map.id) {
-              <mat-option [value]="map.id">{{ map.name }}</mat-option>
+        <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="font-semibold text-app-text">Link map routing (optional)</span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] text-app-muted">{{ linkMapLimitLabel() }}</span>
+              <button
+                mat-stroked-button
+                type="button"
+                color="primary"
+                [disabled]="!selectedGroupId() || linkMapCreateDisabled()"
+                (click)="openCreateLinkMap()"
+              >
+                New map
+              </button>
+              <button
+                mat-button
+                type="button"
+                color="primary"
+                [disabled]="!selectedLinkMap()"
+                (click)="openEditLinkMap()"
+              >
+                Edit selected
+              </button>
+            </div>
+          </div>
+          <div class="mt-2 grid gap-3">
+            <div>
+              Link maps resolve destinations from a short key. The key is the path after your source prefix
+              (<code>/short</code> + request <code>/short/abc</code> → key <code>abc</code>).
+            </div>
+            <div>
+              Query matching for link maps is configured on the map itself (exact, ignore, subset). The redirect
+              rule always ignores the query and only provides the prefix + key.
+            </div>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Link map</mat-label>
+              <mat-select [formField]="field('linkMapId')">
+                <mat-option [value]="null">None</mat-option>
+                @for (map of linkMaps(); track map.id) {
+                  <mat-option [value]="map.id">
+                    {{ map.name }}
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-hint>When selected, path match becomes prefix and query match is ignored.</mat-hint>
+            </mat-form-field>
+            @if (linkMapsLoading()) {
+              <div class="text-[11px]">Loading maps...</div>
             }
-          </mat-select>
-          <mat-hint>Link maps use the path prefix as a key lookup (for example /short/abc → abc).</mat-hint>
-        </mat-form-field>
-        @if (linkMapsError()) {
-          <div class="text-app-danger text-xs">{{ linkMapsError() }}</div>
-        }
-        @if (linkMapSourceIssue()) {
-          <div class="text-app-danger text-xs">{{ linkMapSourceIssue() }}</div>
-        }
+            @if (linkMapsError()) {
+              <div class="text-app-danger">{{ linkMapsError() }}</div>
+            }
+            @if (usageError()) {
+              <div class="text-app-danger">Unable to load usage limits. Link map creation is disabled.</div>
+            }
+            @if (linkMapLimitReached()) {
+              <div class="text-app-danger">Link map limit reached. Remove a map or upgrade to add more.</div>
+            }
+            @if (selectedLinkMap(); as map) {
+              <div class="grid gap-1 text-[11px] text-app-muted">
+                <div>Map query: {{ formatQueryMatch(map.queryMatch) }}</div>
+                <div>Case sensitive: {{ map.caseSensitive ? 'yes' : 'no' }}</div>
+                <div>Fallback: {{ map.fallbackDestination || 'none' }}</div>
+              </div>
+            }
+            @if (linkMapSourceIssue()) {
+              <div class="text-app-danger">{{ linkMapSourceIssue() }}</div>
+            }
+            @if (linkMapMissing()) {
+              <div class="text-app-danger">{{ linkMapMissing() }}</div>
+            }
+          </div>
+        </div>
 
+        <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+          <div class="font-semibold text-app-text">Match modes explained</div>
+          <div class="mt-2 grid gap-2">
+            <div class="text-app-muted">
+              Query rules come from the <code>?...</code> part of the Source field.
+            </div>
+            <div>
+              <span class="font-semibold text-app-text">Path exact:</span>
+              <span>/v1 matches only /v1</span>
+            </div>
+            <div>
+              <span class="font-semibold text-app-text">Path prefix:</span>
+              <span>/v1 matches /v1/users (but not /v11)</span>
+            </div>
+            <div>
+              <span class="font-semibold text-app-text">Query exact:</span>
+              <span>/v1?333=1 matches only the same query</span>
+            </div>
+            <div>
+              <span class="font-semibold text-app-text">Query subset:</span>
+              <span>/v1?333=1 also matches /v1?333=1&x=2</span>
+            </div>
+            <div>
+              <span class="font-semibold text-app-text">Query ignore:</span>
+              <span>/v1 matches /v1?anything=1</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+          <div class="font-semibold text-app-text">Match examples</div>
+          <div class="mt-2 grid gap-2">
+            <div class="grid gap-1">
+              <span class="font-semibold text-app-text">Exact path</span>
+              <span class="font-mono">/pricing</span>
+            </div>
+            <div class="grid gap-1">
+              <span class="font-semibold text-app-text">Catch-all</span>
+              <span class="font-mono">*</span>
+            </div>
+            <div class="grid gap-1">
+              <span class="font-semibold text-app-text">Regex capture groups ($1, $2, ...)</span>
+              <span class="font-mono">Source: /^\/go\/([^/]+)\/([^/]+)$/</span>
+              <span class="font-mono">Request: /go/docs/api</span>
+              <span class="font-mono">
+                Destination: https://docs.example.com/target/$1/$2 → https://docs.example.com/target/docs/api
+              </span>
+              <span class="text-app-muted">
+                Works only when Source is a regex. $1 is the first capture group, $2 is the second.
+              </span>
+            </div>
+            <div class="grid gap-1">
+              <span class="font-semibold text-app-text">Segments indexing (no regex)</span>
+              <span class="font-mono">Source: /go/docs</span>
+              <span class="font-mono">Request: /go/docs</span>
+              <span class="font-mono">
+                Destination: https://docs.example.com/target/{{ '{' }}segments.1{{ '}' }} →
+                https://docs.example.com/target/docs
+              </span>
+            </div>
+            <div class="grid gap-1">
+              <span class="font-semibold text-app-text">Query forwarding</span>
+              <span class="font-mono">Source: /go</span>
+              <span class="font-mono">
+                Destination: https://target.com?ref={{ '{' }}query.ref{{ '}' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="destination">
+      <div class="grid gap-4">
         @if (!isLinkMapRule()) {
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Destination</mat-label>
             <input matInput type="text" [formField]="field('destination')" />
-            <mat-hint>Must start with <code>http://</code> or <code>https://</code>.</mat-hint>
+            <mat-hint>
+              Must start with <code>http://</code> or <code>https://</code>.
+            </mat-hint>
             @if (destinationError(); as error) {
               <mat-error>{{ error }}</mat-error>
             }
@@ -626,6 +291,124 @@
             and can define its own fallback.
           </div>
         }
+
+        <mat-accordion class="grid gap-2">
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Variables</mat-panel-title>
+              <mat-panel-description>Use &nbsp;<code>{{ '{' }}variable{{ '}' }}</code>&nbsp; to insert values.</mat-panel-description>
+            </mat-expansion-panel-header>
+            <div class="grid gap-3 text-xs">
+              @for (item of variableReferences; track item.token) {
+                <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-mono font-semibold">{{ item.token }}</span>
+                    <span class="text-app-muted">{{ item.description }}</span>
+                  </div>
+                  <div class="mt-1 font-mono text-app-muted">Example: {{ item.example }}</div>
+                </div>
+              }
+            </div>
+          </mat-expansion-panel>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Manipulators</mat-panel-title>
+              <mat-panel-description>
+                Add modifiers after a variable, e.g. <code>{{ '{' }}path:to_lower_case.url_encode{{ '}' }}</code>.
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <div class="grid gap-3 text-xs">
+              <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-app-muted">
+                Modifiers can also be used on functions, e.g.
+                <span class="font-mono">{{ '{' }}time():to_iso_string{{ '}' }}</span>.
+              </div>
+              @for (item of manipulatorReferences; track item.token) {
+                <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-mono font-semibold">{{ item.token }}</span>
+                    <span class="text-app-muted">{{ item.description }}</span>
+                  </div>
+                  <div class="mt-1 font-mono text-app-muted">Example: {{ item.example }}</div>
+                </div>
+              }
+            </div>
+          </mat-expansion-panel>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Conditional logic</mat-panel-title>
+              <mat-panel-description>Build ternary routing.</mat-panel-description>
+            </mat-expansion-panel-header>
+            <div class="grid gap-3">
+              <div class="grid gap-3 text-xs">
+                @for (item of operatorReferences; track item.token) {
+                  <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="font-mono font-semibold">{{ item.token }}</span>
+                      <span class="text-app-muted">{{ item.description }}</span>
+                    </div>
+                    <div class="mt-1 font-mono text-app-muted">Example: {{ item.example }}</div>
+                  </div>
+                }
+              </div>
+              <div
+                class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted"
+              >
+                Example:
+                <span class="ml-2 font-mono">
+                  {{ '{' }}method{{ '}' }} == 'POST' ? https://example.com/write : https://example.com/read
+                </span>
+              </div>
+            </div>
+          </mat-expansion-panel>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Functions</mat-panel-title>
+              <mat-panel-description>Use functions in placeholders or conditions.</mat-panel-description>
+            </mat-expansion-panel-header>
+            <div class="grid gap-3 text-xs">
+              @for (item of functionReferences; track item.token) {
+                <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-mono font-semibold">{{ item.token }}</span>
+                    <span class="text-app-muted">{{ item.description }}</span>
+                  </div>
+                  <div class="mt-1 font-mono text-app-muted">Example: {{ item.example }}</div>
+                </div>
+              }
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+
+        <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+          <div class="font-semibold text-app-text">Destination examples</div>
+          <div class="mt-2 grid gap-2 font-mono">
+            <span>https://example.com/{{ '{' }}path{{ '}' }}</span>
+            <span>https://example.com/promo/{{ '{' }}segments.0{{ '}' }}</span>
+            <span>
+              https://site.com?utm={{ '{' }}query.utm{{ '}' }}&amp;src={{ '{' }}domain.root{{ '}' }}
+            </span>
+            <span>https://site.com?ts={{ '{' }}time():to_iso_string{{ '}' }}</span>
+            <span>
+              random(0,100) &lt; 30 ? https://a.com : https://b.com
+            </span>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="status">
+      <div class="grid gap-4">
+        <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+          <div class="font-semibold text-app-text">What this means</div>
+          <div class="mt-2 grid gap-2">
+            <span>301/308 are permanent; 302/307 are temporary.</span>
+            <span>307/308 preserve the HTTP method (POST stays POST).</span>
+            <span>301/302 may be converted to GET by some clients.</span>
+          </div>
+        </div>
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Status code</mat-label>
@@ -638,37 +421,55 @@
             <mat-error>{{ error }}</mat-error>
           }
         </mat-form-field>
+      </div>
+    </ng-template>
 
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Priority</mat-label>
-          <input matInput type="number" [formField]="field('priority')" />
-          <mat-hint>Higher priority rules are evaluated first (0-1000).</mat-hint>
-          @if (priorityError(); as error) {
-            <mat-error>{{ error }}</mat-error>
-          }
-        </mat-form-field>
-
-        <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
-          <span
-            class="inline-flex"
-            [matTooltip]="submitTooltip()"
-            [matTooltipDisabled]="!submitDisabled() || !submitTooltip()"
-            matTooltipClass="wizard-tooltip"
-          >
-            <button
-              mat-flat-button
-              color="primary"
-              type="submit"
-              [disabled]="submitDisabled()"
-              [class.opacity-60]="submitDisabled()"
-              [class.cursor-not-allowed]="submitDisabled()"
-            >
-              <mat-icon>{{ isEdit ? 'save' : 'add' }}</mat-icon>
-              <span>{{ submitLabel }}</span>
-            </button>
-          </span>
+    <ng-template wizardStep="summary">
+      <div class="grid gap-4">
+        <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4 text-sm">
+          <div class="mb-3 text-sm font-semibold">Summary</div>
+          <div class="grid gap-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-app-muted">Domain group</span>
+              <span>{{ selectedGroupLabel() }}</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-app-muted">Priority</span>
+              <span>{{ ruleModel().priority }}</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-app-muted">Source</span>
+              <span class="font-mono">{{ ruleModel().source || '—' }}</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-app-muted">Destination</span>
+              <span class="font-mono">
+                {{ isLinkMapRule() ? 'Link map routing' : (ruleModel().destination || '—') }}
+              </span>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-app-muted">Request method</span>
+              <span>{{ formatMatchMethods(ruleModel().matchMethod) }}</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-app-muted">Path match</span>
+              <span>{{ formatPathMatch(ruleModel().pathMatch) }}</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-app-muted">Query match</span>
+              <span>{{ formatQueryMatch(ruleModel().queryMatch) }}</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-app-muted">Link map</span>
+              <span>{{ selectedLinkMap()?.name || '—' }}</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-app-muted">Status</span>
+              <span>{{ ruleModel().statusCode }}</span>
+            </div>
+          </div>
         </div>
       </div>
-    }
-  </form>
-</div>
+    </ng-template>
+  </app-wizard>
+</form>
