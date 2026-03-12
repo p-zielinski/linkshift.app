@@ -290,6 +290,10 @@ export function createEntityStore<
         });
       };
 
+      const resetStore = () => {
+        patchState(store, new BaseEntityState<T>(identifier));
+      };
+
       const selectById = (id: string) =>
         computed(() => store.details()[id] ?? null);
 
@@ -332,6 +336,7 @@ export function createEntityStore<
         remove,
         invalidateStore,
         invalidateList,
+        resetStore,
         selectById,
         selectList,
         selectListResult,

@@ -8,6 +8,13 @@ import type { User } from '../models/user.model';
 import { AuthApiService } from '../api/auth-api.service';
 import { DomainGroupStore } from './domain-group.store';
 import { DomainStore } from './domain.store';
+import { RedirectRuleStore } from './redirect-rule.store';
+import { RedirectTestStore } from './redirect-test.store';
+import { LinkMapStore } from './link-map.store';
+import { RedirectTestResultsStore } from './redirect-test-results.store';
+import { OrganizationMembersStore } from './organization-members.store';
+import { BillingPlansStore } from './billing-plans.store';
+import { OrganizationUsageStore } from './organization-usage.store';
 import { extractErrorMessage } from './store-error.utils';
 import {
   clearStoredSession,
@@ -41,6 +48,13 @@ export const AuthStore = signalStore(
   withMethods((store, api = inject(AuthApiService)) => {
     const domainStore = inject(DomainStore);
     const domainGroupStore = inject(DomainGroupStore);
+    const redirectRuleStore = inject(RedirectRuleStore);
+    const redirectTestStore = inject(RedirectTestStore);
+    const linkMapStore = inject(LinkMapStore);
+    const redirectTestResultsStore = inject(RedirectTestResultsStore);
+    const organizationMembersStore = inject(OrganizationMembersStore);
+    const billingPlansStore = inject(BillingPlansStore);
+    const organizationUsageStore = inject(OrganizationUsageStore);
 
     const prefetchCoreData = () => {
       domainGroupStore.searchList();
@@ -155,6 +169,18 @@ export const AuthStore = signalStore(
     };
 
     const logout = (redirectFnc: () => void) => {
+      const resetStores = () => {
+        domainStore.resetStore();
+        domainGroupStore.resetStore();
+        redirectRuleStore.resetStore();
+        redirectTestStore.resetStore();
+        linkMapStore.resetStore();
+        redirectTestResultsStore.resetStore();
+        organizationMembersStore.resetStore();
+        billingPlansStore.resetStore();
+        organizationUsageStore.resetStore();
+      };
+
       api.logout().pipe().subscribe({
         next: () => {
           clearStoredSession();
@@ -165,9 +191,21 @@ export const AuthStore = signalStore(
             isLoading: false,
             error: null
           });
-          redirectFnc()
+          resetStores();
+          redirectFnc();
         },
-        error: () => undefined,
+        error: () => {
+          clearStoredSession();
+          patchState(store, {
+            accessToken: null,
+            user: null,
+            organization: null,
+            isLoading: false,
+            error: null
+          });
+          resetStores();
+          redirectFnc();
+        },
       });
 
     };
