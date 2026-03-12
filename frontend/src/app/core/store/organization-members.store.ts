@@ -19,6 +19,12 @@ const initialState: OrganizationMembersState = {
   error: null,
 };
 
+const resetState = (): OrganizationMembersState => ({
+  members: [],
+  isLoading: false,
+  error: null,
+});
+
 export const OrganizationMembersStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
@@ -69,6 +75,7 @@ export const OrganizationMembersStore = signalStore(
       loadMembers,
       updateMemberStatus,
       clearError: () => patchState(store, { error: null }),
+      resetStore: () => patchState(store, resetState()),
     };
   }),
 );

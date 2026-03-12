@@ -19,6 +19,12 @@ const initialState: OrganizationUsageState = {
   error: null,
 };
 
+const resetState = (): OrganizationUsageState => ({
+  usage: null,
+  isLoading: false,
+  error: null,
+});
+
 export const OrganizationUsageStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
@@ -48,6 +54,7 @@ export const OrganizationUsageStore = signalStore(
 
     return {
       loadUsage,
+      resetStore: () => patchState(store, resetState()),
     };
   }),
 );

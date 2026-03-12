@@ -21,6 +21,12 @@ const initialState: BillingPlansState = {
   error: null,
 };
 
+const resetState = (): BillingPlansState => ({
+  catalog: null,
+  isLoading: false,
+  error: null,
+});
+
 export const BillingPlansStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
@@ -52,6 +58,7 @@ export const BillingPlansStore = signalStore(
 
     return {
       loadPlans,
+      resetStore: () => patchState(store, resetState()),
     };
   }),
 );
