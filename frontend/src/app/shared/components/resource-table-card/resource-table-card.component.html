@@ -1,0 +1,10 @@
+<app-resource-card [className]="className()">
+  <div class="min-h-0 flex-1 overflow-auto" [ngClass]="tableClass()">
+    <ng-content select="[table-content]"></ng-content>
+  </div>
+  @if (showFooter()) {
+    <div class="mt-3 border-t border-app-border-soft pt-3" [ngClass]="footerClass()">
+      <ng-content select="[table-footer]"></ng-content>
+    </div>
+  }
+</app-resource-card>

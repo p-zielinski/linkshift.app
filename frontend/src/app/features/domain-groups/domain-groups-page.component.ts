@@ -1,45 +1,42 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { ResourcePillComponent } from '../../shared/components/resource-pill/resource-pill.component';
-import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { DomainStore } from '../../core/store/domain.store';
 import { DEFAULT_LIST_KEY } from '../../core/store/entity/entity-store.utils';
-import { DomainGroupFormDialogComponent } from './domain-group-form-dialog.component';
+import { DomainGroupFormDialogComponent, type DomainGroupDialogData } from './domain-group-form-dialog.component';
 import type { DomainGroup } from '../../core/models/domain-group.model';
+import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
+import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
+import { DomainGroupsTableComponent } from './components/domain-groups-table/domain-groups-table.component';
+import { WizardDialogService } from '../../core/services/wizard-dialog.service';
 
 @Component({
   selector: 'app-domain-groups-page',
   standalone: true,
   imports: [
-    CommonModule,
-    MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
     MatDialogModule,
     MatSnackBarModule,
-    PageHeaderComponent,
-    ResourcePillComponent,
-    TablePaginatorComponent
+    TablePaginatorComponent,
+    ResourcePageShellComponent,
+    ResourceTableCardComponent,
+    DomainGroupsTableComponent,
   ],
   templateUrl: './domain-groups-page.component.html'
 })
 export class DomainGroupsPageComponent {
   private readonly dialog = inject(MatDialog);
+  private readonly wizardDialog = inject(WizardDialogService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly domainStore = inject(DomainStore);
 
-  readonly columns = ['name', 'id', 'domains', 'createdAt', 'actions'];
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly domains = this.domainStore.selectList();
   readonly domainsLoaded = computed(() => !!this.domainStore.list()[DEFAULT_LIST_KEY]);
@@ -85,17 +82,20 @@ export class DomainGroupsPageComponent {
   }
 
   openCreateDialog(): void {
-    this.dialog.open(DomainGroupFormDialogComponent, {
-      width: '480px'
-    });
+    this.wizardDialog.openWizard<
+      DomainGroupFormDialogComponent,
+      DomainGroupDialogData,
+      boolean
+    >(DomainGroupFormDialogComponent);
   }
 
   openEditDialog(group: DomainGroup): void {
-    this.dialog.open(DomainGroupFormDialogComponent, {
-      width: '480px',
-      data: {
-        group
-      }
+    this.wizardDialog.openWizard<
+      DomainGroupFormDialogComponent,
+      DomainGroupDialogData,
+      boolean
+    >(DomainGroupFormDialogComponent, {
+      group
     });
   }
 
@@ -107,7 +107,7 @@ export class DomainGroupsPageComponent {
       return;
     }
 
-    if (this.domainCount(groupId) > 0) {
+    if ((this.domainCounts()[groupId] ?? 0) > 0) {
       this.snackBar.open(
         'Delete blocked: domain groups with linked domains cannot be removed.',
         'Dismiss',
@@ -131,26 +131,6 @@ export class DomainGroupsPageComponent {
         this.domainGroupStore.remove(groupId);
       }
     });
-  }
-
-  domainCount(groupId: string): number {
-    return this.domainCounts()[groupId] ?? 0;
-  }
-
-  deleteTooltip(groupId: string): string {
-    if (!this.domainsLoaded()) {
-      return 'Domain data is still loading. Try again in a moment.';
-    }
-    return this.domainCount(groupId) > 0
-      ? 'Remove linked domains before deleting this group.'
-      : 'Delete domain group and its redirect rules.';
-  }
-
-  canDelete(groupId: string): boolean {
-    if (!this.domainsLoaded()) {
-      return false;
-    }
-    return this.domainCount(groupId) === 0;
   }
 
   onPageChange(page: number): void {
