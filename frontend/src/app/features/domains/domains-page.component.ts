@@ -1,53 +1,49 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { form, FormField } from '@angular/forms/signals';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { ResourcePillComponent } from '../../shared/components/resource-pill/resource-pill.component';
+import { form } from '@angular/forms/signals';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
 import { DomainStore } from '../../core/store/domain.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
-import { DomainFormDialogComponent } from './domain-form-dialog.component';
+import { DomainFormDialogComponent, type DomainDialogData } from './domain-form-dialog.component';
 import type { Domain } from '../../core/models/domain.model';
 import { AuthStore } from '../../core/store/auth.store';
 import { DomainSetupDialogComponent } from './domain-setup-dialog.component';
+import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
+import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
+import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
+import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
+import { DomainsTableComponent } from './components/domains-table/domains-table.component';
+import { WizardDialogService } from '../../core/services/wizard-dialog.service';
 
 @Component({
   selector: 'app-domains-page',
   standalone: true,
   imports: [
-    CommonModule,
-    MatTableModule,
     MatButtonModule,
     MatIconModule,
-    MatTooltipModule,
     MatDialogModule,
     MatSnackBarModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    FormField,
-    PageHeaderComponent,
-    ResourcePillComponent,
-    TablePaginatorComponent
+    TablePaginatorComponent,
+    ResourcePageShellComponent,
+    ResourceCardComponent,
+    ResourceTableCardComponent,
+    DomainGroupSelectComponent,
+    DomainsTableComponent
   ],
   templateUrl: './domains-page.component.html'
 })
 export class DomainsPageComponent {
   private readonly authStore = inject(AuthStore);
   private readonly dialog = inject(MatDialog);
+  private readonly wizardDialog = inject(WizardDialogService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly domainStore = inject(DomainStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
 
-  readonly columns = ['name', 'id', 'group', 'createdAt', 'actions'];
   readonly domains = this.domainStore.selectList();
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly pageLimitOptions = [10, 20, 50];
@@ -80,7 +76,6 @@ export class DomainsPageComponent {
     return this.filteredDomains().slice(start, start + limit);
   });
   readonly hasNextPage = computed(() => this.page() < this.pageCount());
-
   readonly groupMap = computed(() => {
     const map: Record<string, { name: string } | undefined> = {};
     for (const group of this.domainGroups()) {
@@ -138,11 +133,12 @@ export class DomainsPageComponent {
   }
 
   openCreateDialog(): void {
-    const dialogRef = this.dialog.open(DomainFormDialogComponent, {
-      width: '480px',
-      data: {
-        domainGroupId: this.activeGroupId() || undefined
-      }
+    const dialogRef = this.wizardDialog.openWizard<
+      DomainFormDialogComponent,
+      DomainDialogData,
+      boolean
+    >(DomainFormDialogComponent, {
+      domainGroupId: this.activeGroupId() || undefined
     });
 
     dialogRef.afterClosed().subscribe((created) => {
@@ -153,11 +149,12 @@ export class DomainsPageComponent {
   }
 
   openEditDialog(domain: Domain): void {
-    this.dialog.open(DomainFormDialogComponent, {
-      width: '480px',
-      data: {
-        domain
-      }
+    this.wizardDialog.openWizard<
+      DomainFormDialogComponent,
+      DomainDialogData,
+      boolean
+    >(DomainFormDialogComponent, {
+      domain
     });
   }
 
@@ -177,17 +174,6 @@ export class DomainsPageComponent {
         this.domainStore.remove(domainId);
       }
     });
-  }
-
-  groupLabel(groupId: string): string {
-    return this.groupMap()[groupId]?.name ?? groupId;
-  }
-
-  groupTooltip(groupId: string): string {
-    const name = this.groupMap()[groupId]?.name;
-    return name
-      ? `Domain group: ${name} (${groupId})`
-      : `Domain group ID: ${groupId}`;
   }
 
   onPageChange(page: number): void {

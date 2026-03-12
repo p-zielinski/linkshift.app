@@ -15,6 +15,10 @@ const initialState: RedirectTestResultsState = {
   results: {}
 };
 
+const resetState = (): RedirectTestResultsState => ({
+  results: {}
+});
+
 export const RedirectTestResultsStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
@@ -63,7 +67,8 @@ export const RedirectTestResultsStore = signalStore(
       setFailure,
       setResult,
       clearAll,
-      clearByIds
+      clearByIds,
+      resetStore: () => patchState(store, resetState())
     };
   })
 );

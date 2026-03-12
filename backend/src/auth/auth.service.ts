@@ -21,6 +21,8 @@ import { AuthTokenService } from './auth-token.service';
 import { LegalService } from '../legal/legal.service';
 import { Logger } from 'nestjs-pino';
 
+const DEFAULT_DOMAIN_GROUP_NAME = 'Default';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -59,7 +61,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(data.password, 10);
     const legalConsent = this.legalService.buildConsentRecord();
 
-    // 3. Create organization and user in a transaction
+    // 3. Create organization, user, and default domain group in a transaction
     const result = await this.prisma.$transaction(async (tx) => {
       // Create organization
       const organization = await tx.organization.create({
@@ -81,7 +83,15 @@ export class AuthService {
         },
       });
 
-      return { user, organization };
+      const domainGroup = await tx.domainGroup.create({
+        data: {
+          id: createCustomCuid(AppEntity.DomainGroup),
+          name: DEFAULT_DOMAIN_GROUP_NAME,
+          organizationId: organization.id,
+        },
+      });
+
+      return { user, organization, domainGroup };
     });
 
     await Promise.all([
@@ -92,6 +102,10 @@ export class AuthService {
       this.cacheManagerService.setDataExist({
         dataType: DataType.ORGANIZATIONS,
         data: result.organization,
+      }),
+      this.cacheManagerService.setDataExist({
+        dataType: DataType.DOMAIN_GROUPS,
+        data: result.domainGroup as any,
       }),
     ]);
 

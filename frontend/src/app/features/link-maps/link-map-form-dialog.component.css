@@ -1,3 +1,8 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
 .warning {
   padding: 10px 12px;
   border-radius: 12px;
@@ -8,10 +13,6 @@
 
 code {
   font-family: "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-}
-
-:host ::ng-deep .tooltip-preline {
-  white-space: pre-line;
 }
 
 :host ::ng-deep .entry-field--invalid .mdc-notched-outline__leading,

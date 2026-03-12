@@ -2,13 +2,10 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
-  MatDialogModule,
   MatDialogRef
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { form, required, submit, FormField } from '@angular/forms/signals';
 import { applyZodField } from '../../core/forms/zod-validators';
@@ -20,6 +17,11 @@ import {
   type LoadingDialogData
 } from '../../shared/components/loading-dialog/loading-dialog.component';
 import type { DomainGroup } from '../../core/models/domain-group.model';
+import { WizardComponent, type WizardStep } from '../../shared/components/wizard/wizard.component';
+import {
+  WizardStepDirective,
+  WizardStepSummaryDirective,
+} from '../../shared/components/wizard/wizard-step.directive';
 
 export type DomainGroupDialogData = {
   group?: DomainGroup;
@@ -30,14 +32,15 @@ export type DomainGroupDialogData = {
   standalone: true,
   imports: [
     CommonModule,
-    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    FormField
+    FormField,
+    WizardComponent,
+    WizardStepDirective,
+    WizardStepSummaryDirective
   ],
-  templateUrl: './domain-group-form-dialog.component.html'
+  templateUrl: './domain-group-form-dialog.component.html',
+  styleUrl: './domain-group-form-dialog.component.css'
 })
 export class DomainGroupFormDialogComponent {
   private readonly dialog = inject(MatDialog);
@@ -74,6 +77,16 @@ export class DomainGroupFormDialogComponent {
     }
     return !!this.store.isLoading()[requestId];
   });
+  readonly canSubmit = computed(() => this.groupForm.name().valid());
+  readonly steps = computed<WizardStep[]>(() => [
+    {
+      id: 'details',
+      label: 'Details',
+      title: 'Domain group details',
+      description: 'Name the domain group.',
+      complete: this.canSubmit(),
+    },
+  ]);
 
   constructor() {
     effect(() => {
