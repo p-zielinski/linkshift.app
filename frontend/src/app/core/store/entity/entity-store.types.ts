@@ -23,4 +23,5 @@ export type EntityStoreConfig<
   api: Type<EntityApi<T, TCreate, TUpdate, TFilter>>;
   entityLabel?: string;
   listTtlMs?: number;
+  invalidateUsageOnMutations?: boolean;
 };

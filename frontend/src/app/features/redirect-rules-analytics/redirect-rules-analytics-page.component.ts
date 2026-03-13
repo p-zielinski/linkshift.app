@@ -1,9 +1,7 @@
 import { Component, OnInit, computed, signal, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { firstValueFrom } from 'rxjs';
-import { RedirectRulesApiService } from '../../core/api/redirect-rules-api.service';
-import type { TopRedirectRuleEntry } from '../../core/models/redirect-rule.model';
+import type { RedirectRuleAnalyticsQuery, TopRedirectRuleEntry } from '../../core/models/redirect-rule.model';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { RuleAnalyticsDialogComponent } from '../dashboard/rule-analytics-dialog.component';
 import {
@@ -22,6 +20,8 @@ import {
   RedirectRulesAnalyticsFiltersComponent,
 } from './components/redirect-rules-analytics-filters.component';
 import { RedirectRulesAnalyticsResultsComponent } from './components/redirect-rules-analytics-results.component';
+import { RedirectRulesAnalyticsStore } from '../../core/store/redirect-rules-analytics.store';
+import { getFilterKey } from '../../core/store/entity/entity-store.utils';
 
 const ANALYTICS_CHART_HEIGHT = 400;
 
@@ -40,7 +40,7 @@ const ANALYTICS_CHART_HEIGHT = 400;
 })
 export class RedirectRulesAnalyticsPageComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
-  private readonly redirectRulesApi = inject(RedirectRulesApiService);
+  private readonly analyticsStore = inject(RedirectRulesAnalyticsStore);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
@@ -50,9 +50,7 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
     strong: '#8f2045',
     grid: 'rgba(192, 55, 98, 0.2)',
   });
-  readonly topRules = signal<TopRedirectRuleEntry[]>([]);
-  readonly topRulesLoading = signal(false);
-  readonly topRulesError = signal<string | null>(null);
+  readonly rangeError = signal<string | null>(null);
   readonly rangeStart = signal<string>('');
   readonly rangeEnd = signal<string>('');
   readonly quickRanges: AnalyticsQuickRange[] = [
@@ -61,6 +59,48 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
     { label: 'Last 14 days', days: 14 },
     { label: 'Last 30 days', days: 30 },
   ];
+
+  readonly analyticsQuery = computed<RedirectRuleAnalyticsQuery | null>(() => {
+    const start = this.toIsoString(this.rangeStart());
+    const end = this.toIsoString(this.rangeEnd());
+    if (!start || !end) {
+      return null;
+    }
+    return { start, end, limit: 50 };
+  });
+
+  readonly analyticsKey = computed(() => {
+    const query = this.analyticsQuery();
+    return query ? getFilterKey(query) : null;
+  });
+
+  readonly topRules = computed<TopRedirectRuleEntry[]>(() => {
+    const key = this.analyticsKey();
+    if (!key) {
+      return [];
+    }
+    return this.analyticsStore.results()[key] ?? [];
+  });
+
+  readonly topRulesLoading = computed(() => {
+    const key = this.analyticsKey();
+    if (!key) {
+      return false;
+    }
+    return !!this.analyticsStore.isLoading()[key];
+  });
+
+  readonly topRulesError = computed(() => {
+    const rangeError = this.rangeError();
+    if (rangeError) {
+      return rangeError;
+    }
+    const key = this.analyticsKey();
+    if (!key) {
+      return null;
+    }
+    return this.analyticsStore.errors()[key] ?? null;
+  });
 
   readonly chartSeries = computed<ApexAxisChartSeries>(() => [
     {
@@ -148,14 +188,15 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
     const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
     this.rangeStart.set(this.toDateTimeInputValue(start));
     this.rangeEnd.set(this.toDateTimeInputValue(end));
-    this.loadTopRules();
+    this.rangeError.set(null);
+    this.fetchAnalytics();
   }
 
   applyCustomRange(): void {
     const start = this.rangeStart();
     const end = this.rangeEnd();
     if ((start && !end) || (!start && end)) {
-      this.topRulesError.set('Provide both start and end date/time.');
+      this.rangeError.set('Provide both start and end date/time.');
       return;
     }
     if (start && end) {
@@ -163,12 +204,13 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
       const endDate = new Date(end);
       if (!Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime())) {
         if (startDate > endDate) {
-          this.topRulesError.set('Start must be before end.');
+          this.rangeError.set('Start must be before end.');
           return;
         }
       }
     }
-    this.loadTopRules();
+    this.rangeError.set(null);
+    this.fetchAnalytics();
   }
 
   openRuleDetails(entry: TopRedirectRuleEntry): void {
@@ -188,26 +230,12 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
     this.rangeEnd.set(value);
   }
 
-  private async loadTopRules(): Promise<void> {
-    this.topRulesLoading.set(true);
-    this.topRulesError.set(null);
-    try {
-      const start = this.toIsoString(this.rangeStart());
-      const end = this.toIsoString(this.rangeEnd());
-      const response = await firstValueFrom(
-        this.redirectRulesApi.analytics({
-          start,
-          end,
-          limit: 50,
-        }),
-      );
-      this.topRules.set(response.data ?? []);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to load top rules.';
-      this.topRulesError.set(message);
-    } finally {
-      this.topRulesLoading.set(false);
+  private fetchAnalytics(): void {
+    const query = this.analyticsQuery();
+    if (!query) {
+      return;
     }
+    this.analyticsStore.searchAnalytics(query);
   }
 
   private toDateTimeInputValue(value: Date): string {

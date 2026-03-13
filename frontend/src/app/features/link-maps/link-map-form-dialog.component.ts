@@ -16,6 +16,7 @@ import { extractErrorMessage } from '../../core/store/store-error.utils';
 import type { LinkMapQueryMatch, LinkMap, LinkMapEntry } from '../../core/models/link-map.model';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { z } from 'zod';
+import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
 import { WizardComponent, type WizardStep } from '../../shared/components/wizard/wizard.component';
 import {
   WizardStepDirective,
@@ -117,6 +118,7 @@ export class LinkMapFormDialogComponent {
   private readonly linkMapsApi = inject(LinkMapsApiService);
   private readonly linkMapStore = inject(LinkMapStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly usageStore = inject(OrganizationUsageStore);
   private readonly saving = signal(false);
   private readonly existingLoaded = signal(false);
 
@@ -401,6 +403,7 @@ export class LinkMapFormDialogComponent {
 
       this.linkMapStore.searchDetails(saved.id, true);
       this.linkMapStore.searchList({ domainGroupId: saved.domainGroupId }, true);
+      this.usageStore.invalidateUsage();
       this.dialogRef.close({
         saved: true,
         linkMapId: saved.id,

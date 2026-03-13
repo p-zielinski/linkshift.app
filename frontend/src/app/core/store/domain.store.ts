@@ -10,5 +10,6 @@ export const DomainStore = createEntityStore<
 >({
   identifier: 'id',
   entityLabel: 'Domain',
-  api: DomainsApiService
+  api: DomainsApiService,
+  invalidateUsageOnMutations: true
 });
