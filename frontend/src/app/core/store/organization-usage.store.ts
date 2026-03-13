@@ -6,23 +6,28 @@ import { mergeMap, pipe, tap } from 'rxjs';
 import type { OrganizationUsage } from '../models/organization-usage.model';
 import { OrganizationApiService } from '../api/organization-api.service';
 import { extractErrorMessage } from './store-error.utils';
+import { getExpiration, isExpired } from './entity/entity-store.utils';
+import { DEFAULT_STORE_TTL_MS } from './store-cache.constants';
 
 type OrganizationUsageState = {
   usage: OrganizationUsage | null;
   isLoading: boolean;
   error: string | null;
+  expiresAt: number | null;
 };
 
 const initialState: OrganizationUsageState = {
   usage: null,
   isLoading: false,
   error: null,
+  expiresAt: null,
 };
 
 const resetState = (): OrganizationUsageState => ({
   usage: null,
   isLoading: false,
   error: null,
+  expiresAt: null,
 });
 
 export const OrganizationUsageStore = signalStore(
@@ -37,14 +42,18 @@ export const OrganizationUsageStore = signalStore(
       patchState(store, { error: message });
     };
 
-    const loadUsage = rxMethod<void>(
+    const fetchUsage = rxMethod<void>(
       pipe(
         tap(() => patchState(store, { isLoading: true, error: null })),
         mergeMap(() =>
           api.getUsage().pipe(
             tapResponse({
-              next: (usage) => patchState(store, { usage }),
-              error: (error) => setError(error, 'Usage request failed.'),
+              next: (usage) =>
+                patchState(store, { usage, expiresAt: getExpiration(DEFAULT_STORE_TTL_MS) }),
+              error: (error) => {
+                setError(error, 'Usage request failed.');
+                patchState(store, { expiresAt: null });
+              },
               finalize: () => patchState(store, { isLoading: false }),
             }),
           ),
@@ -53,7 +62,16 @@ export const OrganizationUsageStore = signalStore(
     );
 
     return {
-      loadUsage,
+      loadUsage: (force = false) => {
+        if (store.isLoading()) {
+          return;
+        }
+        if (force || !store.usage() || isExpired(store.expiresAt())) {
+          fetchUsage();
+        }
+      },
+      invalidateUsage: () =>
+        patchState(store, { expiresAt: null, error: null }),
       resetStore: () => patchState(store, resetState()),
     };
   }),

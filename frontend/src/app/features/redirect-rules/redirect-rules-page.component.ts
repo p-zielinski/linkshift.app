@@ -434,7 +434,7 @@ export class RedirectRulesPageComponent {
         };
 
         const filterKey = getFilterKey(filterParams);
-        this.redirectTestStore.searchList(filterParams, true);
+        this.redirectTestStore.searchList(filterParams);
         const [result] = await firstValueFrom(
           runInInjectionContext(this.envInjector, () =>
             combineLatest([

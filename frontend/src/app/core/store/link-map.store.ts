@@ -18,5 +18,6 @@ export const LinkMapStore = createEntityStore<
 >({
   identifier: 'id',
   entityLabel: 'Link map',
-  api: LinkMapsApiService
+  api: LinkMapsApiService,
+  invalidateUsageOnMutations: true
 });

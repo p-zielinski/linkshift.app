@@ -6,23 +6,29 @@ import { mergeMap, pipe, tap } from 'rxjs';
 import type { OrganizationMember } from '../models/organization-member.model';
 import { OrganizationMembersApiService } from '../api/organization-members-api.service';
 import { extractErrorMessage } from './store-error.utils';
+import { getExpiration, isExpired } from './entity/entity-store.utils';
+import { DEFAULT_STORE_TTL_MS } from './store-cache.constants';
+import { OrganizationUsageStore } from './organization-usage.store';
 
 type OrganizationMembersState = {
   members: OrganizationMember[];
   isLoading: boolean;
   error: string | null;
+  expiresAt: number | null;
 };
 
 const initialState: OrganizationMembersState = {
   members: [],
   isLoading: false,
   error: null,
+  expiresAt: null,
 };
 
 const resetState = (): OrganizationMembersState => ({
   members: [],
   isLoading: false,
   error: null,
+  expiresAt: null,
 });
 
 export const OrganizationMembersStore = signalStore(
@@ -32,19 +38,25 @@ export const OrganizationMembersStore = signalStore(
     hasMembers: computed(() => store.members().length > 0),
   })),
   withMethods((store, api = inject(OrganizationMembersApiService)) => {
+    const usageStore = inject(OrganizationUsageStore);
+
     const setError = (error: unknown, fallback: string) => {
       const message = extractErrorMessage(error, fallback);
       patchState(store, { error: message });
     };
 
-    const loadMembers = rxMethod<void>(
+    const fetchMembers = rxMethod<void>(
       pipe(
         tap(() => patchState(store, { isLoading: true, error: null })),
         mergeMap(() =>
           api.listMembers().pipe(
             tapResponse({
-              next: (members) => patchState(store, { members }),
-              error: (error) => setError(error, 'Member list request failed.'),
+              next: (members) =>
+                patchState(store, { members, expiresAt: getExpiration(DEFAULT_STORE_TTL_MS) }),
+              error: (error) => {
+                setError(error, 'Member list request failed.');
+                patchState(store, { expiresAt: null });
+              },
               finalize: () => patchState(store, { isLoading: false }),
             }),
           ),
@@ -58,12 +70,16 @@ export const OrganizationMembersStore = signalStore(
         mergeMap((payload) =>
           api.updateMemberStatus(payload.userId, payload.blocked).pipe(
             tapResponse({
-              next: (member) =>
+              next: (member) => {
                 patchState(store, (state) => ({
                   members: state.members.map((entry) =>
                     entry.id === member.id ? member : entry,
                   ),
-                })),
+                  expiresAt: getExpiration(DEFAULT_STORE_TTL_MS),
+                }));
+                usageStore.invalidateUsage();
+                usageStore.loadUsage(true);
+              },
               error: (error) => setError(error, 'Member update failed.'),
             }),
           ),
@@ -72,8 +88,17 @@ export const OrganizationMembersStore = signalStore(
     );
 
     return {
-      loadMembers,
+      loadMembers: (force = false) => {
+        if (store.isLoading()) {
+          return;
+        }
+        if (force || isExpired(store.expiresAt())) {
+          fetchMembers();
+        }
+      },
       updateMemberStatus,
+      invalidateMembers: () =>
+        patchState(store, { expiresAt: null, error: null }),
       clearError: () => patchState(store, { error: null }),
       resetStore: () => patchState(store, resetState()),
     };

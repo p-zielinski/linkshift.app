@@ -20,8 +20,8 @@ import {
 } from './entity-store.utils';
 import type { QueryResult } from '../../models/query-result.model';
 import { extractErrorMessage } from '../store-error.utils';
-
-const DEFAULT_TTL_MS = 60 * 60 * 1000;
+import { OrganizationUsageStore } from '../organization-usage.store';
+import { DEFAULT_STORE_TTL_MS } from '../store-cache.constants';
 
 export function createEntityStore<
   T extends Record<string, unknown>,
@@ -29,7 +29,7 @@ export function createEntityStore<
   TUpdate,
   TFilter extends EntityListFilter
 >(config: EntityStoreConfig<T, TCreate, TUpdate, TFilter>) {
-  const ttlMs = config.listTtlMs ?? DEFAULT_TTL_MS;
+  const ttlMs = config.listTtlMs ?? DEFAULT_STORE_TTL_MS;
   const identifier = config.identifier;
   const entityLabel = config.entityLabel ?? 'Entry';
 
@@ -40,6 +40,10 @@ export function createEntityStore<
       hasAnyLoading: computed(() => Object.values(store.isLoading()).some(Boolean))
     })),
     withMethods((store, api = inject(config.api)) => {
+      const usageStore = config.invalidateUsageOnMutations
+        ? inject(OrganizationUsageStore)
+        : null;
+
       const getEntityId = (entity: T): string => {
         return String(entity[identifier]);
       };
@@ -208,6 +212,7 @@ export function createEntityStore<
                   if (!id) {
                     const updatedDefault = addToDefaultList(entityId);
                     markListKeysExpired(updatedDefault ? [DEFAULT_LIST_KEY] : []);
+                    usageStore?.invalidateUsage();
                   } else {
                     markListKeysExpired();
                   }
@@ -230,6 +235,7 @@ export function createEntityStore<
                   setDetailsFailure(id);
                   removeFromLists(id);
                   markListKeysExpired();
+                  usageStore?.invalidateUsage();
                 },
                 error: (error) => setError(error, `${entityLabel} delete failed.`),
                 finalize: () => setLoading(id, false)
