@@ -65,7 +65,9 @@ const isValidDestination = (value: string, allowEmpty: boolean): boolean => {
 
 const fallbackSchema = z
   .string()
-  .refine((value) => isValidDestination(value, true), 'Use a full URL like https://example.com');
+  .trim()
+  .min(1, 'Fallback destination is required')
+  .refine((value) => isValidDestination(value, false), 'Use a full URL like https://example.com');
 
 const queryMatchOptions: Array<{ value: LinkMapQueryMatch; label: string; hint: string }> = [
   { value: 'ignore', label: 'Ignore query', hint: 'Only the path part of the key matters.' },
@@ -146,8 +148,9 @@ export class LinkMapFormDialogComponent {
   mapForm = form(this.mapModel, (f) => {
     required(f.name);
     required(f.domainGroupId);
+    required(f.fallbackDestination);
     applyZodField(f.name, z.string().min(1, 'Name is required').max(120));
-    applyZodField(f.fallbackDestination, fallbackSchema.optional());
+    applyZodField(f.fallbackDestination, fallbackSchema);
   });
 
   readonly duplicateKeys = computed(() => this.getDuplicateKeys());
@@ -430,7 +433,7 @@ export class LinkMapFormDialogComponent {
       domainGroupId: model.domainGroupId,
       caseSensitive: model.caseSensitive,
       queryMatch: model.queryMatch,
-      fallbackDestination: fallback || null,
+      fallbackDestination: fallback,
       entries,
     };
   }
@@ -443,7 +446,7 @@ export class LinkMapFormDialogComponent {
       name: model.name.trim(),
       caseSensitive: model.caseSensitive,
       queryMatch: model.queryMatch,
-      fallbackDestination: fallback || null,
+      fallbackDestination: fallback,
     };
   }
 
