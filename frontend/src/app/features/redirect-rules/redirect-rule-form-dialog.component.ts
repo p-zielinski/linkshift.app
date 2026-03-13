@@ -812,7 +812,8 @@ export class RedirectRuleFormDialogComponent {
         return;
       }
       this.linkMapStore.searchList({ domainGroupId: groupId }, true);
-      this.usageStore.loadUsage();
+      this.usageStore.invalidateUsage();
+      this.usageStore.loadUsage(true);
       if (result.linkMapId) {
         this.ruleModel.update((model) => ({ ...model, linkMapId: result.linkMapId ?? null }));
       }

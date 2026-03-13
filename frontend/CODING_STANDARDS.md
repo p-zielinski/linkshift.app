@@ -30,6 +30,14 @@
 - Keep derived data in `computed` signals to avoid recalculations in templates.
 - Reset pagination and cursors on filter changes.
 
+## Store Map
+- Core stores live in `frontend/src/app/core/store`.
+- Entity resources use `createEntityStore` (domains, domain groups, redirect rules/tests, link maps).
+- Custom stores: `OrganizationUsageStore`, `OrganizationMembersStore`, `RedirectRulesAnalyticsStore`, `RedirectTestResultsStore`.
+- Read data via store `searchList`/`searchDetails` (or store-specific `load...`) to leverage the shared 5-minute cache (`DEFAULT_STORE_TTL_MS`).
+- For resource create/delete, enable `invalidateUsageOnMutations` in `createEntityStore` config instead of calling usage invalidation in components.
+- Use manual `OrganizationUsageStore.invalidateUsage()` only for direct API writes that bypass resource entity stores.
+
 ## Error Handling
 - Handle store errors in page components and show a single toast per error.
 - Clear errors after displaying them to avoid repeated notifications.
