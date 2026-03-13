@@ -15,5 +15,6 @@ export const RedirectTestStore = createEntityStore<
 >({
   identifier: 'id',
   entityLabel: 'Redirect test',
-  api: RedirectTestsApiService
+  api: RedirectTestsApiService,
+  invalidateUsageOnMutations: true
 });

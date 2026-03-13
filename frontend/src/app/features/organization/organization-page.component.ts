@@ -145,7 +145,6 @@ export class OrganizationPageComponent {
       return;
     }
     this.membersStore.updateMemberStatus({ userId: memberId, blocked });
-    this.usageStore.loadUsage();
   }
 
   statusLabel(member: { isBlocked: boolean }): string {
