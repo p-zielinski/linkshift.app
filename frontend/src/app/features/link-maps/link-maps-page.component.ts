@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { form, required } from '@angular/forms/signals';
+import { Router } from '@angular/router';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { LinkMapStore } from '../../core/store/link-map.store';
 import type { LinkMap } from '../../core/models/link-map.model';
@@ -38,6 +39,7 @@ export class LinkMapsPageComponent {
   private readonly linkMapStore = inject(LinkMapStore);
   private readonly wizardDialog = inject(WizardDialogService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly router = inject(Router);
 
   readonly domainGroups = this.domainGroupStore.selectList();
 
@@ -181,6 +183,10 @@ export class LinkMapsPageComponent {
         this.linkMapStore.searchList({ domainGroupId: this.activeGroupId() }, true);
       }
     });
+  }
+
+  openManagePage(map: LinkMap): void {
+    this.router.navigate(['/link-maps', map.id]);
   }
 
   deleteMap(map: LinkMap): void {

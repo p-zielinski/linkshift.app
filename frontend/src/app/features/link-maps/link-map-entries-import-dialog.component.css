@@ -1,0 +1,12 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.warning {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff3f3;
+  color: #b91c1c;
+  font-size: 12px;
+}

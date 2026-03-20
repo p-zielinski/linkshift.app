@@ -11,6 +11,7 @@ import { DomainStore } from './domain.store';
 import { RedirectRuleStore } from './redirect-rule.store';
 import { RedirectTestStore } from './redirect-test.store';
 import { LinkMapStore } from './link-map.store';
+import { LinkMapEntryStore } from './link-map-entry.store';
 import { RedirectTestResultsStore } from './redirect-test-results.store';
 import { OrganizationMembersStore } from './organization-members.store';
 import { BillingPlansStore } from './billing-plans.store';
@@ -52,6 +53,7 @@ export const AuthStore = signalStore(
     const redirectRuleStore = inject(RedirectRuleStore);
     const redirectTestStore = inject(RedirectTestStore);
     const linkMapStore = inject(LinkMapStore);
+    const linkMapEntryStore = inject(LinkMapEntryStore);
     const redirectTestResultsStore = inject(RedirectTestResultsStore);
     const organizationMembersStore = inject(OrganizationMembersStore);
     const billingPlansStore = inject(BillingPlansStore);
@@ -177,6 +179,7 @@ export const AuthStore = signalStore(
         redirectRuleStore.resetStore();
         redirectTestStore.resetStore();
         linkMapStore.resetStore();
+        linkMapEntryStore.resetStore();
         redirectTestResultsStore.resetStore();
         organizationMembersStore.resetStore();
         billingPlansStore.resetStore();

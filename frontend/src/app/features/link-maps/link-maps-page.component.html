@@ -3,7 +3,12 @@
   subtitle="Create reusable short-link maps for each domain group."
 >
   <div page-actions>
-    <button mat-flat-button color="primary" (click)="openCreateDialog()" [disabled]="!activeGroupId()">
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="openCreateDialog()"
+      [disabled]="!activeGroupId()"
+    >
       <mat-icon>add</mat-icon>
       <span>Add link map</span>
     </button>
@@ -11,14 +16,13 @@
 
   <app-resource-card>
     <div class="grid gap-4 md:grid-cols-[minmax(220px,1fr)_2fr]">
-      <app-domain-group-select
-        [groups]="domainGroups()"
-        [formField]="filterForm.domainGroupId"
-      ></app-domain-group-select>
+      <app-domain-group-select [groups]="domainGroups()" [formField]="filterForm.domainGroupId" />
 
-      <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-3 text-[12px] text-app-muted">
-        Link maps turn short keys into full destinations. Use a redirect rule with path prefix
-        (for example <code>/short</code>) to route to a chosen map.
+      <div
+        class="rounded-[14px] border border-app-border-soft bg-app-surface p-3 text-[12px] text-app-muted"
+      >
+        Link maps turn short keys into full destinations. Use a redirect rule with path prefix (for
+        example <code>/short</code>) to route to a chosen map.
       </div>
     </div>
   </app-resource-card>
@@ -29,9 +33,10 @@
         [maps]="linkMaps()"
         [activeGroupId]="activeGroupId()"
         [loading]="loading()"
+        (manage)="openManagePage($event)"
         (edit)="openEditDialog($event)"
         (delete)="deleteMap($event)"
-      ></app-link-maps-table>
+      />
     </div>
   </app-resource-table-card>
 </app-resource-page-shell>

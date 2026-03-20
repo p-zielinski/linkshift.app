@@ -1,0 +1,33 @@
+<app-wizard
+  title="Delete entries"
+  subtitle="Review entries before confirming deletion."
+  [steps]="steps()"
+  [saveLabel]="'Delete ' + count() + ' entries'"
+  (save)="confirm()"
+  (cancel)="cancel()"
+>
+  <ng-template wizardStepSummary="confirm">
+    <div class="text-xs text-app-muted">{{ count() }} selected</div>
+  </ng-template>
+
+  <ng-template wizardStep="confirm">
+    <div class="grid gap-3">
+      <div class="warning">
+        You are about to delete {{ count() }} entr{{ count() === 1 ? 'y' : 'ies' }}.
+      </div>
+
+      <div
+        class="max-h-[420px] overflow-auto rounded-[12px] border border-app-border-soft bg-app-surface p-3"
+      >
+        <div class="grid gap-2">
+          @for (entry of data.entries; track entry.id) {
+            <div class="rounded-lg border border-app-border-soft bg-white/70 p-2 text-[12px]">
+              <div class="font-semibold text-app-foreground">{{ entry.key || '(root)' }}</div>
+              <div class="text-app-muted">{{ entry.destination }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</app-wizard>
