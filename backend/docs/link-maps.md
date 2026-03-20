@@ -19,7 +19,7 @@ A link map contains:
 - `id`, `name`, `domainGroupId`
 - `caseSensitive` (boolean)
 - `queryMatch` (`ignore` | `exact` | `subset`)
-- `fallbackDestination` (optional)
+- `fallbackDestination`
 - many `LinkMapEntry` records
 
 A link map entry contains:
