@@ -10,6 +10,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'redirect-rules', renderMode: RenderMode.Client },
   { path: 'tests', renderMode: RenderMode.Client },
   { path: 'link-maps', renderMode: RenderMode.Client },
+  { path: 'link-maps/:id', renderMode: RenderMode.Client },
   { path: 'verify-email', renderMode: RenderMode.Client },
   { path: 'reset-password', renderMode: RenderMode.Client },
   { path: 'invite', renderMode: RenderMode.Client },
