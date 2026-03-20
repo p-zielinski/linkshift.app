@@ -1623,5 +1623,122 @@ describe('RedirectService', () => {
       ).toHaveBeenCalledWith('org_1', 10);
       expect(res.redirect).toHaveBeenCalledWith(301, 'https://example.com/new');
     });
+
+    it('should continue to the next rule in applyRedirect when link map has no match and no fallback', async () => {
+      const req = createMockRequest('http://example.com/short/abc');
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      } as any;
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_1',
+          redirectRules: [
+            {
+              id: 'rule_linkmap',
+              source: '/short',
+              destination: 'https://placeholder.example',
+              statusCode: 301,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'prefix',
+              linkMapId: 'lmap_1',
+            },
+            {
+              id: 'rule_fallback',
+              source: '/short/abc',
+              destination: 'https://next-rule.example',
+              statusCode: 307,
+              matchMethod: [],
+              queryMatch: 'exact',
+              pathMatch: 'exact',
+              linkMapId: null,
+            },
+          ],
+        },
+      });
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue({
+        configuration: null,
+      });
+      (
+        cacheManagerService.checkOrganizationRateLimit as jest.Mock
+      ).mockResolvedValue(undefined);
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
+        undefined,
+      );
+      (linkMapService.resolveLinkMapDestination as jest.Mock).mockResolvedValue(
+        null,
+      );
+
+      await service.applyRedirect(req, res);
+
+      expect(linkMapService.resolveLinkMapDestination).toHaveBeenCalledWith(
+        'lmap_1',
+        'abc',
+        expect.any(URLSearchParams),
+      );
+      expect(res.redirect).toHaveBeenCalledWith(
+        307,
+        'https://next-rule.example',
+      );
+      expect(res.status).not.toHaveBeenCalledWith(404);
+    });
+
+    it('should return 404 in applyRedirect when link map has no match and there is no next rule', async () => {
+      const req = createMockRequest('http://example.com/short/abc');
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      } as any;
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_1',
+          redirectRules: [
+            {
+              id: 'rule_linkmap_only',
+              source: '/short',
+              destination: 'https://placeholder.example',
+              statusCode: 301,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'prefix',
+              linkMapId: 'lmap_1',
+            },
+          ],
+        },
+      });
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue({
+        configuration: null,
+      });
+      (
+        cacheManagerService.checkOrganizationRateLimit as jest.Mock
+      ).mockResolvedValue(undefined);
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
+        undefined,
+      );
+      (linkMapService.resolveLinkMapDestination as jest.Mock).mockResolvedValue(
+        null,
+      );
+
+      await service.applyRedirect(req, res);
+
+      expect(linkMapService.resolveLinkMapDestination).toHaveBeenCalledWith(
+        'lmap_1',
+        'abc',
+        expect.any(URLSearchParams),
+      );
+      expect(res.redirect).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: 'Not Found',
+          statusCode: 404,
+        }),
+      );
+    });
   });
 });

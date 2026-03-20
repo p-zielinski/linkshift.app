@@ -1657,13 +1657,11 @@ export class RedirectService {
     }[],
   ): RedirectRule[] {
     return rules.map((rule) => {
-      if (rule.source.startsWith('/') && rule.source.lastIndexOf('/') > 0) {
-        const lastSlashIndex = rule.source.lastIndexOf('/');
-        const pattern = rule.source.substring(1, lastSlashIndex);
-        const flags = rule.source.substring(lastSlashIndex + 1);
+      const regexSource = this.parseStoredRegexSource(rule.source);
+      if (regexSource) {
         return {
           id: rule.id,
-          source: new RegExp(pattern, flags),
+          source: regexSource,
           destination: rule.destination ?? '',
           statusCode: rule.statusCode,
           matchMethod: rule.matchMethod,
@@ -1684,6 +1682,29 @@ export class RedirectService {
         linkMapId: rule.linkMapId ?? null,
       };
     });
+  }
+
+  private parseStoredRegexSource(source: string): RegExp | null {
+    if (!source.startsWith('/')) {
+      return null;
+    }
+
+    const lastSlashIndex = source.lastIndexOf('/');
+    if (lastSlashIndex <= 0) {
+      return null;
+    }
+
+    const pattern = source.substring(1, lastSlashIndex);
+    const flags = source.substring(lastSlashIndex + 1);
+    if (!/^[dgimsuvy]*$/.test(flags)) {
+      return null;
+    }
+
+    try {
+      return new RegExp(pattern, flags);
+    } catch {
+      return null;
+    }
   }
 
   private selectSimulationHostname(

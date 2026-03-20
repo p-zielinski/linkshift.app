@@ -92,14 +92,14 @@
         </div>
 
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Fallback destination</mat-label>
+          <mat-label>Fallback destination (optional)</mat-label>
           <input
             matInput
             type="text"
             [formField]="mapForm.fallbackDestination"
             (blur)="normalizeFallbackDestination()"
           />
-          <mat-hint>Used when no entry matches.</mat-hint>
+          <mat-hint>Used when no entry matches. Leave empty to disable fallback.</mat-hint>
           @if (fallbackError(); as error) {
             <mat-error>{{ error }}</mat-error>
           }
