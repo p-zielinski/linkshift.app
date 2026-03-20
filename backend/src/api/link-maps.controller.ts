@@ -176,38 +176,4 @@ export class LinkMapsController {
     }
   }
 
-  @Post(':id/entries')
-  @UseGuards(AuthGuard)
-  async upsertEntries(
-    @Param('id') id: string,
-    @User('organizationId') organizationId: string,
-    @Body(new ZodPipe(linkMapSchemas.UpsertLinkMapEntriesSchema))
-    body: linkMapSchemas.UpsertLinkMapEntriesDto,
-  ) {
-    this.logger.log('Link map entries upsert requested', {
-      requestId: this.clsService.getId(),
-      organizationId,
-      linkMapId: id,
-      entriesCount: body.entries.length,
-      mode: body.mode,
-    });
-    return this.linkMapService.upsertEntries(id, organizationId, body);
-  }
-
-  @Delete(':id/entries')
-  @UseGuards(AuthGuard)
-  async deleteEntries(
-    @Param('id') id: string,
-    @User('organizationId') organizationId: string,
-    @Body(new ZodPipe(linkMapSchemas.DeleteLinkMapEntriesSchema))
-    body: linkMapSchemas.DeleteLinkMapEntriesDto,
-  ) {
-    this.logger.log('Link map entries delete requested', {
-      requestId: this.clsService.getId(),
-      organizationId,
-      linkMapId: id,
-      keysCount: body.keys.length,
-    });
-    return this.linkMapService.deleteEntries(id, organizationId, body);
-  }
 }

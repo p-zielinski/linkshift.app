@@ -15,16 +15,6 @@ code {
   font-family: "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
 
-:host ::ng-deep .entry-field--invalid .mdc-notched-outline__leading,
-:host ::ng-deep .entry-field--invalid .mdc-notched-outline__notch,
-:host ::ng-deep .entry-field--invalid .mdc-notched-outline__trailing {
-  border-color: var(--app-danger, #b91c1c) !important;
-}
-
-:host ::ng-deep .entry-field--invalid .mdc-floating-label {
-  color: var(--app-danger, #b91c1c) !important;
-}
-
 :host ::ng-deep .mat-mdc-unelevated-button[disabled] {
   background-color: rgba(148, 163, 184, 0.35) !important;
   color: rgba(15, 23, 42, 0.5) !important;

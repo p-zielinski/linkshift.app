@@ -8,6 +8,7 @@ import { DomainsPageComponent } from './features/domains/domains-page.component'
 import { DomainGroupsPageComponent } from './features/domain-groups/domain-groups-page.component';
 import { RedirectRulesPageComponent } from './features/redirect-rules/redirect-rules-page.component';
 import { LinkMapsPageComponent } from './features/link-maps/link-maps-page.component';
+import { LinkMapDetailsPageComponent } from './features/link-maps/link-map-details-page.component';
 import { TestsPageComponent } from './features/tests/tests-page.component';
 import { domainGroupsRequiredGuard } from './core/domain-groups/domain-group.guard';
 import { MarketingShellComponent } from './features/marketing/components/marketing-shell/marketing-shell.component';
@@ -84,6 +85,11 @@ export const routes: Routes = [
       {
         path: 'redirect-rules',
         component: RedirectRulesPageComponent,
+        canActivate: [domainGroupsRequiredGuard]
+      },
+      {
+        path: 'link-maps/:id',
+        component: LinkMapDetailsPageComponent,
         canActivate: [domainGroupsRequiredGuard]
       },
       {

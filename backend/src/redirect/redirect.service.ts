@@ -81,7 +81,6 @@ export enum InvalidationTargetType {
   DOMAIN_GROUP_ID = 'domainGroupId',
 }
 
-
 /**
  * Explicit targets for cache invalidation to avoid ambiguous logic.
  */
@@ -700,10 +699,7 @@ export class RedirectService {
     });
   }
 
-  async getTopRules(
-    organizationId: string,
-    query: TopRedirectRulesQueryDto,
-  ) {
+  async getTopRules(organizationId: string, query: TopRedirectRulesQueryDto) {
     const boundedLimit = Number.isFinite(query.limit)
       ? Math.min(Math.max(query.limit, 1), 50)
       : 50;
@@ -811,7 +807,10 @@ export class RedirectService {
     return { data };
   }
 
-  private normalizeHourlyRange(start: Date, end: Date): {
+  private normalizeHourlyRange(
+    start: Date,
+    end: Date,
+  ): {
     start: Date;
     end: Date;
   } {
@@ -1398,17 +1397,14 @@ export class RedirectService {
         },
       );
 
-      // Default limit if config is missing (safety fallback)
-      let limit = 60;
-
-      if (organization && organization.configuration) {
-        const config = OrganizationConfiguration.fromJson(
-          organization.configuration,
-        );
-        const subscription =
-          this.organizationService.getEffectiveSubscription(config);
-        limit = subscription.limits.redirectionLimitPerMinute;
-      }
+      // Always derive limits through configuration model.
+      // For null/empty configuration this falls back to FREE defaults (10/min).
+      const config = OrganizationConfiguration.fromJson(
+        organization ? organization?.configuration : {},
+      );
+      const subscription =
+        this.organizationService.getEffectiveSubscription(config);
+      const limit = subscription.limits.redirectionLimitPerMinute;
 
       await this.cacheManagerService.checkOrganizationRateLimit(
         domain.domainGroup.organizationId,
@@ -1486,7 +1482,10 @@ export class RedirectService {
     });
   }
 
-  async getRedirect(req: Request, rules: RedirectRule[]): Promise<string | null> {
+  async getRedirect(
+    req: Request,
+    rules: RedirectRule[],
+  ): Promise<string | null> {
     const match = await this.getRedirectMatch(req, rules);
     return match ? match.target : null;
   }
@@ -1535,77 +1534,79 @@ export class RedirectService {
 
     const groupMap = new Map(domainGroups.map((group) => [group.id, group]));
 
-    const results = await Promise.all(entries.map(async (entry, index) => {
-      const group = groupMap.get(entry.domainGroupId);
-      if (!group) {
-        return {
-          index,
-          domainGroupId: entry.domainGroupId,
-          method: entry.method ?? 'GET',
-          path: entry.path,
-          hostname: '',
-          matched: false,
-          statusCode: 400,
-          target: null,
-        };
-      }
-
-      const groupDomains = group.domains.map((domain) => domain.name);
-      const requestedHost = entry.hostname?.trim().toLowerCase();
-      let hostname = this.selectSimulationHostname(
-        groupDomains,
-        entry.domainGroupId,
-      );
-
-      if (requestedHost) {
-        if (groupDomains.length > 0) {
-          const matched = groupDomains.find(
-            (domain) => domain.toLowerCase() === requestedHost,
-          );
-          if (!matched) {
-            return throwHttpException(
-              new BadRequestError({
-                requestId: this.clsService.getId(),
-                details: `Hostname ${entry.hostname} does not belong to domain group ${entry.domainGroupId}`,
-                relatedObject: 'DomainGroup',
-                relatedObjectId: entry.domainGroupId,
-              }),
-            );
-          }
-          hostname = matched;
-        } else {
-          hostname = requestedHost;
+    const results = await Promise.all(
+      entries.map(async (entry, index) => {
+        const group = groupMap.get(entry.domainGroupId);
+        if (!group) {
+          return {
+            index,
+            domainGroupId: entry.domainGroupId,
+            method: entry.method ?? 'GET',
+            path: entry.path,
+            hostname: '',
+            matched: false,
+            statusCode: 400,
+            target: null,
+          };
         }
-      }
-      const request = this.buildSimulationRequest(entry, hostname);
-      const rules = this.mapStoredRules(group.redirectRules);
-      const match = await this.getRedirectMatch(request, rules);
 
-      if (match) {
-        const statusCode = match.rule.statusCode ?? 302;
+        const groupDomains = group.domains.map((domain) => domain.name);
+        const requestedHost = entry.hostname?.trim().toLowerCase();
+        let hostname = this.selectSimulationHostname(
+          groupDomains,
+          entry.domainGroupId,
+        );
+
+        if (requestedHost) {
+          if (groupDomains.length > 0) {
+            const matched = groupDomains.find(
+              (domain) => domain.toLowerCase() === requestedHost,
+            );
+            if (!matched) {
+              return throwHttpException(
+                new BadRequestError({
+                  requestId: this.clsService.getId(),
+                  details: `Hostname ${entry.hostname} does not belong to domain group ${entry.domainGroupId}`,
+                  relatedObject: 'DomainGroup',
+                  relatedObjectId: entry.domainGroupId,
+                }),
+              );
+            }
+            hostname = matched;
+          } else {
+            hostname = requestedHost;
+          }
+        }
+        const request = this.buildSimulationRequest(entry, hostname);
+        const rules = this.mapStoredRules(group.redirectRules);
+        const match = await this.getRedirectMatch(request, rules);
+
+        if (match) {
+          const statusCode = match.rule.statusCode ?? 302;
+          return {
+            index,
+            domainGroupId: entry.domainGroupId,
+            method: request.method,
+            path: request.path,
+            hostname,
+            matched: true,
+            statusCode,
+            target: match.target,
+          };
+        }
+
         return {
           index,
           domainGroupId: entry.domainGroupId,
           method: request.method,
           path: request.path,
           hostname,
-          matched: true,
-          statusCode,
-          target: match.target,
+          matched: false,
+          statusCode: 404,
+          target: null,
         };
-      }
-
-      return {
-        index,
-        domainGroupId: entry.domainGroupId,
-        method: request.method,
-        path: request.path,
-        hostname,
-        matched: false,
-        statusCode: 404,
-        target: null,
-      };
-    }));
+      }),
+    );
 
     return { results };
   }
@@ -1972,7 +1973,9 @@ export class RedirectService {
   private parseSourcePath(source: string): string | null {
     try {
       const url = new URL(source, 'http://localhost');
-      const path = url.pathname.startsWith('/') ? url.pathname : `/${url.pathname}`;
+      const path = url.pathname.startsWith('/')
+        ? url.pathname
+        : `/${url.pathname}`;
       return path;
     } catch {
       return null;
@@ -1991,12 +1994,17 @@ export class RedirectService {
     return remainder;
   }
 
-  private buildMatchContext(req: Request, url: URL): {
+  private buildMatchContext(
+    req: Request,
+    url: URL,
+  ): {
     path: string;
     originalUrl: string;
     query: URLSearchParams;
   } {
-    const path = url.pathname.startsWith('/') ? url.pathname : `/${url.pathname}`;
+    const path = url.pathname.startsWith('/')
+      ? url.pathname
+      : `/${url.pathname}`;
     const originalUrl =
       req.originalUrl ?? (url.search ? `${path}${url.search}` : path);
     return {
@@ -2028,7 +2036,9 @@ export class RedirectService {
     query: URLSearchParams;
   } {
     const url = new URL(source, 'http://localhost');
-    const path = url.pathname.startsWith('/') ? url.pathname : `/${url.pathname}`;
+    const path = url.pathname.startsWith('/')
+      ? url.pathname
+      : `/${url.pathname}`;
     return { path, query: url.searchParams };
   }
 

@@ -1,0 +1,85 @@
+<app-wizard
+  title="Import entries"
+  subtitle="Run a bulk import and optionally rollback successful rows."
+  [steps]="steps()"
+  [saveLabel]="saveLabel()"
+  [saveDisabled]="saveDisabled()"
+  (save)="onSave()"
+  (cancel)="close()"
+>
+  <ng-template wizardStepSummary="import">
+    @if (result(); as result) {
+      <div class="text-xs text-app-muted">
+        {{ result.importedCount }} imported / {{ result.failedCount }} failed
+      </div>
+    } @else {
+      <div class="text-xs text-app-muted">Paste rows</div>
+    }
+  </ng-template>
+
+  <ng-template wizardStep="import">
+    <div class="grid gap-4">
+      @if (!result()) {
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Paste entries</mat-label>
+          <textarea
+            matInput
+            rows="10"
+            [value]="bulkText()"
+            (input)="bulkText.set($any($event.target).value)"
+          ></textarea>
+          <mat-hint>Accepted separators: <code>-></code>, comma, or whitespace.</mat-hint>
+        </mat-form-field>
+      } @else {
+        <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm">
+          <div class="font-semibold text-app-foreground">Import result</div>
+          <div class="mt-1 text-app-muted">
+            Imported: <strong>{{ result()?.importedCount }}</strong> | Failed:
+            <strong>{{ result()?.failedCount }}</strong>
+          </div>
+          @if (rolledBack()) {
+            <div class="mt-2 text-app-danger">Imported entries were rolled back.</div>
+          }
+        </div>
+
+        @if (result()?.errors?.length) {
+          <div
+            class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm"
+          >
+            <div class="font-semibold text-app-foreground">Errors</div>
+            <div class="mt-2 max-h-[280px] overflow-auto">
+              <div class="grid gap-2">
+                @for (error of result()?.errors; track $index) {
+                  <div class="rounded-lg border border-app-border-soft bg-white/70 p-2 text-[12px]">
+                    <div class="font-semibold">Line {{ error.index + 1 }}: {{ error.key }}</div>
+                    <div class="text-app-muted">{{ error.destination }}</div>
+                    <div class="text-app-danger">{{ error.error }}</div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (canRollback()) {
+          <button
+            mat-stroked-button
+            color="warn"
+            type="button"
+            [disabled]="rollingBack()"
+            (click)="onRollback()"
+          >
+            <mat-icon>undo</mat-icon>
+            Rollback imported entries
+          </button>
+        }
+      }
+    </div>
+  </ng-template>
+
+  @if (submitError()) {
+    <div wizard-alert class="mt-4">
+      <div class="warning">{{ submitError() }}</div>
+    </div>
+  }
+</app-wizard>
