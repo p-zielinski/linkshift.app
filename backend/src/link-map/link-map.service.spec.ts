@@ -710,5 +710,32 @@ describe('LinkMapService', () => {
       expect(fromKey).toBeDefined();
       expect(fromKey).toBe(fromPath);
     });
+
+    it('returns null when entry is missing and fallback destination is not set', async () => {
+      cacheManager.getCustomCache.mockResolvedValueOnce(undefined);
+      prisma.linkMap.findFirst.mockResolvedValueOnce({
+        id: 'map-no-fallback',
+        domainGroupId: 'dg-1',
+        caseSensitive: false,
+        queryMatch: 'exact',
+        fallbackDestination: null,
+        entries: [
+          {
+            id: 'entry-8',
+            key: 'promo?x=1',
+            keyNormalized: 'promo?x=1',
+            destination: 'https://promo.example',
+          },
+        ],
+      });
+
+      const result = await service.resolveLinkMapDestination(
+        'map-no-fallback',
+        'promo',
+        new URLSearchParams('x=999'),
+      );
+
+      expect(result).toBeNull();
+    });
   });
 });
