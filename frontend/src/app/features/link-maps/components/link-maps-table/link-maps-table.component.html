@@ -1,6 +1,10 @@
 <table mat-table [dataSource]="maps()" class="min-w-[960px] w-full mat-elevation-z0">
   <ng-container matColumnDef="name">
-    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[180px] max-w-[280px] truncate">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      class="font-semibold min-w-[180px] max-w-[280px] truncate"
+    >
       Name
     </th>
     <td mat-cell *matCellDef="let map" class="py-3 min-w-[180px] max-w-[280px] truncate">
@@ -8,8 +12,19 @@
     </td>
   </ng-container>
 
+  <ng-container matColumnDef="entriesCount">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[120px]">Entries</th>
+    <td mat-cell *matCellDef="let map" class="py-3 min-w-[120px]">
+      <span class="font-medium text-app-text">{{ map.entriesCount }}</span>
+    </td>
+  </ng-container>
+
   <ng-container matColumnDef="queryMatch">
-    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[140px] max-w-[220px] truncate">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      class="font-semibold min-w-[140px] max-w-[220px] truncate"
+    >
       Query match
     </th>
     <td mat-cell *matCellDef="let map" class="py-3 min-w-[140px] max-w-[220px] truncate">
@@ -23,9 +38,7 @@
   </ng-container>
 
   <ng-container matColumnDef="caseSensitive">
-    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[120px] truncate">
-      Case
-    </th>
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[120px] truncate">Case</th>
     <td mat-cell *matCellDef="let map" class="py-3">
       <div class="flex items-center gap-2">
         <mat-icon class="text-[18px] w-[18px] h-[18px] text-app-muted">
@@ -39,7 +52,11 @@
   </ng-container>
 
   <ng-container matColumnDef="fallback">
-    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[200px] max-w-[320px] truncate">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      class="font-semibold min-w-[200px] max-w-[320px] truncate"
+    >
       Fallback
     </th>
     <td
@@ -56,6 +73,9 @@
     <th mat-header-cell *matHeaderCellDef class="min-w-[140px] max-w-[200px] truncate"></th>
     <td mat-cell *matCellDef="let map" class="py-3 min-w-[140px] max-w-[200px] truncate">
       <div class="flex items-center gap-1">
+        <button mat-icon-button matTooltip="Manage entries" (click)="onManage(map)">
+          <mat-icon>open_in_new</mat-icon>
+        </button>
         <button mat-icon-button matTooltip="Edit link map" (click)="onEdit(map)">
           <mat-icon>edit</mat-icon>
         </button>

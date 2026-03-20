@@ -15,6 +15,7 @@ import { BillingController } from './api/billing.controller';
 import { OrganizationController } from './api/organization.controller';
 import { RedirectTestsController } from './api/redirect-tests.controller';
 import { LinkMapsController } from './api/link-maps.controller';
+import { LinkMapEntriesController } from './api/link-map-entries.controller';
 import { CaddyController } from './api/caddy.controller';
 import { AuthService } from './auth/auth.service';
 import { ApiRedirectionMiddleware } from './middleware/api-redirection.middleware';
@@ -143,6 +144,7 @@ import { LinkMapService } from './link-map/link-map.service';
     DomainsController,
     RedirectRulesController,
     LinkMapsController,
+    LinkMapEntriesController,
     AuthController,
     BillingController,
     OrganizationController,

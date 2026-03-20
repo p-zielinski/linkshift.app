@@ -1,0 +1,77 @@
+<table mat-table [dataSource]="entries()" class="min-w-[900px] w-full mat-elevation-z0">
+  <ng-container matColumnDef="select">
+    <th mat-header-cell *matHeaderCellDef class="w-[52px] px-2">
+      <mat-checkbox
+        [checked]="allSelected()"
+        [indeterminate]="someSelected()"
+        (change)="onToggleAll($event.checked)"
+      />
+    </th>
+    <td mat-cell *matCellDef="let entry" class="w-[52px] px-2">
+      <mat-checkbox
+        [checked]="isSelected(entry.id)"
+        (change)="onToggleOne(entry.id, $event.checked)"
+      />
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="key">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      class="font-semibold min-w-[240px] max-w-[360px] truncate"
+    >
+      Key
+    </th>
+    <td
+      mat-cell
+      *matCellDef="let entry"
+      class="py-3 min-w-[240px] max-w-[360px] truncate font-medium"
+      [matTooltip]="entry.key"
+    >
+      {{ entry.key || '(root)' }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="destination">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      class="font-semibold min-w-[320px] max-w-[560px] truncate"
+    >
+      Destination
+    </th>
+    <td
+      mat-cell
+      *matCellDef="let entry"
+      class="py-3 min-w-[320px] max-w-[560px] truncate"
+      [matTooltip]="entry.destination"
+    >
+      {{ entry.destination }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef class="min-w-[120px]"></th>
+    <td mat-cell *matCellDef="let entry" class="py-3 min-w-[120px]">
+      <button mat-icon-button matTooltip="Edit entry" (click)="onEdit(entry)">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="columns"></tr>
+  <tr mat-row *matRowDef="let row; columns: columns"></tr>
+  <tr class="mat-row" *matNoDataRow>
+    <td
+      class="mat-cell px-0 py-6 text-center text-[13px] text-app-muted"
+      [attr.colspan]="columns.length"
+    >
+      @if (loading()) {
+        Loading entries...
+      } @else {
+        No entries found.
+      }
+    </td>
+  </tr>
+</table>

@@ -1,0 +1,112 @@
+<app-resource-page-shell [title]="linkMap()?.name || 'Link map'" [subtitle]="mapSubtitle()">
+  <div page-actions class="flex flex-wrap items-center gap-2">
+    <button mat-stroked-button type="button" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to list
+    </button>
+
+    <button mat-stroked-button type="button" [disabled]="!linkMap()" (click)="openEditMapDialog()">
+      <mat-icon>edit</mat-icon>
+      Edit settings
+    </button>
+
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      [disabled]="!linkMap()"
+      (click)="openAddEntryDialog()"
+    >
+      <mat-icon>add</mat-icon>
+      Add entry
+    </button>
+
+    <button mat-stroked-button type="button" [disabled]="!linkMap()" (click)="openImportDialog()">
+      <mat-icon>upload</mat-icon>
+      Import entries
+    </button>
+
+    @if (selectedCount() > 0) {
+      <button
+        mat-flat-button
+        color="warn"
+        type="button"
+        [disabled]="deleteLoading()"
+        (click)="confirmDeleteSelected()"
+      >
+        <mat-icon>delete</mat-icon>
+        Delete selected ({{ selectedCount() }})
+      </button>
+    }
+  </div>
+
+  <app-resource-card>
+    <div class="grid gap-3 md:grid-cols-4">
+      <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
+        <div class="text-[11px] uppercase tracking-[0.1em] text-app-muted">Query match</div>
+        <div class="mt-1 font-semibold text-app-foreground">{{ linkMap()?.queryMatch || '—' }}</div>
+      </div>
+      <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
+        <div class="text-[11px] uppercase tracking-[0.1em] text-app-muted">Case sensitivity</div>
+        <div class="mt-1 font-semibold text-app-foreground">
+          {{ linkMap()?.caseSensitive ? 'Sensitive' : 'Insensitive' }}
+        </div>
+      </div>
+      <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
+        <div class="text-[11px] uppercase tracking-[0.1em] text-app-muted">Fallback</div>
+        <div
+          class="mt-1 truncate font-semibold text-app-foreground"
+          [title]="linkMap()?.fallbackDestination || ''"
+        >
+          {{ linkMap()?.fallbackDestination || 'No fallback' }}
+        </div>
+      </div>
+      <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
+        <div class="text-[11px] uppercase tracking-[0.1em] text-app-muted">Entries</div>
+        <div class="mt-1 font-semibold text-app-foreground">{{ linkMap()?.entriesCount ?? 0 }}</div>
+      </div>
+    </div>
+  </app-resource-card>
+
+  <app-resource-card>
+    <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+        <mat-label>Search by key or destination</mat-label>
+        <input matInput type="text" [formField]="filterForm.search" />
+      </mat-form-field>
+
+      <div class="text-[12px] text-app-muted">
+        Selection persists while paging. Current selection: {{ selectedCount() }}
+      </div>
+    </div>
+  </app-resource-card>
+
+  <app-resource-table-card className="flex min-h-0 flex-1 flex-col" [showFooter]="true">
+    <div table-content>
+      <app-link-map-entries-table
+        [entries]="entries()"
+        [loading]="loading()"
+        [selectedIds]="selectedIds()"
+        [allSelected]="allCurrentPageSelected()"
+        [someSelected]="someCurrentPageSelected()"
+        (toggleAll)="onToggleAll($event)"
+        (toggleOne)="onToggleOne($event)"
+        (edit)="openEditEntryDialog($event)"
+      />
+    </div>
+
+    <div table-footer>
+      <app-table-paginator
+        position="center"
+        [showCurrentPage]="true"
+        [isLoading]="loading()"
+        [currentPage]="page()"
+        [hasNextPage]="hasNextPage()"
+        [pageLimitOptions]="pageLimitOptions"
+        [pageLimit]="pageLimit()"
+        (currentPageChange)="onPageChange($event)"
+        (pageLimitChange)="onPageLimitChange($event)"
+      />
+    </div>
+  </app-resource-table-card>
+</app-resource-page-shell>
