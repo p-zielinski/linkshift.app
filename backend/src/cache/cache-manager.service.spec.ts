@@ -221,5 +221,18 @@ describe('CacheManagerService', () => {
         65,
       );
     });
+
+    it('falls back to safe limit when runtime value is invalid', async () => {
+      const incrSpy = jest.spyOn(redis, 'incr').mockResolvedValue(1);
+      const expireSpy = jest.spyOn(redis, 'expire').mockResolvedValue(undefined);
+
+      await service.checkOrganizationRateLimit('org-1', null as any);
+
+      expect(incrSpy).toHaveBeenCalled();
+      expect(expireSpy).toHaveBeenCalledWith(
+        expect.stringContaining('RATE_LIMIT:org-1:'),
+        65,
+      );
+    });
   });
 });

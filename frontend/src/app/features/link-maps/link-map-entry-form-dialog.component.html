@@ -1,0 +1,50 @@
+<form class="h-full" (submit)="onSave($event)" (keydown.enter)="$event.preventDefault()">
+  <app-wizard
+    [title]="title()"
+    subtitle="Entries are matched against map settings."
+    [steps]="steps()"
+    [saveLabel]="isEdit() ? 'Save entry' : 'Add entry'"
+    [saveDisabled]="!canSubmit() || saving()"
+    [saveTooltip]="submitTooltip()"
+    [saveTooltipDisabled]="!submitTooltip()"
+    (save)="onSave()"
+    (cancel)="onCancel()"
+  >
+    <ng-template wizardStepSummary="entry">
+      <div class="text-xs text-app-muted">{{ model().key || 'No key' }}</div>
+    </ng-template>
+
+    <ng-template wizardStep="entry">
+      <div class="grid gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Key</mat-label>
+          <input matInput type="text" [formField]="entryForm.key" (blur)="onKeyBlur()" />
+          <mat-hint>Use URL-safe characters only (for example promo/spring-sale?utm=1).</mat-hint>
+          @if (keyError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Destination</mat-label>
+          <input
+            matInput
+            type="text"
+            [formField]="entryForm.destination"
+            (blur)="onDestinationBlur()"
+          />
+          <mat-hint>We add https:// if missing.</mat-hint>
+          @if (destinationError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </ng-template>
+
+    @if (submitError()) {
+      <div wizard-alert class="mt-4">
+        <div class="warning">{{ submitError() }}</div>
+      </div>
+    }
+  </app-wizard>
+</form>

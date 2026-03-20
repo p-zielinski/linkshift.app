@@ -29,6 +29,10 @@
 - Use `signal`, `computed`, and `effect` for local UI state.
 - Keep derived data in `computed` signals to avoid recalculations in templates.
 - Reset pagination and cursors on filter changes.
+- Use Angular Store (`@ngrx/signals`) for server-backed list state (loading, errors, cached query results); do not keep API response arrays directly in page components.
+- For cursor pagination, keep page cursor maps in component state but read page data through store selectors (`selectList`, `selectListResult`).
+- After write operations that affect list results, call store invalidation (`invalidateList` or force `searchList(..., true)`) instead of mutating table arrays manually.
+- Keep mutation side effects in one place: page/dialog triggers API call, then forces store refresh and clears transient UI filters/selections.
 
 ## Store Map
 - Core stores live in `frontend/src/app/core/store`.

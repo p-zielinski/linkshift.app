@@ -23,10 +23,11 @@ export class LinkMapsTableComponent {
   readonly activeGroupId = input('');
   readonly loading = input(false);
 
+  @Output() manage = new EventEmitter<LinkMap>();
   @Output() edit = new EventEmitter<LinkMap>();
   @Output() delete = new EventEmitter<LinkMap>();
 
-  readonly columns = ['name', 'queryMatch', 'caseSensitive', 'fallback', 'actions'];
+  readonly columns = ['name', 'entriesCount', 'queryMatch', 'caseSensitive', 'fallback', 'actions'];
 
   formatQueryMatch(map: LinkMap): string {
     if (map.queryMatch === 'ignore') {
@@ -56,6 +57,10 @@ export class LinkMapsTableComponent {
       return 'Query match: subset (extra params allowed)';
     }
     return 'Query match: exact (path + query)';
+  }
+
+  onManage(map: LinkMap): void {
+    this.manage.emit(map);
   }
 
   onEdit(map: LinkMap): void {

@@ -41,6 +41,7 @@ const mockOrganizationService = {
   checkDomainLimit: jest.fn(),
   checkRedirectRuleLimit: jest.fn(),
   checkRedirectionAccess: jest.fn(), // Added
+  getEffectiveSubscription: jest.fn((config: any) => config.activeSubscription),
 };
 
 describe('RedirectService', () => {
@@ -1617,6 +1618,9 @@ describe('RedirectService', () => {
 
       await service.applyRedirect(req, res);
 
+      expect(
+        cacheManagerService.checkOrganizationRateLimit,
+      ).toHaveBeenCalledWith('org_1', 10);
       expect(res.redirect).toHaveBeenCalledWith(301, 'https://example.com/new');
     });
   });

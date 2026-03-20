@@ -17,6 +17,7 @@ import { LRUCache } from 'lru-cache';
 import { TooManyRequestsError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
 import { throwHttpException } from '../utils';
+import { PLAN_LIMITS } from '../billing/billing.config';
 
 // Helpers
 const ensureArray = <T>(value: T | T[]): T[] =>
@@ -140,8 +141,21 @@ export class CacheManagerService {
     organizationId: string,
     limit: number,
   ): Promise<void> {
-    // 0. Bypass checks if limit is 0 or negative (assuming unlimited or misconfiguration, adjust as needed)
-    if (limit <= 0) return;
+    // Preserve explicit unlimited mode (0 or negative), but guard invalid runtime values.
+    if (typeof limit === 'number' && Number.isFinite(limit) && limit <= 0) {
+      return;
+    }
+    const effectiveLimit =
+      typeof limit === 'number' && Number.isFinite(limit) && limit > 0
+        ? Math.floor(limit)
+        : PLAN_LIMITS.FREE.redirectionLimitPerMinute;
+    if (effectiveLimit !== limit) {
+      this.logger.warn('Invalid organization rate limit, using fallback', {
+        organizationId,
+        providedLimit: limit,
+        fallbackLimit: effectiveLimit,
+      });
+    }
 
     const now = new Date();
     const currentMinuteKey = `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}:${now.getUTCHours()}:${now.getUTCMinutes()}`;
@@ -170,7 +184,7 @@ export class CacheManagerService {
     }
 
     // 3. Check against limit
-    if (currentCount > limit) {
+    if (currentCount > effectiveLimit) {
       // Optimization: Calculate seconds remaining in this minute
       const secondsRemaining = 60 - now.getUTCSeconds();
 
