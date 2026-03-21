@@ -216,7 +216,7 @@ const takePGBackup = async () => {
   }
 };
 
-const job = schedule.scheduleJob("*/400 * * * *", async () => {
+const job = schedule.scheduleJob("*/5 * * * *", async () => {
   try {
     await takePGBackup();
   } catch (e) {
