@@ -228,6 +228,22 @@ exports.Prisma.RedirectRuleHitsHourlyScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.RedirectRuleHitBreakdownHourlyScalarFieldEnum = {
+  ruleId: 'ruleId',
+  organizationId: 'organizationId',
+  bucketStart: 'bucketStart',
+  fingerprint: 'fingerprint',
+  requestMethod: 'requestMethod',
+  requestPath: 'requestPath',
+  requestQuery: 'requestQuery',
+  requestUrl: 'requestUrl',
+  destination: 'destination',
+  linkMapKey: 'linkMapKey',
+  hits: 'hits',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.RedirectTestScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -323,6 +339,7 @@ exports.Prisma.ModelName = {
   LinkMap: 'LinkMap',
   LinkMapEntry: 'LinkMapEntry',
   RedirectRuleHitsHourly: 'RedirectRuleHitsHourly',
+  RedirectRuleHitBreakdownHourly: 'RedirectRuleHitBreakdownHourly',
   RedirectTest: 'RedirectTest',
   BillingCheckoutSession: 'BillingCheckoutSession'
 };

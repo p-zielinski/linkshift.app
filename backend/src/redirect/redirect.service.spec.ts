@@ -50,6 +50,7 @@ describe('RedirectService', () => {
   let organizationService: OrganizationService;
   let cacheManagerService: CacheManagerService;
   let linkMapService: LinkMapService;
+  let redirectAnalyticsService: RedirectAnalyticsService;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -98,6 +99,7 @@ describe('RedirectService', () => {
               delete: jest.fn(),
               count: jest.fn(),
             },
+            $queryRaw: jest.fn(),
           },
         },
         {
@@ -172,6 +174,8 @@ describe('RedirectService', () => {
     organizationService = module.get<OrganizationService>(OrganizationService);
     cacheManagerService = module.get<CacheManagerService>(CacheManagerService);
     linkMapService = module.get<LinkMapService>(LinkMapService);
+    redirectAnalyticsService =
+      module.get<RedirectAnalyticsService>(RedirectAnalyticsService);
 
     (prisma.domain.findMany as jest.Mock).mockResolvedValue([]);
   });
@@ -202,14 +206,41 @@ describe('RedirectService', () => {
   };
 
   describe('getTopRules', () => {
-    it('should use hourly aggregates when start and end are provided', async () => {
+    it('should return enriched analytics with top link map keys and request variants', async () => {
       const start = new Date('2026-02-10T10:12:00Z');
       const end = new Date('2026-02-10T12:45:00Z');
 
-      (prisma.redirectRuleHitsHourly.groupBy as jest.Mock).mockResolvedValue([
-        { ruleId: 'rule-1', _sum: { hits: 12 } },
-        { ruleId: 'rule-2', _sum: { hits: 5 } },
-      ]);
+      (prisma.$queryRaw as jest.Mock)
+        .mockResolvedValueOnce([
+          { ruleId: 'rule-1', hits: BigInt(12) },
+          { ruleId: 'rule-2', hits: '5' },
+        ])
+        .mockResolvedValueOnce([
+          { ruleId: 'rule-1', linkMapKey: 'abc', hits: BigInt(4) },
+          { ruleId: 'rule-1', linkMapKey: 'xyz', hits: BigInt(2) },
+        ])
+        .mockResolvedValueOnce([
+          {
+            ruleId: 'rule-1',
+            requestMethod: 'GET',
+            requestPath: '/promo/abc',
+            requestQuery: 'ref=summer',
+            requestUrl: '/promo/abc?ref=summer',
+            destination: 'https://example.com/summer',
+            linkMapKey: 'abc',
+            hits: BigInt(3),
+          },
+          {
+            ruleId: 'rule-2',
+            requestMethod: 'POST',
+            requestPath: '/api/go',
+            requestQuery: '',
+            requestUrl: '/api/go',
+            destination: 'https://api.example.com/v2',
+            linkMapKey: null,
+            hits: BigInt(2),
+          },
+        ]);
 
       (prisma.redirectRule.findMany as jest.Mock).mockResolvedValue([
         { id: 'rule-1' },
@@ -222,21 +253,44 @@ describe('RedirectService', () => {
         end,
       });
 
-      expect(prisma.redirectRuleHitsHourly.groupBy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            organizationId: 'org-1',
-            bucketStart: {
-              gte: new Date('2026-02-10T10:00:00.000Z'),
-              lte: new Date('2026-02-10T12:00:00.000Z'),
-            },
-          }),
-        }),
-      );
+      expect(prisma.$queryRaw).toHaveBeenCalledTimes(3);
 
       expect(result.data).toEqual([
-        { rule: { id: 'rule-1' }, hits: 12 },
-        { rule: { id: 'rule-2' }, hits: 5 },
+        {
+          rule: { id: 'rule-1' },
+          hits: 12,
+          topLinkMapKeys: [
+            { key: 'abc', hits: 4 },
+            { key: 'xyz', hits: 2 },
+          ],
+          topRequestVariants: [
+            {
+              requestMethod: 'GET',
+              requestPath: '/promo/abc',
+              requestQuery: 'ref=summer',
+              requestUrl: '/promo/abc?ref=summer',
+              destination: 'https://example.com/summer',
+              linkMapKey: 'abc',
+              hits: 3,
+            },
+          ],
+        },
+        {
+          rule: { id: 'rule-2' },
+          hits: 5,
+          topLinkMapKeys: [],
+          topRequestVariants: [
+            {
+              requestMethod: 'POST',
+              requestPath: '/api/go',
+              requestQuery: '',
+              requestUrl: '/api/go',
+              destination: 'https://api.example.com/v2',
+              linkMapKey: null,
+              hits: 2,
+            },
+          ],
+        },
       ]);
     });
 
@@ -249,6 +303,16 @@ describe('RedirectService', () => {
           limit: 10,
           start,
           end,
+        }),
+      ).rejects.toBeInstanceOf(HttpException);
+    });
+
+    it('should reject ranges longer than 31 days', async () => {
+      await expect(
+        service.getTopRules('org-1', {
+          limit: 10,
+          start: new Date('2026-01-01T00:00:00Z'),
+          end: new Date('2026-02-15T00:00:00Z'),
         }),
       ).rejects.toBeInstanceOf(HttpException);
     });
@@ -1622,6 +1686,60 @@ describe('RedirectService', () => {
         cacheManagerService.checkOrganizationRateLimit,
       ).toHaveBeenCalledWith('org_1', 10);
       expect(res.redirect).toHaveBeenCalledWith(301, 'https://example.com/new');
+    });
+
+    it('should track link map key and request payload in analytics tracking', async () => {
+      const req = createMockRequest('http://example.com/short/abc?ref=summer');
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      } as any;
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_1',
+          redirectRules: [
+            {
+              id: 'rule_linkmap',
+              source: '/short',
+              destination: null,
+              statusCode: 302,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'prefix',
+              linkMapId: 'lmap_1',
+            },
+          ],
+        },
+      });
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue({
+        configuration: null,
+      });
+      (
+        cacheManagerService.checkOrganizationRateLimit as jest.Mock
+      ).mockResolvedValue(undefined);
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
+        undefined,
+      );
+      (linkMapService.resolveLinkMapDestination as jest.Mock).mockResolvedValue(
+        'https://target.example/page',
+      );
+
+      await service.applyRedirect(req, res);
+
+      expect(redirectAnalyticsService.trackRuleHit).toHaveBeenCalledWith(
+        'rule_linkmap',
+        'org_1',
+        expect.objectContaining({
+          requestMethod: 'GET',
+          requestPath: '/short/abc',
+          requestQuery: 'ref=summer',
+          requestUrl: '/short/abc?ref=summer',
+          destination: 'https://target.example/page',
+          linkMapKey: 'abc',
+        }),
+      );
     });
 
     it('should continue to the next rule in applyRedirect when link map has no match and no fallback', async () => {
