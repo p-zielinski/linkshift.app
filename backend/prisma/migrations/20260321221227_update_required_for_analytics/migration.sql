@@ -1,0 +1,2 @@
+-- RenameIndex
+ALTER INDEX "RedirectRuleHitBreakdownHourly_organizationId_ruleId_bucketStar" RENAME TO "RedirectRuleHitBreakdownHourly_organizationId_ruleId_bucket_idx";

@@ -126,7 +126,7 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
       toolbar: { show: false },
     },
     xaxis: {
-      categories: this.topRules().map((entry) => entry.rule.destination),
+      categories: this.topRules().map((entry) => this.ruleChartLabel(entry)),
       labels: {
         rotate: -35,
         formatter: (value: string) => this.toLabel(value),
@@ -268,8 +268,21 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
 
   private destinationLabel(index: number): string {
     const entry = this.topRules()[index];
-    const label = entry?.rule.destination?.trim() ?? '';
-    return label;
+    if (!entry) {
+      return '';
+    }
+    const variantLabel = entry.topRequestVariants?.[0]?.destination?.trim();
+    if (variantLabel) {
+      return variantLabel;
+    }
+    return entry.rule.destination?.trim() || entry.rule.source;
+  }
+
+  private ruleChartLabel(entry: TopRedirectRuleEntry): string {
+    if (entry.rule.linkMapId) {
+      return `${entry.rule.source} (link map)`;
+    }
+    return entry.rule.destination?.trim() || entry.rule.source;
   }
 
   private buildChartTheme(): { base: string; strong: string; grid: string } {

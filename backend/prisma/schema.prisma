@@ -60,6 +60,7 @@ model Organization {
   redirectTests RedirectTest[]
   invites OrganizationInvite[]
   redirectRuleHitsHourly RedirectRuleHitsHourly[]
+  redirectRuleHitBreakdownHourly RedirectRuleHitBreakdownHourly[]
 
   @@index([deletedAt])
 }
@@ -169,6 +170,7 @@ model RedirectRule {
   domainGroup DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
   linkMap    LinkMap? @relation(fields: [linkMapId], references: [id], onDelete: SetNull)
   hitsHourly RedirectRuleHitsHourly[]
+  hitBreakdownHourly RedirectRuleHitBreakdownHourly[]
 
   @@index([domainGroupId])
   @@index([deletedAt])
@@ -233,6 +235,30 @@ model RedirectRuleHitsHourly {
   @@id([ruleId, organizationId, bucketStart])
   @@index([organizationId, bucketStart])
   @@index([ruleId, bucketStart])
+}
+
+model RedirectRuleHitBreakdownHourly {
+  ruleId         String
+  organizationId String
+  bucketStart    DateTime
+  fingerprint    String
+  requestMethod  String
+  requestPath    String
+  requestQuery   String
+  requestUrl     String
+  destination    String
+  linkMapKey     String?
+  hits           Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  redirectRule RedirectRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([ruleId, organizationId, bucketStart, fingerprint])
+  @@index([organizationId, bucketStart])
+  @@index([ruleId, bucketStart])
+  @@index([organizationId, ruleId, bucketStart])
 }
 
 // RedirectTest entity - stored redirect simulations
