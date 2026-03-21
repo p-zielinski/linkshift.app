@@ -79,9 +79,15 @@
         <button mat-icon-button matTooltip="Edit link map" (click)="onEdit(map)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button color="warn" matTooltip="Delete link map" (click)="onDelete(map)">
-          <mat-icon>delete</mat-icon>
-        </button>
+        <span
+          class="inline-flex"
+          [matTooltip]="deleteTooltip(map)"
+          [matTooltipDisabled]="canDelete(map)"
+        >
+          <button mat-icon-button color="warn" [disabled]="!canDelete(map)" (click)="onDelete(map)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </span>
       </div>
     </td>
   </ng-container>

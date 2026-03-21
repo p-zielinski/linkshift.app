@@ -59,6 +59,16 @@ export class LinkMapsTableComponent {
     return 'Query match: exact (path + query)';
   }
 
+  canDelete(map: LinkMap): boolean {
+    return map.entriesCount === 0;
+  }
+
+  deleteTooltip(map: LinkMap): string {
+    return this.canDelete(map)
+      ? 'Delete link map'
+      : 'This link map cannot be deleted while it contains entries. Remove all entries first.';
+  }
+
   onManage(map: LinkMap): void {
     this.manage.emit(map);
   }
@@ -68,6 +78,9 @@ export class LinkMapsTableComponent {
   }
 
   onDelete(map: LinkMap): void {
+    if (!this.canDelete(map)) {
+      return;
+    }
     this.delete.emit(map);
   }
 }
