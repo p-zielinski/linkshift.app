@@ -37,6 +37,7 @@ describe('LinkMapService', () => {
     linkMapEntry: {
       findMany: jest.Mock;
       findFirst: jest.Mock;
+      count: jest.Mock;
       create: jest.Mock;
       update: jest.Mock;
       updateMany: jest.Mock;
@@ -83,6 +84,7 @@ describe('LinkMapService', () => {
       linkMapEntry: {
         findMany: jest.fn(),
         findFirst: jest.fn(),
+        count: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
         updateMany: jest.fn(),
@@ -296,11 +298,28 @@ describe('LinkMapService', () => {
   });
 
   describe('deleteMap', () => {
+    it('rejects deletion when entries exist', async () => {
+      prisma.linkMap.findFirst.mockResolvedValue({
+        id: 'lmap_1',
+        domainGroupId: 'dmg_1',
+      });
+      prisma.linkMapEntry.count.mockResolvedValue(1);
+
+      await expectHttpError(
+        service.deleteMap('lmap_1', 'org_1'),
+        400,
+        'Link map cannot be deleted while it contains entries. Remove all entries first.',
+      );
+      expect(prisma.redirectRule.count).not.toHaveBeenCalled();
+      expect(prisma.linkMap.update).not.toHaveBeenCalled();
+    });
+
     it('rejects deletion when redirect rules are linked', async () => {
       prisma.linkMap.findFirst.mockResolvedValue({
         id: 'lmap_1',
         domainGroupId: 'dmg_1',
       });
+      prisma.linkMapEntry.count.mockResolvedValue(0);
       prisma.redirectRule.count.mockResolvedValue(2);
 
       await expectHttpError(

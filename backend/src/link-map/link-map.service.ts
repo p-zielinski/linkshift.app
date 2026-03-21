@@ -316,6 +316,24 @@ export class LinkMapService {
       );
     }
 
+    const entriesCount = await this.prisma.linkMapEntry.count({
+      where: {
+        linkMapId: id,
+        deletedAt: null,
+      },
+    });
+
+    if (entriesCount > 0) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details:
+            'Link map cannot be deleted while it contains entries. Remove all entries first.',
+          relatedObjectParameter: 'linkMapId',
+        }),
+      );
+    }
+
     const linkedRules = await this.prisma.redirectRule.count({
       where: {
         linkMapId: id,

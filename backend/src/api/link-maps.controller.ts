@@ -172,6 +172,15 @@ export class LinkMapsController {
           }),
         );
       }
+      if (error instanceof BadRequestException) {
+        const response = error.getResponse() as any;
+        throwHttpException(
+          new BadRequestError({
+            requestId: this.clsService.getId(),
+            details: response.message || 'Validation failed',
+          }),
+        );
+      }
       throw error;
     }
   }
