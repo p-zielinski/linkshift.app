@@ -67,12 +67,19 @@ const fallbackSchema = z
   .string()
   .trim()
   .max(16384, 'Fallback destination is too long')
-  .refine((value) => !value || isValidDestination(value, false), 'Use a full URL like https://example.com');
+  .refine(
+    (value) => !value || isValidDestination(value, false),
+    'Use a full URL like https://example.com',
+  );
 
 const queryMatchOptions: Array<{ value: LinkMapQueryMatch; label: string; hint: string }> = [
   { value: 'ignore', label: 'Ignore query', hint: 'Only the path part of the key matters.' },
   { value: 'exact', label: 'Exact', hint: 'The key must match query exactly.' },
-  { value: 'subset', label: 'Subset', hint: 'The key params must exist, extra params are allowed.' },
+  {
+    value: 'subset',
+    label: 'Subset',
+    hint: 'The key params must exist, extra params are allowed.',
+  },
 ];
 
 export type LinkMapDialogData = {
@@ -302,7 +309,7 @@ export class LinkMapFormDialogComponent {
       domainGroupId: model.domainGroupId,
       caseSensitive: model.caseSensitive,
       queryMatch: model.queryMatch,
-      fallbackDestination: fallback || null,
+      fallbackDestination: fallback || undefined,
     };
   }
 
@@ -314,7 +321,7 @@ export class LinkMapFormDialogComponent {
       name: model.name.trim(),
       caseSensitive: model.caseSensitive,
       queryMatch: model.queryMatch,
-      fallbackDestination: fallback || null,
+      fallbackDestination: fallback || undefined,
     };
   }
 
