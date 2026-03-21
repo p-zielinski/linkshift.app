@@ -50,10 +50,41 @@
             </div>
             <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
               <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Destination</span>
-              <span class="truncate text-[13px] text-app-foreground" [attr.title]="entry.rule.destination">
-                {{ entry.rule.destination }}
+              <span class="truncate text-[13px] text-app-foreground" [attr.title]="entry.rule.destination || entry.rule.source">
+                {{ entry.rule.destination || 'Dynamic / link map destination' }}
               </span>
             </div>
+
+            @if (entry.topLinkMapKeys.length > 0) {
+              <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
+                <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Link keys</span>
+                <div class="flex min-w-0 flex-wrap gap-2 text-[12px]">
+                  @for (keyEntry of entry.topLinkMapKeys; track keyEntry.key) {
+                    <span class="rounded-full border border-app-border-soft bg-app-surface px-2 py-1">
+                      {{ keyEntry.key }} · {{ keyEntry.hits | number }}
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (entry.topRequestVariants.length > 0) {
+              <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
+                <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Top requests</span>
+                <div class="grid min-w-0 gap-2">
+                  @for (variant of entry.topRequestVariants.slice(0, 3); track variant.requestMethod + variant.requestUrl + variant.destination) {
+                    <div class="rounded-[10px] border border-app-border-soft bg-app-surface px-2 py-1 text-[12px] text-app-foreground">
+                      <div class="truncate font-medium" [attr.title]="variant.requestMethod + ' ' + variant.requestUrl">
+                        {{ variant.requestMethod }} {{ variant.requestUrl }}
+                      </div>
+                      <div class="truncate text-app-muted" [attr.title]="variant.destination">
+                        → {{ variant.destination }}
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
           </div>
         </div>
         <button

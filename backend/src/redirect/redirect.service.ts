@@ -123,10 +123,45 @@ type RedirectSimulationResult = {
   target: string | null;
 };
 
+type RedirectMatchContext = {
+  path: string;
+  originalUrl: string;
+  queryString: string;
+  query: URLSearchParams;
+};
+
+type RedirectMatchResult = {
+  target: string;
+  rule: RedirectRule;
+  linkMapKey: string | null;
+  request: {
+    path: string;
+    originalUrl: string;
+    queryString: string;
+  };
+};
+
+type RedirectRuleAnalyticsLinkMapKey = {
+  key: string;
+  hits: number;
+};
+
+type RedirectRuleAnalyticsRequestVariant = {
+  requestMethod: string;
+  requestPath: string;
+  requestQuery: string;
+  requestUrl: string;
+  destination: string;
+  linkMapKey: string | null;
+  hits: number;
+};
+
 type Manipulator = (val: string) => string;
 
 const ALLOWED_MATCH_METHODS = new Set<string>(Object.values(HttpMethod));
 const CADDY_DOMAIN_CACHE_TTL_SECONDS = 5 * 60;
+const ANALYTICS_LINK_MAP_KEYS_LIMIT = 10;
+const ANALYTICS_REQUEST_VARIANTS_LIMIT = 10;
 
 @Injectable()
 export class RedirectService {
@@ -704,35 +739,44 @@ export class RedirectService {
       ? Math.min(Math.max(query.limit, 1), 50)
       : 50;
 
-    if (query.start && query.end) {
-      return this.getTopRulesFromHourlyAggregates(
-        organizationId,
-        boundedLimit,
-        query.start,
-        query.end,
-      );
-    }
-
-    const topHits =
-      await this.redirectAnalyticsService.getTopRulesForOrganization(
-        organizationId,
-        boundedLimit,
-        this.resolveTopRulesWindow(query.range ?? 'day'),
-      );
+    const range = this.resolveAnalyticsRange(query);
+    const topHits = await this.fetchTopRuleHits(
+      organizationId,
+      range.start,
+      range.end,
+      boundedLimit,
+    );
 
     const ruleIds = topHits.map((entry) => entry.ruleId);
     if (ruleIds.length === 0) {
       return { data: [] };
     }
 
-    const rules = await this.prisma.redirectRule.findMany({
-      where: {
-        id: { in: ruleIds },
-        deletedAt: null,
-        isBlocked: false,
-        domainGroup: { organizationId, deletedAt: null },
-      },
-    });
+    const [rules, topLinkMapKeysByRule, topRequestVariantsByRule] =
+      await Promise.all([
+        this.prisma.redirectRule.findMany({
+          where: {
+            id: { in: ruleIds },
+            deletedAt: null,
+            isBlocked: false,
+            domainGroup: { organizationId, deletedAt: null },
+          },
+        }),
+        this.fetchTopLinkMapKeysByRule(
+          organizationId,
+          ruleIds,
+          range.start,
+          range.end,
+          ANALYTICS_LINK_MAP_KEYS_LIMIT,
+        ),
+        this.fetchTopRequestVariantsByRule(
+          organizationId,
+          ruleIds,
+          range.start,
+          range.end,
+          ANALYTICS_REQUEST_VARIANTS_LIMIT,
+        ),
+      ]);
 
     const ruleMap = new Map(rules.map((rule) => [rule.id, rule]));
     const data = topHits
@@ -742,69 +786,180 @@ export class RedirectService {
         return {
           rule,
           hits: entry.hits,
+          topLinkMapKeys: topLinkMapKeysByRule.get(entry.ruleId) ?? [],
+          topRequestVariants: topRequestVariantsByRule.get(entry.ruleId) ?? [],
         };
       })
       .filter(
-        (entry): entry is { rule: (typeof rules)[number]; hits: number } =>
-          Boolean(entry),
+        (entry): entry is {
+          rule: (typeof rules)[number];
+          hits: number;
+          topLinkMapKeys: RedirectRuleAnalyticsLinkMapKey[];
+          topRequestVariants: RedirectRuleAnalyticsRequestVariant[];
+        } => Boolean(entry),
       );
 
     return { data };
   }
 
-  private async getTopRulesFromHourlyAggregates(
+  private async fetchTopRuleHits(
     organizationId: string,
-    limit: number,
     start: Date,
     end: Date,
-  ) {
-    const range = this.normalizeHourlyRange(start, end);
-    const topHits = await this.prisma.redirectRuleHitsHourly.groupBy({
-      by: ['ruleId'],
-      where: {
-        organizationId,
-        bucketStart: {
-          gte: range.start,
-          lte: range.end,
-        },
-      },
-      _sum: { hits: true },
-      orderBy: {
-        _sum: { hits: 'desc' },
-      },
-      take: limit,
-    });
+    limit: number,
+  ): Promise<Array<{ ruleId: string; hits: number }>> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{ ruleId: string; hits: bigint | number | string }>
+    >(Prisma.sql`
+      SELECT
+        "ruleId",
+        SUM("hits")::bigint AS "hits"
+      FROM "RedirectRuleHitBreakdownHourly"
+      WHERE "organizationId" = ${organizationId}
+        AND "bucketStart" >= ${start}
+        AND "bucketStart" <= ${end}
+      GROUP BY "ruleId"
+      ORDER BY SUM("hits") DESC, "ruleId" ASC
+      LIMIT ${limit}
+    `);
 
-    const ruleIds = topHits.map((entry) => entry.ruleId);
+    return rows.map((row) => ({
+      ruleId: row.ruleId,
+      hits: this.coerceAnalyticsHits(row.hits),
+    }));
+  }
+
+  private async fetchTopLinkMapKeysByRule(
+    organizationId: string,
+    ruleIds: string[],
+    start: Date,
+    end: Date,
+    limitPerRule: number,
+  ): Promise<Map<string, RedirectRuleAnalyticsLinkMapKey[]>> {
     if (ruleIds.length === 0) {
-      return { data: [] };
+      return new Map();
     }
 
-    const rules = await this.prisma.redirectRule.findMany({
-      where: {
-        id: { in: ruleIds },
-        deletedAt: null,
-        isBlocked: false,
-        domainGroup: { organizationId, deletedAt: null },
-      },
-    });
+    const rows = await this.prisma.$queryRaw<
+      Array<{ ruleId: string; linkMapKey: string; hits: bigint | number | string }>
+    >(Prisma.sql`
+      SELECT
+        ranked."ruleId",
+        ranked."linkMapKey",
+        ranked."hits"
+      FROM (
+        SELECT
+          "ruleId",
+          "linkMapKey",
+          SUM("hits")::bigint AS "hits",
+          ROW_NUMBER() OVER (
+            PARTITION BY "ruleId"
+            ORDER BY SUM("hits") DESC, "linkMapKey" ASC
+          ) AS row_number
+        FROM "RedirectRuleHitBreakdownHourly"
+        WHERE "organizationId" = ${organizationId}
+          AND "bucketStart" >= ${start}
+          AND "bucketStart" <= ${end}
+          AND "ruleId" IN (${Prisma.join(ruleIds)})
+          AND "linkMapKey" IS NOT NULL
+          AND "linkMapKey" <> ''
+        GROUP BY "ruleId", "linkMapKey"
+      ) AS ranked
+      WHERE ranked.row_number <= ${limitPerRule}
+      ORDER BY ranked."ruleId" ASC, ranked."hits" DESC, ranked."linkMapKey" ASC
+    `);
 
-    const ruleMap = new Map(rules.map((rule) => [rule.id, rule]));
-    const data = topHits
-      .map((entry) => {
-        const rule = ruleMap.get(entry.ruleId);
-        if (!rule) return null;
-        return {
-          rule,
-          hits: entry._sum.hits ?? 0,
-        };
-      })
-      .filter(
-        (entry): entry is { rule: (typeof rules)[number]; hits: number } =>
-          Boolean(entry),
-      );
+    const map = new Map<string, RedirectRuleAnalyticsLinkMapKey[]>();
+    for (const row of rows) {
+      const current = map.get(row.ruleId) ?? [];
+      current.push({
+        key: row.linkMapKey,
+        hits: this.coerceAnalyticsHits(row.hits),
+      });
+      map.set(row.ruleId, current);
+    }
+    return map;
+  }
 
-    return { data };
+  private async fetchTopRequestVariantsByRule(
+    organizationId: string,
+    ruleIds: string[],
+    start: Date,
+    end: Date,
+    limitPerRule: number,
+  ): Promise<Map<string, RedirectRuleAnalyticsRequestVariant[]>> {
+    if (ruleIds.length === 0) {
+      return new Map();
+    }
+
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        ruleId: string;
+        requestMethod: string;
+        requestPath: string;
+        requestQuery: string;
+        requestUrl: string;
+        destination: string;
+        linkMapKey: string | null;
+        hits: bigint | number | string;
+      }>
+    >(Prisma.sql`
+      SELECT
+        ranked."ruleId",
+        ranked."requestMethod",
+        ranked."requestPath",
+        ranked."requestQuery",
+        ranked."requestUrl",
+        ranked."destination",
+        ranked."linkMapKey",
+        ranked."hits"
+      FROM (
+        SELECT
+          "ruleId",
+          "requestMethod",
+          "requestPath",
+          "requestQuery",
+          "requestUrl",
+          "destination",
+          "linkMapKey",
+          SUM("hits")::bigint AS "hits",
+          ROW_NUMBER() OVER (
+            PARTITION BY "ruleId"
+            ORDER BY SUM("hits") DESC, "requestMethod" ASC, "requestUrl" ASC, "destination" ASC
+          ) AS row_number
+        FROM "RedirectRuleHitBreakdownHourly"
+        WHERE "organizationId" = ${organizationId}
+          AND "bucketStart" >= ${start}
+          AND "bucketStart" <= ${end}
+          AND "ruleId" IN (${Prisma.join(ruleIds)})
+        GROUP BY
+          "ruleId",
+          "requestMethod",
+          "requestPath",
+          "requestQuery",
+          "requestUrl",
+          "destination",
+          "linkMapKey"
+      ) AS ranked
+      WHERE ranked.row_number <= ${limitPerRule}
+      ORDER BY ranked."ruleId" ASC, ranked."hits" DESC, ranked."requestUrl" ASC
+    `);
+
+    const map = new Map<string, RedirectRuleAnalyticsRequestVariant[]>();
+    for (const row of rows) {
+      const current = map.get(row.ruleId) ?? [];
+      current.push({
+        requestMethod: row.requestMethod,
+        requestPath: row.requestPath,
+        requestQuery: row.requestQuery,
+        requestUrl: row.requestUrl,
+        destination: row.destination,
+        linkMapKey: row.linkMapKey,
+        hits: this.coerceAnalyticsHits(row.hits),
+      });
+      map.set(row.ruleId, current);
+    }
+    return map;
   }
 
   private normalizeHourlyRange(
@@ -824,6 +979,17 @@ export class RedirectService {
         }),
       );
     }
+
+    const rangeHours = endHour.diff(startHour, 'hour');
+    if (rangeHours > 24 * 31) {
+      throwHttpException(
+        new BadRequestError({
+          details: 'Range cannot exceed 31 days',
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+
     return { start: startHour.toDate(), end: endHour.toDate() };
   }
 
@@ -838,6 +1004,34 @@ export class RedirectService {
       default:
         return 24;
     }
+  }
+
+  private resolveAnalyticsRange(
+    query: TopRedirectRulesQueryDto,
+  ): { start: Date; end: Date } {
+    if (query.start && query.end) {
+      return this.normalizeHourlyRange(query.start, query.end);
+    }
+
+    const windowHours = this.resolveTopRulesWindow(query.range ?? 'day');
+    const end = dayjs.utc().startOf('hour');
+    const start = end.subtract(windowHours - 1, 'hour');
+    return { start: start.toDate(), end: end.toDate() };
+  }
+
+  private coerceAnalyticsHits(value: bigint | number | string | null): number {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? value : 0;
+    }
+    if (typeof value === 'bigint') {
+      const converted = Number(value);
+      return Number.isFinite(converted) ? converted : 0;
+    }
+    if (typeof value === 'string') {
+      const converted = Number(value);
+      return Number.isFinite(converted) ? converted : 0;
+    }
+    return 0;
   }
 
   async getRuleById(id: string, organizationId: string) {
@@ -1463,7 +1657,14 @@ export class RedirectService {
 
       if (match.rule.id) {
         this.redirectAnalyticsService
-          .trackRuleHit(match.rule.id, domain.domainGroup.organizationId)
+          .trackRuleHit(match.rule.id, domain.domainGroup.organizationId, {
+            requestMethod: req.method,
+            requestPath: match.request.path,
+            requestUrl: match.request.originalUrl,
+            requestQuery: match.request.queryString,
+            destination: match.target,
+            linkMapKey: match.linkMapKey,
+          })
           .catch((error) => {
             this.logger.error('Redirect hit tracking failed', {
               ruleId: match.rule.id ?? null,
@@ -1614,7 +1815,7 @@ export class RedirectService {
   private async getRedirectMatch(
     req: Request,
     rules: RedirectRule[],
-  ): Promise<{ target: string; rule: RedirectRule } | null> {
+  ): Promise<RedirectMatchResult | null> {
     const url = this.getRequestUrl(req);
     const variables = this.extractVariables(req, url);
     const matchContext = this.buildMatchContext(req, url);
@@ -1628,16 +1829,34 @@ export class RedirectService {
       );
       if (result !== null) {
         if (rule.linkMapId) {
-          const linkMapTarget = await this.resolveLinkMapTarget(
+          const linkMapMatch = await this.resolveLinkMapTarget(
             rule,
             matchContext,
           );
-          if (linkMapTarget) {
-            return { target: linkMapTarget, rule };
+          if (linkMapMatch) {
+            return {
+              target: linkMapMatch.target,
+              rule,
+              linkMapKey: linkMapMatch.keyPath,
+              request: {
+                path: matchContext.path,
+                originalUrl: matchContext.originalUrl,
+                queryString: matchContext.queryString,
+              },
+            };
           }
           continue;
         }
-        return { target: result, rule };
+        return {
+          target: result,
+          rule,
+          linkMapKey: null,
+          request: {
+            path: matchContext.path,
+            originalUrl: matchContext.originalUrl,
+            queryString: matchContext.queryString,
+          },
+        };
       }
     }
 
@@ -1897,11 +2116,7 @@ export class RedirectService {
 
   private processRule(
     rule: RedirectRule,
-    matchContext: {
-      path: string;
-      originalUrl: string;
-      query: URLSearchParams;
-    },
+    matchContext: RedirectMatchContext,
     currentMethod: string,
     variables: Record<string, string | undefined>,
   ): string | null {
@@ -1968,8 +2183,8 @@ export class RedirectService {
 
   private async resolveLinkMapTarget(
     rule: RedirectRule,
-    matchContext: { path: string; query: URLSearchParams },
-  ): Promise<string | null> {
+    matchContext: RedirectMatchContext,
+  ): Promise<{ target: string; keyPath: string } | null> {
     if (!rule.linkMapId || typeof rule.source !== 'string') {
       return null;
     }
@@ -1984,11 +2199,19 @@ export class RedirectService {
       return null;
     }
 
-    return this.linkMapService.resolveLinkMapDestination(
+    const target = await this.linkMapService.resolveLinkMapDestination(
       rule.linkMapId,
       keyPath,
       matchContext.query,
     );
+    if (!target) {
+      return null;
+    }
+
+    return {
+      target,
+      keyPath,
+    };
   }
 
   private parseSourcePath(source: string): string | null {
@@ -2018,19 +2241,17 @@ export class RedirectService {
   private buildMatchContext(
     req: Request,
     url: URL,
-  ): {
-    path: string;
-    originalUrl: string;
-    query: URLSearchParams;
-  } {
+  ): RedirectMatchContext {
     const path = url.pathname.startsWith('/')
       ? url.pathname
       : `/${url.pathname}`;
     const originalUrl =
       req.originalUrl ?? (url.search ? `${path}${url.search}` : path);
+    const queryString = url.searchParams.toString();
     return {
       path,
       originalUrl,
+      queryString,
       query: url.searchParams,
     };
   }

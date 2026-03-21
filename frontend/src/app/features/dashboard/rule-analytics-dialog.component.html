@@ -21,7 +21,7 @@
 
   <div class="field">
     <div class="field-label">Destination</div>
-    <div class="field-value">{{ data.entry.rule.destination }}</div>
+    <div class="field-value">{{ data.entry.rule.destination || 'Dynamic / link map destination' }}</div>
   </div>
 
   <div class="field-grid">
@@ -60,6 +60,34 @@
       <div class="field-value">{{ data.entry.rule.updatedAt | date: 'medium' }}</div>
     </div>
   </div>
+
+  @if (data.entry.topLinkMapKeys.length > 0) {
+    <div class="field">
+      <div class="field-label">Top link map keys</div>
+      <div class="field-value">
+        @for (keyEntry of data.entry.topLinkMapKeys; track keyEntry.key; let isLast = $last) {
+          <span>{{ keyEntry.key }} ({{ keyEntry.hits | number }})</span>@if (!isLast) {<span>, </span>}
+        }
+      </div>
+    </div>
+  }
+
+  @if (data.entry.topRequestVariants.length > 0) {
+    <div class="field">
+      <div class="field-label">Top request variants</div>
+      <div class="field-value">
+        @for (variant of data.entry.topRequestVariants; track variant.requestMethod + variant.requestUrl + variant.destination) {
+          <div>
+            <strong>{{ variant.requestMethod }} {{ variant.requestUrl }}</strong>
+            <span> → {{ variant.destination }} ({{ variant.hits | number }} hits)</span>
+            @if (variant.linkMapKey) {
+              <span> · key: {{ variant.linkMapKey }}</span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
 </div>
 
 <div class="dialog-actions">
