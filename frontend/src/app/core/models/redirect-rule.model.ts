@@ -64,6 +64,23 @@ export type RedirectRuleAnalyticsQuery = {
 export type TopRedirectRuleEntry = {
   rule: RedirectRule;
   hits: number;
+  topLinkMapKeys: RedirectRuleAnalyticsLinkMapKey[];
+  topRequestVariants: RedirectRuleAnalyticsRequestVariant[];
+};
+
+export type RedirectRuleAnalyticsLinkMapKey = {
+  key: string;
+  hits: number;
+};
+
+export type RedirectRuleAnalyticsRequestVariant = {
+  requestMethod: string;
+  requestPath: string;
+  requestQuery: string;
+  requestUrl: string;
+  destination: string;
+  linkMapKey: string | null;
+  hits: number;
 };
 
 export type RedirectRuleAnalyticsResponse = {
