@@ -59,7 +59,6 @@ model Organization {
   checkoutSessions BillingCheckoutSession[]
   redirectTests RedirectTest[]
   invites OrganizationInvite[]
-  redirectRuleHitsHourly RedirectRuleHitsHourly[]
   redirectRuleHitBreakdownHourly RedirectRuleHitBreakdownHourly[]
 
   @@index([deletedAt])
@@ -169,7 +168,6 @@ model RedirectRule {
 
   domainGroup DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
   linkMap    LinkMap? @relation(fields: [linkMapId], references: [id], onDelete: SetNull)
-  hitsHourly RedirectRuleHitsHourly[]
   hitBreakdownHourly RedirectRuleHitBreakdownHourly[]
 
   @@index([domainGroupId])
@@ -219,22 +217,6 @@ model LinkMapEntry {
   @@unique([linkMapId, keyNormalized])
   @@index([linkMapId])
   @@index([deletedAt])
-}
-
-model RedirectRuleHitsHourly {
-  ruleId         String
-  organizationId String
-  bucketStart    DateTime
-  hits           Int
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  redirectRule RedirectRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@id([ruleId, organizationId, bucketStart])
-  @@index([organizationId, bucketStart])
-  @@index([ruleId, bucketStart])
 }
 
 model RedirectRuleHitBreakdownHourly {

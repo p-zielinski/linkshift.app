@@ -23,11 +23,11 @@ type TrackRuleHitDetails = {
 };
 
 const ANALYTICS_MAX_REQUEST_METHOD = 16;
-const ANALYTICS_MAX_REQUEST_PATH = 1024;
-const ANALYTICS_MAX_REQUEST_QUERY = 2048;
-const ANALYTICS_MAX_REQUEST_URL = 3072;
-const ANALYTICS_MAX_DESTINATION = 4096;
-const ANALYTICS_MAX_LINK_MAP_KEY = 512;
+const ANALYTICS_MAX_REQUEST_PATH = 16384;
+const ANALYTICS_MAX_REQUEST_QUERY = 16384;
+const ANALYTICS_MAX_REQUEST_URL = 16384;
+const ANALYTICS_MAX_DESTINATION = 16384;
+const ANALYTICS_MAX_LINK_MAP_KEY = 1024;
 
 @Injectable()
 export class RedirectAnalyticsService {
@@ -35,8 +35,7 @@ export class RedirectAnalyticsService {
     private readonly redisService: RedisService,
     private readonly prisma: PrismaService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async trackRuleHit(
     ruleId: string,
@@ -128,10 +127,7 @@ export class RedirectAnalyticsService {
     );
   }
 
-  async getTopRulesGlobal(
-    limit: number,
-    windowHours = 24,
-  ): Promise<RuleHit[]> {
+  async getTopRulesGlobal(limit: number, windowHours = 24): Promise<RuleHit[]> {
     return this.getTopRules(
       REDIRECT_HIT_PREFIX_GLOBAL,
       'global',
@@ -256,12 +252,14 @@ export class RedirectAnalyticsService {
     }
 
     const params = new URLSearchParams(raw);
-    const pairs = Array.from(params.entries()).sort(([keyA, valueA], [keyB, valueB]) => {
-      if (keyA === keyB) {
-        return valueA.localeCompare(valueB);
-      }
-      return keyA.localeCompare(keyB);
-    });
+    const pairs = Array.from(params.entries()).sort(
+      ([keyA, valueA], [keyB, valueB]) => {
+        if (keyA === keyB) {
+          return valueA.localeCompare(valueB);
+        }
+        return keyA.localeCompare(keyB);
+      },
+    );
 
     const normalized = new URLSearchParams();
     for (const [key, entryValue] of pairs) {
