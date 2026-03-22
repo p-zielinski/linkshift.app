@@ -48,6 +48,7 @@ export class OrganizationSubscription {
     maxLinkMaps: 1,
     maxLinkMapEntriesTotal: 100,
     maxLinkMapEntriesPerMap: 100,
+    analyticsRetentionDays: 30,
   };
 
   constructor(partial?: Partial<OrganizationSubscription>) {

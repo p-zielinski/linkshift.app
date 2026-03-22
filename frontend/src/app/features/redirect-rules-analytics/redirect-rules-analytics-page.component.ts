@@ -22,6 +22,8 @@ import {
 import { RedirectRulesAnalyticsResultsComponent } from './components/redirect-rules-analytics-results.component';
 import { RedirectRulesAnalyticsStore } from '../../core/store/redirect-rules-analytics.store';
 import { getFilterKey } from '../../core/store/entity/entity-store.utils';
+import { AuthStore } from '../../core/store/auth.store';
+import { OrganizationConfiguration } from '@shared/models/organization-config.model';
 
 const ANALYTICS_CHART_HEIGHT = 400;
 
@@ -41,6 +43,7 @@ const ANALYTICS_CHART_HEIGHT = 400;
 export class RedirectRulesAnalyticsPageComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly analyticsStore = inject(RedirectRulesAnalyticsStore);
+  private readonly authStore = inject(AuthStore);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
@@ -59,6 +62,15 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
     { label: 'Last 14 days', days: 14 },
     { label: 'Last 30 days', days: 30 },
   ];
+  readonly analyticsRetentionDays = computed(() => {
+    const rawConfig = this.authStore.organization()?.configuration ?? undefined;
+    const config = OrganizationConfiguration.fromJson(rawConfig);
+    const days = Number(config.activeSubscription.limits.analyticsRetentionDays);
+    if (!Number.isFinite(days) || days < 1) {
+      return 30;
+    }
+    return Math.floor(days);
+  });
 
   readonly analyticsQuery = computed<RedirectRuleAnalyticsQuery | null>(() => {
     const start = this.toIsoString(this.rangeStart());

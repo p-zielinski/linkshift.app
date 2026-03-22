@@ -10,5 +10,3 @@ export const REDIRECT_HIT_TTL_SECONDS = 26 * 60 * 60;
 export const REDIRECT_TOP_TEMP_KEY_PREFIX = 'redirect:rule:hits:top';
 
 export const SAFETY_RESCAN_QUEUE = 'safety-rescan';
-export const REDIRECT_HITS_SNAPSHOT_QUEUE = 'redirect-hits-snapshot';
-export const REDIRECT_HITS_SNAPSHOT_JOB = 'snapshot';
