@@ -87,9 +87,6 @@ describe('RedirectService', () => {
             linkMap: {
               findFirst: jest.fn(),
             },
-            redirectRuleHitsHourly: {
-              groupBy: jest.fn(),
-            },
             domainGroup: {
               findUnique: jest.fn(),
               findFirst: jest.fn(),

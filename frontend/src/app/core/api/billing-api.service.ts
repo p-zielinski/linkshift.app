@@ -41,6 +41,7 @@ export type PlanLimits = {
   maxLinkMaps: number;
   maxLinkMapEntriesTotal: number;
   maxLinkMapEntriesPerMap: number;
+  analyticsRetentionDays: number;
 };
 
 export type BillingPlanPrice = {

@@ -5,6 +5,15 @@
   ></app-page-header>
 
   <div class="mb-4 rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+    <div class="mb-4 flex items-center justify-between rounded-[12px] bg-app-accent-soft px-3 py-2">
+      <span class="text-[12px] uppercase tracking-[0.12em] text-app-muted">
+        Current plan retention days
+      </span>
+      <span class="text-[16px] font-semibold text-app-foreground">
+        {{ analyticsRetentionDays() }}
+      </span>
+    </div>
+
     <app-redirect-rules-analytics-filters
       [quickRanges]="quickRanges"
       [rangeStart]="rangeStart()"
