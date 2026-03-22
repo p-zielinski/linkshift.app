@@ -20,6 +20,7 @@ export const formatLimitChips = (limits: PlanLimits): string[] => [
 
   `${limits.maxUsers} ${pluralize(limits.maxUsers, 'seat', 'seats')}`,
   `${limits.redirectionLimitPerMinute} redirects/min`,
+  `${limits.analyticsRetentionDays} ${pluralize(limits.analyticsRetentionDays, 'day', 'days')} analytics retention`,
 ];
 
 export const formatLimitSummary = (limits: PlanLimits): string =>

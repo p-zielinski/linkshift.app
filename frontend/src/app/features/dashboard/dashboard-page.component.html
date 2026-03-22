@@ -163,7 +163,7 @@
 </div>
 
 <mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
-  <h3 class="m-0 text-lg font-semibold">Subscription limits</h3>
+  <h3 class="m-0 text-lg font-semibold">Subscription limits and analytics retention</h3>
   <div class="my-4 h-px bg-app-divider"></div>
   @if (suspensionMessage(); as message) {
     <div class="mb-4 rounded-2xl bg-red-50 p-4 text-[13px] text-red-700">
@@ -332,6 +332,12 @@
           {{ limits().redirectionLimitPerMinute }}
         </div>
         <div class="text-[13px] text-app-muted">Redirections per minute</div>
+      </div>
+      <div class="rounded-2xl bg-app-accent-soft p-4">
+        <div class="text-[22px] font-semibold">
+          {{ limits().analyticsRetentionDays }}
+        </div>
+        <div class="text-[13px] text-app-muted">Current plan retention days</div>
       </div>
     </div>
   }
