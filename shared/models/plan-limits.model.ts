@@ -27,5 +27,5 @@ export const DEFAULT_PLAN_LIMITS: Readonly<PlanLimits> = {
   maxLinkMaps: 1,
   maxLinkMapEntriesTotal: 100,
   maxLinkMapEntriesPerMap: 100,
-  analyticsRetentionDays: 30,
+  analyticsRetentionDays: 14,
 };
