@@ -1,5 +1,4 @@
 import { DEFAULT_PLAN_LIMITS, type PlanLimits } from './plan-limits.model';
-import { PLAN_LIMITS } from '../../backend/src/billing/billing.config';
 
 export enum OrganizationPlan {
   FREE = 'FREE',

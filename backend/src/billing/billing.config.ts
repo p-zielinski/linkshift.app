@@ -24,7 +24,7 @@ export const PLAN_LIMITS = {
     maxLinkMaps: 5,
     maxLinkMapEntriesTotal: 5000,
     maxLinkMapEntriesPerMap: 2000,
-    analyticsRetentionDays: 60,
+    analyticsRetentionDays: 30,
   },
   [OrganizationPlan.PRO]: {
     maxDomainGroups: 2,
@@ -39,7 +39,7 @@ export const PLAN_LIMITS = {
     maxLinkMaps: 20,
     maxLinkMapEntriesTotal: 20000,
     maxLinkMapEntriesPerMap: 8000,
-    analyticsRetentionDays: 90,
+    analyticsRetentionDays: 60,
   },
 } satisfies Record<OrganizationPlan, PlanLimits>;
 
