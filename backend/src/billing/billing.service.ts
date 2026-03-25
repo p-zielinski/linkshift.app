@@ -7,10 +7,10 @@ import {
   OrganizationSubscription,
   BillingInterval,
 } from '@shared/models/organization-config.model';
+import type { PlanLimits } from '@shared/models/plan-limits.model';
 import { CacheManagerService, DataType } from '../cache/cache-manager.service';
 import {
   CHECKOUT_PLANS,
-  PlanLimits,
   PLAN_LIMITS,
   getPlanLimits,
   getVariantIdForPlan,

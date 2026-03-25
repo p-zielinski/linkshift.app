@@ -1,4 +1,4 @@
-import { PlanLimits } from '../api/billing-api.service';
+import type { PlanLimits } from '@shared/models/plan-limits.model';
 
 const pluralize = (value: number, singular: string, plural: string) =>
   value === 1 ? singular : plural;
