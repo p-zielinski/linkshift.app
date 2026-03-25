@@ -1,25 +1,15 @@
 import {
+  BillingInterval,
   OrganizationPlan,
-  OrganizationSubscription,
 } from '@shared/models/organization-config.model';
+import {
+  DEFAULT_PLAN_LIMITS,
+  type PlanLimits,
+} from '@shared/models/plan-limits.model';
 
-export type PlanLimits = OrganizationSubscription['limits'];
-
-export const PLAN_LIMITS: Record<OrganizationPlan, PlanLimits> = {
+export const PLAN_LIMITS = {
   [OrganizationPlan.FREE]: {
-    maxDomainGroups: 1,
-    maxDomainsPerGroup: 1,
-    maxTotalDomains: 1,
-    maxRulesPerGroup: 15,
-    maxTotalRules: 15,
-    maxTestsPerGroup: 30,
-    maxTotalTests: 30,
-    maxUsers: 1,
-    redirectionLimitPerMinute: 10,
-    maxLinkMaps: 1,
-    maxLinkMapEntriesTotal: 100,
-    maxLinkMapEntriesPerMap: 100,
-    analyticsRetentionDays: 30,
+    ...DEFAULT_PLAN_LIMITS,
   },
   [OrganizationPlan.BASIC]: {
     maxDomainGroups: 1,
@@ -48,10 +38,10 @@ export const PLAN_LIMITS: Record<OrganizationPlan, PlanLimits> = {
     redirectionLimitPerMinute: 100,
     maxLinkMaps: 20,
     maxLinkMapEntriesTotal: 20000,
-    maxLinkMapEntriesPerMap: 5000,
+    maxLinkMapEntriesPerMap: 8000,
     analyticsRetentionDays: 90,
   },
-};
+} satisfies Record<OrganizationPlan, PlanLimits>;
 
 export const CHECKOUT_PLANS: OrganizationPlan[] = [
   OrganizationPlan.BASIC,
@@ -71,7 +61,7 @@ export type VariantIdMap = {
 
 export function getVariantIdForPlan(
   plan: OrganizationPlan,
-  interval: OrganizationSubscription['interval'],
+  interval: BillingInterval,
   variants: VariantIdMap,
 ): string | null {
   if (plan === OrganizationPlan.BASIC) {

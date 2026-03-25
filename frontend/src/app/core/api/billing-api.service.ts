@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import type { Observable } from 'rxjs';
 import { API_CONFIG } from '../config/api-config';
 import { BillingInterval, OrganizationPlan } from '@shared/models/organization-config.model';
+import type { PlanLimits } from '@shared/models/plan-limits.model';
 
 type CheckoutResponse = {
   checkoutUrl: string;
@@ -26,22 +27,6 @@ export type CheckoutSessionResponse = {
   status: CheckoutSessionStatus;
   updatedAt: string;
   completedAt?: string | null;
-};
-
-export type PlanLimits = {
-  maxDomainGroups: number;
-  maxDomainsPerGroup: number;
-  maxTotalDomains: number;
-  maxRulesPerGroup: number;
-  maxTotalRules: number;
-  maxTestsPerGroup: number;
-  maxTotalTests: number;
-  maxUsers: number;
-  redirectionLimitPerMinute: number;
-  maxLinkMaps: number;
-  maxLinkMapEntriesTotal: number;
-  maxLinkMapEntriesPerMap: number;
-  analyticsRetentionDays: number;
 };
 
 export type BillingPlanPrice = {

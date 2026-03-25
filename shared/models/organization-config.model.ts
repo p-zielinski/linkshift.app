@@ -1,3 +1,6 @@
+import { DEFAULT_PLAN_LIMITS, type PlanLimits } from './plan-limits.model';
+import { PLAN_LIMITS } from '../../backend/src/billing/billing.config';
+
 export enum OrganizationPlan {
   FREE = 'FREE',
   BASIC = 'BASIC',
@@ -34,22 +37,8 @@ export class OrganizationSubscription {
   currency: string = 'EUR';
   interval: 'MONTHLY' | 'YEARLY' | 'LIFETIME' = 'MONTHLY';
 
-  // Limits "Snapshotted" for this specific subscription
-  limits = {
-    maxDomainGroups: 1,
-    maxDomainsPerGroup: 1,
-    maxTotalDomains: 1,
-    maxRulesPerGroup: 15,
-    maxTotalRules: 15,
-    maxTestsPerGroup: 30,
-    maxTotalTests: 30,
-    maxUsers: 1,
-    redirectionLimitPerMinute: 10,
-    maxLinkMaps: 1,
-    maxLinkMapEntriesTotal: 100,
-    maxLinkMapEntriesPerMap: 100,
-    analyticsRetentionDays: 30,
-  };
+  // Limits "Snapshot" for this specific subscription
+  limits: PlanLimits = DEFAULT_PLAN_LIMITS
 
   constructor(partial?: Partial<OrganizationSubscription>) {
     if (partial) {
