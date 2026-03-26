@@ -3,9 +3,9 @@ Allow: /
 
 # Public marketing and legal pages are indexable.
 Allow: /home
+Allow: /blog
 Allow: /pricing
 Allow: /contact
-Allow: /alternatives/
 Allow: /terms
 Allow: /privacy
 Allow: /cookies

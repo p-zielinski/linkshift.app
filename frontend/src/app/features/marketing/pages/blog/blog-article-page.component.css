@@ -1,0 +1,30 @@
+.not-found-card {
+  margin: 30px auto;
+  max-width: 760px;
+  border-radius: 16px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  padding: 24px;
+}
+
+.not-found-card h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.not-found-card p {
+  margin: 10px 0 0;
+  color: var(--app-muted);
+  line-height: 1.6;
+}
+
+.not-found-card a {
+  display: inline-block;
+  margin-top: 14px;
+  color: #9f2658;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.not-found-card a:hover {
+  text-decoration: underline;
+}

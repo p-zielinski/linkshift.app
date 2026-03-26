@@ -1,0 +1,22 @@
+<mat-card class="blog-card">
+  <div class="blog-meta-row">
+    <span class="blog-category">{{ article().category.split('-').join(' ') }}</span>
+    <span class="blog-separator">•</span>
+    <span>{{ article().publishedAt | date: 'longDate' }}</span>
+    <span class="blog-separator">•</span>
+    <span>{{ article().readTimeMinutes }} min</span>
+  </div>
+
+  <h3>{{ article().title }}</h3>
+  <p>{{ article().description }}</p>
+
+  <div class="blog-tags">
+    @for (tag of article().tags; track tag) {
+      <span>{{ tag }}</span>
+    }
+  </div>
+
+  <div class="blog-actions">
+    <a mat-stroked-button [routerLink]="['/blog', article().slug]">Read article</a>
+  </div>
+</mat-card>

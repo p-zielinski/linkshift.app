@@ -1,39 +1,59 @@
-# LinkShift.App - Domain-group routing & redirect management
+# LinkShift.app - Redirect rules, link-maps, and domain-group routing
 
-> Technical documentation and service overview for LinkShift.App. This site provides structured guidance on managing complex URL redirects using domain groups, shared rules, regex, and conditional logic.
+> Public product and knowledge pages for LinkShift.app. The platform is focused on domain and path redirection, hierarchical redirect rules, link-maps (key -> destination), and analytics for redirect traffic.
 
-## Core Content
+## Public Pages
 
-### Product Features
-- **Domain Group Management**: Logic for creating groups, attaching domains, and blueprints. [https://linkshift.app/home]
-- **Redirect Rules**: Regex support, capture groups, and ordered rule execution. [https://linkshift.app/home]
-- **Advanced Variables**: Support for `{path}`, `{query.*}`, `{segments.*}`, and `{domain.fqdn}`. [https://linkshift.app/home]
-- **Conditional Routing**: Methods for request-aware and time-based destinations. [https://linkshift.app/home]
+### Product
+- Home: https://linkshift.app/home
+- Pricing: https://linkshift.app/pricing
+- Contact: https://linkshift.app/contact
 
-### Business & Pricing
-- **Pricing Plans**: Details on Free, Basic, and Pro tiers. [https://linkshift.app/pricing]
-- **Comparison**: See how LinkShift compares to other solutions. [https://linkshift.app/alternatives/]
+### Blog (Comparisons)
+- Blog index: https://linkshift.app/blog
+- redirect.pizza vs LinkShift: https://linkshift.app/blog/redirect-pizza-vs-linkshift
+- RedirHub vs LinkShift: https://linkshift.app/blog/redirhub-vs-linkshift
+- EasyRedir (urllo) vs LinkShift: https://linkshift.app/blog/easyredir-vs-linkshift
+- Cloudflare Bulk Redirects vs LinkShift: https://linkshift.app/blog/cloudflare-bulk-redirects-vs-linkshift
+- Dub.co vs LinkShift: https://linkshift.app/blog/dub-vs-linkshift
+- Bitly vs LinkShift: https://linkshift.app/blog/bitly-vs-linkshift
+- Short.io vs LinkShift: https://linkshift.app/blog/shortio-vs-linkshift
+- Rebrandly vs LinkShift: https://linkshift.app/blog/rebrandly-vs-linkshift
+- BL.INK vs LinkShift: https://linkshift.app/blog/blink-vs-linkshift
+- Switchy vs LinkShift: https://linkshift.app/blog/switchy-vs-linkshift
+- PixelMe vs LinkShift: https://linkshift.app/blog/pixelme-vs-linkshift
+- LinkShift vs managed redirect services: https://linkshift.app/blog/linkshift-vs-managed-redirect-services
 
-### Legal & Compliance (Allowed for indexing)
-- **Terms of Service**: [https://linkshift.app/terms]
-- **Privacy Policy**: [https://linkshift.app/privacy]
-- **Cookie Policy**: [https://linkshift.app/cookies]
+### Legal
+- Terms: https://linkshift.app/terms
+- Privacy: https://linkshift.app/privacy
+- Cookies: https://linkshift.app/cookies
+- Do not sell or share: https://linkshift.app/do-not-sell
 
-## Implementation Details
+## Product Facts (Public)
+- Redirect rules support path match (`exact`, `prefix`) and query match (`exact`, `ignore`, `subset`).
+- Rule execution is ordered by priority (higher first), then by `createdAt` (newer first).
+- Link-maps support keys with optional query matching modes (`ignore`, `exact`, `subset`) and fallback destinations.
+- Redirect analytics track rule hits and request context.
+- Custom domains are served over HTTPS after domain setup.
 
-### Workflow
-1. Create a Domain Group.
-2. Define Redirect Rules (Path prefix, Regex, or Link Maps).
-3. Attach Domains and Publish.
+## Non-Public / Authenticated Areas
+Do not index or crawl these paths:
+- /dashboard
+- /profile
+- /organization
+- /domains
+- /domain-groups
+- /redirect-rules
+- /redirect-rules-analytics
+- /link-maps
+- /tests
+- /legal/consent
+- /auth
+- /verify-email
+- /reset-password
+- /invite
 
-## Technical Constraints & Boundaries
-
-### Non-Crawlable Areas (Private App Shell)
-The following paths are restricted to authenticated users and should not be indexed or crawled by LLMs:
-- **Dashboard & Management**: `/dashboard`, `/organization`, `/domains`, `/link-maps`, `/domain-groups`, `/redirect-rules`.
-- **User Profiles**: `/profile`.
-- **Auth System**: `/auth`, `/verify-email`, `/reset-password`, `/invite`.
-- **System Internals**: `/tests`, `/legal/consent`.
-
-### Support
-- **Contact**: For integration help or support, visit [https://linkshift.app/contact].
+## Notes
+- Comparison blog posts include a fact-check date and external references.
+- If a claim is time-sensitive, prefer the latest publication/update date shown on the article page.

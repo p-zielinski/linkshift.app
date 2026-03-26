@@ -1,0 +1,108 @@
+<section class="article-hero">
+  <div class="article-meta">
+    <span>{{ article().competitor }}</span>
+    <span>•</span>
+    <span>Published {{ article().publishedAt | date: 'longDate' }}</span>
+    <span>•</span>
+    <span>Updated {{ article().updatedAt | date: 'longDate' }}</span>
+  </div>
+  <h1>{{ article().title }}</h1>
+  <p>{{ article().description }}</p>
+
+  <div class="hero-highlights">
+    @for (highlight of article().heroHighlights; track highlight) {
+      <div class="highlight-item">{{ highlight }}</div>
+    }
+  </div>
+
+  <div class="fact-check">Information status: {{ article().factCheckedAt | date: 'longDate' }}</div>
+</section>
+
+<section class="article-section">
+  <h2>Quick comparison</h2>
+  <div class="comparison-table-wrap">
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Area</th>
+          <th>LinkShift</th>
+          <th>{{ article().competitor }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of article().comparisonRows; track row.area) {
+          <tr>
+            <td>{{ row.area }}</td>
+            <td>{{ row.linkshift }}</td>
+            <td>{{ row.competitor }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+@for (section of article().sections; track section.title) {
+  <section class="article-section">
+    <h2>{{ section.title }}</h2>
+    @for (paragraph of section.paragraphs; track paragraph) {
+      <p>{{ paragraph }}</p>
+    }
+
+    @if (section.bullets && section.bullets.length > 0) {
+      <ul>
+        @for (bullet of section.bullets; track bullet) {
+          <li>{{ bullet }}</li>
+        }
+      </ul>
+    }
+
+    @if (section.media && section.media.length > 0) {
+      <div class="media-slots">
+        @for (media of section.media; track media.src + media.type) {
+          <mat-card class="media-slot">
+            <div class="media-label">{{ media.type.toUpperCase() }} slot</div>
+            <div class="media-alt">{{ media.alt }}</div>
+            @if (media.caption) {
+              <div class="media-caption">{{ media.caption }}</div>
+            }
+          </mat-card>
+        }
+      </div>
+    }
+  </section>
+}
+
+<section class="article-section">
+  <h2>When the competitor may be a better choice</h2>
+  <ul>
+    @for (point of article().honestWhenCompetitorWins; track point) {
+      <li>{{ point }}</li>
+    }
+  </ul>
+</section>
+
+<section class="article-section">
+  <h2>Sources</h2>
+  <ul class="references-list">
+    @for (reference of article().references; track reference.href) {
+      <li>
+        <a [href]="reference.href" target="_blank" rel="noopener noreferrer nofollow">{{
+          reference.label
+        }}</a>
+      </li>
+    }
+  </ul>
+</section>
+
+<mat-card class="cta-card">
+  <h3>Want to test these scenarios on your own domain?</h3>
+  <p>
+    In LinkShift, you connect a domain and get HTTPS, hierarchical rules, and link maps for
+    large-scale key mapping.
+  </p>
+  <div class="cta-actions">
+    <a mat-flat-button color="primary" routerLink="/auth">Start account</a>
+    <a mat-stroked-button routerLink="/contact">Talk to us</a>
+  </div>
+</mat-card>
