@@ -13,9 +13,10 @@ import { TestsPageComponent } from './features/tests/tests-page.component';
 import { domainGroupsRequiredGuard } from './core/domain-groups/domain-group.guard';
 import { MarketingShellComponent } from './features/marketing/components/marketing-shell/marketing-shell.component';
 import { HomePageComponent } from './features/marketing/pages/home/home-page.component';
-import { AlternativePageComponent } from './features/marketing/pages/alternative/alternative-page.component';
 import { PricingPageComponent } from './features/marketing/pages/pricing/pricing-page.component';
 import { ContactPageComponent } from './features/marketing/pages/contact/contact-page.component';
+import { BlogPageComponent } from './features/marketing/pages/blog/blog-page.component';
+import { BlogArticlePageComponent } from './features/marketing/pages/blog/blog-article-page.component';
 import { ProfilePageComponent } from './features/profile/profile-page.component';
 import { OrganizationPageComponent } from './features/organization/organization-page.component';
 import { ResetPasswordPageComponent } from './features/auth/reset-password-page.component';
@@ -39,6 +40,67 @@ export const routes: Routes = [
     component: MarketingShellComponent,
     children: [
       { path: 'home', component: HomePageComponent },
+      { path: 'blog', component: BlogPageComponent },
+      {
+        path: 'blog/redirect-pizza-vs-linkshift',
+        component: BlogArticlePageComponent,
+        data: { article: 'redirect-pizza-vs-linkshift' },
+      },
+      {
+        path: 'blog/redirhub-vs-linkshift',
+        component: BlogArticlePageComponent,
+        data: { article: 'redirhub-vs-linkshift' },
+      },
+      {
+        path: 'blog/easyredir-vs-linkshift',
+        component: BlogArticlePageComponent,
+        data: { article: 'easyredir-vs-linkshift' },
+      },
+      {
+        path: 'blog/cloudflare-bulk-redirects-vs-linkshift',
+        component: BlogArticlePageComponent,
+        data: { article: 'cloudflare-bulk-redirects-vs-linkshift' },
+      },
+      {
+        path: 'blog/dub-vs-linkshift',
+        component: BlogArticlePageComponent,
+        data: { article: 'dub-vs-linkshift' },
+      },
+      {
+        path: 'blog/bitly-vs-linkshift',
+        component: BlogArticlePageComponent,
+        data: { article: 'bitly-vs-linkshift' },
+      },
+      {
+        path: 'blog/shortio-vs-linkshift',
+        component: BlogArticlePageComponent,
+        data: { article: 'shortio-vs-linkshift' },
+      },
+      {
+        path: 'blog/rebrandly-vs-linkshift',
+        component: BlogArticlePageComponent,
+        data: { article: 'rebrandly-vs-linkshift' },
+      },
+      {
+        path: 'blog/blink-vs-linkshift',
+        component: BlogArticlePageComponent,
+        data: { article: 'blink-vs-linkshift' },
+      },
+      {
+        path: 'blog/switchy-vs-linkshift',
+        component: BlogArticlePageComponent,
+        data: { article: 'switchy-vs-linkshift' },
+      },
+      {
+        path: 'blog/pixelme-vs-linkshift',
+        component: BlogArticlePageComponent,
+        data: { article: 'pixelme-vs-linkshift' },
+      },
+      {
+        path: 'blog/linkshift-vs-managed-redirect-services',
+        component: BlogArticlePageComponent,
+        data: { article: 'linkshift-vs-managed-redirect-services' },
+      },
       { path: 'pricing', component: PricingPageComponent },
       { path: 'contact', component: ContactPageComponent },
       { path: 'terms', component: TermsPageComponent },
@@ -47,19 +109,20 @@ export const routes: Routes = [
       { path: 'do-not-sell', component: DoNotSellPageComponent },
       {
         path: 'alternatives/redirect-pizza',
-        component: AlternativePageComponent,
-        data: { alternative: 'redirect-pizza' }
+        redirectTo: '/blog/redirect-pizza-vs-linkshift',
+        pathMatch: 'full',
       },
       {
         path: 'alternatives/redirect-proxy',
-        component: AlternativePageComponent,
-        data: { alternative: 'redirect-proxy' }
+        redirectTo: '/blog/cloudflare-bulk-redirects-vs-linkshift',
+        pathMatch: 'full',
       },
       {
         path: 'alternatives/managed-redirects',
-        component: AlternativePageComponent,
-        data: { alternative: 'managed-redirects' }
-      }
+        redirectTo: '/blog/linkshift-vs-managed-redirect-services',
+        pathMatch: 'full',
+      },
+      { path: 'alternatives', redirectTo: '/blog', pathMatch: 'full' },
     ]
   },
   {
