@@ -1,0 +1,31 @@
+<app-marketing-hero
+  eyebrow="Knowledge base"
+  title="Comparison blog for redirect and link management tools"
+  subtitle="Reliable comparisons of LinkShift and real competitors. Focused on facts and practical implementation scenarios."
+  primaryCtaLabel="Start trial"
+  primaryCtaLink="/auth"
+  secondaryCtaLabel="Back to home"
+  secondaryCtaLink="/home"
+  [highlights]="highlights"
+>
+  <mat-card class="blog-intro-card">
+    <h3>What you will find in the articles</h3>
+    <ul>
+      <li>Feature comparisons without marketing noise.</li>
+      <li>Sections on when a competitor may be better for fair context.</li>
+      <li>Notes on the real LinkShift model: rules, hierarchies, link maps.</li>
+    </ul>
+  </mat-card>
+</app-marketing-hero>
+
+<app-marketing-section
+  eyebrow="Articles"
+  title="All posts"
+  subtitle="Every article includes the latest source verification date."
+>
+  <div class="blog-grid grid gap-6 lg:grid-cols-2">
+    @for (article of articles; track article.slug) {
+      <app-blog-article-card [article]="article" />
+    }
+  </div>
+</app-marketing-section>

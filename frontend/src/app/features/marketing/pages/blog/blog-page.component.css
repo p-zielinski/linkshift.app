@@ -1,0 +1,21 @@
+.blog-intro-card {
+  border-radius: 18px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  background: #ffffff;
+  padding: 20px;
+}
+
+.blog-intro-card h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.blog-intro-card ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  color: #3b2f36;
+  font-size: 14px;
+  line-height: 1.6;
+}
