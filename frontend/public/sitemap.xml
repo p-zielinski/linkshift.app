@@ -2,69 +2,130 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://linkshift.app/</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
     <loc>https://linkshift.app/home</loc>
-    <lastmod>2026-03-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://linkshift.app/blog</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://linkshift.app/pricing</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://linkshift.app/contact</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+
   <url>
-    <loc>https://linkshift.app/alternatives/redirect-pizza</loc>
-    <lastmod>2026-03-20</lastmod>
+    <loc>https://linkshift.app/blog/redirect-pizza-vs-linkshift</loc>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://linkshift.app/alternatives/redirect-proxy</loc>
-    <lastmod>2026-03-20</lastmod>
+    <loc>https://linkshift.app/blog/redirhub-vs-linkshift</loc>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://linkshift.app/alternatives/managed-redirects</loc>
-    <lastmod>2026-03-20</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://linkshift.app/blog/easyredir-vs-linkshift</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://linkshift.app/blog/cloudflare-bulk-redirects-vs-linkshift</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://linkshift.app/blog/dub-vs-linkshift</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://linkshift.app/blog/bitly-vs-linkshift</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://linkshift.app/blog/shortio-vs-linkshift</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://linkshift.app/blog/rebrandly-vs-linkshift</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://linkshift.app/blog/blink-vs-linkshift</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://linkshift.app/blog/switchy-vs-linkshift</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://linkshift.app/blog/pixelme-vs-linkshift</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://linkshift.app/blog/linkshift-vs-managed-redirect-services</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 
   <url>
     <loc>https://linkshift.app/terms</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://linkshift.app/privacy</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://linkshift.app/cookies</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://linkshift.app/do-not-sell</loc>
-    <lastmod>2026-03-20</lastmod>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

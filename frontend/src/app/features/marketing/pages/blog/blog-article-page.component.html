@@ -1,0 +1,9 @@
+@if (article(); as articleValue) {
+  <app-blog-article-layout [article]="articleValue" />
+} @else {
+  <mat-card class="not-found-card">
+    <h1>Article not found</h1>
+    <p>This entry was not found. Check the full list of articles and comparisons.</p>
+    <a routerLink="/blog">Go to blog</a>
+  </mat-card>
+}
