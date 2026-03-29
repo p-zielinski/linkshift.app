@@ -10,16 +10,32 @@
       class="flex h-full flex-col bg-[linear-gradient(160deg,#fff0f5_0%,#fff_55%,#f7edf2_100%)] px-4 py-5"
     >
       <a class="brand mb-4" routerLink="/home" (click)="onNavigate()">
-        <app-logo/>
+        <app-logo />
       </a>
 
       <nav class="flex flex-col gap-2">
         <a mat-button routerLink="/home" routerLinkActive="active" (click)="onNavigate()">Home</a>
         <a mat-button routerLink="/blog" routerLinkActive="active" (click)="onNavigate()">Blog</a>
-        <a mat-button routerLink="/pricing" routerLinkActive="active" (click)="onNavigate()">Pricing</a>
-        <a mat-button routerLink="/contact" routerLinkActive="active" (click)="onNavigate()">Contact</a>
-        <a mat-button routerLink="/blog/redirect-pizza-vs-linkshift" routerLinkActive="active" (click)="onNavigate()">redirect.pizza vs LinkShift</a>
-        <a mat-button routerLink="/blog/bitly-vs-linkshift" routerLinkActive="active" (click)="onNavigate()">Bitly vs LinkShift</a>
+        <a mat-button routerLink="/pricing" routerLinkActive="active" (click)="onNavigate()"
+          >Pricing</a
+        >
+        <a mat-button routerLink="/contact" routerLinkActive="active" (click)="onNavigate()"
+          >Contact</a
+        >
+        <a
+          mat-button
+          routerLink="/blog/redirect-pizza-vs-linkshift"
+          routerLinkActive="active"
+          (click)="onNavigate()"
+          >redirect.pizza vs LinkShift</a
+        >
+        <a
+          mat-button
+          routerLink="/blog/bitly-vs-linkshift"
+          routerLinkActive="active"
+          (click)="onNavigate()"
+          >Bitly vs LinkShift</a
+        >
       </nav>
 
       <div class="mt-auto flex flex-col gap-2 pt-4">
@@ -42,7 +58,7 @@
           <mat-icon>menu</mat-icon>
         </button>
         <a class="brand" routerLink="/home">
-          <app-logo/>
+          <app-logo />
         </a>
       </div>
 
@@ -53,8 +69,15 @@
         <a mat-button routerLink="/blog" routerLinkActive="active">Blog</a>
         <a mat-button routerLink="/pricing" routerLinkActive="active">Pricing</a>
         <a mat-button routerLink="/contact" routerLinkActive="active">Contact</a>
-        <a mat-button routerLink="/blog/redirect-pizza-vs-linkshift" routerLinkActive="active">redirect.pizza vs LinkShift</a>
-        <a mat-button routerLink="/blog/cloudflare-bulk-redirects-vs-linkshift" routerLinkActive="active">Cloudflare vs LinkShift</a>
+        <a mat-button routerLink="/blog/redirect-pizza-vs-linkshift" routerLinkActive="active"
+          >redirect.pizza vs LinkShift</a
+        >
+        <a
+          mat-button
+          routerLink="/blog/cloudflare-bulk-redirects-vs-linkshift"
+          routerLinkActive="active"
+          >Cloudflare vs LinkShift</a
+        >
       </nav>
 
       <div class="nav-actions md:hidden">
@@ -68,7 +91,7 @@
     </mat-toolbar>
 
     <main class="marketing-content">
-      <router-outlet></router-outlet>
+      <router-outlet />
     </main>
 
     <footer class="marketing-footer">
@@ -86,12 +109,16 @@
             <a routerLink="/contact">Contact</a>
             <a routerLink="/blog/redirect-pizza-vs-linkshift">redirect.pizza vs LinkShift</a>
             <a routerLink="/blog/bitly-vs-linkshift">Bitly vs LinkShift</a>
+            <a href="https://linkshift.onlineornot.com/" target="_blank" rel="noopener noreferrer"
+              >Status page</a
+            >
           </div>
         </div>
         <div>
           <div class="footer-title">Assurance</div>
           <p class="text-[13px] text-app-muted">
-            30-day satisfaction guarantee. Cancel within 30 days and request a refund with no explanation needed.
+            30-day satisfaction guarantee. Cancel within 30 days and request a refund with no
+            explanation needed.
           </p>
         </div>
         <div>
@@ -101,7 +128,6 @@
             <a routerLink="/privacy">Privacy</a>
             <a routerLink="/cookies">Cookies</a>
             <a routerLink="/do-not-sell">Do not sell or share</a>
-            <a href="https://linkshift.onlineornot.com/" target="_blank" rel="noopener noreferrer">Status page</a>
           </div>
         </div>
       </div>
