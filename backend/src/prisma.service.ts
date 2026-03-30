@@ -66,4 +66,8 @@ export class PrismaService
       });
     }
   }
+
+  async checkHealth(): Promise<void> {
+    await this.$queryRaw`SELECT 1`;
+  }
 }
