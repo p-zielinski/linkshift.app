@@ -13,7 +13,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
-import type Plyr from 'plyr';
 import { SITE_CONFIG } from '../../../../core/config/site-config';
 import { SeoService } from '../../../../core/seo/seo.service';
 import { MarketingHeroComponent } from '../../components/marketing-hero/marketing-hero.component';
@@ -163,6 +162,17 @@ const FAQ_ITEMS: MarketingFaqItem[] = [
   },
 ];
 
+type DemoPlayer = { destroy: () => void };
+
+type DemoVideoOptions = {
+  controls: string[];
+  settings: string[];
+  speed: { selected: number; options: number[] };
+  iconUrl: string;
+};
+
+type PlyrCtor = new (target: HTMLVideoElement, options?: DemoVideoOptions) => DemoPlayer;
+
 @Component({
   selector: 'app-home-page',
   standalone: true,
@@ -188,7 +198,7 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly siteConfig = inject(SITE_CONFIG);
   private readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
-  private player: Plyr | null = null;
+  private player: DemoPlayer | null = null;
 
   @ViewChild('demoVideo', { static: false })
   private demoVideo?: ElementRef<HTMLVideoElement>;
@@ -198,10 +208,11 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly examples = EXAMPLES;
   readonly faqItems = FAQ_ITEMS;
   readonly modelCards = MODEL_CARDS;
-  readonly demoVideoOptions: Plyr.Options = {
+  readonly demoVideoOptions: DemoVideoOptions = {
     controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
     settings: ['speed'],
     speed: { selected: 1, options: [0.75, 1, 1.25, 1.5] },
+    iconUrl: '/plyr.svg',
   };
 
   readonly heroHighlights = [
@@ -228,7 +239,10 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.isBrowser || !this.demoVideo?.nativeElement) {
       return;
     }
-    const { default: PlyrConstructor } = await import('plyr');
+    const plyrModule = await import('plyr');
+    const PlyrConstructor = (
+      'default' in plyrModule ? plyrModule.default : plyrModule
+    ) as unknown as PlyrCtor;
     this.player = new PlyrConstructor(this.demoVideo.nativeElement, this.demoVideoOptions);
   }
 
