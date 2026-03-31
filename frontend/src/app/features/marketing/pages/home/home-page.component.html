@@ -36,9 +36,22 @@
   subtitle="A quick walkthrough showing how to attach your first domain and publish a rule on LinkShift.App."
 >
   <div class="demo-video-card">
-    <video #demoVideo class="demo-video-element" controls playsinline>
-      <source src="/demo.mp4" type="video/mp4" />
-    </video>
+    <div class="demo-video-shell" [class.is-ready]="demoVideoReady">
+      <video
+        #demoVideo
+        class="demo-video-element"
+        controls
+        playsinline
+        preload="auto"
+        width="1280"
+        height="720"
+        (canplay)="onDemoVideoReady()"
+        (loadeddata)="onDemoVideoReady()"
+        (playing)="onDemoVideoReady()"
+      >
+        <source src="/demo.mp4" type="video/mp4" />
+      </video>
+    </div>
     <div class="demo-video-note">
       Step-by-step: create a domain group, attach a domain, and publish your first redirect rule.
     </div>

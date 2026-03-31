@@ -199,6 +199,10 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
   readonly isBrowser = isPlatformBrowser(this.platformId);
   private player: DemoPlayer | null = null;
+  private readyCheckIntervalId: ReturnType<typeof setInterval> | null = null;
+  private hasFrameData = false;
+  private isPlyrInitialized = false;
+  demoVideoReady = false;
 
   @ViewChild('demoVideo', { static: false })
   private demoVideo?: ElementRef<HTMLVideoElement>;
@@ -239,14 +243,51 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.isBrowser || !this.demoVideo?.nativeElement) {
       return;
     }
+    const videoElement = this.demoVideo.nativeElement;
+    if (videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      this.hasFrameData = true;
+    }
     const plyrModule = await import('plyr');
     const PlyrConstructor = (
       'default' in plyrModule ? plyrModule.default : plyrModule
     ) as unknown as PlyrCtor;
-    this.player = new PlyrConstructor(this.demoVideo.nativeElement, this.demoVideoOptions);
+    this.player = new PlyrConstructor(videoElement, this.demoVideoOptions);
+    this.isPlyrInitialized = true;
+    this.updateDemoVideoReadyState();
+
+    // Poll only for real frame readiness (not metadata) to avoid black-frame flashes.
+    if (!this.hasFrameData) {
+      this.readyCheckIntervalId = setInterval(() => {
+        if (videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+          this.onDemoVideoReady();
+        }
+      }, 200);
+    }
+  }
+
+  onDemoVideoReady(): void {
+    this.hasFrameData = true;
+    this.updateDemoVideoReadyState();
+  }
+
+  private updateDemoVideoReadyState(): void {
+    const shouldBeReady = this.isPlyrInitialized && this.hasFrameData;
+    if (shouldBeReady === this.demoVideoReady) {
+      return;
+    }
+
+    this.demoVideoReady = shouldBeReady;
+    if (shouldBeReady && this.readyCheckIntervalId) {
+      clearInterval(this.readyCheckIntervalId);
+      this.readyCheckIntervalId = null;
+    }
   }
 
   ngOnDestroy(): void {
+    if (this.readyCheckIntervalId) {
+      clearInterval(this.readyCheckIntervalId);
+      this.readyCheckIntervalId = null;
+    }
     this.player?.destroy();
     this.player = null;
   }
