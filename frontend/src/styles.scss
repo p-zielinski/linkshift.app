@@ -106,6 +106,12 @@ $theme: mat.m2-define-light-theme((
   --mdc-outlined-text-field-error-outline-color: #b3261e;
   --mdc-outlined-text-field-error-focus-outline-color: #b3261e;
   --mdc-outlined-text-field-error-hover-outline-color: #b3261e;
+  --plyr-color-main: var(--app-accent);
+  --plyr-font-family: "Space Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --plyr-menu-background: #ffffff;
+  --plyr-menu-color: var(--app-text);
+  --plyr-tooltip-background: var(--app-text);
+  --plyr-tooltip-color: #ffffff;
 }
 
 body {
@@ -225,6 +231,13 @@ body {
 .mat-mdc-icon-button.mat-primary {
   --mdc-text-button-label-text-color: var(--app-accent-strong);
   --mdc-icon-button-icon-color: var(--app-accent-strong);
+}
+
+.demo-video-card .plyr {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  background: #000000;
 }
 
 @media (max-width: 1023px) {
