@@ -1,0 +1,32 @@
+<div
+  class="app-video-holder-shell"
+  [class.is-ready]="videoReady"
+  [class.is-vertical]="ratio() === '9:16'"
+>
+  @if (posterSrc()) {
+    <img
+      class="app-video-holder-poster-image"
+      [class.is-hidden]="videoReady"
+      [src]="posterSrc()"
+      [alt]="posterAlt()"
+    />
+  } @else {
+    <div class="app-video-holder-poster-fallback" [class.is-hidden]="videoReady"></div>
+  }
+
+  <video
+    #videoElement
+    class="app-video-holder-element"
+    controls
+    playsinline
+    [attr.preload]="preload()"
+    [attr.width]="videoWidth()"
+    [attr.height]="videoHeight()"
+    [attr.poster]="posterSrc()"
+    (canplay)="onVideoReady()"
+    (loadeddata)="onVideoReady()"
+    (playing)="onVideoReady()"
+  >
+    <source [src]="src()" [type]="type()" />
+  </video>
+</div>
