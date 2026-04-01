@@ -1,14 +1,5 @@
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  PLATFORM_ID,
-  ViewChild,
-  inject,
-} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +22,7 @@ import {
   MarketingFaqItem,
 } from '../../components/marketing-faq/marketing-faq.component';
 import { PricingPlansComponent } from '../../components/pricing-plans/pricing-plans.component';
+import { VideoHolderComponent } from '../../../../shared/components/video-holder/video-holder.component';
 
 const WORKFLOW_STEPS = [
   {
@@ -162,17 +154,6 @@ const FAQ_ITEMS: MarketingFaqItem[] = [
   },
 ];
 
-type DemoPlayer = { destroy: () => void };
-
-type DemoVideoOptions = {
-  controls: string[];
-  settings: string[];
-  speed: { selected: number; options: number[] };
-  iconUrl: string;
-};
-
-type PlyrCtor = new (target: HTMLVideoElement, options?: DemoVideoOptions) => DemoPlayer;
-
 @Component({
   selector: 'app-home-page',
   standalone: true,
@@ -189,35 +170,20 @@ type PlyrCtor = new (target: HTMLVideoElement, options?: DemoVideoOptions) => De
     MarketingCtaComponent,
     MarketingFaqComponent,
     PricingPlansComponent,
+    VideoHolderComponent,
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.css',
 })
-export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
+export class HomePageComponent implements OnInit {
   private readonly seo = inject(SeoService);
   readonly siteConfig = inject(SITE_CONFIG);
-  private readonly platformId = inject(PLATFORM_ID);
-  readonly isBrowser = isPlatformBrowser(this.platformId);
-  private player: DemoPlayer | null = null;
-  private readyCheckIntervalId: ReturnType<typeof setInterval> | null = null;
-  private hasFrameData = false;
-  private isPlyrInitialized = false;
-  demoVideoReady = false;
-
-  @ViewChild('demoVideo', { static: false })
-  private demoVideo?: ElementRef<HTMLVideoElement>;
 
   readonly workflowSteps = WORKFLOW_STEPS;
   readonly features = FEATURES;
   readonly examples = EXAMPLES;
   readonly faqItems = FAQ_ITEMS;
   readonly modelCards = MODEL_CARDS;
-  readonly demoVideoOptions: DemoVideoOptions = {
-    controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-    settings: ['speed'],
-    speed: { selected: 1, options: [0.75, 1, 1.25, 1.5] },
-    iconUrl: '/plyr.svg',
-  };
 
   readonly heroHighlights = [
     'Domain groups with shared rules',
@@ -237,58 +203,5 @@ export class HomePageComponent implements OnInit, AfterViewInit, OnDestroy {
       keywords:
         'redirect rules, domain groups, regex redirects, placeholder redirects, conditional routing, path prefix matching, query subset matching, link maps, short link routing, redirect management',
     });
-  }
-
-  async ngAfterViewInit(): Promise<void> {
-    if (!this.isBrowser || !this.demoVideo?.nativeElement) {
-      return;
-    }
-    const videoElement = this.demoVideo.nativeElement;
-    if (videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-      this.hasFrameData = true;
-    }
-    const plyrModule = await import('plyr');
-    const PlyrConstructor = (
-      'default' in plyrModule ? plyrModule.default : plyrModule
-    ) as unknown as PlyrCtor;
-    this.player = new PlyrConstructor(videoElement, this.demoVideoOptions);
-    this.isPlyrInitialized = true;
-    this.updateDemoVideoReadyState();
-
-    // Poll only for real frame readiness (not metadata) to avoid black-frame flashes.
-    if (!this.hasFrameData) {
-      this.readyCheckIntervalId = setInterval(() => {
-        if (videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-          this.onDemoVideoReady();
-        }
-      }, 200);
-    }
-  }
-
-  onDemoVideoReady(): void {
-    this.hasFrameData = true;
-    this.updateDemoVideoReadyState();
-  }
-
-  private updateDemoVideoReadyState(): void {
-    const shouldBeReady = this.isPlyrInitialized && this.hasFrameData;
-    if (shouldBeReady === this.demoVideoReady) {
-      return;
-    }
-
-    this.demoVideoReady = shouldBeReady;
-    if (shouldBeReady && this.readyCheckIntervalId) {
-      clearInterval(this.readyCheckIntervalId);
-      this.readyCheckIntervalId = null;
-    }
-  }
-
-  ngOnDestroy(): void {
-    if (this.readyCheckIntervalId) {
-      clearInterval(this.readyCheckIntervalId);
-      this.readyCheckIntervalId = null;
-    }
-    this.player?.destroy();
-    this.player = null;
   }
 }

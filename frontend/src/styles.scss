@@ -1,8 +1,8 @@
 /* Global styles and theme setup */
 
-@use "@angular/material" as mat;
+@use '@angular/material' as mat;
 
-@import "plyr/dist/plyr.css";
+@import 'plyr/dist/plyr.css';
 
 @include mat.core();
 
@@ -39,26 +39,33 @@ $raspberry-palette: (
     A200: $dark-text,
     A400: $light-text,
     A700: $light-text,
-  )
+  ),
 );
 
 $primary: mat.m2-define-palette($raspberry-palette, 500, 300, 700);
 $accent: mat.m2-define-palette($raspberry-palette, 400, 200, 600);
 $warn: mat.m2-define-palette(mat.$m2-red-palette);
 
-$theme: mat.m2-define-light-theme((
-  color: (
-    primary: $primary,
-    accent: $accent,
-    warn: $warn,
+$theme: mat.m2-define-light-theme(
+  (
+    color: (
+      primary: $primary,
+      accent: $accent,
+      warn: $warn,
+    ),
   )
-));
+);
 
 @include mat.all-component-themes($theme);
 
 :root {
   color-scheme: light;
-  font-family: "Space Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family:
+    'Space Grotesk',
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    sans-serif;
   --app-background: #fdf6f8;
   --app-surface: #ffffff;
   --app-border: rgba(28, 20, 24, 0.18);
@@ -107,16 +114,13 @@ $theme: mat.m2-define-light-theme((
   --mdc-outlined-text-field-error-focus-outline-color: #b3261e;
   --mdc-outlined-text-field-error-hover-outline-color: #b3261e;
   --plyr-color-main: var(--app-accent);
-  --plyr-font-family: "Space Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --plyr-font-family: 'Space Grotesk', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --plyr-menu-background: #ffffff;
   --plyr-menu-color: var(--app-text);
   --plyr-tooltip-background: var(--app-text);
   --plyr-tooltip-color: #ffffff;
   --plyr-video-background: #8f2045;
-  --plyr-video-controls-background: linear-gradient(
-    rgba(143, 32, 69, 0),
-    rgba(53, 16, 30, 0.7)
-  );
+  --plyr-video-controls-background: linear-gradient(rgba(143, 32, 69, 0), rgba(53, 16, 30, 0.7));
 }
 
 body {
@@ -238,7 +242,7 @@ body {
   --mdc-icon-button-icon-color: var(--app-accent-strong);
 }
 
-.demo-video-card .plyr {
+.app-video-holder-shell .plyr {
   width: 100%;
   height: 100%;
   border-radius: inherit;
@@ -249,7 +253,7 @@ body {
   transition: opacity 560ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.demo-video-shell.is-ready .plyr {
+.app-video-holder-shell.is-ready .plyr {
   opacity: 1;
 }
 
