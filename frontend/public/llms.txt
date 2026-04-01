@@ -23,6 +23,14 @@
 - Switchy vs LinkShift: https://linkshift.app/blog/switchy-vs-linkshift
 - PixelMe vs LinkShift: https://linkshift.app/blog/pixelme-vs-linkshift
 - LinkShift vs managed redirect services: https://linkshift.app/blog/linkshift-vs-managed-redirect-services
+- LinkShift use cases: https://linkshift.app/blog/linkshift-use-cases
+- Merging businesses redirect playbook: https://linkshift.app/blog/merging-businesses-redirect-playbook
+- Keep SEO intact during migration: https://linkshift.app/blog/keep-seo-intact-during-migration
+- Domain parking with redirects: https://linkshift.app/blog/domain-parking-with-redirects
+- Renaming website without losing traffic: https://linkshift.app/blog/renaming-website-without-losing-traffic
+- Relieve your IT team with centralized redirects: https://linkshift.app/blog/relieve-it-team-with-centralized-redirects
+- Apex to www redirection guide: https://linkshift.app/blog/apex-to-www-redirection-guide
+- HTTPS everywhere for connected domains: https://linkshift.app/blog/https-everywhere-for-connected-domains
 
 ### Legal
 - Terms: https://linkshift.app/terms

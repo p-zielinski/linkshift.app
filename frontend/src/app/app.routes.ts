@@ -101,6 +101,46 @@ export const routes: Routes = [
         component: BlogArticlePageComponent,
         data: { article: 'linkshift-vs-managed-redirect-services' },
       },
+      {
+        path: 'blog/linkshift-use-cases',
+        component: BlogArticlePageComponent,
+        data: { article: 'linkshift-use-cases' },
+      },
+      {
+        path: 'blog/merging-businesses-redirect-playbook',
+        component: BlogArticlePageComponent,
+        data: { article: 'merging-businesses-redirect-playbook' },
+      },
+      {
+        path: 'blog/keep-seo-intact-during-migration',
+        component: BlogArticlePageComponent,
+        data: { article: 'keep-seo-intact-during-migration' },
+      },
+      {
+        path: 'blog/domain-parking-with-redirects',
+        component: BlogArticlePageComponent,
+        data: { article: 'domain-parking-with-redirects' },
+      },
+      {
+        path: 'blog/renaming-website-without-losing-traffic',
+        component: BlogArticlePageComponent,
+        data: { article: 'renaming-website-without-losing-traffic' },
+      },
+      {
+        path: 'blog/relieve-it-team-with-centralized-redirects',
+        component: BlogArticlePageComponent,
+        data: { article: 'relieve-it-team-with-centralized-redirects' },
+      },
+      {
+        path: 'blog/apex-to-www-redirection-guide',
+        component: BlogArticlePageComponent,
+        data: { article: 'apex-to-www-redirection-guide' },
+      },
+      {
+        path: 'blog/https-everywhere-for-connected-domains',
+        component: BlogArticlePageComponent,
+        data: { article: 'https-everywhere-for-connected-domains' },
+      },
       { path: 'pricing', component: PricingPageComponent },
       { path: 'contact', component: ContactPageComponent },
       { path: 'terms', component: TermsPageComponent },
