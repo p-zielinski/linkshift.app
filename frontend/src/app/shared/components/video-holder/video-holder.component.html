@@ -4,11 +4,9 @@
     class="video-player"
     playsinline
     [attr.preload]="preload()"
+    [attr.poster]="posterSrc()"
     [attr.width]="videoWidth()"
     [attr.height]="videoHeight()"
-    [attr.poster]="posterSrc()"
-    (loadeddata)="onVideoReady()"
-  >
-    <source [src]="src()" [type]="type()" />
-  </video>
+    [src]="src()"
+  ></video>
 </div>
