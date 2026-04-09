@@ -15,26 +15,15 @@
 
       <nav class="flex flex-col gap-2">
         <a mat-button routerLink="/home" routerLinkActive="active" (click)="onNavigate()">Home</a>
+        <a mat-button routerLink="/use-cases" routerLinkActive="active" (click)="onNavigate()"
+          >Use Cases</a
+        >
         <a mat-button routerLink="/blog" routerLinkActive="active" (click)="onNavigate()">Blog</a>
         <a mat-button routerLink="/pricing" routerLinkActive="active" (click)="onNavigate()"
           >Pricing</a
         >
         <a mat-button routerLink="/contact" routerLinkActive="active" (click)="onNavigate()"
           >Contact</a
-        >
-        <a
-          mat-button
-          routerLink="/blog/redirect-pizza-vs-linkshift"
-          routerLinkActive="active"
-          (click)="onNavigate()"
-          >redirect.pizza vs LinkShift</a
-        >
-        <a
-          mat-button
-          routerLink="/blog/bitly-vs-linkshift"
-          routerLinkActive="active"
-          (click)="onNavigate()"
-          >Bitly vs LinkShift</a
         >
       </nav>
 
@@ -66,18 +55,10 @@
 
       <nav class="nav-links hidden md:inline-flex">
         <a mat-button routerLink="/home" routerLinkActive="active">Home</a>
+        <a mat-button routerLink="/use-cases" routerLinkActive="active">Use Cases</a>
         <a mat-button routerLink="/blog" routerLinkActive="active">Blog</a>
         <a mat-button routerLink="/pricing" routerLinkActive="active">Pricing</a>
         <a mat-button routerLink="/contact" routerLinkActive="active">Contact</a>
-        <a mat-button routerLink="/blog/redirect-pizza-vs-linkshift" routerLinkActive="active"
-          >redirect.pizza vs LinkShift</a
-        >
-        <a
-          mat-button
-          routerLink="/blog/cloudflare-bulk-redirects-vs-linkshift"
-          routerLinkActive="active"
-          >Cloudflare vs LinkShift</a
-        >
       </nav>
 
       <div class="nav-actions md:hidden">
@@ -104,6 +85,7 @@
           <div class="footer-title">Product</div>
           <div class="footer-links">
             <a routerLink="/home">Capabilities</a>
+            <a routerLink="/use-cases">Use Cases</a>
             <a routerLink="/blog">Blog</a>
             <a routerLink="/pricing">Pricing</a>
             <a routerLink="/contact">Contact</a>

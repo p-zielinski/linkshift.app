@@ -26,43 +26,45 @@ import { VideoHolderComponent } from '../../../../shared/components/video-holder
 
 const WORKFLOW_STEPS = [
   {
-    icon: 'layers',
-    title: 'Create a domain group',
-    description: 'Bundle related domains into a single operational unit and apply shared policies.',
-  },
-  {
-    icon: 'public',
-    title: 'Attach domains',
+    icon: 'south_east',
+    title: 'Model migration rules',
     description:
-      'Assign production, staging, or regional domains to the group without duplicating rules.',
+      'Use exact paths, wildcard *, or /pattern/flags regex rules to move legacy URLs without losing intent.',
   },
   {
-    icon: 'swap_horiz',
-    title: 'Publish redirect rules',
-    description: 'Order rules by priority and use regex, placeholders, and conditions.',
+    icon: 'link',
+    title: 'Launch branded shortlinks',
+    description:
+      'Attach a link map to a prefix rule and publish short keys on your own domain for campaigns.',
+  },
+  {
+    icon: 'monitoring',
+    title: 'Track traffic quickly',
+    description:
+      'Review hits, top short keys, and top request variants in redirect analytics as traffic comes in.',
   },
 ];
 
 const FEATURES: MarketingFeature[] = [
   {
+    icon: 'trending_up',
+    title: 'SEO-safe migration control',
+    description: 'Preserve path structure with exact, wildcard, or regex-based redirect mappings.',
+  },
+  {
+    icon: 'link',
+    title: 'Branded shortlinks',
+    description: 'Run an internal Bitly workflow on your own domain using link maps and short keys.',
+  },
+  {
+    icon: 'monitoring',
+    title: 'Built-in analytics',
+    description: 'Track redirect hits, top link-map keys, and top request variants per rule.',
+  },
+  {
     icon: 'rule',
     title: 'Regex-ready sources',
     description: 'Match literal paths or /pattern/flags with capture groups for precise routing.',
-  },
-  {
-    icon: 'memory',
-    title: 'Template variables',
-    description: 'Use {path}, {query.*}, {segments.*}, and {domain.fqdn} to build dynamic targets.',
-  },
-  {
-    icon: 'tune',
-    title: 'Modifiers for output',
-    description: 'Transform data with :to_lower_case, :url_encode, or :auto_trailing_slash.',
-  },
-  {
-    icon: 'alt_route',
-    title: 'Conditional destinations',
-    description: 'Route by method or time with inline condition expressions.',
   },
   {
     icon: 'manage_search',
@@ -75,14 +77,15 @@ const FEATURES: MarketingFeature[] = [
     description: 'Resolve short keys into destinations with fallback routing and case controls.',
   },
   {
-    icon: 'shield',
-    title: 'Organization-aware limits',
-    description: 'Respect domain group, domain, and rule limits per organization.',
+    icon: 'lock',
+    title: 'Automatic SSL',
+    description:
+      'HTTPS certificates are provisioned automatically for connected domains after DNS setup.',
   },
   {
-    icon: 'bolt',
-    title: 'Shared governance',
-    description: 'Keep redirects organized, reviewed, and consistent across environments.',
+    icon: 'layers',
+    title: 'Domain-group governance',
+    description: 'Set rules once and reuse them across production, staging, and typo domains.',
   },
 ];
 
@@ -186,22 +189,22 @@ export class HomePageComponent implements OnInit {
   readonly modelCards = MODEL_CARDS;
 
   readonly heroHighlights = [
-    'Domain groups with shared rules',
+    'SEO-preserving URL migrations',
+    'Branded shortlinks on your own domain',
     'Regex sources with capture groups',
-    'Template variables and modifiers',
-    'Conditional routing by context',
-    'Link maps for short links',
-    'SSL included on every domain',
+    'Exact, prefix, and query matching',
+    'Link maps with analytics visibility',
+    'Automatic SSL certificate provisioning',
   ];
 
   ngOnInit(): void {
     this.seo.updateTags({
-      title: `${this.siteConfig.name} | Domain group redirect automation`,
+      title: `${this.siteConfig.name} | SEO-preserving redirects and branded shortlinks`,
       description:
-        'Create domain groups, attach domains, and publish redirect rules with regex, placeholders, conditional routing, advanced match modes, and reusable link maps. Built for teams managing complex redirect inventories.',
+        'Protect SEO during migrations and run branded shortlinks on your own domains with regex-ready redirects, link maps, analytics, domain grouping, and automatic SSL.',
       canonicalPath: '/home',
       keywords:
-        'redirect rules, domain groups, regex redirects, placeholder redirects, conditional routing, path prefix matching, query subset matching, link maps, short link routing, redirect management',
+        'SEO migration redirects, branded shortlinks, regex redirects, link maps, redirect analytics, domain groups, automatic SSL, redirect management',
     });
   }
 }

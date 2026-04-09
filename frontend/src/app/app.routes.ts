@@ -17,6 +17,7 @@ import { PricingPageComponent } from './features/marketing/pages/pricing/pricing
 import { ContactPageComponent } from './features/marketing/pages/contact/contact-page.component';
 import { BlogPageComponent } from './features/marketing/pages/blog/blog-page.component';
 import { BlogArticlePageComponent } from './features/marketing/pages/blog/blog-article-page.component';
+import { UseCasesPageComponent } from './features/marketing/pages/use-cases/use-cases-page.component';
 import { ProfilePageComponent } from './features/profile/profile-page.component';
 import { OrganizationPageComponent } from './features/organization/organization-page.component';
 import { ResetPasswordPageComponent } from './features/auth/reset-password-page.component';
@@ -142,27 +143,12 @@ export const routes: Routes = [
         data: { article: 'https-everywhere-for-connected-domains' },
       },
       { path: 'pricing', component: PricingPageComponent },
+      { path: 'use-cases', component: UseCasesPageComponent },
       { path: 'contact', component: ContactPageComponent },
       { path: 'terms', component: TermsPageComponent },
       { path: 'privacy', component: PrivacyPageComponent },
       { path: 'cookies', component: CookiesPageComponent },
       { path: 'do-not-sell', component: DoNotSellPageComponent },
-      {
-        path: 'alternatives/redirect-pizza',
-        redirectTo: '/blog/redirect-pizza-vs-linkshift',
-        pathMatch: 'full',
-      },
-      {
-        path: 'alternatives/redirect-proxy',
-        redirectTo: '/blog/cloudflare-bulk-redirects-vs-linkshift',
-        pathMatch: 'full',
-      },
-      {
-        path: 'alternatives/managed-redirects',
-        redirectTo: '/blog/linkshift-vs-managed-redirect-services',
-        pathMatch: 'full',
-      },
-      { path: 'alternatives', redirectTo: '/blog', pathMatch: 'full' },
     ]
   },
   {
