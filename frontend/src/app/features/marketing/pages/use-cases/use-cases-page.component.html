@@ -1,0 +1,145 @@
+<app-marketing-hero
+  eyebrow="Use Cases"
+  title="SEO preservation and branded shortlinks in one control panel"
+  subtitle="LinkShift moves redirect operations out of DNS and server files into one place where developers and marketers can ship changes safely."
+  primaryCtaLabel="Start with LinkShift"
+  primaryCtaLink="/auth"
+  secondaryCtaLabel="See pricing"
+  secondaryCtaLink="/pricing"
+  [highlights]="heroHighlights"
+>
+  <mat-card class="rounded-[20px] border border-app-border-soft bg-app-surface p-5">
+    <div class="grid gap-3">
+      <div class="rounded-[14px] bg-app-accent-soft p-3">
+        <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">For developers</div>
+        <div class="mt-1 text-[13px] text-app-foreground">
+          Control matching behavior with regex, path mode, query mode, and method-aware rules.
+        </div>
+      </div>
+      <div class="rounded-[14px] bg-app-accent-soft p-3">
+        <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">For marketers</div>
+        <div class="mt-1 text-[13px] text-app-foreground">
+          Run branded shortlinks, route campaign keys, and monitor click volume from one dashboard.
+        </div>
+      </div>
+    </div>
+  </mat-card>
+</app-marketing-hero>
+
+<app-marketing-section
+  eyebrow="System migrations + SEO"
+  title="Preserve rankings when URLs move"
+  subtitle="Map legacy paths to new destinations with explicit control over regex captures, path matching, query handling, and rule priority."
+>
+  <div class="grid gap-6 lg:grid-cols-2">
+    @for (card of migrationCards; track card.title) {
+      <mat-card class="rounded-[18px] border border-app-border-soft bg-app-surface p-5">
+        <div
+          class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-app-accent-soft"
+        >
+          <mat-icon class="text-app-accent-strong">{{ card.icon }}</mat-icon>
+        </div>
+        <h3 class="m-0 text-base font-semibold">{{ card.title }}</h3>
+        <p class="mt-2 text-[13px] text-app-muted">{{ card.summary }}</p>
+        <ul class="mt-3 grid gap-2 pl-5 text-[13px] text-app-foreground">
+          @for (item of card.bullets; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </mat-card>
+    }
+  </div>
+
+  <div class="mt-5 rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+    <div class="text-[12px] uppercase tracking-[0.12em] text-app-muted">Migration example</div>
+    <p class="mt-2 text-[13px] text-app-muted">
+      Moving from HelpScout on <code>support.example.com</code> to Mintlify on
+      <code>docs.example.com</code>? Start with a global rule, then refine with one-to-one article
+      mappings for high-value pages.
+    </p>
+    <div class="mt-3 grid gap-2 text-[13px]">
+      <div class="rounded-[12px] bg-app-accent-soft p-3">
+        Global path-preserving rule:
+        <code>source: /^\/(.*)$/ -> destination: https://docs.example.com/$1</code>
+      </div>
+      <div class="rounded-[12px] bg-app-accent-soft p-3">
+        One-to-one rule:
+        <code
+          >source: /old-kb/slack-guide -> destination:
+          https://docs.example.com/integrations/slack</code
+        >
+      </div>
+    </div>
+  </div>
+</app-marketing-section>
+
+<app-marketing-section
+  eyebrow="Branded shortlinks + analytics"
+  title="Run an internal Bitly on your own domain"
+  subtitle="Use link maps for short keys and pair them with analytics to get a fast pulse on campaign traffic."
+>
+  <div class="grid gap-6 lg:grid-cols-2">
+    @for (card of shortlinkCards; track card.title) {
+      <mat-card class="rounded-[18px] border border-app-border-soft bg-app-surface p-5">
+        <div
+          class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-app-accent-soft"
+        >
+          <mat-icon class="text-app-accent-strong">{{ card.icon }}</mat-icon>
+        </div>
+        <h3 class="m-0 text-base font-semibold">{{ card.title }}</h3>
+        <p class="mt-2 text-[13px] text-app-muted">{{ card.summary }}</p>
+        <ul class="mt-3 grid gap-2 pl-5 text-[13px] text-app-foreground">
+          @for (item of card.bullets; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </mat-card>
+    }
+  </div>
+
+  <div class="mt-5 rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+    <div class="text-[12px] uppercase tracking-[0.12em] text-app-muted">
+      Influencer campaign example
+    </div>
+    <p class="mt-2 text-[13px] text-app-muted">
+      Create a prefix rule for <code>/go</code>, connect it to a link map, and publish keys like
+      <code>influencer-spring</code>. As clicks arrive, analytics shows top rules, top keys, and top
+      request variants so you can react quickly.
+    </p>
+  </div>
+</app-marketing-section>
+
+<app-marketing-section
+  eyebrow="Quality of life"
+  title="Less infrastructure overhead, fewer surprises"
+  subtitle="Automatic HTTPS and domain grouping reduce repetitive setup work for every new campaign or environment."
+>
+  <div class="grid gap-6 lg:grid-cols-2">
+    @for (card of qualityCards; track card.title) {
+      <mat-card class="rounded-[18px] border border-app-border-soft bg-app-surface p-5">
+        <div
+          class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-app-accent-soft"
+        >
+          <mat-icon class="text-app-accent-strong">{{ card.icon }}</mat-icon>
+        </div>
+        <h3 class="m-0 text-base font-semibold">{{ card.title }}</h3>
+        <p class="mt-2 text-[13px] text-app-muted">{{ card.summary }}</p>
+        <ul class="mt-3 grid gap-2 pl-5 text-[13px] text-app-foreground">
+          @for (item of card.bullets; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </mat-card>
+    }
+  </div>
+</app-marketing-section>
+
+<app-marketing-cta
+  title="Need SEO-safe migrations and campaign shortlinks in one workflow?"
+  description="Create your domain groups, publish redirect rules, and manage link maps without touching server-level redirect files."
+  primaryLabel="Create account"
+  primaryLink="/auth"
+  secondaryLabel="Contact support"
+  secondaryLink="/contact"
+  note="SSL certificates are automatically provisioned for connected domains."
+/>
