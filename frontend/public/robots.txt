@@ -3,6 +3,7 @@ Allow: /
 
 # Public marketing and legal pages are indexable.
 Allow: /home
+Allow: /use-cases
 Allow: /blog
 Allow: /pricing
 Allow: /contact
