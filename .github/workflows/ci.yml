@@ -22,6 +22,9 @@ jobs:
         run: bun install --frozen-lockfile
         working-directory: backend
 
+      - name: Link backend node_modules at repository root
+        run: ln -sfn "$GITHUB_WORKSPACE/backend/node_modules" "$GITHUB_WORKSPACE/node_modules"
+
       - name: Generate Prisma Client
         run: bunx prisma generate
         working-directory: backend
