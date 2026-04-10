@@ -11,15 +11,14 @@ FROM base AS deps
 WORKDIR /app
 COPY package.json bun.lock* ./
 COPY backend/package.json ./backend/
-COPY shared/package.json ./shared/
 WORKDIR /app/backend
 RUN --mount=type=cache,target=/root/.bun/install/cache \
   bun install --frozen-lockfile
 
 FROM base AS build
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/backend/node_modules ./backend/node_modules
+RUN ln -s /app/backend/node_modules /app/node_modules
 COPY shared ./shared
 COPY backend ./backend
 

@@ -72,15 +72,6 @@ jobs:
             echo "APP_AUTH_GATE_ENABLED=$APP_AUTH_GATE_ENABLED"
           } >> "$GITHUB_ENV"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Install backend deps and generate shared client
-        run: |
-          cd backend
-          npm ci
-          npx prisma generate
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
