@@ -19,6 +19,11 @@ type StatusResponse = {
   };
 };
 
+type HealthResponse = {
+  status: 'ok';
+  timestamp: string;
+};
+
 @Controller()
 export class AppController {
   constructor(
@@ -31,6 +36,14 @@ export class AppController {
   triggerSentryError(): void {
     this.logger.warn('Sentry debug endpoint triggered');
     throw new InternalServerErrorException('Test Sentry Integration');
+  }
+
+  @Get('api/health')
+  getHealth(): HealthResponse {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Get('api/status')
