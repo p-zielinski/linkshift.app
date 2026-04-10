@@ -307,9 +307,10 @@ export class EmailService {
 
     if (!response.ok) {
       const body = await response.text();
-      this.logger.warn('ZeptoMail send failed', {
+      this.logger.error('ZeptoMail send failed', {
         status: response.status,
         body,
+        sender,
       });
       throw new Error('Email delivery failed.');
     }
