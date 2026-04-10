@@ -25,17 +25,17 @@ cp frontend/.env.example frontend/.env
 
 3) Install dependencies:
 ```bash
-cd backend && npm install
+cd backend && bun install
 cd ../frontend && npm install
 ```
 
 4) Run backend:
 ```bash
 cd backend
-npm run start:dev
+bun run start:dev
 ```
 `start:dev` runs migrations, starts NestJS in watch mode, and launches ngrok.
-Use `npm run start:dev-offline` if you do not want ngrok.
+Use `bun run start:dev-offline` if you do not want ngrok.
 
 5) Run frontend:
 ```bash
@@ -306,7 +306,7 @@ docker compose up -d
 Backend:
 ```bash
 cd backend
-npm test
+bun run test
 ```
 
 Frontend:
