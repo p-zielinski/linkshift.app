@@ -1,34 +1,53 @@
-FROM node:24.12.0-slim AS deps
-WORKDIR /app/backend
-COPY backend/package.json backend/package-lock.json ./
-RUN npm ci
+# syntax=docker/dockerfile:1.7
 
-FROM node:24.12.0-slim AS build
+FROM oven/bun:1.3.11-slim AS base
+USER root
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-ARG DATABASE_URL
-RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 
+FROM base AS deps
+WORKDIR /app
+COPY package.json bun.lock* ./
+COPY backend/package.json ./backend/
+COPY shared/package.json ./shared/
+WORKDIR /app/backend
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+  bun install --frozen-lockfile
+
+FROM base AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/backend/node_modules ./backend/node_modules
 COPY shared ./shared
 COPY backend ./backend
-RUN ln -sfn /app/backend/node_modules /app/node_modules
-WORKDIR /app/backend
-RUN npx prisma generate
-RUN npm run build
-RUN npm prune --omit=dev
 
-FROM node:24.12.0-slim AS runner
 WORKDIR /app/backend
-ARG DATABASE_URL
-RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
+RUN bun x prisma generate
+RUN bun run build
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+  bun install --frozen-lockfile --production
+
+FROM oven/bun:1.3.11-slim AS runner
+USER root
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+WORKDIR /app/backend
 ENV NODE_ENV=production
+
 COPY --from=build /app/backend/dist ./dist
 COPY --from=build /app/backend/node_modules ./node_modules
 COPY --from=build /app/backend/package.json ./
 COPY --from=build /app/backend/prisma ./prisma
 COPY --from=build /app/backend/docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
+COPY --from=build /app/shared /app/shared
+
+RUN chmod +x docker-entrypoint.sh \
+  && chown -R bun:bun /app
+USER bun
 
 EXPOSE 3000
 ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD ["node", "dist/backend/src/main.js"]
+CMD ["bun", "dist/backend/src/main.js"]

@@ -19,7 +19,7 @@ async function start() {
     );
     console.log(`[Ngrok Wrapper] Forwarding to port: ${port}`);
 
-    const nest = spawn('npm', ['run', 'start:dev-offline'], {
+    const nest = spawn(process.execPath, ['run', 'start:dev-offline'], {
       stdio: 'inherit',
       shell: true,
       env: { ...process.env, NGROK_URL: session.url() },
