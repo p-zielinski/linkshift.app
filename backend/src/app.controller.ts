@@ -19,11 +19,6 @@ type StatusResponse = {
   };
 };
 
-type HealthResponse = {
-  status: 'ok';
-  timestamp: string;
-};
-
 @Controller()
 export class AppController {
   constructor(
