@@ -25,7 +25,7 @@ load_secret "jwt_refresh_secret" "JWT_REFRESH_SECRET"
 load_secret "sentry_dsn" "SENTRY_DSN"
 load_secret "lemon_squeezy_api_key" "LEMON_SQUEEZY_API_KEY"
 load_secret "lemon_squeezy_webhook_secret" "LEMON_SQUEEZY_WEBHOOK_SECRET"
-load_secret "zeptomail_api_key2" "ZEPTOMAIL_API_KEY"
+load_secret "zeptomail_api_key" "ZEPTOMAIL_API_KEY"
 load_secret "web_risk_api_key" "WEB_RISK_API_KEY"
 
 # Run Prisma migrations if DATABASE_URL is available

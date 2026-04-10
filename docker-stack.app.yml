@@ -64,7 +64,7 @@ services:
       - sentry_dsn
       - lemon_squeezy_api_key
       - lemon_squeezy_webhook_secret
-      - zeptomail_api_key2
+      - zeptomail_api_key
       - web_risk_api_key
     networks:
       inter-stack:
@@ -136,7 +136,7 @@ secrets:
     external: true
   lemon_squeezy_webhook_secret:
     external: true
-  zeptomail_api_key2:
+  zeptomail_api_key:
     external: true
   web_risk_api_key:
     external: true
