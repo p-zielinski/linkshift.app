@@ -46,7 +46,7 @@ EOF
   cp prisma.config.js prisma/prisma.config.js
 
   echo "Running Prisma migrations..."
-  npx prisma migrate deploy
+  bun x prisma migrate deploy
 else
   echo "Error: DATABASE_URL is not set. Prisma migrations skipped."
 fi
