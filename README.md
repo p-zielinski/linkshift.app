@@ -327,4 +327,3 @@ Pre-commit runs template formatting on staged HTML via Husky + lint-staged.
 ## Additional docs
 - `documentation.html` contains the redirect rules syntax guide.
 - `backend/README.md` documents the API endpoints.
-
