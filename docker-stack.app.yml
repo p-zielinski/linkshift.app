@@ -73,13 +73,15 @@ services:
     healthcheck:
       test:
         [
-          "CMD-SHELL",
-          "bun -e \"fetch('http://127.0.0.1:3000/api/status').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))\"",
+          "CMD",
+          "bun",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))",
         ]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 45s
+      start_period: 120s
     deploy:
       update_config:
         parallelism: 1
