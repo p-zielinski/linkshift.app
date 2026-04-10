@@ -58,13 +58,15 @@
       mappings for high-value pages.
     </p>
     <div class="mt-3 grid gap-2 text-[13px]">
-      <div class="rounded-[12px] bg-app-accent-soft p-3">
+      <div class="min-w-0 rounded-[12px] bg-app-accent-soft p-3">
         Global path-preserving rule:
-        <code>source: /^\/(.*)$/ -> destination: https://docs.example.com/$1</code>
+        <code class="inline-block max-w-full break-all whitespace-normal align-top"
+          >source: /^\/(.*)$/ -> destination: https://docs.example.com/$1</code
+        >
       </div>
-      <div class="rounded-[12px] bg-app-accent-soft p-3">
+      <div class="min-w-0 rounded-[12px] bg-app-accent-soft p-3">
         One-to-one rule:
-        <code
+        <code class="inline-block max-w-full break-all whitespace-normal align-top"
           >source: /old-kb/slack-guide -> destination:
           https://docs.example.com/integrations/slack</code
         >
