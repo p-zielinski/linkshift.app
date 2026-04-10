@@ -43,6 +43,10 @@ COPY --from=build /app/backend/prisma ./prisma
 COPY --from=build /app/backend/docker-entrypoint.sh ./
 COPY --from=build /app/shared /app/shared
 
+RUN mkdir -p /app/backend/node_modules/@shared \
+  && ln -sfn /app/shared/models /app/backend/node_modules/@shared/models \
+  && ln -sfn /app/shared/prisma-client /app/backend/node_modules/@shared/prisma-client
+
 RUN chmod +x docker-entrypoint.sh \
   && chown -R bun:bun /app
 USER bun
