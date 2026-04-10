@@ -296,6 +296,11 @@ export class EmailService {
       textbody: params.text,
     };
 
+    this.logger.log('Payload to ZeptoMail', {
+      payload,
+      authorizationToken,
+    });
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
