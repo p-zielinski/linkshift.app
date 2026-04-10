@@ -7,6 +7,7 @@ import {
 import { Logger } from 'nestjs-pino';
 import { PrismaService } from './prisma.service';
 import { RedisService } from './redis/redis.service';
+import { EmailService } from './email/email.service';
 
 type DependencyState = 'up' | 'down';
 
@@ -16,6 +17,7 @@ type StatusResponse = {
   dependencies: {
     database: DependencyState;
     redis: DependencyState;
+    mailClient: DependencyState;
   };
 };
 
@@ -25,6 +27,7 @@ export class AppController {
     private readonly logger: Logger,
     private readonly prismaService: PrismaService,
     private readonly redisService: RedisService,
+    private readonly emailService: EmailService,
   ) {}
 
   @Get('debug-sentry')
@@ -35,6 +38,7 @@ export class AppController {
 
   @Get('api/status')
   async getStatus(): Promise<StatusResponse> {
+    const mailClientReady = this.emailService.isMailClientReady();
     const [databaseResult, redisResult] = await Promise.allSettled([
       this.prismaService.checkHealth(),
       this.redisService.checkHealth(),
@@ -43,13 +47,15 @@ export class AppController {
     const statusResponse: StatusResponse = {
       status:
         databaseResult.status === 'fulfilled' &&
-        redisResult.status === 'fulfilled'
+        redisResult.status === 'fulfilled' &&
+        mailClientReady
           ? 'ok'
           : 'degraded',
       timestamp: new Date().toISOString(),
       dependencies: {
         database: databaseResult.status === 'fulfilled' ? 'up' : 'down',
         redis: redisResult.status === 'fulfilled' ? 'up' : 'down',
+        mailClient: mailClientReady ? 'up' : 'down',
       },
     };
 

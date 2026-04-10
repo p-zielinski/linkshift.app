@@ -263,18 +263,18 @@ export class EmailService {
     });
   }
 
+  isMailClientReady(): boolean {
+    const { authorizationToken, apiUrl, sender } = this.getMailClientConfig();
+    return !!authorizationToken && !!apiUrl && !!sender;
+  }
+
   private async sendMail(params: {
     to: string;
     subject: string;
     text: string;
     html?: string;
   }): Promise<void> {
-    const authorizationToken =
-      this.configService.get<string>('ZEPTOMAIL_API_KEY') ?? '';
-    const apiUrl =
-      this.configService.get<string>('ZEPTOMAIL_API_URL') ??
-      'https://api.zeptomail.com/v1.1/email';
-    const sender = this.resolveSender();
+    const { authorizationToken, apiUrl, sender } = this.getMailClientConfig();
 
     if (!authorizationToken || !sender) {
       this.logger.warn('Email skipped due to missing ZeptoMail config', {
@@ -313,6 +313,21 @@ export class EmailService {
       });
       throw new Error('Email delivery failed.');
     }
+  }
+
+  private getMailClientConfig(): {
+    authorizationToken: string;
+    apiUrl: string;
+    sender: ZeptoMailSender | null;
+  } {
+    const authorizationToken =
+      this.configService.get<string>('ZEPTOMAIL_API_KEY') ?? '';
+    const apiUrl =
+      this.configService.get<string>('ZEPTOMAIL_API_URL') ??
+      'https://api.zeptomail.com/v1.1/email';
+    const sender = this.resolveSender();
+
+    return { authorizationToken, apiUrl, sender };
   }
 
   private resolveSender(): ZeptoMailSender | null {
