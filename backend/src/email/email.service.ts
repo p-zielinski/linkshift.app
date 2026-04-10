@@ -279,6 +279,8 @@ export class EmailService {
     if (!authorizationToken || !sender) {
       this.logger.warn('Email skipped due to missing ZeptoMail config', {
         to: params.to,
+        sender: !!sender,
+        authorizationToken: !!authorizationToken,
       });
       return;
     }
