@@ -16,13 +16,13 @@
     "**/*.(t|j)s"
   ],
   "scripts": {
-    "build": "prisma generate;nest build",
+    "build": "prisma generate && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "node scripts/dev-with-ngrok.mjs",
-    "start:dev-offline": "prisma migrate dev;prisma generate;nest start --watch",
+    "start:dev": "bun run scripts/dev-with-ngrok.mjs",
+    "start:dev-offline": "prisma migrate dev && prisma generate && nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/backend/src/main.js",
+    "start:prod": "bun dist/backend/src/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
