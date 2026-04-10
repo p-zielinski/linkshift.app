@@ -319,7 +319,7 @@ npm run test
 Angular templates are formatted and linted via ESLint + Prettier:
 ```bash
 cd frontend
-npm run format:templates
+npm run format:templates 
 ```
 
 Pre-commit runs template formatting on staged HTML via Husky + lint-staged.
