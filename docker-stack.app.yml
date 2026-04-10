@@ -70,35 +70,26 @@ services:
       inter-stack:
         aliases:
           - backend
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bun",
-          "-e",
-          "fetch('http://127.0.0.1:3000/api/health').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 120s
     deploy:
       update_config:
         parallelism: 1
-        delay: 10s
-        monitor: 25s
+        delay: 5s
+        monitor: 20s
         max_failure_ratio: 0
         failure_action: rollback
         order: start-first
       rollback_config:
         parallelism: 1
-        delay: 10s
-        monitor: 25s
+        delay: 5s
+        monitor: 20s
         max_failure_ratio: 0
         order: start-first
       replicas: 4
       restart_policy:
         condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 30s
 
   db-backup:
     image: ghcr.io/p-zielinski/linkshift-db-backup:${GIT_COMMIT_HASH:-latest}
