@@ -42,7 +42,7 @@ const MIGRATION_CARDS: UseCaseCard[] = [
 
 const SHORTLINK_CARDS: UseCaseCard[] = [
   {
-    title: 'Internal Bitly on your domain',
+    title: 'In-domain link shortener',
     icon: 'link',
     summary:
       'Run branded shortlinks by combining a path-prefix redirect rule with a reusable link map.',
@@ -80,8 +80,7 @@ const QUALITY_CARDS: UseCaseCard[] = [
   {
     title: 'Domain grouping for environments',
     icon: 'layers',
-    summary:
-      'Set rules once at the domain-group level and apply them to every assigned domain.',
+    summary: 'Set rules once at the domain-group level and apply them to every assigned domain.',
     bullets: [
       'Use one rule set for production, staging, test, or typo domains.',
       'Reduce drift by managing redirects outside individual server or DNS configs.',
