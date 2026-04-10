@@ -38,14 +38,6 @@ export class AppController {
     throw new InternalServerErrorException('Test Sentry Integration');
   }
 
-  @Get('api/health')
-  getHealth(): HealthResponse {
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    };
-  }
-
   @Get('api/status')
   async getStatus(): Promise<StatusResponse> {
     const [databaseResult, redisResult] = await Promise.allSettled([
@@ -55,8 +47,8 @@ export class AppController {
 
     const statusResponse: StatusResponse = {
       status:
-        databaseResult.status === 'fulfilled'
-        && redisResult.status === 'fulfilled'
+        databaseResult.status === 'fulfilled' &&
+        redisResult.status === 'fulfilled'
           ? 'ok'
           : 'degraded',
       timestamp: new Date().toISOString(),
