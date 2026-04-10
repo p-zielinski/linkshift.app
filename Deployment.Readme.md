@@ -378,3 +378,7 @@ The backend entrypoint runs Prisma migrations automatically if `DATABASE_URL` is
 ```
 ./node_modules/.bin/prisma migrate deploy
 ```
+
+
+yA6KbHtY6Vihy2xTRkU80MDepo5i+aFrj3y+5C/qfJcie9Doh6FqgkFpItaycmSM3IXT6K0Cb9kSJo+8vtAPLJk1Z9dWJ5TGTuv4P2uV48xh8ciEYNYvhZWhA7QTG6JPdxomAig3T/AjWA==
+yA6KbHtY6Vihy2xTRkU80MDepo5i+aFrj3y+5C/qfJcie9Doh6FqgkFpItaycmSM3IXT6K0Cb9kSJo+8vtAPLJk1Z9dWJ5TGTuv4P2uV48xh8ciEYNYvhZWhA7QTG6JPdxomAig3T/AjWA==

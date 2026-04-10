@@ -325,7 +325,7 @@ export class EmailService {
       this.configService.get<string>('ZEPTOMAIL_API_KEY') ?? '';
     const apiUrl =
       this.configService.get<string>('ZEPTOMAIL_API_URL') ??
-      'https://api.zeptomail.com/v1.1/email';
+      'https://api.zeptomail.eu/v1.1/email';
     const sender = this.resolveSender();
 
     return { authorizationToken, apiUrl, sender };
