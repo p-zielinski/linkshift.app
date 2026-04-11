@@ -83,6 +83,17 @@ app.get('/runtime-config.js', (_req, res) => {
   res.send(`window.APP_CONFIG = ${JSON.stringify(config)};`);
 });
 
+app.get('/linkshift-api-keys.openapi.yaml', (_req, res) => {
+  const filePath = join(browserDistFolder, 'linkshift-api-keys.openapi.yaml');
+  res.sendFile(filePath, (error) => {
+    if (error) {
+      if (!res.headersSent) {
+        res.status(404).type('text/plain').send('Not found');
+      }
+    }
+  });
+});
+
 app.use(
   express.static(browserDistFolder, {
     maxAge: '1y',

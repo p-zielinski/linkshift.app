@@ -5,7 +5,10 @@ import { PrismaService } from '../prisma.service';
 import { RuleValidatorService } from '../rule-validator/rule-validator.service';
 import { OrganizationService } from '../organization/organization.service';
 import { PaymentRequiredError } from '@shared/models/error.model';
-import { CacheManagerService } from '../cache/cache-manager.service';
+import {
+  CacheManagerService,
+  RateLimitScope,
+} from '../cache/cache-manager.service';
 import { ClsService } from 'nestjs-cls';
 import { throwHttpException } from '../utils';
 import { DestinationExtractorService } from '../security/destination-extractor.service';
@@ -116,7 +119,7 @@ describe('RedirectService', () => {
             getData: jest.fn(),
             getCustomCache: jest.fn(),
             setCustomCache: jest.fn(),
-            checkOrganizationRateLimit: jest.fn(),
+            checkRateLimit: jest.fn(),
           },
         },
         {
@@ -1709,7 +1712,7 @@ describe('RedirectService', () => {
         configuration: null,
       });
       (
-        cacheManagerService.checkOrganizationRateLimit as jest.Mock
+        cacheManagerService.checkRateLimit as jest.Mock
       ).mockResolvedValue(undefined);
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
@@ -1718,8 +1721,8 @@ describe('RedirectService', () => {
       await service.applyRedirect(req, res);
 
       expect(
-        cacheManagerService.checkOrganizationRateLimit,
-      ).toHaveBeenCalledWith('org_1', 10);
+        cacheManagerService.checkRateLimit,
+      ).toHaveBeenCalledWith(RateLimitScope.REDIRECTION, 'org_1', 10);
       expect(res.redirect).toHaveBeenCalledWith(301, 'https://example.com/new');
     });
 
@@ -1752,7 +1755,7 @@ describe('RedirectService', () => {
         configuration: null,
       });
       (
-        cacheManagerService.checkOrganizationRateLimit as jest.Mock
+        cacheManagerService.checkRateLimit as jest.Mock
       ).mockResolvedValue(undefined);
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
@@ -1795,7 +1798,7 @@ describe('RedirectService', () => {
         configuration: null,
       });
       (
-        cacheManagerService.checkOrganizationRateLimit as jest.Mock
+        cacheManagerService.checkRateLimit as jest.Mock
       ).mockResolvedValue(undefined);
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
@@ -1859,7 +1862,7 @@ describe('RedirectService', () => {
         configuration: null,
       });
       (
-        cacheManagerService.checkOrganizationRateLimit as jest.Mock
+        cacheManagerService.checkRateLimit as jest.Mock
       ).mockResolvedValue(undefined);
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
@@ -1911,7 +1914,7 @@ describe('RedirectService', () => {
         configuration: null,
       });
       (
-        cacheManagerService.checkOrganizationRateLimit as jest.Mock
+        cacheManagerService.checkRateLimit as jest.Mock
       ).mockResolvedValue(undefined);
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,

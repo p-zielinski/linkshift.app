@@ -492,6 +492,7 @@ export class OrganizationService {
     rules: number;
     tests: number;
     users: number;
+    apiKeys: number;
     linkMaps: number;
     linkMapEntries: number;
   }> {
@@ -501,6 +502,7 @@ export class OrganizationService {
       rules,
       tests,
       users,
+      apiKeys,
       linkMaps,
       linkMapEntries,
     ] = await Promise.all([
@@ -532,6 +534,12 @@ export class OrganizationService {
           isBlocked: false,
         },
       }),
+      this.prisma.apiKey.count({
+        where: {
+          organizationId,
+          deletedAt: null,
+        },
+      }),
       this.prisma.linkMap.count({
         where: {
           deletedAt: null,
@@ -555,6 +563,7 @@ export class OrganizationService {
       rules,
       tests,
       users,
+      apiKeys,
       linkMaps,
       linkMapEntries,
     };

@@ -16,6 +16,7 @@ import { OrganizationController } from './api/organization.controller';
 import { RedirectTestsController } from './api/redirect-tests.controller';
 import { LinkMapsController } from './api/link-maps.controller';
 import { LinkMapEntriesController } from './api/link-map-entries.controller';
+import { ApiKeysController } from './api/api-keys.controller';
 import { CaddyController } from './api/caddy.controller';
 import { AuthService } from './auth/auth.service';
 import { ApiRedirectionMiddleware } from './middleware/api-redirection.middleware';
@@ -33,6 +34,7 @@ import { NgrokDomainAssignerService } from './dev/ngrok-domain-assigner.service'
 import { RedirectTestsService } from './redirect-tests/redirect-tests.service';
 import { EmailService } from './email/email.service';
 import { AuthTokenService } from './auth/auth-token.service';
+import { ApiOrUserAuthGuard } from './auth/api-or-user-auth.guard';
 import { OrganizationMembersService } from './organization/organization-members.service';
 import { LegalService } from './legal/legal.service';
 import { BullModule } from '@nestjs/bull';
@@ -51,6 +53,7 @@ import { SentryModule } from '@sentry/nestjs/setup';
 import { SentryExceptionFilter } from './filters/sentry-exception.filter';
 import { LinkMapService } from './link-map/link-map.service';
 import { RedirectAnalyticsRetentionService } from './security/redirect-analytics-retention.service';
+import { ApiKeyService } from './api-key/api-key.service';
 
 @Module({
   imports: [
@@ -141,6 +144,7 @@ import { RedirectAnalyticsRetentionService } from './security/redirect-analytics
     RedirectRulesController,
     LinkMapsController,
     LinkMapEntriesController,
+    ApiKeysController,
     AuthController,
     BillingController,
     OrganizationController,
@@ -160,6 +164,8 @@ import { RedirectAnalyticsRetentionService } from './security/redirect-analytics
     NgrokDomainAssignerService,
     RedirectTestsService,
     AuthGuard,
+    ApiOrUserAuthGuard,
+    ApiKeyService,
     AuthTokenService,
     EmailService,
     OrganizationMembersService,

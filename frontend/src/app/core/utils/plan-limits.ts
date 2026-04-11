@@ -2,6 +2,8 @@ import type { PlanLimits } from '@shared/models/plan-limits.model';
 
 const pluralize = (value: number, singular: string, plural: string) =>
   value === 1 ? singular : plural;
+const formatApiKeyLimit = (value: number | null): string =>
+  value === null ? 'Unlimited API keys' : `${value} ${pluralize(value, 'API key', 'API keys')}`;
 
 export const formatLimitChips = (limits: PlanLimits): string[] => [
   `${limits.maxDomainGroups} ${pluralize(limits.maxDomainGroups, 'domain group', 'domain groups')}`,
@@ -13,6 +15,9 @@ export const formatLimitChips = (limits: PlanLimits): string[] => [
 
   `${limits.maxTestsPerGroup} ${pluralize(limits.maxTestsPerGroup, 'test per group', 'tests per group')}`,
   `${limits.maxTotalTests} ${pluralize(limits.maxTotalTests, 'total test', 'total tests')}`,
+
+  formatApiKeyLimit(limits.maxApiKeys),
+  `${limits.apiKeyCallsPerMinute} API calls/min per key`,
 
   `${limits.maxLinkMaps} ${pluralize(limits.maxLinkMaps, 'link map', 'link maps')}`,
   `${limits.maxLinkMapEntriesPerMap} ${pluralize(limits.maxLinkMapEntriesPerMap, 'entry per link map', 'entries per link map')}`,
@@ -28,6 +33,8 @@ export const formatLimitSummary = (limits: PlanLimits): string =>
     `${limits.maxDomainGroups} ${pluralize(limits.maxDomainGroups, 'domain group', 'domain groups')}`,
     `${limits.maxTotalDomains} ${pluralize(limits.maxTotalDomains, 'total domain', 'total domains')}`,
     `${limits.maxTotalRules} ${pluralize(limits.maxTotalRules, 'total rule', 'total rules')}`,
+    formatApiKeyLimit(limits.maxApiKeys),
+    `${limits.apiKeyCallsPerMinute} API calls/min per key`,
     `${limits.maxUsers} ${pluralize(limits.maxUsers, 'seat', 'seats')}`,
     `${limits.redirectionLimitPerMinute} redirects/min`,
   ].join(' • ');

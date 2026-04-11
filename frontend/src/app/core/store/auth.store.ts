@@ -17,6 +17,7 @@ import { OrganizationMembersStore } from './organization-members.store';
 import { BillingPlansStore } from './billing-plans.store';
 import { OrganizationUsageStore } from './organization-usage.store';
 import { RedirectRulesAnalyticsStore } from './redirect-rules-analytics.store';
+import { ApiKeyStore } from './api-key.store';
 import { extractErrorMessage } from './store-error.utils';
 import {
   clearStoredSession,
@@ -59,6 +60,7 @@ export const AuthStore = signalStore(
     const billingPlansStore = inject(BillingPlansStore);
     const organizationUsageStore = inject(OrganizationUsageStore);
     const redirectRulesAnalyticsStore = inject(RedirectRulesAnalyticsStore);
+    const apiKeyStore = inject(ApiKeyStore);
 
     const prefetchCoreData = () => {
       domainGroupStore.searchList();
@@ -185,6 +187,7 @@ export const AuthStore = signalStore(
         billingPlansStore.resetStore();
         organizationUsageStore.resetStore();
         redirectRulesAnalyticsStore.resetStore();
+        apiKeyStore.resetStore();
       };
 
       api.logout().pipe().subscribe({

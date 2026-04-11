@@ -45,6 +45,8 @@ const PRICING_PLANS: PricingPlanBase[] = [
       'Regex and placeholder rules',
       'Domain group governance',
       'SSL included for every domain',
+      'API key management in dashboard',
+      'API usage requires paid plan',
       'Shared redirect audit log',
       'Email support',
     ],
@@ -58,6 +60,7 @@ const PRICING_PLANS: PricingPlanBase[] = [
     features: [
       'Staging and production workspaces',
       'SSL included for every domain',
+      '1 API key and 10 API calls/min per key',
       'Scheduled redirect exports',
       'Workflow-based approvals',
       'Priority email support',
@@ -74,6 +77,7 @@ const PRICING_PLANS: PricingPlanBase[] = [
     features: [
       'Role-based access controls',
       'SSL included for every domain',
+      '3 API keys and 50 API calls/min per key',
       'Bulk rule validation checks',
       'Priority routing audit trail',
       'Dedicated onboarding support',

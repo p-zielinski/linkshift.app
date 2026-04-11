@@ -8,6 +8,8 @@ export type PlanLimits = {
   maxTotalTests: number;
   maxUsers: number;
   redirectionLimitPerMinute: number;
+  maxApiKeys: number | null;
+  apiKeyCallsPerMinute: number;
   maxLinkMaps: number;
   maxLinkMapEntriesTotal: number;
   maxLinkMapEntriesPerMap: number;
@@ -24,6 +26,8 @@ export const DEFAULT_PLAN_LIMITS: Readonly<PlanLimits> = {
   maxTotalTests: 30,
   maxUsers: 1,
   redirectionLimitPerMinute: 10,
+  maxApiKeys: 0,
+  apiKeyCallsPerMinute: 0,
   maxLinkMaps: 1,
   maxLinkMapEntriesTotal: 100,
   maxLinkMapEntriesPerMap: 100,

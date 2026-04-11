@@ -5,6 +5,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'legal/consent', renderMode: RenderMode.Client },
   { path: 'profile', renderMode: RenderMode.Client },
   { path: 'organization', renderMode: RenderMode.Client },
+  { path: 'organization/api-keys', renderMode: RenderMode.Client },
   { path: 'domains', renderMode: RenderMode.Client },
   { path: 'domain-groups', renderMode: RenderMode.Client },
   { path: 'redirect-rules', renderMode: RenderMode.Client },

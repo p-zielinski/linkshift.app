@@ -1,0 +1,31 @@
+<h2 mat-dialog-title class="mb-0">API key created</h2>
+
+<div mat-dialog-content class="flex flex-col gap-4 pb-2">
+  <div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-900">
+    <div class="font-semibold">This is the only time you can view this API key.</div>
+    <div class="mt-1">
+      After closing this dialog, the full key cannot be retrieved again. If lost, delete this key and create a new one.
+    </div>
+  </div>
+
+  <mat-form-field appearance="outline" class="w-full">
+    <mat-label>API key</mat-label>
+    <textarea matInput rows="3" readonly [value]="data.key"></textarea>
+  </mat-form-field>
+
+  <div class="flex items-center gap-2">
+    <button mat-stroked-button type="button" (click)="copyKey()">
+      <mat-icon>content_copy</mat-icon>
+      <span>Copy key</span>
+    </button>
+    @if (copied()) {
+      <span class="text-[12px] text-emerald-700">Copied to clipboard.</span>
+    }
+  </div>
+</div>
+
+<div mat-dialog-actions align="end">
+  <button mat-flat-button color="primary" type="button" (click)="close()">
+    I saved this key
+  </button>
+</div>
