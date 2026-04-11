@@ -102,6 +102,14 @@ describe('RuleValidatorService', () => {
       );
       expect(result.isValid).toBe(true);
     });
+
+    it('should allow www to apex regex pattern with path and query forwarding', () => {
+      const result = service.validate(
+        '/^\\/(.*)$/',
+        'https://{domain.extension}/$1',
+      );
+      expect(result.isValid).toBe(true);
+    });
   });
 
   describe('Variable & Manipulator Validation', () => {
