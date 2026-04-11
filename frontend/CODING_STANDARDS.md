@@ -46,6 +46,12 @@
 - Handle store errors in page components and show a single toast per error.
 - Clear errors after displaying them to avoid repeated notifications.
 
+## SSR and Client Routes
+- Dashboard and authenticated pages must stay client-rendered.
+- When adding a new authenticated route, register it in `frontend/src/app/app.routes.server.ts` with `RenderMode.Client`.
+- If the route is served by the custom Node SSR server, also verify `frontend/src/server.ts` route handling (`CSR_ROUTES` and any explicit static-file routes).
+- Missing SSR/CSR registration can cause server-side data calls without auth context and repeated unauthorized toasts on refresh.
+
 ## File Organization
 - Place reusable UI in `frontend/src/app/shared/components`.
 - Place feature-specific UI in `frontend/src/app/features/<feature>/components`.

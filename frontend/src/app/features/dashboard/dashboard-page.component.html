@@ -327,11 +327,40 @@
           Active users
         </div>
       </div>
+      <div
+        class="rounded-2xl p-4"
+        [class.bg-app-accent-soft]="!apiKeyLimitReached()"
+        [class.bg-red-50]="apiKeyLimitReached()"
+      >
+        <div
+          class="text-[22px] font-semibold"
+          [class.text-red-700]="apiKeyLimitReached()"
+        >
+          @if (limits().maxApiKeys === null) {
+            {{ usage()?.apiKeys ?? '-' }} / Unlimited
+          } @else {
+            {{ usage()?.apiKeys ?? '-' }} / {{ limits().maxApiKeys }}
+          }
+        </div>
+        <div
+          class="text-[13px]"
+          [class.text-red-600]="apiKeyLimitReached()"
+          [class.text-app-muted]="!apiKeyLimitReached()"
+        >
+          API keys
+        </div>
+      </div>
       <div class="rounded-2xl bg-app-accent-soft p-4">
         <div class="text-[22px] font-semibold">
           {{ limits().redirectionLimitPerMinute }}
         </div>
         <div class="text-[13px] text-app-muted">Redirections per minute</div>
+      </div>
+      <div class="rounded-2xl bg-app-accent-soft p-4">
+        <div class="text-[22px] font-semibold">
+          {{ limits().apiKeyCallsPerMinute }}
+        </div>
+        <div class="text-[13px] text-app-muted">API calls per minute per key</div>
       </div>
       <div class="rounded-2xl bg-app-accent-soft p-4">
         <div class="text-[22px] font-semibold">

@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Patch, Body, Param, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
+import { ApiOrUserAuthGuard } from '../auth/api-or-user-auth.guard';
 import { User } from '../auth/user.decorator';
 import { OrganizationService } from '../organization/organization.service';
 import { OrganizationMembersService } from '../organization/organization-members.service';
@@ -24,7 +25,7 @@ export class OrganizationController {
   }
 
   @Get('usage')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async getUsage(@User('organizationId') organizationId: string) {
     this.logger.log('Organization usage requested', {
       requestId: this.clsService.getId(),

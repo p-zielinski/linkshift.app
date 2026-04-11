@@ -160,6 +160,19 @@ exports.Prisma.OrganizationInviteScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ApiKeyScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  expiresAt: 'expiresAt',
+  lastUsedAt: 'lastUsedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
 exports.Prisma.DomainGroupScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -324,6 +337,7 @@ exports.Prisma.ModelName = {
   Organization: 'Organization',
   User: 'User',
   OrganizationInvite: 'OrganizationInvite',
+  ApiKey: 'ApiKey',
   DomainGroup: 'DomainGroup',
   Domain: 'Domain',
   RedirectRule: 'RedirectRule',

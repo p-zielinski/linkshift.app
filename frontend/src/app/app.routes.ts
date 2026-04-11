@@ -20,6 +20,7 @@ import { BlogArticlePageComponent } from './features/marketing/pages/blog/blog-a
 import { UseCasesPageComponent } from './features/marketing/pages/use-cases/use-cases-page.component';
 import { ProfilePageComponent } from './features/profile/profile-page.component';
 import { OrganizationPageComponent } from './features/organization/organization-page.component';
+import { OrganizationApiKeysPageComponent } from './features/organization/organization-api-keys-page.component';
 import { ResetPasswordPageComponent } from './features/auth/reset-password-page.component';
 import { VerifyEmailPageComponent } from './features/auth/verify-email-page.component';
 import { InviteAcceptPageComponent } from './features/auth/invite-accept-page.component';
@@ -142,6 +143,11 @@ export const routes: Routes = [
         component: BlogArticlePageComponent,
         data: { article: 'https-everywhere-for-connected-domains' },
       },
+      {
+        path: 'blog/linkshift-api-keys-for-redirect-automation',
+        component: BlogArticlePageComponent,
+        data: { article: 'linkshift-api-keys-for-redirect-automation' },
+      },
       { path: 'pricing', component: PricingPageComponent },
       { path: 'use-cases', component: UseCasesPageComponent },
       { path: 'contact', component: ContactPageComponent },
@@ -165,6 +171,7 @@ export const routes: Routes = [
       { path: 'legal/consent', component: LegalConsentPageComponent },
       { path: 'profile', component: ProfilePageComponent },
       { path: 'organization', component: OrganizationPageComponent },
+      { path: 'organization/api-keys', component: OrganizationApiKeysPageComponent },
       {
         path: 'domains',
         component: DomainsPageComponent,

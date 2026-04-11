@@ -11,7 +11,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
+import { ApiOrUserAuthGuard } from '../auth/api-or-user-auth.guard';
 import { User } from '../auth/user.decorator';
 import { LinkMapService } from '../link-map/link-map.service';
 import * as linkMapSchemas from '../zod-schames/link-map.schemas';
@@ -30,7 +30,7 @@ export class LinkMapsController {
   ) {}
 
   @Get()
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async list(
     @User('organizationId') organizationId: string,
     @Query(new ZodPipe(linkMapSchemas.ListLinkMapsQuerySchema))
@@ -45,7 +45,7 @@ export class LinkMapsController {
   }
 
   @Get(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async getById(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
@@ -73,7 +73,7 @@ export class LinkMapsController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async create(
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(linkMapSchemas.CreateLinkMapSchema))
@@ -110,7 +110,7 @@ export class LinkMapsController {
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async update(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
@@ -149,7 +149,7 @@ export class LinkMapsController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async delete(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
