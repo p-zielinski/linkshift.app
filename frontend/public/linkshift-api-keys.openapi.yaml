@@ -19,7 +19,7 @@ info:
     - Basic: 10 requests/minute/key.
     - Pro: 50 requests/minute/key.
 servers:
-  - url: https://api.linkshift.app
+  - url: https://linkshift.app
     description: Production API host
 security:
   - ApiKeyAuth: []
