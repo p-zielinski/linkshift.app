@@ -1,7 +1,4 @@
-<app-page-header
-  title="Dashboard"
-  subtitle="Operational overview for the active organization."
-></app-page-header>
+<app-page-header title="Dashboard" subtitle="Operational overview for the active organization." />
 
 <div class="mb-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
   <mat-card class="rounded-[20px] bg-app-surface p-6 shadow-[0_20px_40px_rgba(25,18,22,0.08)]">
@@ -81,42 +78,30 @@
       @if (activeSubscription(); as subscription) {
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="rounded-2xl bg-app-accent-soft p-4">
-            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
-              Plan
-            </div>
+            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Plan</div>
             <div class="text-[22px] font-semibold">
               {{ planLabel(subscription.plan, subscription.planName) }}
             </div>
-            <div class="text-[13px] text-app-muted">
-              Status: {{ subscription.status }}
-            </div>
+            <div class="text-[13px] text-app-muted">Status: {{ subscription.status }}</div>
           </div>
           <div class="rounded-2xl bg-app-accent-soft p-4">
-            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
-              Billing
-            </div>
+            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Billing</div>
             <div class="text-[22px] font-semibold">
               {{ subscription.amount | number: '1.0-2' }}
               {{ subscription.currency }}
             </div>
-            <div class="text-[13px] text-app-muted">
-              Interval: {{ subscription.interval }}
-            </div>
+            <div class="text-[13px] text-app-muted">Interval: {{ subscription.interval }}</div>
           </div>
         </div>
         <div class="mt-4 grid gap-4 sm:grid-cols-2">
           <div class="rounded-2xl bg-app-accent-soft p-4">
-            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
-              Active from
-            </div>
+            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Active from</div>
             <div class="text-[14px] font-semibold text-app-foreground">
               {{ subscription.activeFrom | date: 'mediumDate' }}
             </div>
           </div>
           <div class="rounded-2xl bg-app-accent-soft p-4">
-            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
-              Active until
-            </div>
+            <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Active until</div>
             <div class="text-[14px] font-semibold text-app-foreground">
               @if (subscription.activeUntil) {
                 {{ subscription.activeUntil | date: 'mediumDate' }}
@@ -181,10 +166,7 @@
         [class.bg-app-accent-soft]="!domainGroupLimitReached()"
         [class.bg-red-50]="domainGroupLimitReached()"
       >
-        <div
-          class="text-[22px] font-semibold"
-          [class.text-red-700]="domainGroupLimitReached()"
-        >
+        <div class="text-[22px] font-semibold" [class.text-red-700]="domainGroupLimitReached()">
           {{ usage()?.domainGroups ?? '-' }} / {{ limits().maxDomainGroups }}
         </div>
         <div
@@ -206,10 +188,7 @@
         [class.bg-app-accent-soft]="!domainLimitReached()"
         [class.bg-red-50]="domainLimitReached()"
       >
-        <div
-          class="text-[22px] font-semibold"
-          [class.text-red-700]="domainLimitReached()"
-        >
+        <div class="text-[22px] font-semibold" [class.text-red-700]="domainLimitReached()">
           {{ usage()?.domains ?? '-' }} / {{ limits().maxTotalDomains }}
         </div>
         <div
@@ -237,10 +216,7 @@
         [class.bg-app-accent-soft]="!ruleLimitReached()"
         [class.bg-red-50]="ruleLimitReached()"
       >
-        <div
-          class="text-[22px] font-semibold"
-          [class.text-red-700]="ruleLimitReached()"
-        >
+        <div class="text-[22px] font-semibold" [class.text-red-700]="ruleLimitReached()">
           {{ usage()?.rules ?? '-' }} / {{ limits().maxTotalRules }}
         </div>
         <div
@@ -256,10 +232,7 @@
         [class.bg-app-accent-soft]="!linkMapLimitReached()"
         [class.bg-red-50]="linkMapLimitReached()"
       >
-        <div
-          class="text-[22px] font-semibold"
-          [class.text-red-700]="linkMapLimitReached()"
-        >
+        <div class="text-[22px] font-semibold" [class.text-red-700]="linkMapLimitReached()">
           {{ usage()?.linkMaps ?? '-' }} / {{ limits().maxLinkMaps }}
         </div>
         <div
@@ -275,10 +248,7 @@
         [class.bg-app-accent-soft]="!linkMapEntriesLimitReached()"
         [class.bg-red-50]="linkMapEntriesLimitReached()"
       >
-        <div
-          class="text-[22px] font-semibold"
-          [class.text-red-700]="linkMapEntriesLimitReached()"
-        >
+        <div class="text-[22px] font-semibold" [class.text-red-700]="linkMapEntriesLimitReached()">
           {{ usage()?.linkMapEntries ?? '-' }} / {{ limits().maxLinkMapEntriesTotal }}
         </div>
         <div
@@ -294,10 +264,7 @@
         [class.bg-app-accent-soft]="!testLimitReached()"
         [class.bg-red-50]="testLimitReached()"
       >
-        <div
-          class="text-[22px] font-semibold"
-          [class.text-red-700]="testLimitReached()"
-        >
+        <div class="text-[22px] font-semibold" [class.text-red-700]="testLimitReached()">
           {{ usage()?.tests ?? '-' }} / {{ limits().maxTotalTests }}
         </div>
         <div
@@ -313,10 +280,7 @@
         [class.bg-app-accent-soft]="!userLimitReached()"
         [class.bg-red-50]="userLimitReached()"
       >
-        <div
-          class="text-[22px] font-semibold"
-          [class.text-red-700]="userLimitReached()"
-        >
+        <div class="text-[22px] font-semibold" [class.text-red-700]="userLimitReached()">
           {{ usage()?.users ?? '-' }} / {{ limits().maxUsers }}
         </div>
         <div
@@ -327,15 +291,18 @@
           Active users
         </div>
       </div>
+      <div class="rounded-2xl bg-app-accent-soft p-4">
+        <div class="text-[22px] font-semibold">
+          {{ limits().redirectionLimitPerMinute }}
+        </div>
+        <div class="text-[13px] text-app-muted">Redirections per minute</div>
+      </div>
       <div
         class="rounded-2xl p-4"
         [class.bg-app-accent-soft]="!apiKeyLimitReached()"
         [class.bg-red-50]="apiKeyLimitReached()"
       >
-        <div
-          class="text-[22px] font-semibold"
-          [class.text-red-700]="apiKeyLimitReached()"
-        >
+        <div class="text-[22px] font-semibold" [class.text-red-700]="apiKeyLimitReached()">
           @if (limits().maxApiKeys === null) {
             {{ usage()?.apiKeys ?? '-' }} / Unlimited
           } @else {
@@ -352,12 +319,6 @@
       </div>
       <div class="rounded-2xl bg-app-accent-soft p-4">
         <div class="text-[22px] font-semibold">
-          {{ limits().redirectionLimitPerMinute }}
-        </div>
-        <div class="text-[13px] text-app-muted">Redirections per minute</div>
-      </div>
-      <div class="rounded-2xl bg-app-accent-soft p-4">
-        <div class="text-[22px] font-semibold">
           {{ limits().apiKeyCallsPerMinute }}
         </div>
         <div class="text-[13px] text-app-muted">API calls per minute per key</div>
@@ -366,7 +327,7 @@
         <div class="text-[22px] font-semibold">
           {{ limits().analyticsRetentionDays }}
         </div>
-        <div class="text-[13px] text-app-muted">Current plan retention days</div>
+        <div class="text-[13px] text-app-muted">Current plan analytics retention days</div>
       </div>
     </div>
   }
