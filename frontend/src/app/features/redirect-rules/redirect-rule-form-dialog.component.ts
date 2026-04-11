@@ -445,8 +445,8 @@ export class RedirectRuleFormDialogComponent {
     },
     {
       token: 'domain.extension',
-      description: 'TLD like com/pl.',
-      example: 'https://example.com?tld={domain.extension}',
+      description: 'Hostname without the first label (e.g. www.example.com -> example.com).',
+      example: 'https://{domain.extension}/{path}',
     },
     {
       token: 'domain.subdomain',

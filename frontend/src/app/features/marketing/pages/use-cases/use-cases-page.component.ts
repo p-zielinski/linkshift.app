@@ -67,6 +67,17 @@ const SHORTLINK_CARDS: UseCaseCard[] = [
 
 const QUALITY_CARDS: UseCaseCard[] = [
   {
+    title: 'Redirect traffic to the apex or www subdomain',
+    icon: 'swap_horiz',
+    summary:
+      'Canonicalize hostnames with one regex pattern so visitors keep the full path and query string.',
+    bullets: [
+      'For www -> apex attach source www domains and use source /^\\/(.*)$/ with destination https://{domain.extension}/$1.',
+      'The same pattern preserves nested paths and query params like /pricing?ref=ad.',
+      'For apex -> www, keep source domains apex-only and use destination https://www.{domain.fqdn}/$1.',
+    ],
+  },
+  {
     title: 'Automatic SSL included',
     icon: 'lock',
     summary:
@@ -109,6 +120,7 @@ export class UseCasesPageComponent implements OnInit {
   readonly heroHighlights = [
     'Wildcard and regex-based redirects',
     'Exact, prefix, and query matching controls',
+    'Canonical host redirects (www <-> apex)',
     'Branded shortlinks via link maps',
     'Built-in redirect analytics',
     'Automatic SSL certificate provisioning',
@@ -123,10 +135,10 @@ export class UseCasesPageComponent implements OnInit {
     this.seo.updateTags({
       title: `${this.siteConfig.name} | Use Cases`,
       description:
-        'Real LinkShift use cases for SEO-safe migrations, branded shortlinks, analytics visibility, automatic SSL, and domain-group based routing.',
+        'Real LinkShift use cases for SEO-safe migrations, apex/www canonical host redirects, branded shortlinks, analytics visibility, automatic SSL, and domain-group based routing.',
       canonicalPath: '/use-cases',
       keywords:
-        'redirect migration, SEO redirects, branded shortlinks, link maps, redirect analytics, automatic SSL, domain groups',
+        'redirect migration, canonical host redirect, apex domain redirect, www redirect, branded shortlinks, link maps, redirect analytics, automatic SSL, domain groups',
     });
   }
 }

@@ -252,6 +252,24 @@
               </span>
             </div>
             <div class="grid gap-1">
+              <span class="font-semibold text-app-text">
+                Canonical host: www to apex (keep path + query)
+              </span>
+              <span class="font-mono">Source: /^\/(.*)$/</span>
+              <span class="font-mono">
+                Destination: https://{{ '{' }}domain.extension{{ '}' }}/$1
+              </span>
+              <span class="font-mono">
+                Request: https://www.example.com/pricing?ref=ad -> https://example.com/pricing?ref=ad
+              </span>
+              <span class="text-app-muted">
+                Keep Query match as Exact (or Subset). Ignore query will drop query from $1 for regex rules.
+              </span>
+              <span class="text-app-muted">
+                Apply this rule on source hosts that start with <code>www.</code>.
+              </span>
+            </div>
+            <div class="grid gap-1">
               <span class="font-semibold text-app-text">Segments indexing (no regex)</span>
               <span class="font-mono">Source: /go/docs</span>
               <span class="font-mono">Request: /go/docs</span>
@@ -390,6 +408,7 @@
             <span>
               https://site.com?utm={{ '{' }}query.utm{{ '}' }}&amp;src={{ '{' }}domain.root{{ '}' }}
             </span>
+            <span>https://{{ '{' }}domain.extension{{ '}' }}/$1 (with source /^\/(.*)$/)</span>
             <span>https://site.com?ts={{ '{' }}time():to_iso_string{{ '}' }}</span>
             <span>
               random(0,100) &lt; 30 ? https://a.com : https://b.com

@@ -50,26 +50,56 @@
     }
   </div>
 
-  <div class="mt-5 rounded-[16px] border border-app-border-soft bg-app-surface p-4">
-    <div class="text-[12px] uppercase tracking-[0.12em] text-app-muted">Migration example</div>
-    <p class="mt-2 text-[13px] text-app-muted">
+  <div class="mt-5 rounded-[16px] border border-app-border-soft bg-app-surface p-4 text-app-muted">
+    <div class="text-[12px] uppercase tracking-[0.12em]">Migration example</div>
+    <p class="mt-2 text-[13px]">
       Moving from HelpScout on <code>support.example.com</code> to Mintlify on
       <code>docs.example.com</code>? Start with a global rule, then refine with one-to-one article
       mappings for high-value pages.
     </p>
+
     <div class="mt-3 grid gap-2 text-[13px]">
-      <div class="min-w-0 rounded-[12px] bg-app-accent-soft p-3">
-        Global path-preserving rule:
-        <code class="inline-block max-w-full break-all whitespace-normal align-top"
-          >source: /^\/(.*)$/ -> destination: https://docs.example.com/$1</code
-        >
+      <div class="min-w-0 rounded-[12px] bg-app-accent-soft p-3 flex flex-col">
+        <span class="mb-1 font-semibold text-app-foreground">Global path-preserving rule:</span>
+        <code class="inline-block max-w-full break-all whitespace-normal align-top">
+          source: /^\/(.*)$/ <br />
+          destination: https://docs.example.com/<b>$1</b>
+        </code>
       </div>
-      <div class="min-w-0 rounded-[12px] bg-app-accent-soft p-3">
-        One-to-one rule:
-        <code class="inline-block max-w-full break-all whitespace-normal align-top"
-          >source: /old-kb/slack-guide -> destination:
-          https://docs.example.com/integrations/slack</code
-        >
+
+      <div class="min-w-0 rounded-[12px] bg-app-accent-soft p-3 flex flex-col">
+        <span class="mb-1 font-semibold text-app-foreground">One-to-one rule:</span>
+        <code class="inline-block max-w-full break-all whitespace-normal align-top">
+          source: <u>/old-kb/slack-guide</u> <br />
+          destination: https://docs.example.com/<b>integrations/slack</b>
+        </code>
+      </div>
+
+      <div
+        class="min-w-0 rounded-[12px] bg-app-accent-soft p-3 flex flex-col border border-app-accent/20"
+      >
+        <span class="mb-1 font-semibold text-app-foreground">Variables + prefix rule:</span>
+        <code class="inline-block max-w-full break-all whitespace-normal align-top">
+          source: /articles (pathMatch: prefix) <br />
+          destination: https://docs.example.com/integrations/articles/<b
+            >{{ '{' }}segments.2{{ '}' }}</b
+          >
+        </code>
+
+        <div class="mt-3 pt-2 border-t border-app-border-soft">
+          <div class="text-[11px] mb-1 font-medium uppercase opacity-70 italic">
+            Transformation Logic:
+          </div>
+          <code class="block leading-relaxed">
+            request: /<u>articles</u>/<u>integrations</u>/<b>slack-guide</b> <br />
+            result: &nbsp;/integrations/articles/<b>slack-guide</b>
+          </code>
+          <p class="mt-2 text-[11px] leading-snug">
+            The system indexes path segments starting from 0. <br />
+            Segment <b>[0]</b> is <u>articles</u>, <b>[1]</b> is <u>integrations</u>, and
+            <b>[2]</b> is <b>slack-guide</b>.
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -133,6 +163,20 @@
         </ul>
       </mat-card>
     }
+  </div>
+
+  <div class="mt-5 rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+    <div class="text-[12px] uppercase tracking-[0.12em] text-app-muted">Canonical host example</div>
+    <p class="mt-2 text-[13px] text-app-muted">
+      If users type <code>www.example.com</code> but you want <code>example.com</code>, create one
+      regex rule on your <code>www</code> source domains and keep query matching set to
+      <code>exact</code> (or <code>subset</code>) so path and query are preserved end-to-end.
+    </p>
+    <div class="mt-3 min-w-0 rounded-[12px] bg-app-accent-soft p-3 text-[13px]">
+      <code class="inline-block max-w-full break-all whitespace-normal align-top">
+        source: /^\/(.*)$/ -> destination: https://{{ '{' }}domain.extension{{ '}' }}/$1
+      </code>
+    </div>
   </div>
 </app-marketing-section>
 

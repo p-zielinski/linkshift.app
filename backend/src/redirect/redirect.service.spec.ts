@@ -348,6 +348,44 @@ describe('RedirectService', () => {
 
       expect(result).toBe('https://example.com/docs/api/v1');
     });
+
+    it('should redirect www host to apex while preserving path and query', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: /^\/(.*)$/,
+          destination: 'https://{domain.extension}/$1',
+        },
+      ];
+
+      const req = createMockRequest(
+        'https://www.example.com/pricing/enterprise?utm_source=ad&ref=summer',
+      );
+      const result = await service.getRedirect(req, rules);
+
+      expect(result).toBe(
+        'https://example.com/pricing/enterprise?utm_source=ad&ref=summer',
+      );
+    });
+
+    it('should support prefix source with segments variable mapping', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '/articles',
+          destination: 'https://docs.example.com/integrations/articles/{segments.2}',
+          pathMatch: 'prefix',
+          queryMatch: 'ignore',
+        },
+      ];
+
+      const req = createMockRequest(
+        'https://support.example.com/articles/integrations/slack-guide?utm=legacy',
+      );
+      const result = await service.getRedirect(req, rules);
+
+      expect(result).toBe(
+        'https://docs.example.com/integrations/articles/slack-guide',
+      );
+    });
   });
 
   describe('Method Matching', () => {
@@ -1683,6 +1721,49 @@ describe('RedirectService', () => {
         cacheManagerService.checkOrganizationRateLimit,
       ).toHaveBeenCalledWith('org_1', 10);
       expect(res.redirect).toHaveBeenCalledWith(301, 'https://example.com/new');
+    });
+
+    it('should apply a stored www to apex rule and keep path with query', async () => {
+      const req = createMockRequest(
+        'https://www.example.com/docs/intro?ref=campaign&utm_medium=cpc',
+      );
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      } as any;
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_1',
+          redirectRules: [
+            {
+              source: '/^\\/(.*)$/',
+              destination: 'https://{domain.extension}/$1',
+              statusCode: 308,
+              matchMethod: [],
+              queryMatch: 'exact',
+              pathMatch: 'exact',
+            },
+          ],
+        },
+      });
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue({
+        configuration: null,
+      });
+      (
+        cacheManagerService.checkOrganizationRateLimit as jest.Mock
+      ).mockResolvedValue(undefined);
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
+        undefined,
+      );
+
+      await service.applyRedirect(req, res);
+
+      expect(res.redirect).toHaveBeenCalledWith(
+        308,
+        'https://example.com/docs/intro?ref=campaign&utm_medium=cpc',
+      );
     });
 
     it('should track link map key and request payload in analytics tracking', async () => {
