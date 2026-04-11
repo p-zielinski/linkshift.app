@@ -1,0 +1,1541 @@
+openapi: 3.1.0
+info:
+  title: LinkShift Management API (API Key Accessible Endpoints)
+  version: 1.0.0
+  summary: Organization-scoped redirect management API
+  description: |
+    This specification describes the LinkShift endpoints that can be accessed with organization API keys.
+
+    Authentication:
+    - Preferred: `X-API-Key: <your_key>`
+    - Alternative: `Authorization: ApiKey <your_key>` (supported by backend, not modeled as a separate OpenAPI scheme)
+
+    Important billing behavior:
+    - API keys are organization-scoped.
+    - API key management endpoints (`/api/v1/api-keys`) are intentionally excluded and require dashboard user auth.
+
+    Rate limiting:
+    - Enforced per API key (not per organization).
+    - Basic: 10 requests/minute/key.
+    - Pro: 50 requests/minute/key.
+servers:
+  - url: https://api.linkshift.app
+    description: Production API host
+security:
+  - ApiKeyAuth: []
+tags:
+  - name: Organization
+  - name: Domain Groups
+  - name: Domains
+  - name: Redirect Rules
+  - name: Redirect Tests
+  - name: Link Maps
+  - name: Link Map Entries
+paths:
+  /api/v1/organization/usage:
+    get:
+      tags: [Organization]
+      summary: Get organization usage summary
+      description: Returns current resource usage for the authenticated organization.
+      operationId: getOrganizationUsage
+      responses:
+        '200':
+          description: Usage summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationUsage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/domain-groups:
+    get:
+      tags: [Domain Groups]
+      summary: List domain groups
+      operationId: listDomainGroups
+      responses:
+        '200':
+          description: Domain groups list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainGroupQueryResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      tags: [Domain Groups]
+      summary: Create domain group
+      operationId: createDomainGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDomainGroupRequest'
+      responses:
+        '200':
+          description: Created domain group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainGroup'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/domain-groups/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags: [Domain Groups]
+      summary: Get domain group
+      operationId: getDomainGroup
+      responses:
+        '200':
+          description: Domain group details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainGroup'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    put:
+      tags: [Domain Groups]
+      summary: Update domain group
+      operationId: updateDomainGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDomainGroupRequest'
+      responses:
+        '200':
+          description: Updated domain group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainGroup'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      tags: [Domain Groups]
+      summary: Delete domain group (soft delete)
+      operationId: deleteDomainGroup
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/domains:
+    get:
+      tags: [Domains]
+      summary: List domains
+      operationId: listDomains
+      responses:
+        '200':
+          description: Domains list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainQueryResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      tags: [Domains]
+      summary: Create domain
+      operationId: createDomain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDomainRequest'
+      responses:
+        '200':
+          description: Created domain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Domain'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/domains/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags: [Domains]
+      summary: Get domain
+      operationId: getDomain
+      responses:
+        '200':
+          description: Domain details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Domain'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    put:
+      tags: [Domains]
+      summary: Update domain
+      operationId: updateDomain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDomainRequest'
+      responses:
+        '200':
+          description: Updated domain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Domain'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      tags: [Domains]
+      summary: Delete domain (soft delete)
+      operationId: deleteDomain
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/redirect-rules:
+    get:
+      tags: [Redirect Rules]
+      summary: List redirect rules
+      description: |
+        Cursor-style pagination ordered by `priority desc, createdAt desc, id desc`.
+      operationId: listRedirectRules
+      parameters:
+        - name: domainGroupId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: startAfterId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Redirect rules list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectRuleQueryResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      tags: [Redirect Rules]
+      summary: Create redirect rule
+      description: |
+        Redirect rules are deeply validated in backend logic. Key constraints include:
+        - Source regex parsing and capture group consistency.
+        - Destination URL structure and supported placeholder/functions validation.
+        - Conditional expression and operator validation.
+        - Link-map and destination exclusivity (`linkMapId` requires empty destination).
+      operationId: createRedirectRule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRedirectRuleRequest'
+      responses:
+        '200':
+          description: Created redirect rule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectRule'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/redirect-rules/analytics:
+    get:
+      tags: [Redirect Rules]
+      summary: Get top redirect rules analytics
+      operationId: getRedirectRuleAnalytics
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 50
+        - name: range
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [day, week, month]
+        - name: start
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: end
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Analytics payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectRuleAnalyticsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/redirect-rules/simulate:
+    post:
+      tags: [Redirect Rules]
+      summary: Simulate redirect rule matching
+      operationId: simulateRedirectRules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimulateRedirectsRequest'
+      responses:
+        '200':
+          description: Simulation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectSimulationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/redirect-rules/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags: [Redirect Rules]
+      summary: Get redirect rule
+      operationId: getRedirectRule
+      responses:
+        '200':
+          description: Redirect rule details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectRule'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    put:
+      tags: [Redirect Rules]
+      summary: Update redirect rule
+      operationId: updateRedirectRule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRedirectRuleRequest'
+      responses:
+        '200':
+          description: Updated redirect rule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectRule'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      tags: [Redirect Rules]
+      summary: Delete redirect rule (soft delete)
+      operationId: deleteRedirectRule
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/redirect-tests:
+    get:
+      tags: [Redirect Tests]
+      summary: List redirect tests
+      operationId: listRedirectTests
+      parameters:
+        - name: domainGroupId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 100
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: startAfterId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Redirect tests list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectTestQueryResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      tags: [Redirect Tests]
+      summary: Create redirect test
+      operationId: createRedirectTest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRedirectTestRequest'
+      responses:
+        '200':
+          description: Created redirect test
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectTest'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/redirect-tests/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags: [Redirect Tests]
+      summary: Get redirect test
+      operationId: getRedirectTest
+      responses:
+        '200':
+          description: Redirect test details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectTest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    put:
+      tags: [Redirect Tests]
+      summary: Update redirect test
+      operationId: updateRedirectTest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRedirectTestRequest'
+      responses:
+        '200':
+          description: Updated redirect test
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedirectTest'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      tags: [Redirect Tests]
+      summary: Delete redirect test (soft delete)
+      operationId: deleteRedirectTest
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/link-maps:
+    get:
+      tags: [Link Maps]
+      summary: List link maps
+      operationId: listLinkMaps
+      parameters:
+        - name: domainGroupId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Link maps list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkMapQueryResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      tags: [Link Maps]
+      summary: Create link map
+      operationId: createLinkMap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLinkMapRequest'
+      responses:
+        '200':
+          description: Created link map
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkMap'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/link-maps/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags: [Link Maps]
+      summary: Get link map
+      operationId: getLinkMap
+      responses:
+        '200':
+          description: Link map details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkMap'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    put:
+      tags: [Link Maps]
+      summary: Update link map
+      operationId: updateLinkMap
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLinkMapRequest'
+      responses:
+        '200':
+          description: Updated link map
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkMap'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      tags: [Link Maps]
+      summary: Delete link map (soft delete)
+      operationId: deleteLinkMap
+      responses:
+        '200':
+          description: Deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/link-map-entries:
+    get:
+      tags: [Link Map Entries]
+      summary: List link map entries
+      operationId: listLinkMapEntries
+      parameters:
+        - name: linkMapId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: startAfterId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Link map entries list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkMapEntryQueryResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      tags: [Link Map Entries]
+      summary: Create link map entry
+      operationId: createLinkMapEntry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLinkMapEntryRequest'
+      responses:
+        '200':
+          description: Created link map entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkMapEntry'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      tags: [Link Map Entries]
+      summary: Delete multiple link map entries by IDs
+      operationId: deleteManyLinkMapEntries
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteLinkMapEntriesByIdRequest'
+      responses:
+        '200':
+          description: Delete summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deletedCount:
+                    type: integer
+                required: [deletedCount]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/link-map-entries/import:
+    post:
+      tags: [Link Map Entries]
+      summary: Import link map entries
+      operationId: importLinkMapEntries
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportLinkMapEntriesRequest'
+      responses:
+        '200':
+          description: Import summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportLinkMapEntriesResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/link-map-entries/import/rollback:
+    post:
+      tags: [Link Map Entries]
+      summary: Roll back imported link map entries
+      operationId: rollbackLinkMapEntriesImport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteLinkMapEntriesByIdRequest'
+      responses:
+        '200':
+          description: Rollback summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deletedCount:
+                    type: integer
+                required: [deletedCount]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/link-map-entries/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags: [Link Map Entries]
+      summary: Get link map entry
+      operationId: getLinkMapEntry
+      responses:
+        '200':
+          description: Link map entry details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkMapEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    put:
+      tags: [Link Map Entries]
+      summary: Update link map entry
+      operationId: updateLinkMapEntry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLinkMapEntryRequest'
+      responses:
+        '200':
+          description: Updated link map entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkMapEntry'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      tags: [Link Map Entries]
+      summary: Delete link map entry
+      operationId: deleteLinkMapEntry
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key generated in LinkShift dashboard (`Organization -> Manage API keys`).
+
+  parameters:
+    EntityId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unauthorized:
+              value:
+                code: 401
+                key: unauthorized
+                message: Unauthorized
+                details: Missing or invalid API key.
+                requestId: req_example
+    PaymentRequired:
+      description: API usage requires paid plan
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            paymentRequired:
+              value:
+                code: 402
+                key: payment_required
+                message: Payment required
+                feature: api_access
+                details: API key usage is available on paid plans only. Upgrade your subscription to use API access.
+                requestId: req_example
+    TooManyRequests:
+      description: Per-key rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            tooManyRequests:
+              value:
+                code: 429
+                key: too_many_requests
+                message: Too many requests
+                details: API key rate limit exceeded
+                requestId: req_example
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        key:
+          type: string
+        message:
+          type: string
+        details:
+          type: string
+        requestId:
+          type: string
+        feature:
+          type: string
+      required: [code, key, message]
+
+    DomainGroup:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        organizationId: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        deletedAt: { type: string, format: date-time, nullable: true }
+      required: [id, name, organizationId, createdAt, updatedAt]
+
+    Domain:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        domainGroupId: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        deletedAt: { type: string, format: date-time, nullable: true }
+      required: [id, name, domainGroupId, createdAt, updatedAt]
+
+    RedirectRule:
+      type: object
+      properties:
+        id: { type: string }
+        source: { type: string }
+        destination: { type: string, nullable: true }
+        statusCode: { type: integer, enum: [301, 302, 307, 308] }
+        matchMethod:
+          type: array
+          items:
+            $ref: '#/components/schemas/HttpMethod'
+        queryMatch:
+          type: string
+          enum: [exact, ignore, subset]
+        pathMatch:
+          type: string
+          enum: [exact, prefix]
+        linkMapId: { type: string, nullable: true }
+        isBlocked: { type: boolean }
+        blockedAt: { type: string, format: date-time, nullable: true }
+        priority: { type: integer }
+        domainGroupId: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        deletedAt: { type: string, format: date-time, nullable: true }
+      required:
+        - id
+        - source
+        - statusCode
+        - matchMethod
+        - queryMatch
+        - pathMatch
+        - priority
+        - domainGroupId
+        - createdAt
+        - updatedAt
+
+    RedirectTest:
+      type: object
+      properties:
+        id: { type: string }
+        organizationId: { type: string }
+        domainGroupId: { type: string }
+        pathWithQuery: { type: string }
+        requestData: { type: object, additionalProperties: true }
+        expectedResult: { type: object, additionalProperties: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        deletedAt: { type: string, format: date-time, nullable: true }
+      required:
+        - id
+        - organizationId
+        - domainGroupId
+        - pathWithQuery
+        - requestData
+        - expectedResult
+        - createdAt
+        - updatedAt
+
+    LinkMap:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        domainGroupId: { type: string }
+        caseSensitive: { type: boolean }
+        queryMatch:
+          type: string
+          enum: [exact, ignore, subset]
+        fallbackDestination: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        deletedAt: { type: string, format: date-time, nullable: true }
+      required:
+        - id
+        - name
+        - domainGroupId
+        - caseSensitive
+        - queryMatch
+        - createdAt
+        - updatedAt
+
+    LinkMapEntry:
+      type: object
+      properties:
+        id: { type: string }
+        linkMapId: { type: string }
+        key: { type: string }
+        keyNormalized: { type: string }
+        destination: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        deletedAt: { type: string, format: date-time, nullable: true }
+      required:
+        - id
+        - linkMapId
+        - key
+        - keyNormalized
+        - destination
+        - createdAt
+        - updatedAt
+
+    OrganizationUsage:
+      type: object
+      properties:
+        domainGroups: { type: integer }
+        domains: { type: integer }
+        rules: { type: integer }
+        tests: { type: integer }
+        users: { type: integer }
+        apiKeys: { type: integer }
+        linkMaps: { type: integer }
+        linkMapEntries: { type: integer }
+      required: [domainGroups, domains, rules, tests, users, apiKeys, linkMaps, linkMapEntries]
+
+    QueryResultMeta:
+      type: object
+      properties:
+        dataType: { type: string }
+        hasMore: { type: boolean }
+        moreStartingAfterId: { type: string }
+      required: [dataType, hasMore]
+
+    DomainGroupQueryResult:
+      allOf:
+        - $ref: '#/components/schemas/QueryResultMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/DomainGroup'
+          required: [data]
+
+    DomainQueryResult:
+      allOf:
+        - $ref: '#/components/schemas/QueryResultMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Domain'
+          required: [data]
+
+    RedirectRuleQueryResult:
+      allOf:
+        - $ref: '#/components/schemas/QueryResultMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/RedirectRule'
+          required: [data]
+
+    RedirectTestQueryResult:
+      allOf:
+        - $ref: '#/components/schemas/QueryResultMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/RedirectTest'
+          required: [data]
+
+    LinkMapQueryResult:
+      allOf:
+        - $ref: '#/components/schemas/QueryResultMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/LinkMap'
+          required: [data]
+
+    LinkMapEntryQueryResult:
+      allOf:
+        - $ref: '#/components/schemas/QueryResultMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/LinkMapEntry'
+          required: [data]
+
+    HttpMethod:
+      type: string
+      enum: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
+
+    CreateDomainGroupRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+      required: [name]
+
+    UpdateDomainGroupRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+      required: [name]
+
+    CreateDomainRequest:
+      type: object
+      properties:
+        name: { type: string }
+        domainGroupId: { type: string }
+      required: [name, domainGroupId]
+
+    UpdateDomainRequest:
+      type: object
+      properties:
+        name: { type: string }
+        domainGroupId: { type: string }
+
+    CreateRedirectRuleRequest:
+      type: object
+      properties:
+        source: { type: string, minLength: 1, maxLength: 16384 }
+        destination: { type: string, maxLength: 16384, nullable: true }
+        statusCode: { type: integer, enum: [301, 302, 307, 308], default: 302 }
+        matchMethod:
+          type: array
+          items:
+            $ref: '#/components/schemas/HttpMethod'
+        queryMatch:
+          type: string
+          enum: [exact, ignore, subset]
+          default: exact
+        pathMatch:
+          type: string
+          enum: [exact, prefix]
+          default: exact
+        linkMapId: { type: string, nullable: true }
+        priority: { type: integer, minimum: 0, maximum: 1000, default: 0 }
+        domainGroupId: { type: string }
+      required: [source, domainGroupId]
+
+    UpdateRedirectRuleRequest:
+      type: object
+      properties:
+        source: { type: string, minLength: 1, maxLength: 16384 }
+        destination: { type: string, maxLength: 16384, nullable: true }
+        statusCode: { type: integer, enum: [301, 302, 307, 308] }
+        matchMethod:
+          type: array
+          items:
+            $ref: '#/components/schemas/HttpMethod'
+        queryMatch: { type: string, enum: [exact, ignore, subset] }
+        pathMatch: { type: string, enum: [exact, prefix] }
+        linkMapId: { type: string, nullable: true }
+        priority: { type: integer, minimum: 0, maximum: 1000 }
+
+    SimulateRedirectsRequest:
+      type: object
+      properties:
+        entries:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            type: object
+            properties:
+              domainGroupId: { type: string }
+              hostname: { type: string }
+              path: { type: string }
+              method:
+                $ref: '#/components/schemas/HttpMethod'
+              protocol:
+                type: string
+                enum: [http, https]
+              ip: { type: string }
+              userAgent: { type: string }
+              headers:
+                type: object
+                additionalProperties:
+                  type: string
+              query:
+                type: object
+                additionalProperties: true
+            required: [domainGroupId, path]
+      required: [entries]
+
+    RedirectSimulationResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              index: { type: integer }
+              domainGroupId: { type: string }
+              method: { type: string }
+              path: { type: string }
+              hostname: { type: string }
+              matched: { type: boolean }
+              statusCode: { type: integer }
+              target: { type: string, nullable: true }
+            required: [index, domainGroupId, method, path, hostname, matched, statusCode]
+      required: [results]
+
+    RedirectRuleAnalyticsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              rule:
+                $ref: '#/components/schemas/RedirectRule'
+              hits:
+                type: integer
+              topLinkMapKeys:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    key: { type: string }
+                    hits: { type: integer }
+                  required: [key, hits]
+              topRequestVariants:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    requestMethod: { type: string }
+                    requestPath: { type: string }
+                    requestQuery: { type: string }
+                    requestUrl: { type: string }
+                    destination: { type: string }
+                    linkMapKey: { type: string, nullable: true }
+                    hits: { type: integer }
+                  required:
+                    [requestMethod, requestPath, requestQuery, requestUrl, destination, hits]
+            required: [rule, hits, topLinkMapKeys, topRequestVariants]
+      required: [data]
+
+    CreateRedirectTestRequest:
+      type: object
+      properties:
+        domainGroupId: { type: string }
+        pathWithQuery: { type: string, minLength: 1, maxLength: 2048 }
+        requestData:
+          type: object
+          additionalProperties: true
+        expectedResult:
+          type: object
+          properties:
+            matched: { type: boolean }
+            statusCode: { type: integer, minimum: 100, maximum: 599 }
+            target: { type: string, nullable: true }
+          required: [matched, statusCode, target]
+      required: [domainGroupId, pathWithQuery, expectedResult]
+
+    UpdateRedirectTestRequest:
+      type: object
+      properties:
+        pathWithQuery: { type: string, minLength: 1, maxLength: 2048 }
+        requestData:
+          type: object
+          additionalProperties: true
+        expectedResult:
+          type: object
+          properties:
+            matched: { type: boolean }
+            statusCode: { type: integer, minimum: 100, maximum: 599 }
+            target: { type: string, nullable: true }
+          required: [matched, statusCode, target]
+
+    CreateLinkMapRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        domainGroupId: { type: string }
+        caseSensitive: { type: boolean, default: false }
+        queryMatch: { type: string, enum: [exact, ignore, subset], default: ignore }
+        fallbackDestination: { type: string }
+      required: [name, domainGroupId]
+
+    UpdateLinkMapRequest:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        caseSensitive: { type: boolean }
+        queryMatch: { type: string, enum: [exact, ignore, subset] }
+        fallbackDestination: { type: string, nullable: true }
+
+    CreateLinkMapEntryRequest:
+      type: object
+      properties:
+        linkMapId: { type: string }
+        key: { type: string, minLength: 1, maxLength: 1024 }
+        destination: { type: string, minLength: 1, maxLength: 16384 }
+      required: [linkMapId, key, destination]
+
+    UpdateLinkMapEntryRequest:
+      type: object
+      properties:
+        key: { type: string, minLength: 1, maxLength: 1024 }
+        destination: { type: string, minLength: 1, maxLength: 16384 }
+
+    DeleteLinkMapEntriesByIdRequest:
+      type: object
+      properties:
+        linkMapId: { type: string }
+        entryIds:
+          type: array
+          minItems: 1
+          maxItems: 1000
+          items: { type: string }
+      required: [linkMapId, entryIds]
+
+    ImportLinkMapEntriesRequest:
+      type: object
+      properties:
+        linkMapId: { type: string }
+        entries:
+          type: array
+          minItems: 1
+          maxItems: 500
+          items:
+            type: object
+            properties:
+              key: { type: string, minLength: 1, maxLength: 1024 }
+              destination: { type: string, minLength: 1, maxLength: 16384 }
+            required: [key, destination]
+      required: [linkMapId, entries]
+
+    ImportLinkMapEntriesResponse:
+      type: object
+      properties:
+        total: { type: integer }
+        created: { type: integer }
+        updated: { type: integer }
+        failed: { type: integer }
+        failures:
+          type: array
+          items:
+            type: object
+            properties:
+              index: { type: integer }
+              key: { type: string }
+              reason: { type: string }
+            required: [index, key, reason]
+      required: [total, created, updated, failed, failures]

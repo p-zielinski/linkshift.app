@@ -123,6 +123,9 @@ export class UpgradeDialogComponent {
     if (usage.users > limits.maxUsers) {
       details.push(`Active users ${usage.users}/${limits.maxUsers}`);
     }
+    if (limits.maxApiKeys !== null && usage.apiKeys > limits.maxApiKeys) {
+      details.push(`API keys ${usage.apiKeys}/${limits.maxApiKeys}`);
+    }
     if (usage.linkMaps > limits.maxLinkMaps) {
       details.push(`Link maps ${usage.linkMaps}/${limits.maxLinkMaps}`);
     }

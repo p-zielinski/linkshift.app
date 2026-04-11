@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RedirectRulesController } from './redirect-rules.controller';
 import { RedirectService } from '../redirect/redirect.service';
 import { ClsService } from 'nestjs-cls';
-import { AuthGuard } from '../auth/auth.guard';
+import { ApiOrUserAuthGuard } from '../auth/api-or-user-auth.guard';
 import {
   BadRequestException,
   NotFoundException,
@@ -52,7 +52,7 @@ describe('RedirectRulesController', () => {
         },
       ],
     })
-      .overrideGuard(AuthGuard)
+      .overrideGuard(ApiOrUserAuthGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

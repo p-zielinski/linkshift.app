@@ -6,6 +6,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterLink } from '@angular/router';
 import { form, required, FormField } from '@angular/forms/signals';
 import { z } from 'zod';
 import { applyZodField } from '../../core/forms/zod-validators';
@@ -29,6 +30,7 @@ import { firstValueFrom } from 'rxjs';
     MatFormFieldModule,
     MatInputModule,
     MatTooltipModule,
+    RouterLink,
     FormField,
     PageHeaderComponent
   ],
@@ -53,6 +55,13 @@ export class OrganizationPageComponent {
     return OrganizationConfiguration.fromJson(org?.configuration ?? {});
   });
   readonly maxUsers = computed(() => this.config().activeSubscription.limits.maxUsers);
+  readonly maxApiKeys = computed(() => this.config().activeSubscription.limits.maxApiKeys);
+  readonly apiCallsPerMinute = computed(
+    () => this.config().activeSubscription.limits.apiKeyCallsPerMinute,
+  );
+  readonly apiKeyQuotaLabel = computed(() =>
+    this.maxApiKeys() === null ? 'Unlimited' : String(this.maxApiKeys()),
+  );
   readonly activeUsers = computed(() => this.usageStore.usage()?.users ?? 0);
   readonly seatsAvailable = computed(() => this.activeUsers() < this.maxUsers());
   readonly seatUsagePercent = computed(() => {

@@ -43,6 +43,12 @@ const WORKFLOW_STEPS = [
     description:
       'Review hits, top short keys, and top request variants in redirect analytics as traffic comes in.',
   },
+  {
+    icon: 'api',
+    title: 'Automate with API keys',
+    description:
+      'Use organization-scoped API keys to manage domains, rules, link maps, and tests from your own workflows.',
+  },
 ];
 
 const FEATURES: MarketingFeature[] = [
@@ -60,6 +66,12 @@ const FEATURES: MarketingFeature[] = [
     icon: 'monitoring',
     title: 'Built-in analytics',
     description: 'Track redirect hits, top link-map keys, and top request variants per rule.',
+  },
+  {
+    icon: 'api',
+    title: 'API-first operations',
+    description:
+      'Manage domains, redirect rules, link maps, and test cases through authenticated API keys.',
   },
   {
     icon: 'rule',
@@ -194,6 +206,7 @@ export class HomePageComponent implements OnInit {
     'Regex sources with capture groups',
     'Exact, prefix, and query matching',
     'Link maps with analytics visibility',
+    'Organization-scoped API keys for automation',
     'Automatic SSL certificate provisioning',
   ];
 
