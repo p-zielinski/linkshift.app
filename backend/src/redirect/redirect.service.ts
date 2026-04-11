@@ -26,6 +26,7 @@ import {
   CachedByProperty,
   CacheManagerService,
   DataType,
+  RateLimitScope,
 } from '../cache/cache-manager.service';
 import { OrganizationConfiguration } from '@shared/models/organization-config.model';
 import { Domain, DomainGroup, Organization } from '@shared/prisma-client';
@@ -1600,7 +1601,8 @@ export class RedirectService {
         this.organizationService.getEffectiveSubscription(config);
       const limit = subscription.limits.redirectionLimitPerMinute;
 
-      await this.cacheManagerService.checkOrganizationRateLimit(
+      await this.cacheManagerService.checkRateLimit(
+        RateLimitScope.REDIRECTION,
         domain.domainGroup.organizationId,
         limit,
       );

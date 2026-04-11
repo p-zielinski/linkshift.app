@@ -59,6 +59,27 @@ export class OrganizationSubscription {
       }
     }
   }
+
+  canUseApiAccess(at: Date = new Date()): boolean {
+    if (this.status === OrganizationStatus.SUSPENDED) {
+      return false;
+    }
+    if (this.plan === OrganizationPlan.FREE) {
+      return false;
+    }
+    if (this.activeUntil && this.activeUntil.getTime() <= at.getTime()) {
+      return false;
+    }
+    return true;
+  }
+
+  getApiKeyQuota(): number | null {
+    return this.limits.maxApiKeys;
+  }
+
+  getApiKeyCallsPerMinute(): number {
+    return this.limits.apiKeyCallsPerMinute;
+  }
 }
 
 /**
@@ -85,5 +106,9 @@ export class OrganizationConfiguration {
 
   static fromJson(json: any): OrganizationConfiguration {
     return new OrganizationConfiguration(json || {});
+  }
+
+  canUseApiAccess(at: Date = new Date()): boolean {
+    return this.activeSubscription.canUseApiAccess(at);
   }
 }

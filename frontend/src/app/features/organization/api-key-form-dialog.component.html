@@ -1,0 +1,55 @@
+<h2 class="m-0 px-6 pt-6 text-lg font-semibold">{{ title() }}</h2>
+
+<form class="flex flex-col gap-4 px-6 pb-6 pt-4" (submit)="onSave($event)">
+  <mat-form-field appearance="outline">
+    <mat-label>Key name</mat-label>
+    <input matInput [formField]="keyForm.name" autocomplete="off" />
+    @if (nameError()) {
+      <mat-error>{{ nameError() }}</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-checkbox
+    [checked]="model().neverExpires"
+    (change)="onNeverExpiresChange($event.checked)"
+  >
+    Never expires
+  </mat-checkbox>
+
+  @if (!model().neverExpires) {
+    <mat-form-field appearance="outline">
+      <mat-label>Expires at</mat-label>
+      <input
+        matInput
+        type="datetime-local"
+        [ngModel]="model().expiresAt"
+        (ngModelChange)="onExpiresAtChange($event)"
+        [ngModelOptions]="{ standalone: true }"
+      />
+      @if (expiresAtError()) {
+        <mat-error>{{ expiresAtError() }}</mat-error>
+      }
+    </mat-form-field>
+  }
+
+  @if (hasExpirationWarning()) {
+    <div class="rounded-xl bg-amber-50 px-3 py-2 text-[12px] text-amber-800">
+      API keys retention (setting an expiration date) is a safer practice.
+    </div>
+  }
+
+  @if (submitError()) {
+    <div class="rounded-xl bg-red-50 px-3 py-2 text-[12px] text-red-700">
+      {{ submitError() }}
+    </div>
+  }
+
+  <div class="mt-2 flex items-center justify-end gap-2">
+    <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="saving()">
+      Cancel
+    </button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="!canSubmit() || saving()">
+      {{ submitLabel() }}
+    </button>
+  </div>
+</form>

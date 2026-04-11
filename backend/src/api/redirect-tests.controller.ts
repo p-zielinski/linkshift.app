@@ -11,7 +11,7 @@ import {
   UseGuards,
   BadRequestException,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
+import { ApiOrUserAuthGuard } from '../auth/api-or-user-auth.guard';
 import { User } from '../auth/user.decorator';
 import { RedirectTestsService } from '../redirect-tests/redirect-tests.service';
 import { ZodPipe } from '../pipes/zod.pipe';
@@ -31,7 +31,7 @@ export class RedirectTestsController {
   }
 
   @Get()
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async list(
     @User('organizationId') organizationId: string,
     @Query(new ZodPipe(testSchemas.ListRedirectTestsQuerySchema))
@@ -51,7 +51,7 @@ export class RedirectTestsController {
   }
 
   @Get(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async getById(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
@@ -79,7 +79,7 @@ export class RedirectTestsController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async create(
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(testSchemas.CreateRedirectTestSchema))
@@ -116,7 +116,7 @@ export class RedirectTestsController {
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async update(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
@@ -155,7 +155,7 @@ export class RedirectTestsController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async delete(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,

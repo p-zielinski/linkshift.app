@@ -11,7 +11,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { RedirectService } from '../redirect/redirect.service';
-import { AuthGuard } from '../auth/auth.guard';
+import { ApiOrUserAuthGuard } from '../auth/api-or-user-auth.guard';
 import { User } from '../auth/user.decorator';
 import * as domainSchemas from '../zod-schames/domain.schemas';
 import { ZodPipe } from '../pipes/zod.pipe';
@@ -30,7 +30,7 @@ export class DomainsController {
   }
 
   @Get()
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   list(@User('organizationId') organizationId: string) {
     this.logger.log('Domains list requested', {
       requestId: this.clsService.getId(),
@@ -40,7 +40,7 @@ export class DomainsController {
   }
 
   @Get(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   getById(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
@@ -68,7 +68,7 @@ export class DomainsController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   create(
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(domainSchemas.CreateDomainSchema))
@@ -104,7 +104,7 @@ export class DomainsController {
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   update(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
@@ -142,7 +142,7 @@ export class DomainsController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async delete(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,

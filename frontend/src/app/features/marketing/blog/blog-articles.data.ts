@@ -1714,6 +1714,90 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       { label: 'LinkShift - homepage', href: 'https://linkshift.app/home' },
     ],
   },
+  {
+    slug: 'linkshift-api-keys-for-redirect-automation',
+    title: 'LinkShift API keys: automate redirect operations without leaving your workflow',
+    description:
+      'Announcing organization-scoped API keys in LinkShift with per-key rate limits, paid-plan API access, and full endpoint coverage for redirect resources.',
+    seoTitle: 'LinkShift API keys for redirect automation | LinkShift',
+    seoDescription:
+      'Use LinkShift API keys to manage domains, redirect rules, link maps, and tests with secure organization-scoped authentication and per-key rate limits.',
+    competitor: 'Manual dashboard-only redirect workflow',
+    category: 'domain-path-redirection',
+    publishedAt: '2026-04-11',
+    updatedAt: '2026-04-11',
+    factCheckedAt: '2026-04-11',
+    readTimeMinutes: 6,
+    tags: ['linkshift api', 'api keys', 'redirect automation', 'devops redirects'],
+    heroHighlights: [
+      'API keys are organization-scoped, not user-scoped',
+      'Rate limits are enforced per API key to isolate abusive traffic',
+      'Free plans can manage keys in dashboard, but API usage requires a paid plan',
+    ],
+    comparisonRows: [
+      {
+        area: 'Authentication scope',
+        linkshift: 'Organization-level API keys with explicit lifecycle controls',
+        competitor: 'Dashboard-only manual changes',
+      },
+      {
+        area: 'Rate limiting',
+        linkshift: 'Per-key request limits by plan (Basic: 10/min, Pro: 50/min)',
+        competitor: 'No API limiter because there is no key-based API channel',
+      },
+      {
+        area: 'Operational model',
+        linkshift: 'Use API for domains, redirect rules, link maps, and tests',
+        competitor: 'Manual updates in UI only',
+      },
+      {
+        area: 'Key lifecycle',
+        linkshift: 'Create, rotate expiry, and delete with immediate invalidation',
+        competitor: 'No key lifecycle available',
+      },
+      {
+        area: 'Security boundary',
+        linkshift: 'API keys cannot access auth, user, billing, or key-management endpoints',
+        competitor: 'N/A',
+      },
+    ],
+    sections: [
+      {
+        title: 'What is new in LinkShift API support',
+        paragraphs: [
+          'You can now manage core redirect resources directly from your own systems using API keys.',
+          'This covers the same operational areas teams typically automate first: domain inventory, redirect rules, link maps, and redirect test scenarios.',
+        ],
+      },
+      {
+        title: 'Security-first by design',
+        paragraphs: [
+          'API keys are attached to organizations, which matches how LinkShift teams operate in shared workspaces.',
+          'Each key has an optional expiration and can be revoked immediately. After update or delete, cached key auth data is invalidated to stop usage right away.',
+        ],
+        bullets: [
+          'Per-key rate limiting, not just per organization',
+          'Paid-plan gate for API usage on every key-authenticated request',
+          'Strict endpoint separation: no auth/billing/user or API-key-management access from API keys',
+        ],
+      },
+      {
+        title: 'Operational guidance',
+        paragraphs: [
+          'Use short-lived keys whenever possible and keep one key per integration so limits and revocation are isolated.',
+          'For complex redirect logic, keep using redirect rule and link map validation workflows to prevent unsafe deployments.',
+        ],
+      },
+    ],
+    honestWhenCompetitorWins: [
+      'When your team intentionally wants to avoid any API automation and manage all changes manually.',
+      'When there is no need to integrate redirects with CI/CD, release orchestration, or external control planes.',
+    ],
+    references: [
+      { label: 'LinkShift - homepage', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - pricing', href: 'https://linkshift.app/pricing' },
+    ],
+  },
 ];
 
 export const BLOG_ARTICLES: BlogArticle[] = BLOG_ARTICLES_DATA.sort((a, b) =>

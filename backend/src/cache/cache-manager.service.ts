@@ -10,6 +10,7 @@ import {
   RedirectRule,
   DomainGroup,
   RedirectTest,
+  ApiKey,
 } from '@prisma/client';
 import * as _ from 'lodash';
 import type { DomainWithRelationsContext } from '../redirect/redirect.service';
@@ -31,6 +32,7 @@ export enum DataType {
   REDIRECT_RULES = 'redirectRule',
   REDIRECT_TESTS = 'redirectTest',
   DOMAIN_GROUPS = 'domainGroup',
+  API_KEYS = 'apiKey',
   BLACKLIST_TOKEN = 'blacklistToken',
 }
 
@@ -38,7 +40,13 @@ export enum CachedByProperty {
   ID = 'id',
   EMAIL = 'email',
   NAME = 'name',
+  TOKEN_HASH = 'tokenHash',
   JTI = 'jti',
+}
+
+export enum RateLimitScope {
+  REDIRECTION = 'redirection',
+  API_KEY = 'api_key',
 }
 
 const resourcesWithoutIsDeleted = [DataType.USERS];
@@ -53,6 +61,7 @@ const storeByProperties: Record<
   [DataType.DOMAIN_GROUPS]: [CachedByProperty.ID],
   [DataType.REDIRECT_RULES]: [CachedByProperty.ID],
   [DataType.REDIRECT_TESTS]: [CachedByProperty.ID],
+  [DataType.API_KEYS]: [CachedByProperty.ID, CachedByProperty.TOKEN_HASH],
   [DataType.BLACKLIST_TOKEN]: [CachedByProperty.JTI],
 };
 
@@ -63,6 +72,7 @@ const ttlPerResource: Partial<Record<DataType, number>> = {
   [DataType.REDIRECT_RULES]: minutesToTtl(10),
   [DataType.REDIRECT_TESTS]: minutesToTtl(10),
   [DataType.DOMAIN_GROUPS]: minutesToTtl(30),
+  [DataType.API_KEYS]: minutesToTtl(10),
 };
 
 const forbiddenPropertiesByDataType: Partial<Record<DataType, string[]>> = {
@@ -134,47 +144,60 @@ export class CacheManagerService {
   }
 
   /**
-   * Checks if the organization has exceeded its request limit.
-   * Uses L1 (Local) cache to short-circuit blocked organizations to save Redis calls.
+   * Checks if a subject has exceeded request limits in the current minute bucket.
+   * Uses L1 cache to short-circuit known blocked subjects and reduce Redis calls.
    */
-  async checkOrganizationRateLimit(
-    organizationId: string,
-    limit: number,
+  async checkRateLimit(
+    scope: RateLimitScope,
+    subjectId: string,
+    limit: number | null | undefined,
   ): Promise<void> {
-    // Preserve explicit unlimited mode (0 or negative), but guard invalid runtime values.
     if (typeof limit === 'number' && Number.isFinite(limit) && limit <= 0) {
       return;
     }
+
+    const fallbackLimit =
+      scope === RateLimitScope.REDIRECTION
+        ? PLAN_LIMITS.FREE.redirectionLimitPerMinute
+        : PLAN_LIMITS.BASIC.apiKeyCallsPerMinute;
+
     const effectiveLimit =
       typeof limit === 'number' && Number.isFinite(limit) && limit > 0
         ? Math.floor(limit)
-        : PLAN_LIMITS.FREE.redirectionLimitPerMinute;
+        : fallbackLimit;
+
     if (effectiveLimit !== limit) {
-      this.logger.warn('Invalid organization rate limit, using fallback', {
-        organizationId,
+      this.logger.warn('Invalid rate limit, using fallback', {
+        scope,
+        subjectId,
         providedLimit: limit,
         fallbackLimit: effectiveLimit,
       });
+    }
+
+    if (effectiveLimit <= 0) {
+      return;
     }
 
     const now = new Date();
     const currentMinuteKey = `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}:${now.getUTCHours()}:${now.getUTCMinutes()}`;
 
     // Key used for L1 blocking optimization
-    const blockKey = `RATE_LIMIT_BLOCK:${organizationId}:${currentMinuteKey}`;
+    const blockKey = `RATE_LIMIT_BLOCK:${scope}:${subjectId}:${currentMinuteKey}`;
 
     // 1. Check L1 Cache (Optimization)
     // If we already know this org is blocked for this minute, reject immediately without hitting Redis.
     if (this.localCache.has(blockKey)) {
-      this.logger.debug('L1 cache hit for organization rate limit', {
-        organizationId,
+      this.logger.debug('L1 cache hit for rate limit', {
+        scope,
+        subjectId,
         cacheKey: blockKey,
       });
-      return this.throwLimitError();
+      return this.throwLimitError(scope);
     }
 
     // 2. Redis Atomic Increment
-    const redisKey = `RATE_LIMIT:${organizationId}:${currentMinuteKey}`;
+    const redisKey = `RATE_LIMIT:${scope}:${subjectId}:${currentMinuteKey}`;
     const currentCount = await this.redisService.incr(redisKey);
 
     // If this is the first request in this minute window, set the expiry
@@ -192,14 +215,33 @@ export class CacheManagerService {
       // Next requests hitting this instance won't even touch Redis.
       this.localCache.set(blockKey, true, { ttl: secondsRemaining * 1000 });
 
-      return this.throwLimitError();
+      return this.throwLimitError(scope);
     }
   }
 
-  private throwLimitError(): never {
+  /**
+   * Backward-compatible wrapper for redirect traffic limiter.
+   */
+  async checkOrganizationRateLimit(
+    organizationId: string,
+    limit: number,
+  ): Promise<void> {
+    return this.checkRateLimit(
+      RateLimitScope.REDIRECTION,
+      organizationId,
+      limit,
+    );
+  }
+
+  private throwLimitError(scope: RateLimitScope): never {
+    const details =
+      scope === RateLimitScope.API_KEY
+        ? 'API key rate limit exceeded'
+        : 'Organization rate limit exceeded';
+
     return throwHttpException(
       new TooManyRequestsError({
-        details: 'Organization rate limit exceeded',
+        details,
         requestId: this.clsService.getId(),
       }),
     );
@@ -311,8 +353,10 @@ export class CacheManagerService {
       properties,
     });
 
-    // Update L1
-    this.localCache.set(key, false);
+    // Update L1 for resources that opt into local entity caching.
+    if (ENABLED_LOCAL_CACHE_FOR.has(dataType)) {
+      this.localCache.set(key, false);
+    }
 
     // Cache "false" for a shorter time (e.g. 5 mins) to allow for quick recovery if data is created
     await this.redisService.set(key, false, minutesToTtl(5));
@@ -329,7 +373,8 @@ export class CacheManagerService {
       | Domain
       | DomainGroup
       | RedirectRule
-      | RedirectTest,
+      | RedirectTest
+      | ApiKey,
   >({ data, dataType }: { data: T; dataType: DataType }): Promise<T> {
     const omitProperties = forbiddenPropertiesByDataType[dataType];
     const dataWithoutOmitProperties = omitProperties
@@ -380,7 +425,8 @@ export class CacheManagerService {
       | Domain
       | DomainGroup
       | RedirectRule
-      | RedirectTest,
+      | RedirectTest
+      | ApiKey,
   >(
     {
       properties,
@@ -488,6 +534,22 @@ export class CacheManagerService {
       return undefined;
     }
     return result;
+  }
+
+  async invalidateData({
+    dataType,
+    properties,
+  }: {
+    dataType: DataType;
+    properties: Partial<Record<CachedByProperty, string>>;
+  }): Promise<void> {
+    const key = this.cacheManagerIdsService.getSimpleCacheManageId({
+      dataType,
+      properties,
+    });
+
+    this.localCache.delete(key);
+    await this.redisService.del(key);
   }
 
   async getCustomCache<T>(key: string): Promise<T | undefined> {

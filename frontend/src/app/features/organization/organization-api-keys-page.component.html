@@ -1,0 +1,90 @@
+<app-resource-page-shell
+  title="API keys"
+  subtitle="Create and maintain organization-scoped API keys for programmatic management."
+>
+  <div page-actions>
+    <span
+      [matTooltip]="createTooltip()"
+      [matTooltipDisabled]="!createTooltip()"
+      class="inline-flex"
+    >
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="openCreateDialog()"
+        [disabled]="!canCreate()"
+      >
+        <mat-icon>vpn_key</mat-icon>
+        <span>Create API key</span>
+      </button>
+    </span>
+  </div>
+
+  <div class="mb-4 grid gap-4 md:grid-cols-3">
+    <div
+      class="rounded-[16px] border border-app-border-soft p-4"
+      [class.bg-app-surface]="!apiKeyLimitReached()"
+      [class.bg-red-50]="apiKeyLimitReached()"
+    >
+      <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">API keys</div>
+      <div
+        class="mt-1 text-[24px] font-semibold text-app-foreground"
+        [class.text-red-700]="apiKeyLimitReached()"
+      >
+        {{ apiKeyCount() }} / {{ apiKeyLimitLabel() }}
+      </div>
+      <div
+        class="text-[12px]"
+        [class.text-red-600]="apiKeyLimitReached()"
+        [class.text-app-muted]="!apiKeyLimitReached()"
+      >
+        Created vs allowed for current plan
+      </div>
+    </div>
+    <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+      <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Rate limit</div>
+      <div class="mt-1 text-[24px] font-semibold text-app-foreground">
+        {{ apiCallsPerMinute() }}
+      </div>
+      <div class="text-[12px] text-app-muted">API calls per minute per key</div>
+    </div>
+    <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+      <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Policy</div>
+      <div class="mt-1 text-[14px] font-medium text-app-foreground">
+        API keys are organization-scoped and cannot manage API keys themselves.
+      </div>
+      <div class="mt-1 text-[12px] text-app-muted">
+        Set expiration dates whenever possible for safer key retention.
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="mb-4 rounded-[16px] border border-app-border-soft bg-app-surface p-4"
+  >
+    <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">API integration</div>
+    <div class="mt-2 text-[14px] text-app-foreground">
+      API server base URL:
+      <code class="rounded bg-app-background px-2 py-1">{{ apiServerUrl() }}</code>
+    </div>
+    <div class="mt-2 text-[12px] text-app-muted">
+      Proper documentation is in development. You can already download the current OpenAPI specification below.
+    </div>
+    <div class="mt-3">
+      <a mat-stroked-button color="primary" [href]="openApiSpecPath" download>
+        Download OpenAPI spec
+      </a>
+    </div>
+  </div>
+
+  <app-resource-table-card className="flex min-h-0 flex-1 flex-col">
+    <div table-content>
+      <app-organization-api-keys-table
+        [keys]="keys()"
+        [loading]="loading()"
+        (edit)="openEditDialog($event)"
+        (delete)="confirmDelete($event)"
+      />
+    </div>
+  </app-resource-table-card>
+</app-resource-page-shell>

@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
+import { ApiOrUserAuthGuard } from '../auth/api-or-user-auth.guard';
 import { User } from '../auth/user.decorator';
 import { LinkMapService } from '../link-map/link-map.service';
 import * as linkMapSchemas from '../zod-schames/link-map.schemas';
@@ -26,7 +26,7 @@ export class LinkMapEntriesController {
   ) {}
 
   @Get()
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async list(
     @User('organizationId') organizationId: string,
     @Query(new ZodPipe(linkMapSchemas.ListLinkMapEntriesQuerySchema))
@@ -45,7 +45,7 @@ export class LinkMapEntriesController {
   }
 
   @Get(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async getById(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
@@ -60,7 +60,7 @@ export class LinkMapEntriesController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async create(
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(linkMapSchemas.CreateLinkMapEntrySchema))
@@ -76,7 +76,7 @@ export class LinkMapEntriesController {
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async update(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
@@ -93,7 +93,7 @@ export class LinkMapEntriesController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async deleteById(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
@@ -108,7 +108,7 @@ export class LinkMapEntriesController {
   }
 
   @Delete()
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async deleteMany(
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(linkMapSchemas.DeleteLinkMapEntriesByIdSchema))
@@ -125,7 +125,7 @@ export class LinkMapEntriesController {
   }
 
   @Post('import')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async importEntries(
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(linkMapSchemas.ImportLinkMapEntriesSchema))
@@ -142,7 +142,7 @@ export class LinkMapEntriesController {
   }
 
   @Post('import/rollback')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async rollbackImport(
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(linkMapSchemas.RollbackImportedLinkMapEntriesSchema))

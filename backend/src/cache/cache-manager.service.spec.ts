@@ -3,6 +3,7 @@ import {
   CacheManagerService,
   DataType,
   CachedByProperty,
+  RateLimitScope,
 } from './cache-manager.service';
 import { PrismaService } from '../prisma.service';
 import { RedisService } from '../redis/redis.service';
@@ -42,6 +43,7 @@ describe('CacheManagerService', () => {
             set: jest.fn(),
             incr: jest.fn(),
             expire: jest.fn(),
+            del: jest.fn(),
           },
         },
         {
@@ -198,7 +200,7 @@ describe('CacheManagerService', () => {
     it('short-circuits when L1 block is present', async () => {
       const now = new Date();
       const minuteKey = `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}:${now.getUTCHours()}:${now.getUTCMinutes()}`;
-      const blockKey = `RATE_LIMIT_BLOCK:org-1:${minuteKey}`;
+      const blockKey = `RATE_LIMIT_BLOCK:redirection:org-1:${minuteKey}`;
 
       (service as any).localCache.set(blockKey, true);
 
@@ -217,7 +219,7 @@ describe('CacheManagerService', () => {
       await service.checkOrganizationRateLimit('org-1', 5);
 
       expect(expireSpy).toHaveBeenCalledWith(
-        expect.stringContaining('RATE_LIMIT:org-1:'),
+        expect.stringContaining('RATE_LIMIT:redirection:org-1:'),
         65,
       );
     });
@@ -230,7 +232,21 @@ describe('CacheManagerService', () => {
 
       expect(incrSpy).toHaveBeenCalled();
       expect(expireSpy).toHaveBeenCalledWith(
-        expect.stringContaining('RATE_LIMIT:org-1:'),
+        expect.stringContaining('RATE_LIMIT:redirection:org-1:'),
+        65,
+      );
+    });
+  });
+
+  describe('checkRateLimit', () => {
+    it('uses API key namespace for rate-limit counters', async () => {
+      jest.spyOn(redis, 'incr').mockResolvedValue(1);
+      const expireSpy = jest.spyOn(redis, 'expire').mockResolvedValue(undefined);
+
+      await service.checkRateLimit(RateLimitScope.API_KEY, 'apk_1', 10);
+
+      expect(expireSpy).toHaveBeenCalledWith(
+        expect.stringContaining('RATE_LIMIT:api_key:apk_1:'),
         65,
       );
     });

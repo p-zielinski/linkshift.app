@@ -11,6 +11,7 @@ import {
 } from '../cache/cache-manager.service';
 import { LegalService } from '../legal/legal.service';
 import { Logger } from 'nestjs-pino';
+import { AuthenticatedPrincipal } from './auth-context.model';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -26,40 +27,50 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
 
-    // 2. Standard Token Validation for API calls
     const token = this.extractTokenFromHeader(request);
     if (!token) {
       return this.throwUnauthorizedError();
     }
 
-    try {
-      const payload = this.jwtService.verifyToken(token);
-      if (!payload) {
-        return this.throwUnauthorizedError();
-      }
-      const user = await this.cacheManagerService.getData({
-        dataType: DataType.USERS,
-        properties: {
-          [CachedByProperty.ID]: payload.userId,
-        },
-      });
-      if (!user) {
-        return this.throwUnauthorizedError();
-      }
-      if ((user as any).isBlocked) {
-        return this.throwForbiddenError();
-      }
-      if (!this.shouldBypassLegalCheck(request)) {
-        const upToDate = this.legalService.isConsentUpToDate(user as any);
-        if (!upToDate) {
-          return this.throwLegalConsentError();
-        }
-      }
-      // Attach user to request object so controllers can access it via @User()
-      request['user'] = payload;
-    } catch {
+    const payload = this.jwtService.verifyToken(token);
+    if (!payload) {
       return this.throwUnauthorizedError();
     }
+
+    const user = await this.cacheManagerService.getData({
+      dataType: DataType.USERS,
+      properties: {
+        [CachedByProperty.ID]: payload.userId,
+      },
+    });
+    if (!user) {
+      return this.throwUnauthorizedError();
+    }
+
+    if ((user as any).isBlocked) {
+      return this.throwForbiddenError();
+    }
+
+    if (!this.shouldBypassLegalCheck(request)) {
+      const upToDate = this.legalService.isConsentUpToDate(user as any);
+      if (!upToDate) {
+        return this.throwLegalConsentError();
+      }
+    }
+
+    const principal: AuthenticatedPrincipal = {
+      authType: 'user',
+      userId: payload.userId,
+      organizationId: payload.organizationId,
+    };
+    request.user = principal;
+
+    this.logger.debug('User authentication succeeded', {
+      requestId: this.clsService.getId(),
+      userId: payload.userId,
+      organizationId: payload.organizationId,
+    });
+
     return true;
   }
 

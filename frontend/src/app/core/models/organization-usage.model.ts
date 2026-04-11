@@ -4,6 +4,7 @@ export type OrganizationUsage = {
   rules: number;
   tests: number;
   users: number;
+  apiKeys: number;
   linkMaps: number;
   linkMapEntries: number;
 };

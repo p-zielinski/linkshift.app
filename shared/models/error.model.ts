@@ -119,7 +119,17 @@ export class TooManyRequestsError extends BaseError {
 }
 
 export class PaymentRequiredError extends BaseError {
-  constructor({ details, requestId }: { details: string; requestId: string }) {
+  feature?: 'api_access' | 'subscription';
+
+  constructor({
+    details,
+    requestId,
+    feature,
+  }: {
+    details: string;
+    requestId: string;
+    feature?: 'api_access' | 'subscription';
+  }) {
     super({
       details,
       requestId,
@@ -129,6 +139,7 @@ export class PaymentRequiredError extends BaseError {
     });
     this.details = details;
     this.requestId = requestId;
+    this.feature = feature;
   }
 }
 
@@ -256,4 +267,3 @@ export class InternalServerError extends BaseError {
     this.data = data;
   }
 }
-

@@ -12,7 +12,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { RedirectService } from '../redirect/redirect.service';
-import { AuthGuard } from '../auth/auth.guard';
+import { ApiOrUserAuthGuard } from '../auth/api-or-user-auth.guard';
 import { User } from '../auth/user.decorator';
 import * as redirectRuleSchemas from '../zod-schames/redirect-rule.schemas';
 import { ZodPipe } from '../pipes/zod.pipe';
@@ -31,7 +31,7 @@ export class RedirectRulesController {
   }
 
   @Get()
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async list(
     @User('organizationId') organizationId: string,
     @Query(new ZodPipe(redirectRuleSchemas.ListRedirectRulesQuerySchema))
@@ -52,7 +52,7 @@ export class RedirectRulesController {
   }
 
   @Get('analytics')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async topRules(
     @User('organizationId') organizationId: string,
     @Query(new ZodPipe(redirectRuleSchemas.TopRedirectRulesQuerySchema))
@@ -73,7 +73,7 @@ export class RedirectRulesController {
   }
 
   @Get(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async getById(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
@@ -101,7 +101,7 @@ export class RedirectRulesController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async create(
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(redirectRuleSchemas.CreateRedirectRuleSchema))
@@ -138,7 +138,7 @@ export class RedirectRulesController {
   }
 
   @Post('simulate')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async simulate(
     @User('organizationId') organizationId: string,
     @Body(new ZodPipe(redirectRuleSchemas.SimulateRedirectsSchema))
@@ -156,7 +156,7 @@ export class RedirectRulesController {
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async update(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
@@ -195,7 +195,7 @@ export class RedirectRulesController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(ApiOrUserAuthGuard)
   async delete(
     @Param('id') id: string,
     @User('organizationId') organizationId: string,
