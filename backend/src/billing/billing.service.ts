@@ -20,7 +20,6 @@ import { AppEntity, createCustomCuid } from '../utils';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../email/email.service';
 import { Logger } from 'nestjs-pino';
-import _ from 'lodash';
 
 type LemonWebhookPayload = {
   meta?: {
@@ -422,7 +421,7 @@ export class BillingService {
         status,
         providerSubscriptionId: subscriptionId,
         providerCustomerId: attributes.customer_id ?? null,
-        providerOrderId: _.toString(attributes.order_id) ?? null,
+        providerOrderId: this.normalizeProviderOrderId(attributes.order_id),
         providerVariantId: attributes.variant_id ?? null,
         activeFrom: this.parseDate(attributes.created_at),
         activeUntil: this.parseDate(attributes.ends_at),
@@ -461,7 +460,7 @@ export class BillingService {
         rawStatus: attributes.status,
         resolvedStatus: status,
         providerSubscriptionId: subscriptionId,
-        providerOrderId: _.toString(attributes.order_id) ?? null,
+        providerOrderId: this.normalizeProviderOrderId(attributes.order_id),
       });
     }
   }
@@ -492,7 +491,7 @@ export class BillingService {
       status: OrganizationStatus;
       providerSubscriptionId: string | null;
       providerCustomerId: string | null;
-      providerOrderId: number | null;
+      providerOrderId: string | null;
       providerVariantId: string | null;
       activeFrom: Date | null;
       activeUntil: Date | null;
@@ -534,7 +533,7 @@ export class BillingService {
       provider: 'LEMON_SQUEEZY',
       providerSubscriptionId: details.providerSubscriptionId,
       providerCustomerId: details.providerCustomerId,
-      providerOrderId: _.toString(details.providerOrderId),
+      providerOrderId: details.providerOrderId,
       providerVariantId: details.providerVariantId,
     });
 
@@ -1029,7 +1028,7 @@ export class BillingService {
     rawStatus: string | null | undefined;
     resolvedStatus: OrganizationStatus;
     providerSubscriptionId: string | null;
-    providerOrderId: number | null;
+    providerOrderId: string | null;
   }): Promise<void> {
     const session = await this.prisma.billingCheckoutSession.findUnique({
       where: { id: params.checkoutSessionId },
@@ -1047,7 +1046,7 @@ export class BillingService {
       data.providerSubscriptionId = params.providerSubscriptionId;
     }
     if (params.providerOrderId) {
-      data.providerOrderId = _.toString(params.providerOrderId);
+      data.providerOrderId = params.providerOrderId;
     }
 
     if (session.status === 'PENDING') {
@@ -1156,6 +1155,25 @@ export class BillingService {
       }
     }
     return 0;
+  }
+
+  private normalizeProviderOrderId(value: unknown): string | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? String(value) : null;
+    }
+    if (typeof value === 'bigint') {
+      return value.toString();
+    }
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const normalized = value.trim();
+    return normalized.length > 0 ? normalized : null;
   }
 
   private mapInterval(value: string | null | undefined) {

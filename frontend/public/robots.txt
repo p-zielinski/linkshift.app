@@ -5,6 +5,7 @@ Allow: /
 Allow: /home
 Allow: /use-cases
 Allow: /blog
+Allow: /qr-code-generator
 Allow: /pricing
 Allow: /contact
 Allow: /terms

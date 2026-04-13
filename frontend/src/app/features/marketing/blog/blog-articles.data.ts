@@ -1798,6 +1798,100 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       { label: 'LinkShift - pricing', href: 'https://linkshift.app/pricing' },
     ],
   },
+  {
+    slug: 'qr-code-generator-for-marketing',
+    title: 'QR code generator for marketing: static exports with dynamic destination control',
+    description:
+      'How to generate printable QR codes in PNG/SVG/EPS while keeping destination changes flexible through redirects.',
+    seoTitle: 'QR code generator for marketing campaigns | LinkShift',
+    seoDescription:
+      'Create QR codes in PNG, SVG, or EPS and keep campaign destination control by combining static codes with dynamic redirects.',
+    competitor: 'Static-only QR code workflows',
+    category: 'link-management',
+    publishedAt: '2026-04-13',
+    updatedAt: '2026-04-13',
+    factCheckedAt: '2026-04-13',
+    readTimeMinutes: 6,
+    tags: ['qr code generator', 'dynamic qr code', 'campaign links', 'redirect control'],
+    heroHighlights: [
+      'A printed QR code can still support destination updates through redirects',
+      'Vector exports (SVG/EPS) are better for print and large layouts',
+      'Rate-limited generation endpoints reduce abuse risk on public tools',
+    ],
+    comparisonRows: [
+      {
+        area: 'Printed code flexibility',
+        linkshift: 'Keep one encoded URL and adjust destination via redirect rules',
+        competitor: 'Change often requires reprint or code replacement',
+      },
+      {
+        area: 'Export formats',
+        linkshift: 'PNG, SVG, and EPS output',
+        competitor: 'Often PNG only',
+      },
+      {
+        area: 'Operational safety',
+        linkshift: 'Server-side generation with per-IP rate limiting',
+        competitor: 'No built-in abuse controls',
+      },
+      {
+        area: 'Shareability',
+        linkshift: 'Generator state can be shared with URL query params',
+        competitor: 'No deep-link state for collaboration',
+      },
+      {
+        area: 'Campaign governance',
+        linkshift: 'Destination updates and analytics in one redirect workflow',
+        competitor: 'Separated tools and less consistent operations',
+      },
+    ],
+    sections: [
+      {
+        title: 'Why static image export and dynamic control can coexist',
+        paragraphs: [
+          'The QR image itself is static once printed, but the URL it encodes can point to a domain you control.',
+          'If that domain is managed through redirect rules, campaign destination can change without replacing the printed asset.',
+        ],
+      },
+      {
+        title: 'When to use PNG vs SVG vs EPS',
+        paragraphs: [
+          'PNG is practical for social media and web previews where pixel dimensions are known.',
+          'SVG and EPS are preferred for print workflows, labels, and high-resolution assets where scaling quality matters.',
+        ],
+        bullets: [
+          'PNG: fast web usage and standard ad creatives',
+          'SVG: responsive web and clean scaling',
+          'EPS: print and design tools that require vector/postscript',
+        ],
+      },
+      {
+        title: 'Security and abuse controls matter for public generators',
+        paragraphs: [
+          'A public QR generation endpoint should enforce request limits to avoid wasteful traffic spikes and maintain service quality.',
+          'Per-IP, per-minute limits are a practical baseline and keep the experience reliable for legitimate users.',
+        ],
+      },
+      {
+        title: 'Recommended setup for teams',
+        paragraphs: [
+          'Generate the code from a stable branded URL, route traffic through LinkShift, and keep destination changes in your normal release workflow.',
+          'This approach reduces reprint costs and keeps campaign control with engineering and marketing teams together.',
+        ],
+      },
+    ],
+    honestWhenCompetitorWins: [
+      'When you only need one-off static QR files and never change campaign destinations.',
+      'When your workflow already has a dedicated print pipeline that does not need redirect governance.',
+    ],
+    references: [
+      { label: 'LinkShift QR code generator', href: 'https://linkshift.app/qr-code-generator' },
+      {
+        label: 'MDN - URL API reference',
+        href: 'https://developer.mozilla.org/en-US/docs/Web/API/URL',
+      },
+    ],
+  },
 ];
 
 export const BLOG_ARTICLES: BlogArticle[] = BLOG_ARTICLES_DATA.sort((a, b) =>
