@@ -37,6 +37,12 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://linkshift.app/qr-code-generator</loc>
+    <lastmod>2026-04-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
 
   <url>
     <loc>https://linkshift.app/blog/redirect-pizza-vs-linkshift</loc>
@@ -155,6 +161,12 @@
   <url>
     <loc>https://linkshift.app/blog/https-everywhere-for-connected-domains</loc>
     <lastmod>2026-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://linkshift.app/blog/qr-code-generator-for-marketing</loc>
+    <lastmod>2026-04-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

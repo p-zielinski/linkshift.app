@@ -18,6 +18,7 @@ import { ContactPageComponent } from './features/marketing/pages/contact/contact
 import { BlogPageComponent } from './features/marketing/pages/blog/blog-page.component';
 import { BlogArticlePageComponent } from './features/marketing/pages/blog/blog-article-page.component';
 import { UseCasesPageComponent } from './features/marketing/pages/use-cases/use-cases-page.component';
+import { QrCodeGeneratorPageComponent } from './features/marketing/pages/qr-code-generator/qr-code-generator-page.component';
 import { ProfilePageComponent } from './features/profile/profile-page.component';
 import { OrganizationPageComponent } from './features/organization/organization-page.component';
 import { OrganizationApiKeysPageComponent } from './features/organization/organization-api-keys-page.component';
@@ -148,14 +149,20 @@ export const routes: Routes = [
         component: BlogArticlePageComponent,
         data: { article: 'linkshift-api-keys-for-redirect-automation' },
       },
+      {
+        path: 'blog/qr-code-generator-for-marketing',
+        component: BlogArticlePageComponent,
+        data: { article: 'qr-code-generator-for-marketing' },
+      },
       { path: 'pricing', component: PricingPageComponent },
       { path: 'use-cases', component: UseCasesPageComponent },
+      { path: 'qr-code-generator', component: QrCodeGeneratorPageComponent },
       { path: 'contact', component: ContactPageComponent },
       { path: 'terms', component: TermsPageComponent },
       { path: 'privacy', component: PrivacyPageComponent },
       { path: 'cookies', component: CookiesPageComponent },
       { path: 'do-not-sell', component: DoNotSellPageComponent },
-    ]
+    ],
   },
   {
     path: '',
@@ -175,30 +182,30 @@ export const routes: Routes = [
       {
         path: 'domains',
         component: DomainsPageComponent,
-        canActivate: [domainGroupsRequiredGuard]
+        canActivate: [domainGroupsRequiredGuard],
       },
       { path: 'domain-groups', component: DomainGroupsPageComponent },
       {
         path: 'redirect-rules',
         component: RedirectRulesPageComponent,
-        canActivate: [domainGroupsRequiredGuard]
+        canActivate: [domainGroupsRequiredGuard],
       },
       {
         path: 'link-maps/:id',
         component: LinkMapDetailsPageComponent,
-        canActivate: [domainGroupsRequiredGuard]
+        canActivate: [domainGroupsRequiredGuard],
       },
       {
         path: 'link-maps',
         component: LinkMapsPageComponent,
-        canActivate: [domainGroupsRequiredGuard]
+        canActivate: [domainGroupsRequiredGuard],
       },
       {
         path: 'tests',
         component: TestsPageComponent,
-        canActivate: [domainGroupsRequiredGuard]
-      }
-    ]
+        canActivate: [domainGroupsRequiredGuard],
+      },
+    ],
   },
-  { path: '**', redirectTo: 'home' }
+  { path: '**', redirectTo: 'home' },
 ];
