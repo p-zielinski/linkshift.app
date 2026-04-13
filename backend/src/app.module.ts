@@ -45,15 +45,16 @@ import { DomainBlacklistService } from './security/domain-blacklist.service';
 import { RedirectAnalyticsService } from './security/redirect-analytics.service';
 import { SafetyRescanScheduler } from './security/safety-rescan.scheduler';
 import { SafetyRescanProcessor } from './security/safety-rescan.processor';
-import {
-  SAFETY_RESCAN_QUEUE,
-} from './security/security.constants';
+import { SAFETY_RESCAN_QUEUE } from './security/security.constants';
 import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { SentryExceptionFilter } from './filters/sentry-exception.filter';
 import { LinkMapService } from './link-map/link-map.service';
 import { RedirectAnalyticsRetentionService } from './security/redirect-analytics-retention.service';
 import { ApiKeyService } from './api-key/api-key.service';
+import { PublicToolsController } from './api/public-tools.controller';
+import { QrCodeService } from './qr-code/qr-code.service';
+import { QrCodeRateLimitService } from './qr-code/qr-code-rate-limit.service';
 
 @Module({
   imports: [
@@ -149,6 +150,7 @@ import { ApiKeyService } from './api-key/api-key.service';
     BillingController,
     OrganizationController,
     RedirectTestsController,
+    PublicToolsController,
     CaddyController,
   ],
   providers: [
@@ -179,6 +181,8 @@ import { ApiKeyService } from './api-key/api-key.service';
     RedirectAnalyticsService,
     RedirectAnalyticsRetentionService,
     LinkMapService,
+    QrCodeService,
+    QrCodeRateLimitService,
     SafetyRescanScheduler,
     SafetyRescanProcessor,
     {
