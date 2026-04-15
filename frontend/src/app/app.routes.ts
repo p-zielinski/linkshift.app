@@ -19,6 +19,7 @@ import { BlogPageComponent } from './features/marketing/pages/blog/blog-page.com
 import { BlogArticlePageComponent } from './features/marketing/pages/blog/blog-article-page.component';
 import { UseCasesPageComponent } from './features/marketing/pages/use-cases/use-cases-page.component';
 import { QrCodeGeneratorPageComponent } from './features/marketing/pages/qr-code-generator/qr-code-generator-page.component';
+import { RedirectTraceTesterPageComponent } from './features/marketing/pages/redirect-trace-tester/redirect-trace-tester-page.component';
 import { ProfilePageComponent } from './features/profile/profile-page.component';
 import { OrganizationPageComponent } from './features/organization/organization-page.component';
 import { OrganizationApiKeysPageComponent } from './features/organization/organization-api-keys-page.component';
@@ -157,6 +158,7 @@ export const routes: Routes = [
       { path: 'pricing', component: PricingPageComponent },
       { path: 'use-cases', component: UseCasesPageComponent },
       { path: 'qr-code-generator', component: QrCodeGeneratorPageComponent },
+      { path: 'redirect-tester', component: RedirectTraceTesterPageComponent },
       { path: 'contact', component: ContactPageComponent },
       { path: 'terms', component: TermsPageComponent },
       { path: 'privacy', component: PrivacyPageComponent },

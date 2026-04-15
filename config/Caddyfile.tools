@@ -1,0 +1,26 @@
+{
+  email {$CADDY_ACME_EMAIL}
+}
+
+(admin_only) {
+  @authorized remote_ip {$TOOLS_ADMIN_ALLOWLIST}
+  handle @authorized {
+    reverse_proxy {args[0]}
+  }
+  handle {
+    abort
+  }
+}
+
+{$TOOLS_HOST} {
+  encode zstd gzip
+  reverse_proxy backend-tools:3030
+}
+
+{$TOOLS_DOZZLE_HOST} {
+  import admin_only dozzle-tools:8080
+}
+
+http:// {
+  redir https://{host}{uri} permanent
+}

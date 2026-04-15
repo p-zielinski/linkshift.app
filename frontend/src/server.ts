@@ -16,7 +16,9 @@ app.disable('x-powered-by');
 
 app.use((req, res, next) => {
   const apiBase = process.env['APP_BASE_URL'] ?? 'http://localhost:3000';
+  const toolsApiBase = process.env['APP_TOOLS_BASE_URL'] ?? 'http://localhost:3030';
   const apiOrigin = safeOrigin(apiBase);
+  const toolsApiOrigin = safeOrigin(toolsApiBase);
   const origin = req.headers.origin;
 
   if (origin) {
@@ -39,7 +41,12 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'no-referrer');
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
-  const connectSrc = apiOrigin ? `'self' ${apiOrigin}` : "'self'";
+  const connectOrigins = [apiOrigin, toolsApiOrigin].filter(
+    (value, index, array): value is string => !!value && array.indexOf(value) === index,
+  );
+  const connectSrc = connectOrigins.length
+    ? `'self' ${connectOrigins.join(' ')}`
+    : "'self'";
 
   res.setHeader(
     'Content-Security-Policy',
@@ -64,6 +71,7 @@ app.get('/robots.txt', (req, res) => {
 app.get('/runtime-config.js', (_req, res) => {
   const config = {
     APP_BASE_URL: process.env['APP_BASE_URL'] ?? 'http://localhost:3000',
+    APP_TOOLS_BASE_URL: process.env['APP_TOOLS_BASE_URL'] ?? 'http://localhost:3030',
     APP_SITE_NAME: process.env['APP_SITE_NAME'] ?? 'LinkShift.app',
     APP_SITE_TAGLINE: process.env['APP_SITE_TAGLINE'] ?? 'Signal-driven redirect automation',
     APP_SUPPORT_EMAIL: process.env['APP_SUPPORT_EMAIL'] ?? 'support@redirectcontrol.app',

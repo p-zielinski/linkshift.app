@@ -52,9 +52,6 @@ import { SentryExceptionFilter } from './filters/sentry-exception.filter';
 import { LinkMapService } from './link-map/link-map.service';
 import { RedirectAnalyticsRetentionService } from './security/redirect-analytics-retention.service';
 import { ApiKeyService } from './api-key/api-key.service';
-import { PublicToolsController } from './api/public-tools.controller';
-import { QrCodeService } from './qr-code/qr-code.service';
-import { QrCodeRateLimitService } from './qr-code/qr-code-rate-limit.service';
 
 @Module({
   imports: [
@@ -150,7 +147,6 @@ import { QrCodeRateLimitService } from './qr-code/qr-code-rate-limit.service';
     BillingController,
     OrganizationController,
     RedirectTestsController,
-    PublicToolsController,
     CaddyController,
   ],
   providers: [
@@ -181,8 +177,6 @@ import { QrCodeRateLimitService } from './qr-code/qr-code-rate-limit.service';
     RedirectAnalyticsService,
     RedirectAnalyticsRetentionService,
     LinkMapService,
-    QrCodeService,
-    QrCodeRateLimitService,
     SafetyRescanScheduler,
     SafetyRescanProcessor,
     {

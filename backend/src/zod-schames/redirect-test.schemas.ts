@@ -19,12 +19,7 @@ const RequestDataSchema = z
     query: z
       .record(
         z.string(),
-        z.union([
-          z.string(),
-          z.array(z.string()),
-          z.number(),
-          z.boolean(),
-        ]),
+        z.union([z.string(), z.array(z.string()), z.number(), z.boolean()]),
       )
       .optional(),
   })
@@ -38,7 +33,7 @@ export const CreateRedirectTestSchema = z.object({
   pathWithQuery: z
     .string()
     .min(1, 'Path is required')
-    .max(2048, 'Path is too long'),
+    .max(16384, 'Path is too long'),
   requestData: RequestDataSchema.optional(),
   expectedResult: RedirectTestResultSchema,
 });
@@ -47,7 +42,7 @@ export const UpdateRedirectTestSchema = z.object({
   pathWithQuery: z
     .string()
     .min(1, 'Path is required')
-    .max(2048, 'Path is too long')
+    .max(16384, 'Path is too long')
     .optional(),
   requestData: RequestDataSchema.optional(),
   expectedResult: RedirectTestResultSchema.optional(),

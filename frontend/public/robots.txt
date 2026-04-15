@@ -6,6 +6,7 @@ Allow: /home
 Allow: /use-cases
 Allow: /blog
 Allow: /qr-code-generator
+Allow: /redirect-tester
 Allow: /pricing
 Allow: /contact
 Allow: /terms
