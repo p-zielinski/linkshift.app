@@ -13,6 +13,10 @@
   padding: 22px;
 }
 
+.trace-results-card {
+  margin-top: 24px;
+}
+
 .trace-input-card h3 {
   margin: 0;
   font-size: 20px;

@@ -1,0 +1,19 @@
+<div class="flex min-h-[calc(100vh-48px)] flex-col gap-4">
+  <app-page-header
+    title="QR Code Generator"
+    subtitle="Create downloadable QR assets and verify the final destination before publishing."
+  >
+    <a mat-stroked-button color="primary" routerLink="/tools">View all tools</a>
+  </app-page-header>
+
+  <mat-card class="rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+    <div class="text-sm font-semibold text-app-foreground">Quick workflow</div>
+    <ol class="mt-2 list-decimal space-y-1 pl-5 text-[13px] text-app-muted">
+      <li>Paste a full URL (`http://` or `https://`).</li>
+      <li>Generate preview and confirm resolved destination.</li>
+      <li>Download the final asset in PNG, SVG, or EPS.</li>
+    </ol>
+  </mat-card>
+
+  <app-qr-code-generator-tool />
+</div>

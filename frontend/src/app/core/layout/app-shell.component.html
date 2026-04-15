@@ -32,7 +32,7 @@
               mat-list-item
               [routerLink]="item.route"
               routerLinkActive="rounded-xl bg-app-accent-soft"
-              [routerLinkActiveOptions]="{ exact: true }"
+              [routerLinkActiveOptions]="{ exact: !item.matchSubRoutes }"
               (click)="onNavigate()"
             >
               <mat-icon class="relative top-[-2px] mr-3 align-middle text-[20px]">{{ item.icon }}</mat-icon>

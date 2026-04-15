@@ -1897,6 +1897,101 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
     ],
   },
   {
+    slug: 'tools-in-dashboard-for-faster-redirect-workflows',
+    title: 'Tools in dashboard: faster redirect and QR workflows for logged-in teams',
+    description:
+      'How LinkShift tools are now available in the dashboard at /tools, so operations can validate redirects and generate QR assets without leaving workspace context.',
+    seoTitle: 'Tools in dashboard | Redirect tester and QR generator in LinkShift',
+    seoDescription:
+      'Learn how LinkShift dashboard tools at /tools help teams run redirect traces and QR generation faster, with workspace-first navigation and operational context.',
+    competitor: 'Public-only tool workflows',
+    category: 'domain-path-redirection',
+    publishedAt: '2026-04-15',
+    updatedAt: '2026-04-15',
+    factCheckedAt: '2026-04-15',
+    readTimeMinutes: 6,
+    tags: ['dashboard tools', 'redirect tester', 'qr code generator', 'redirect operations'],
+    heroHighlights: [
+      'Logged-in teams can open both tools directly from dashboard navigation',
+      'The /tools page explains when to use each utility during rollout and QA',
+      'Public URLs remain available, but workspace access improves operational speed',
+    ],
+    comparisonRows: [
+      {
+        area: 'Entry point',
+        linkshift: 'Dashboard /tools hub with direct links from sidebar navigation',
+        competitor: 'Separate public pages discovered manually or from bookmarks',
+      },
+      {
+        area: 'Operational context',
+        linkshift: 'Runs inside authenticated workspace flow with nearby app resources',
+        competitor: 'Outside core workspace navigation',
+      },
+      {
+        area: 'Tool selection',
+        linkshift: 'Dedicated tools overview with practical use-case descriptions',
+        competitor: 'Users decide from separate landing pages',
+      },
+      {
+        area: 'Redirect diagnostics',
+        linkshift: 'Redirect Tester available at /tools/redirect-tester',
+        competitor: 'Public tester only at /redirect-tester',
+      },
+      {
+        area: 'QR operations',
+        linkshift: 'QR generator available at /tools/qr-code-generator',
+        competitor: 'Public generator only at /qr-code-generator',
+      },
+    ],
+    sections: [
+      {
+        title: 'What changed in product navigation',
+        paragraphs: [
+          'LinkShift now includes a dedicated Tools section inside the authenticated dashboard.',
+          'After login, teams can open /tools and choose the QR Code Generator or Redirect Tester without switching to marketing-facing pages.',
+        ],
+      },
+      {
+        title: 'Why this matters for operations teams',
+        paragraphs: [
+          'During launches and migrations, teams often move between redirect setup, diagnostics, and campaign asset preparation.',
+          'Keeping these utilities inside dashboard navigation reduces context switching and shortens QA loops.',
+        ],
+        bullets: [
+          'One click from sidebar to tool selection',
+          'Clear descriptions of when each tool should be used',
+          'Practical instructions on tool pages instead of marketing copy',
+        ],
+      },
+      {
+        title: 'Public tool links still work',
+        paragraphs: [
+          'The existing public routes remain active: /qr-code-generator and /redirect-tester.',
+          'The dashboard version adds convenience for logged-in workflows, but does not remove public access paths used in docs, campaigns, or support materials.',
+        ],
+      },
+      {
+        title: 'Recommended usage pattern',
+        paragraphs: [
+          'Use /tools as the default entry point for internal operations, especially during migration windows and pre-release checks.',
+          'Share direct links to /tools/redirect-tester or /tools/qr-code-generator in runbooks so team members can jump into the right utility immediately.',
+        ],
+      },
+    ],
+    honestWhenCompetitorWins: [
+      'When your team intentionally prefers using only public utility pages without authenticated workspace navigation.',
+      'When redirect and QR checks are ad hoc and not part of repeatable operational runbooks.',
+    ],
+    references: [
+      { label: 'LinkShift Tools dashboard', href: 'https://linkshift.app/tools' },
+      { label: 'LinkShift Redirect Tester', href: 'https://linkshift.app/tools/redirect-tester' },
+      {
+        label: 'LinkShift QR Code Generator',
+        href: 'https://linkshift.app/tools/qr-code-generator',
+      },
+    ],
+  },
+  {
     slug: 'qr-code-generator-for-marketing',
     title: 'QR code generator for marketing: static exports with dynamic destination control',
     description:

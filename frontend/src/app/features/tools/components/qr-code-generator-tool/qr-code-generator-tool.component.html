@@ -1,0 +1,87 @@
+<div class="qr-tool-grid">
+  <mat-card class="qr-tool-card">
+    <h3>Generate QR code</h3>
+    <p class="text-[13px] text-app-muted">
+      Enter a URL and export the generated code as PNG, SVG, or EPS.
+    </p>
+
+    <div class="mt-4">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>URL</mat-label>
+        <input
+          matInput
+          [formControl]="sourceUrlControl"
+          autocomplete="off"
+          placeholder="https://linkshift.app"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="mt-2 flex flex-wrap items-center gap-3">
+      <button mat-flat-button color="primary" type="button" (click)="onGenerateClick()">
+        <mat-icon>qr_code_2</mat-icon>
+        <span>{{ isGenerating() ? 'Generating...' : 'Generate' }}</span>
+      </button>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (hasReadyCode()) {
+      <div
+        class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[13px] text-emerald-700"
+      >
+        QR code is ready.
+      </div>
+    }
+
+    @if (resolvedDestinationUrl()) {
+      <div class="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-[13px] text-sky-800">
+        Final resolved URL: {{ resolvedDestinationUrl() }}
+      </div>
+    }
+
+    @if (traceWarning()) {
+      <div
+        class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] text-amber-800"
+      >
+        {{ traceWarning() }}
+      </div>
+    }
+
+    <div class="mt-4">
+      <div class="text-[13px] font-semibold text-app-heading">Choose output format</div>
+      <div class="mt-2 flex flex-wrap gap-2">
+        <button mat-stroked-button type="button" (click)="onDownloadClick('png')">PNG</button>
+        <button mat-stroked-button type="button" (click)="onDownloadClick('svg')">SVG</button>
+        <button mat-stroked-button type="button" (click)="onDownloadClick('eps')">EPS</button>
+      </div>
+    </div>
+  </mat-card>
+
+  <mat-card class="qr-preview-card">
+    <div class="preview-title">QR preview</div>
+    @if (previewObjectUrl()) {
+      <img
+        class="qr-preview-image"
+        [src]="previewObjectUrl() || ''"
+        alt="Generated QR code preview"
+      />
+    } @else {
+      <div class="qr-preview-empty">
+        <mat-icon>qr_code</mat-icon>
+        <div>Generate a code to preview it here.</div>
+      </div>
+    }
+
+    @if (showShareHint()) {
+      <div class="mt-3 text-[12px] text-app-muted">
+        After clicking Generate, the page URL includes your query (`?url=...`) so you can copy and
+        share it.
+      </div>
+    }
+  </mat-card>
+</div>
