@@ -155,6 +155,11 @@ export const routes: Routes = [
         component: BlogArticlePageComponent,
         data: { article: 'qr-code-generator-for-marketing' },
       },
+      {
+        path: 'blog/http-redirect-trace-tool',
+        component: BlogArticlePageComponent,
+        data: { article: 'http-redirect-trace-tool' },
+      },
       { path: 'pricing', component: PricingPageComponent },
       { path: 'use-cases', component: UseCasesPageComponent },
       { path: 'qr-code-generator', component: QrCodeGeneratorPageComponent },
