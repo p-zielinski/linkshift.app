@@ -6,14 +6,17 @@ const HttpUrlSchema = z
   .min(1, 'URL is required')
   .max(16384, 'URL is too long')
   .url('Invalid URL')
-  .refine((value) => {
-    try {
-      const parsed = new URL(value);
-      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-    } catch {
-      return false;
-    }
-  }, 'Only http and https URLs are supported');
+  .refine(
+    (value) => {
+      try {
+        const parsed = new URL(value);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    { message: 'Only http and https URLs are supported' },
+  );
 
 export const QrCodeFormatSchema = z.enum(['png', 'svg', 'eps']);
 

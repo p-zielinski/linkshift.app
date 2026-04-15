@@ -11,6 +11,7 @@
 
 ### Tools
 - QR code generator: https://linkshift.app/qr-code-generator
+- Redirect trace tester: https://linkshift.app/redirect-tester
 
 ### Blog (Comparisons)
 - Blog index: https://linkshift.app/blog

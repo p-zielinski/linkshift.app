@@ -5,4 +5,7 @@
 /backup-db/node_modules/
 deploy/stack.env
 /config/dozzle.users.yml
+/config/dozzle.tools.users.yml
 /node_modules/
+/backend-tools/node_modules/
+/backend-tools/dist/

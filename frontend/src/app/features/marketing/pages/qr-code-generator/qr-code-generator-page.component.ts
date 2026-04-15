@@ -19,6 +19,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import {
+  DEFAULT_TRACE_MAX_HOPS,
+  RedirectTraceApiService,
+} from '../../../../core/api/redirect-trace-api.service';
 import { QrCodeApiService, QrCodeAssetFormat } from '../../../../core/api/qr-code-api.service';
 import { SITE_CONFIG } from '../../../../core/config/site-config';
 import { SeoService } from '../../../../core/seo/seo.service';
@@ -44,6 +48,7 @@ import { MarketingSectionComponent } from '../../components/marketing-section/ma
 export class QrCodeGeneratorPageComponent implements OnInit, OnDestroy {
   private readonly seo = inject(SeoService);
   private readonly qrCodeApi = inject(QrCodeApiService);
+  private readonly redirectTraceApi = inject(RedirectTraceApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
@@ -51,19 +56,23 @@ export class QrCodeGeneratorPageComponent implements OnInit, OnDestroy {
 
   readonly sourceUrlControl = new FormControl('https://', {
     nonNullable: true,
-    validators: [Validators.required, Validators.maxLength(2048)],
+    validators: [Validators.required, Validators.maxLength(16384)],
   });
 
   readonly isGenerating = signal(false);
   readonly generatedSourceUrl = signal<string | null>(null);
   readonly previewObjectUrl = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
+  readonly resolvedDestinationUrl = signal<string | null>(null);
+  readonly traceWarning = signal<string | null>(null);
 
   readonly hasReadyCode = computed(() => !!this.generatedSourceUrl() && !!this.previewObjectUrl());
 
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly previewSize = 512;
+  private readonly traceMaxHops = DEFAULT_TRACE_MAX_HOPS;
   private readonly destroyRef = inject(DestroyRef);
+  private traceRunId = 0;
 
   ngOnInit(): void {
     this.seo.updateTags({
@@ -135,6 +144,8 @@ export class QrCodeGeneratorPageComponent implements OnInit, OnDestroy {
     if (!validated) {
       this.generatedSourceUrl.set(null);
       this.revokePreviewUrl();
+      this.resolvedDestinationUrl.set(null);
+      this.traceWarning.set(null);
       this.errorMessage.set(
         'Enter a valid URL with http:// or https://, for example https://linkshift.app.',
       );
@@ -152,6 +163,11 @@ export class QrCodeGeneratorPageComponent implements OnInit, OnDestroy {
 
       this.setPreviewBlob(blob);
       this.generatedSourceUrl.set(validated);
+      this.resolvedDestinationUrl.set(null);
+      this.traceWarning.set(null);
+
+      const traceRunId = ++this.traceRunId;
+      void this.traceResolvedDestination(validated, traceRunId);
 
       if (syncQuery) {
         await this.router.navigate([], {
@@ -164,6 +180,8 @@ export class QrCodeGeneratorPageComponent implements OnInit, OnDestroy {
     } catch (error) {
       this.generatedSourceUrl.set(null);
       this.revokePreviewUrl();
+      this.resolvedDestinationUrl.set(null);
+      this.traceWarning.set(null);
       this.errorMessage.set(await this.resolveErrorMessage(error));
     } finally {
       this.isGenerating.set(false);
@@ -212,6 +230,59 @@ export class QrCodeGeneratorPageComponent implements OnInit, OnDestroy {
     anchor.click();
     anchor.remove();
     URL.revokeObjectURL(fileUrl);
+  }
+
+  private async traceResolvedDestination(source: string, runId: number): Promise<void> {
+    try {
+      const result = await this.redirectTraceApi.traceChain(
+        source,
+        undefined,
+        this.traceMaxHops,
+      );
+      if (runId !== this.traceRunId) {
+        return;
+      }
+
+      this.resolvedDestinationUrl.set(result.finalUrl);
+      if (result.loopDetected) {
+        this.traceWarning.set(
+          'Redirect destination check detected a loop. This URL does not resolve to a stable final destination.',
+        );
+        return;
+      }
+
+      if (result.stoppedByMaxHops) {
+        this.traceWarning.set(
+          `Redirect destination check stopped after ${this.traceMaxHops} hops.`,
+        );
+        return;
+      }
+
+      this.traceWarning.set(null);
+    } catch (error) {
+      if (runId !== this.traceRunId) {
+        return;
+      }
+      this.resolvedDestinationUrl.set(null);
+      this.traceWarning.set(await this.resolveTraceWarning(error));
+    }
+  }
+
+  private async resolveTraceWarning(error: unknown): Promise<string> {
+    if (!(error instanceof HttpErrorResponse)) {
+      return 'Redirect destination check failed. QR code is still generated.';
+    }
+
+    const details = await this.extractDetails(error.error);
+    if (details) {
+      return `Redirect destination check failed: ${details}`;
+    }
+
+    if (error.status === 429) {
+      return 'Redirect destination check rate-limited. QR code is still generated.';
+    }
+
+    return 'Redirect destination check failed. QR code is still generated.';
   }
 
   private async resolveErrorMessage(error: unknown): Promise<string> {

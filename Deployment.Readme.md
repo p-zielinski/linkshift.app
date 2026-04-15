@@ -5,6 +5,7 @@ This guide describes how to deploy the infra and app stacks, create secrets, and
 ## Overview
 - Infra stack: Caddy, Postgres, Redis, Loki, Promtail, Grafana, Dozzle
 - App stack: Frontend, Backend, db-backup
+- Tools stack: caddy-tools, backend-tools, redis-tools, dozzle-tools
 - Shared overlay network: `SWARM_OVERLAY_NETWORK`
 
 ## Prerequisites
@@ -16,7 +17,10 @@ This guide describes how to deploy the infra and app stacks, create secrets, and
 ## Files
 - `docker-stack.infra.yml`
 - `docker-stack.app.yml`
+- `docker-stack.tools.yml`
 - `config/Caddyfile`
+- `config/Caddyfile.tools`
+- `config/dozzle.tools.users.yml.example`
 - `deploy/stack.env.example` (copy to your env file)
 
 ## 1) Prepare environment variables
@@ -27,8 +31,8 @@ cp deploy/stack.env.example deploy/stack.env
 ```
 
 Edit `deploy/stack.env` and set:
-- Image tags (backend/frontend)
-- Hosts (frontend/backend/grafana/dozzle)
+- Image tags (backend/frontend/backend-tools)
+- Hosts (frontend/grafana/dozzle + tools hostnames)
 - Caddy ACME email
 - App settings
 
@@ -37,9 +41,10 @@ Note:
 - Published host ports are `5454` (Postgres) and `6767` (Redis) for SSH/VPN access.
 
 ## Caddy routing notes
-- Standard TLS is issued for `FRONTEND_HOST`, `GRAFANA_HOST`, and `DOZZLE_HOST`.
+- Infra Caddy issues TLS for `FRONTEND_HOST`, `GRAFANA_HOST`, and `DOZZLE_HOST`.
+- Tools stack has its own Caddy (`config/Caddyfile.tools`) and issues TLS for `TOOLS_HOST` and `TOOLS_DOZZLE_HOST`.
 - Catch-all traffic uses on-demand TLS and calls `GET /check-domain?domain=...` on the backend.
-- Update `config/Caddyfile` if you add more fixed hosts.
+- Update `config/Caddyfile` or `config/Caddyfile.tools` depending on which stack owns the hostname.
 
 ## 2) Create the shared overlay network
 Run on the manager node:
@@ -72,6 +77,12 @@ printf "lemon-key" | docker secret create lemon_squeezy_api_key -
 printf "lemon-webhook" | docker secret create lemon_squeezy_webhook_secret -
 printf "%s" "zeptomail-key" | docker secret create zeptomail_api_key -
 printf "web-risk-browsing-api-key" | docker secret create web_risk_api_key -
+```
+
+Tools stack secret:
+
+```bash
+printf "tools-redis-password" | docker secret create tools_redis_password -
 ```
 
 Database URL secret for the backend (internal port 5432):
@@ -180,11 +191,53 @@ docker stack deploy \
   ${APP_STACK_NAME}
 ```
 
-## 7) Verify stacks
+## 7) Deploy the tools stack
+
+Before deploy, prepare Dozzle users file for tools stack:
+
+```bash
+cp config/dozzle.tools.users.yml.example config/dozzle.tools.users.yml
+```
+
+Edit `config/dozzle.tools.users.yml` and change the password.
+
+Tools stack Caddy publishes ports `80/443`, so deploy tools stack on a separate VPS/swarm from the infra Caddy stack (or customize published ports if you intentionally run both on one host).
+
+Deploy:
+
+```bash
+set -a
+source deploy/stack.env
+set +a
+
+docker stack deploy \
+  --with-registry-auth \
+  -c docker-stack.tools.yml \
+  ${TOOLS_STACK_NAME}
+```
+
+Note:
+- `config/Caddyfile.tools` routes `TOOLS_HOST` to `backend-tools:3030`.
+- `TOOLS_DOZZLE_HOST` is protected by `TOOLS_ADMIN_ALLOWLIST` and Dozzle simple auth users file.
+- Keep `TOOLS_STACK_NAME=linkshift-tools`, or update service references in `config/Caddyfile.tools` if you choose a different stack name and DNS aliases.
+
+Quick verify after deploy:
+
+```bash
+curl -I https://${TOOLS_HOST}/health
+```
+
+Dozzle usage (tools stack):
+1. Open `https://${TOOLS_DOZZLE_HOST}` in browser.
+2. Sign in with credentials from `config/dozzle.tools.users.yml`.
+3. Filter services by `backend-tools`, `caddy-tools`, `redis-tools` to inspect runtime logs.
+
+## 8) Verify stacks
 
 ```bash
 docker stack services ${INFRA_STACK_NAME}
 docker stack services ${APP_STACK_NAME}
+docker stack services ${TOOLS_STACK_NAME}
 ```
 
 ## Secure access to Grafana, Dozzle, Loki, Promtail
@@ -226,6 +279,12 @@ Dozzle uses the `simple` auth provider and reads users from:
 config/dozzle.users.yml
 ```
 
+Tools stack Dozzle uses:
+
+```
+config/dozzle.tools.users.yml
+```
+
 Expected format:
 
 ```yaml
@@ -237,6 +296,7 @@ users:
 ```
 
 Update the `password` there before deploying and redeploy the infra stack.
+Update both files if you run both stacks.
 
 If you need direct Loki access for troubleshooting, use a short-lived SSH tunnel:
 
@@ -378,7 +438,3 @@ The backend entrypoint runs Prisma migrations automatically if `DATABASE_URL` is
 ```
 ./node_modules/.bin/prisma migrate deploy
 ```
-
-
-yA6KbHtY6Vihy2xTRkU80MDepo5i+aFrj3y+5C/qfJcie9Doh6FqgkFpItaycmSM3IXT6K0Cb9kSJo+8vtAPLJk1Z9dWJ5TGTuv4P2uV48xh8ciEYNYvhZWhA7QTG6JPdxomAig3T/AjWA==
-yA6KbHtY6Vihy2xTRkU80MDepo5i+aFrj3y+5C/qfJcie9Doh6FqgkFpItaycmSM3IXT6K0Cb9kSJo+8vtAPLJk1Z9dWJ5TGTuv4P2uV48xh8ciEYNYvhZWhA7QTG6JPdxomAig3T/AjWA==
