@@ -217,7 +217,13 @@ export class RedirectService {
       }
 
       if (hostnamesToInvalidate.length > 0) {
-        const uniqueHostnames = [...new Set(hostnamesToInvalidate)];
+        const uniqueHostnames = [
+          ...new Set(
+            hostnamesToInvalidate
+              .map((name) => this.normalizeHostname(name))
+              .filter(Boolean),
+          ),
+        ];
 
         await Promise.all(
           uniqueHostnames.map((name) =>
@@ -634,13 +640,20 @@ export class RedirectService {
     }
 
     // 2. Update
-    return this.prisma.domainGroup.update({
+    const domainGroup = await this.prisma.domainGroup.update({
       where: { id },
       data: {
         name: data.name,
         updatedAt: new Date(),
       },
     });
+
+    await this.invalidateDomainCache({
+      type: InvalidationTargetType.DOMAIN_GROUP_ID,
+      value: domainGroup.id,
+    });
+
+    return domainGroup;
   }
 
   async deleteDomainGroup(id: string, organizationId: string) {
@@ -666,6 +679,11 @@ export class RedirectService {
       data: {
         deletedAt: new Date(),
       },
+    });
+
+    await this.invalidateDomainCache({
+      type: InvalidationTargetType.DOMAIN_GROUP_ID,
+      value: existing.id,
     });
 
     return;
@@ -1531,9 +1549,15 @@ export class RedirectService {
    * Uses Redis caching to minimize DB hits on the hot path.
    */
   private async getDomainRedirectContext(hostname: string) {
+    const normalizedHostname = this.normalizeHostname(hostname);
+    if (!normalizedHostname) {
+      return null;
+    }
+
     // 1. Try Cache
-    const cached = await this.cacheManagerService.getRedirectContext(hostname);
-    if (cached) {
+    const cached =
+      await this.cacheManagerService.getRedirectContext(normalizedHostname);
+    if (cached !== undefined) {
       return cached;
     }
 
@@ -1541,8 +1565,11 @@ export class RedirectService {
     const domain: DomainWithRelationsContext | null =
       await this.prisma.domain.findFirst({
         where: {
-          name: hostname,
+          name: normalizedHostname,
           deletedAt: null,
+          domainGroup: {
+            deletedAt: null,
+          },
         },
         include: {
           domainGroup: {
@@ -1560,13 +1587,13 @@ export class RedirectService {
       });
 
     // 3. Set Cache through Manager
-    await this.cacheManagerService.setRedirectContext(hostname, domain);
+    await this.cacheManagerService.setRedirectContext(normalizedHostname, domain);
 
     return domain;
   }
 
   async applyRedirect(req: express.Request, res: express.Response) {
-    const hostname = req.hostname;
+    const hostname = this.normalizeHostname(req.hostname);
 
     // 1. Get Domain Context (Cached)
     const domain = await this.getDomainRedirectContext(hostname);

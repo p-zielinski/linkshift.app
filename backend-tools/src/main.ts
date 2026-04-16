@@ -67,6 +67,7 @@ async function bootstrap() {
       'User-Agent',
       'Cache-Control',
       'Pragma',
+      'Expires',
     ],
   });
 

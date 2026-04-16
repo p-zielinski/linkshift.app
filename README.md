@@ -10,6 +10,7 @@ testing flow for webhooks and redirects.
 - `frontend/`: Angular 21 UI (SSR-ready).
 - `shared/`: shared models and types used by backend and frontend.
 - `documentation.html`: end-user guide for redirect rule syntax.
+- `INFRASTRUCTURE.md`: runtime notes for cache and CORS behavior.
 
 ## Quick start (local)
 1) Start dependencies (Postgres + Redis) using Docker Compose:

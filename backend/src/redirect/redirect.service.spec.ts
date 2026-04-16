@@ -1940,4 +1940,123 @@ describe('RedirectService', () => {
       );
     });
   });
+
+  describe('Redirect Context Caching And Invalidation', () => {
+    it('uses normalized hostname and treats cached null as cache hit', async () => {
+      const req = createMockRequest('http://example.com/path');
+      req.hostname = 'Example.COM.';
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      } as any;
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue(
+        null,
+      );
+
+      await service.applyRedirect(req, res);
+
+      expect(cacheManagerService.getRedirectContext).toHaveBeenCalledWith(
+        'example.com',
+      );
+      expect(prisma.domain.findFirst).not.toHaveBeenCalled();
+      expect(cacheManagerService.setRedirectContext).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+
+    it('queries only active domain groups on cache miss and caches by normalized hostname', async () => {
+      const req = createMockRequest('http://example.com/path');
+      req.hostname = 'Example.COM.';
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      } as any;
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      (prisma.domain.findFirst as jest.Mock).mockResolvedValue(null);
+
+      await service.applyRedirect(req, res);
+
+      expect(prisma.domain.findFirst).toHaveBeenCalledWith({
+        where: {
+          name: 'example.com',
+          deletedAt: null,
+          domainGroup: { deletedAt: null },
+        },
+        include: {
+          domainGroup: {
+            include: {
+              redirectRules: {
+                where: { deletedAt: null, isBlocked: false },
+                orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+              },
+            },
+          },
+        },
+      });
+      expect(cacheManagerService.setRedirectContext).toHaveBeenCalledWith(
+        'example.com',
+        null,
+      );
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+
+    it('invalidates redirect and caddy cache on domain group update', async () => {
+      (prisma.domainGroup.findFirst as jest.Mock).mockResolvedValue({
+        id: 'dg_1',
+        organizationId: 'org_1',
+        deletedAt: null,
+      });
+      (prisma.domainGroup.update as jest.Mock).mockResolvedValue({
+        id: 'dg_1',
+        name: 'new-name',
+      });
+      (prisma.domain.findMany as jest.Mock).mockResolvedValue([
+        { name: 'One.com' },
+        { name: 'two.com.' },
+      ]);
+
+      await service.updateDomainGroup('dg_1', 'org_1', { name: 'new-name' });
+
+      expect(cacheManagerService.invalidateRedirectContext).toHaveBeenCalledWith(
+        'one.com',
+      );
+      expect(cacheManagerService.invalidateRedirectContext).toHaveBeenCalledWith(
+        'two.com',
+      );
+      expect(cacheManagerService.invalidateCustomCache).toHaveBeenCalledWith(
+        'CADDY_DOMAIN_ALLOWED:one.com',
+      );
+      expect(cacheManagerService.invalidateCustomCache).toHaveBeenCalledWith(
+        'CADDY_DOMAIN_ALLOWED:two.com',
+      );
+    });
+
+    it('invalidates redirect and caddy cache on domain group delete', async () => {
+      (prisma.domainGroup.findFirst as jest.Mock).mockResolvedValue({
+        id: 'dg_2',
+        organizationId: 'org_1',
+        deletedAt: null,
+      });
+      (prisma.domainGroup.update as jest.Mock).mockResolvedValue({
+        id: 'dg_2',
+      });
+      (prisma.domain.findMany as jest.Mock).mockResolvedValue([
+        { name: 'deleted-group.com' },
+      ]);
+
+      await service.deleteDomainGroup('dg_2', 'org_1');
+
+      expect(cacheManagerService.invalidateRedirectContext).toHaveBeenCalledWith(
+        'deleted-group.com',
+      );
+      expect(cacheManagerService.invalidateCustomCache).toHaveBeenCalledWith(
+        'CADDY_DOMAIN_ALLOWED:deleted-group.com',
+      );
+    });
+  });
 });
