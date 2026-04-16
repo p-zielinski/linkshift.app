@@ -72,7 +72,7 @@ jobs:
         with:
           name: ${{ env.TOOLS_APP_STACK_NAME }}
           file: docker-stack.tools.app.yml
-          host: ${{ secrets.DEPLOY_HOST }}
+          host: ${{ secrets.DEPLOY_TOOLS_HOST }}
           user: ${{ secrets.DEPLOY_USER }}
           ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
           env_file: ./stack.env
@@ -90,7 +90,7 @@ jobs:
         with:
           name: ${{ env.TOOLS_APP_STACK_NAME }}
           file: docker-stack.tools.app.yml
-          host: ${{ secrets.DEPLOY_HOST }}
+          host: ${{ secrets.DEPLOY_TOOLS_HOST }}
           user: ${{ secrets.DEPLOY_USER }}
           ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
           env_file: ./stack.env
