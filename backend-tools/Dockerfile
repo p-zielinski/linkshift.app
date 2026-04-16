@@ -46,4 +46,4 @@ USER bun
 
 EXPOSE 3030
 ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD ["bun", "dist/main.js"]
+CMD ["bun", "dist/backend-tools/src/main.js"]
