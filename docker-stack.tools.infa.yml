@@ -1,0 +1,122 @@
+version: "3.8"
+
+services:
+  caddy-tools:
+    image: caddy:2
+    environment:
+      CADDY_ACME_EMAIL: ${CADDY_ACME_EMAIL}
+      TOOLS_HOST: ${TOOLS_HOST}
+      TOOLS_DOZZLE_HOST: ${TOOLS_DOZZLE_HOST}
+      TOOLS_ADMIN_ALLOWLIST: ${TOOLS_ADMIN_ALLOWLIST}
+    ports:
+      - mode: host
+        protocol: tcp
+        published: 80
+        target: 80
+      - mode: host
+        protocol: tcp
+        published: 443
+        target: 443
+    volumes:
+      - caddy-tools-data:/data
+      - caddy-tools-config:/config
+    configs:
+      - source: caddyfile_tools_v1
+        target: /etc/caddy/Caddyfile
+    networks:
+      - inter-stack
+    logging:
+      driver: json-file
+      options:
+        max-size: "1m"
+        max-file: "2"
+    deploy:
+      update_config:
+        order: start-first
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+
+  redis-tools:
+    image: redis:8.4.0
+    command: >
+      sh -c "redis-server --requirepass \"$$(cat /run/secrets/tools_redis_password)\" --save \"\" --appendonly no --maxmemory 64mb --maxmemory-policy volatile-ttl"
+    secrets:
+      - tools_redis_password
+    volumes:
+      - redis-tools-data:/data
+    networks:
+      inter-stack:
+        aliases:
+          - redis-tools
+    logging:
+      driver: json-file
+      options:
+        max-size: "1m"
+        max-file: "2"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 128M
+
+  dozzle-tools:
+    image: amir20/dozzle:latest
+    environment:
+      DOZZLE_LEVEL: info
+      DOZZLE_AUTH_PROVIDER: simple
+    configs:
+      - source: dozzle_tools_users_v2
+        target: /data/users.yml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - dozzle-tools-data:/data
+    networks:
+      inter-stack:
+        aliases:
+          - dozzle-tools
+    logging:
+      driver: json-file
+      options:
+        max-size: "1m"
+        max-file: "2"
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 96M
+
+networks:
+  inter-stack:
+    external: true
+    name: ${SWARM_OVERLAY_NETWORK}
+
+volumes:
+  redis-tools-data:
+  caddy-tools-data:
+  caddy-tools-config:
+  dozzle-tools-data:
+
+configs:
+  caddyfile_tools_v1:
+    file: ./config/Caddyfile.tools
+  dozzle_tools_users_v2:
+    file: ./config/dozzle.tools.users.yml
+
+secrets:
+  tools_redis_password:
+    external: true

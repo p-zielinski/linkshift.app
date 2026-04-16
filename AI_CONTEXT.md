@@ -36,12 +36,34 @@ Important backend behaviors:
    - user-only guard: `backend/src/auth/auth.guard.ts`
 5. API-key authenticated calls are blocked on Free plan with `402 Payment Required`.
 
+## Backend Tools (NestJS + Redis)
+
+Public marketing tools are served by a dedicated service:
+
+- Service path: `backend-tools/*`
+- Stacks:
+  - `docker-stack.tools.infa.yml` (caddy-tools + redis-tools + dozzle-tools)
+  - `docker-stack.tools.app.yml` (backend-tools)
+- Caddy config: `config/Caddyfile.tools`
+- Public controller: `backend-tools/src/api/public-tools.controller.ts`
+- Endpoints:
+  - `GET /api/v1/public/qr-code`
+  - `GET /api/v1/public/trace` (single-step trace)
+  - `GET /trace` (single-step alias)
+- Redirect trace behavior:
+  - One API call returns one hop (`maxRedirects: 0`)
+  - Frontend decides whether to continue and applies hop limit/loop detection
+  - SSRF guard blocks localhost and private IP ranges
+  - Per-hop metrics include status, latency, destination, and headers
+  - Response caching disabled (`Cache-Control: no-store`) for trace
+
 ## Frontend (Angular standalone + Signals Store)
 
 Key paths:
 
 - Routes: `frontend/src/app/app.routes.ts`
 - API clients: `frontend/src/app/core/api/*`
+- Tools API config token: `frontend/src/app/core/config/tools-api-config.ts`
 - Signal stores: `frontend/src/app/core/store/*`
 - Shared UI shell/components: `frontend/src/app/shared/components/*`
 
@@ -81,3 +103,4 @@ SSR/CSR routing checklist for dashboard pages:
 - Shared Prisma client output: `shared/prisma-client`
 - When schema changes, run backend build/generate to refresh Prisma clients.
 - Frontend standards are documented in `frontend/CODING_STANDARDS.md` and should be followed for new pages/components.
+- Frontend runtime config supports `APP_TOOLS_BASE_URL`; default local tools API is `http://localhost:3030`.

@@ -19,9 +19,13 @@ import { BlogPageComponent } from './features/marketing/pages/blog/blog-page.com
 import { BlogArticlePageComponent } from './features/marketing/pages/blog/blog-article-page.component';
 import { UseCasesPageComponent } from './features/marketing/pages/use-cases/use-cases-page.component';
 import { QrCodeGeneratorPageComponent } from './features/marketing/pages/qr-code-generator/qr-code-generator-page.component';
+import { RedirectTraceTesterPageComponent } from './features/marketing/pages/redirect-trace-tester/redirect-trace-tester-page.component';
 import { ProfilePageComponent } from './features/profile/profile-page.component';
 import { OrganizationPageComponent } from './features/organization/organization-page.component';
 import { OrganizationApiKeysPageComponent } from './features/organization/organization-api-keys-page.component';
+import { ToolsPageComponent } from './features/tools/tools-page.component';
+import { ToolsQrCodeGeneratorPageComponent } from './features/tools/tools-qr-code-generator-page.component';
+import { ToolsRedirectTesterPageComponent } from './features/tools/tools-redirect-tester-page.component';
 import { ResetPasswordPageComponent } from './features/auth/reset-password-page.component';
 import { VerifyEmailPageComponent } from './features/auth/verify-email-page.component';
 import { InviteAcceptPageComponent } from './features/auth/invite-accept-page.component';
@@ -150,13 +154,24 @@ export const routes: Routes = [
         data: { article: 'linkshift-api-keys-for-redirect-automation' },
       },
       {
+        path: 'blog/tools-in-dashboard-for-faster-redirect-workflows',
+        component: BlogArticlePageComponent,
+        data: { article: 'tools-in-dashboard-for-faster-redirect-workflows' },
+      },
+      {
         path: 'blog/qr-code-generator-for-marketing',
         component: BlogArticlePageComponent,
         data: { article: 'qr-code-generator-for-marketing' },
       },
+      {
+        path: 'blog/http-redirect-trace-tool',
+        component: BlogArticlePageComponent,
+        data: { article: 'http-redirect-trace-tool' },
+      },
       { path: 'pricing', component: PricingPageComponent },
       { path: 'use-cases', component: UseCasesPageComponent },
       { path: 'qr-code-generator', component: QrCodeGeneratorPageComponent },
+      { path: 'redirect-tester', component: RedirectTraceTesterPageComponent },
       { path: 'contact', component: ContactPageComponent },
       { path: 'terms', component: TermsPageComponent },
       { path: 'privacy', component: PrivacyPageComponent },
@@ -170,6 +185,9 @@ export const routes: Routes = [
     canActivate: [authGuard, legalConsentGuard],
     children: [
       { path: 'dashboard', component: DashboardPageComponent },
+      { path: 'tools', component: ToolsPageComponent },
+      { path: 'tools/qr-code-generator', component: ToolsQrCodeGeneratorPageComponent },
+      { path: 'tools/redirect-tester', component: ToolsRedirectTesterPageComponent },
       {
         path: 'redirect-rules-analytics',
         component: RedirectRulesAnalyticsPageComponent,

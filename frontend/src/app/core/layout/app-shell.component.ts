@@ -35,13 +35,14 @@ type NavItem = {
   route: string;
   icon: string;
   requiresDomainGroups?: boolean;
+  matchSubRoutes?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
   { label: 'Analytics', route: '/redirect-rules-analytics', icon: 'analytics' },
   { label: 'Profile', route: '/profile', icon: 'person' },
-  { label: 'Organization', route: '/organization', icon: 'groups' },
+  { label: 'Organization', route: '/organization', icon: 'groups', matchSubRoutes: true },
   { label: 'Domain Groups', route: '/domain-groups', icon: 'layers' },
   { label: 'Domains', route: '/domains', icon: 'public', requiresDomainGroups: true },
   {
@@ -55,6 +56,7 @@ const NAV_ITEMS: NavItem[] = [
     route: '/link-maps',
     icon: 'map',
     requiresDomainGroups: true,
+    matchSubRoutes: true,
   },
   {
     label: 'Tests',
@@ -62,6 +64,7 @@ const NAV_ITEMS: NavItem[] = [
     icon: 'science',
     requiresDomainGroups: true,
   },
+  { label: 'Tools', route: '/tools', icon: 'construction', matchSubRoutes: true },
 ];
 
 const MOBILE_BREAKPOINT = '(max-width: 1023px)';

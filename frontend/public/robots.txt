@@ -6,6 +6,7 @@ Allow: /home
 Allow: /use-cases
 Allow: /blog
 Allow: /qr-code-generator
+Allow: /redirect-tester
 Allow: /pricing
 Allow: /contact
 Allow: /terms
@@ -15,6 +16,8 @@ Allow: /do-not-sell
 
 # Private app areas (authenticated)
 Disallow: /dashboard
+Disallow: /tools
+Disallow: /tools/
 Disallow: /profile
 Disallow: /organization
 Disallow: /domains

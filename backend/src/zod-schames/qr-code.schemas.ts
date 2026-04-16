@@ -4,7 +4,7 @@ const HttpUrlSchema = z
   .string()
   .trim()
   .min(1, 'URL is required')
-  .max(2048, 'URL is too long')
+  .max(16384, 'URL is too long')
   .url('Invalid URL')
   .refine((value) => {
     try {
@@ -20,7 +20,7 @@ export const QrCodeFormatSchema = z.enum(['png', 'svg', 'eps']);
 export const GenerateQrCodeQuerySchema = z.object({
   url: HttpUrlSchema,
   format: QrCodeFormatSchema.default('svg'),
-  size: z.coerce.number().int().min(128).max(2048).default(512),
+  size: z.coerce.number().int().min(128).max(16384).default(512),
   download: z.coerce.boolean().optional().default(false),
 });
 

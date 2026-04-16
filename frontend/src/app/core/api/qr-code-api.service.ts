@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import type { Observable } from 'rxjs';
-import { API_CONFIG } from '../config/api-config';
+import { TOOLS_API_CONFIG } from '../config/tools-api-config';
 
 export type QrCodeAssetFormat = 'png' | 'svg' | 'eps';
 
@@ -10,7 +10,7 @@ export type QrCodeAssetFormat = 'png' | 'svg' | 'eps';
 })
 export class QrCodeApiService {
   private readonly http = inject(HttpClient);
-  private readonly apiConfig = inject(API_CONFIG);
+  private readonly apiConfig = inject(TOOLS_API_CONFIG);
   private readonly apiUrl = `${this.apiConfig.baseUrl}/api/v1/public/qr-code`;
 
   generate(url: string, format: QrCodeAssetFormat, size = 512): Observable<Blob> {

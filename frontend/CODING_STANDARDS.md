@@ -2,6 +2,7 @@
 
 ## Component Architecture
 - Keep page components thin: state management, dialog orchestration, and store wiring only.
+- Apply DRY consistently: extract reusable feature/tool components instead of copying logic between pages.
 - Move list rendering and formatting logic into dedicated table components.
 - Use standalone components with explicit `imports` and typed `input`/`output` APIs.
 - Prefer composition over inheritance: `ResourcePageShell` + `ResourceCard` + `ResourceTableCard`.
