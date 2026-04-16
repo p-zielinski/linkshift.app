@@ -41,7 +41,9 @@ Important backend behaviors:
 Public marketing tools are served by a dedicated service:
 
 - Service path: `backend-tools/*`
-- Stack: `docker-stack.tools.yml` (caddy-tools + backend-tools + redis-tools + dozzle-tools)
+- Stacks:
+  - `docker-stack.tools.infa.yml` (caddy-tools + redis-tools + dozzle-tools)
+  - `docker-stack.tools.app.yml` (backend-tools)
 - Caddy config: `config/Caddyfile.tools`
 - Public controller: `backend-tools/src/api/public-tools.controller.ts`
 - Endpoints:
