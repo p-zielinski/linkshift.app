@@ -9,8 +9,28 @@ export const TOOLS_API_CONFIG = new InjectionToken<ToolsApiConfig>('TOOLS_API_CO
   providedIn: 'root',
   factory: () => {
     const appConfig = inject(APP_CONFIG);
-    const fallback = appConfig.APP_BASE_URL;
-    const baseUrl = (appConfig.APP_TOOLS_BASE_URL || fallback).replace(/\/+$/, '');
+    const baseUrl = resolveToolsApiBase(appConfig.APP_TOOLS_BASE_URL, appConfig.APP_BASE_URL).replace(
+      /\/+$/,
+      '',
+    );
     return { baseUrl };
   },
 });
+
+function resolveToolsApiBase(toolsBaseUrl: string, appBaseUrl: string): string {
+  const normalizedToolsBaseUrl = toolsBaseUrl?.trim();
+  if (normalizedToolsBaseUrl) {
+    return normalizedToolsBaseUrl;
+  }
+
+  return isLocalOrigin(appBaseUrl) ? 'http://localhost:3030' : appBaseUrl;
+}
+
+function isLocalOrigin(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1' || parsed.hostname === '::1';
+  } catch {
+    return false;
+  }
+}

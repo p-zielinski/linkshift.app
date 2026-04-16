@@ -16,7 +16,7 @@ app.disable('x-powered-by');
 
 app.use((req, res, next) => {
   const apiBase = process.env['APP_BASE_URL'] ?? 'http://localhost:3000';
-  const toolsApiBase = process.env['APP_TOOLS_BASE_URL'] ?? 'http://localhost:3030';
+  const toolsApiBase = resolveToolsApiBase(apiBase);
   const apiOrigin = safeOrigin(apiBase);
   const toolsApiOrigin = safeOrigin(toolsApiBase);
   const origin = req.headers.origin;
@@ -69,9 +69,10 @@ app.get('/robots.txt', (req, res) => {
 });
 
 app.get('/runtime-config.js', (_req, res) => {
+  const appBaseUrl = process.env['APP_BASE_URL'] ?? 'http://localhost:3000';
   const config = {
-    APP_BASE_URL: process.env['APP_BASE_URL'] ?? 'http://localhost:3000',
-    APP_TOOLS_BASE_URL: process.env['APP_TOOLS_BASE_URL'] ?? 'http://localhost:3030',
+    APP_BASE_URL: appBaseUrl,
+    APP_TOOLS_BASE_URL: resolveToolsApiBase(appBaseUrl),
     APP_SITE_NAME: process.env['APP_SITE_NAME'] ?? 'LinkShift.app',
     APP_SITE_TAGLINE: process.env['APP_SITE_TAGLINE'] ?? 'Signal-driven redirect automation',
     APP_SUPPORT_EMAIL: process.env['APP_SUPPORT_EMAIL'] ?? 'support@redirectcontrol.app',
@@ -87,6 +88,9 @@ app.get('/runtime-config.js', (_req, res) => {
     APP_DOMAIN_TARGET_IP: process.env['APP_DOMAIN_TARGET_IP'] ?? '',
   };
 
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.type('application/javascript');
   res.send(`window.APP_CONFIG = ${JSON.stringify(config)};`);
 });
@@ -169,5 +173,23 @@ function safeOrigin(value: string): string | null {
     return new URL(value).origin;
   } catch {
     return null;
+  }
+}
+
+function resolveToolsApiBase(appBaseUrl: string): string {
+  const explicitToolsBaseUrl = process.env['APP_TOOLS_BASE_URL']?.trim();
+  if (explicitToolsBaseUrl) {
+    return explicitToolsBaseUrl;
+  }
+
+  return isLocalOrigin(appBaseUrl) ? 'http://localhost:3030' : appBaseUrl;
+}
+
+function isLocalOrigin(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1' || parsed.hostname === '::1';
+  } catch {
+    return false;
   }
 }
