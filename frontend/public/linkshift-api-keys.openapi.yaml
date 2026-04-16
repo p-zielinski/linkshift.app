@@ -1435,7 +1435,7 @@ components:
       type: object
       properties:
         domainGroupId: { type: string }
-        pathWithQuery: { type: string, minLength: 1, maxLength: 2048 }
+        pathWithQuery: { type: string, minLength: 1, maxLength: 16384 }
         requestData:
           type: object
           additionalProperties: true
@@ -1451,7 +1451,7 @@ components:
     UpdateRedirectTestRequest:
       type: object
       properties:
-        pathWithQuery: { type: string, minLength: 1, maxLength: 2048 }
+        pathWithQuery: { type: string, minLength: 1, maxLength: 16384 }
         requestData:
           type: object
           additionalProperties: true

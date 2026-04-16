@@ -1799,6 +1799,199 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
     ],
   },
   {
+    slug: 'http-redirect-trace-tool',
+    title: 'HTTP redirect trace tool: inspect every hop before it impacts users',
+    description:
+      'How to debug redirect chains step by step, detect loops, and validate final destinations before launch.',
+    seoTitle: 'HTTP Redirect Trace Tool | Inspect full redirect chains step by step',
+    seoDescription:
+      'Use LinkShift Redirect Trace Tester to inspect full HTTP redirect chains, response headers, status codes, and loop behavior before production changes.',
+    competitor: 'Manual redirect debugging',
+    category: 'domain-path-redirection',
+    publishedAt: '2026-04-15',
+    updatedAt: '2026-04-15',
+    factCheckedAt: '2026-04-15',
+    readTimeMinutes: 7,
+    tags: ['http redirect trace', 'redirect chain checker', 'redirect loop detection', 'seo migration'],
+    heroHighlights: [
+      'Trace each hop with status code, destination, headers, and response-time estimate',
+      'Detect redirect loops before they degrade SEO and user experience',
+      'Share trace scenarios using URL query state for faster team collaboration',
+    ],
+    comparisonRows: [
+      {
+        area: 'Trace workflow',
+        linkshift: 'Step-by-step visual trace with expandable headers',
+        competitor: 'Manual sequence across curl, browser DevTools, and ad hoc notes',
+      },
+      {
+        area: 'Loop detection',
+        linkshift: 'Built-in repeat-URL detection and loop warning',
+        competitor: 'Manual verification, easy to miss in longer chains',
+      },
+      {
+        area: 'Response metadata',
+        linkshift: 'Status, destination, server header, and response-time estimate per hop',
+        competitor: 'Available but fragmented across tools',
+      },
+      {
+        area: 'Shareability',
+        linkshift: 'Trace URL input persisted in query params',
+        competitor: 'Usually shared as screenshots or terminal output',
+      },
+      {
+        area: 'Operational safety',
+        linkshift: 'Backend SSRF protection and public-tool rate limiting',
+        competitor: 'Depends on custom scripting and environment controls',
+      },
+    ],
+    sections: [
+      {
+        title: 'Why redirect tracing matters in production',
+        paragraphs: [
+          'Redirect issues are often invisible until traffic, crawl budget, or campaign links start underperforming.',
+          'A structured trace makes failures obvious: missing Location headers, wrong status codes, loops, or unexpected intermediate hosts.',
+        ],
+      },
+      {
+        title: 'What the Redirect Trace Tester gives you',
+        paragraphs: [
+          'The LinkShift tool follows redirects step by step and shows each response in sequence, including headers and destination values.',
+          'You can expand each hop and inspect technical details without switching between multiple debugging utilities.',
+        ],
+        bullets: [
+          'Per-hop status code, destination, server, and response-time estimate',
+          'Loop detection when a previously requested URL appears again',
+          'Support for different User-Agent profiles to test behavior variations',
+        ],
+      },
+      {
+        title: 'A note on response-time estimates',
+        paragraphs: [
+          'The displayed response time is an indicator measured from the tool execution environment, not from every end-user location.',
+          'Real user latency may be better or worse depending on geography, network conditions, and edge routing path.',
+        ],
+      },
+      {
+        title: 'How teams use it during launches',
+        paragraphs: [
+          'Before migration or campaign rollout, teams validate redirect chains for the most important landing URLs and verify a stable final destination.',
+          'Keeping this check in pre-launch QA helps reduce SEO regressions and prevents bad user journeys caused by accidental redirect loops.',
+        ],
+      },
+    ],
+    honestWhenCompetitorWins: [
+      'When your team already has mature internal scripts and observability for redirect diagnostics.',
+      'When redirect checks are infrequent and basic one-hop verification is enough.',
+    ],
+    references: [
+      { label: 'LinkShift Redirect Trace Tester', href: 'https://linkshift.app/redirect-tester' },
+      {
+        label: 'MDN - HTTP redirections',
+        href: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Redirections',
+      },
+      {
+        label: 'MDN - Location header',
+        href: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location',
+      },
+    ],
+  },
+  {
+    slug: 'tools-in-dashboard-for-faster-redirect-workflows',
+    title: 'Tools in dashboard: faster redirect and QR workflows for logged-in teams',
+    description:
+      'How LinkShift tools are now available in the dashboard at /tools, so operations can validate redirects and generate QR assets without leaving workspace context.',
+    seoTitle: 'Tools in dashboard | Redirect tester and QR generator in LinkShift',
+    seoDescription:
+      'Learn how LinkShift dashboard tools at /tools help teams run redirect traces and QR generation faster, with workspace-first navigation and operational context.',
+    competitor: 'Public-only tool workflows',
+    category: 'domain-path-redirection',
+    publishedAt: '2026-04-15',
+    updatedAt: '2026-04-15',
+    factCheckedAt: '2026-04-15',
+    readTimeMinutes: 6,
+    tags: ['dashboard tools', 'redirect tester', 'qr code generator', 'redirect operations'],
+    heroHighlights: [
+      'Logged-in teams can open both tools directly from dashboard navigation',
+      'The /tools page explains when to use each utility during rollout and QA',
+      'Public URLs remain available, but workspace access improves operational speed',
+    ],
+    comparisonRows: [
+      {
+        area: 'Entry point',
+        linkshift: 'Dashboard /tools hub with direct links from sidebar navigation',
+        competitor: 'Separate public pages discovered manually or from bookmarks',
+      },
+      {
+        area: 'Operational context',
+        linkshift: 'Runs inside authenticated workspace flow with nearby app resources',
+        competitor: 'Outside core workspace navigation',
+      },
+      {
+        area: 'Tool selection',
+        linkshift: 'Dedicated tools overview with practical use-case descriptions',
+        competitor: 'Users decide from separate landing pages',
+      },
+      {
+        area: 'Redirect diagnostics',
+        linkshift: 'Redirect Tester available at /tools/redirect-tester',
+        competitor: 'Public tester only at /redirect-tester',
+      },
+      {
+        area: 'QR operations',
+        linkshift: 'QR generator available at /tools/qr-code-generator',
+        competitor: 'Public generator only at /qr-code-generator',
+      },
+    ],
+    sections: [
+      {
+        title: 'What changed in product navigation',
+        paragraphs: [
+          'LinkShift now includes a dedicated Tools section inside the authenticated dashboard.',
+          'After login, teams can open /tools and choose the QR Code Generator or Redirect Tester without switching to marketing-facing pages.',
+        ],
+      },
+      {
+        title: 'Why this matters for operations teams',
+        paragraphs: [
+          'During launches and migrations, teams often move between redirect setup, diagnostics, and campaign asset preparation.',
+          'Keeping these utilities inside dashboard navigation reduces context switching and shortens QA loops.',
+        ],
+        bullets: [
+          'One click from sidebar to tool selection',
+          'Clear descriptions of when each tool should be used',
+          'Practical instructions on tool pages instead of marketing copy',
+        ],
+      },
+      {
+        title: 'Public tool links still work',
+        paragraphs: [
+          'The existing public routes remain active: /qr-code-generator and /redirect-tester.',
+          'The dashboard version adds convenience for logged-in workflows, but does not remove public access paths used in docs, campaigns, or support materials.',
+        ],
+      },
+      {
+        title: 'Recommended usage pattern',
+        paragraphs: [
+          'Use /tools as the default entry point for internal operations, especially during migration windows and pre-release checks.',
+          'Share direct links to /tools/redirect-tester or /tools/qr-code-generator in runbooks so team members can jump into the right utility immediately.',
+        ],
+      },
+    ],
+    honestWhenCompetitorWins: [
+      'When your team intentionally prefers using only public utility pages without authenticated workspace navigation.',
+      'When redirect and QR checks are ad hoc and not part of repeatable operational runbooks.',
+    ],
+    references: [
+      { label: 'LinkShift Tools dashboard', href: 'https://linkshift.app/tools' },
+      { label: 'LinkShift Redirect Tester', href: 'https://linkshift.app/tools/redirect-tester' },
+      {
+        label: 'LinkShift QR Code Generator',
+        href: 'https://linkshift.app/tools/qr-code-generator',
+      },
+    ],
+  },
+  {
     slug: 'qr-code-generator-for-marketing',
     title: 'QR code generator for marketing: static exports with dynamic destination control',
     description:

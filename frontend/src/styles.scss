@@ -225,8 +225,8 @@ body {
   --mat-mdc-button-ripple-color: rgba(255, 255, 255, 0.3);
 }
 
-.mat-mdc-unelevated-button.mat-primary,
-.mat-mdc-raised-button.mat-primary {
+.mat-mdc-unelevated-button.mat-primary:not(:disabled):not(.mat-mdc-button-disabled),
+.mat-mdc-raised-button.mat-primary:not(:disabled):not(.mat-mdc-button-disabled) {
   background-color: var(--app-accent) !important;
   color: #ffffff !important;
 }

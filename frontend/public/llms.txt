@@ -11,6 +11,7 @@
 
 ### Tools
 - QR code generator: https://linkshift.app/qr-code-generator
+- Redirect trace tester: https://linkshift.app/redirect-tester
 
 ### Blog (Comparisons)
 - Blog index: https://linkshift.app/blog
@@ -35,6 +36,7 @@
 - Apex to www redirection guide: https://linkshift.app/blog/apex-to-www-redirection-guide
 - HTTPS everywhere for connected domains: https://linkshift.app/blog/https-everywhere-for-connected-domains
 - QR code generator for marketing: https://linkshift.app/blog/qr-code-generator-for-marketing
+- HTTP redirect trace tool: https://linkshift.app/blog/http-redirect-trace-tool
 
 ### Legal
 - Terms: https://linkshift.app/terms

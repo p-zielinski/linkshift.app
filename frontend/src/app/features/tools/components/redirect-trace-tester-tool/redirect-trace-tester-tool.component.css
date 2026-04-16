@@ -1,0 +1,157 @@
+.trace-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1.2fr 0.8fr;
+}
+
+.trace-input-card,
+.trace-summary-card,
+.trace-results-card {
+  border-radius: 18px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  background: #ffffff;
+  padding: 22px;
+}
+
+.trace-results-card {
+  margin-top: 24px;
+}
+
+.trace-input-card h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #241c21;
+}
+
+.summary-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2f232a;
+}
+
+.summary-row {
+  margin-top: 12px;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: #8f7a84;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.summary-value {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #241c21;
+}
+
+.trace-accordion {
+  display: grid;
+  gap: 12px;
+}
+
+mat-expansion-panel {
+  border-radius: 14px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  box-shadow: none;
+}
+
+.status-chip {
+  display: inline-flex;
+  min-width: 40px;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tone-redirect {
+  background: #eef4ff;
+  color: #2b5ecc;
+}
+
+.tone-success {
+  background: #ebf9ef;
+  color: #207a46;
+}
+
+.tone-error {
+  background: #ffecec;
+  color: #b23a3a;
+}
+
+.tone-neutral {
+  background: #f4f4f4;
+  color: #4a4a4a;
+}
+
+.hop-target {
+  font-size: 13px;
+  color: #3f2f37;
+  font-weight: 600;
+}
+
+.details-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.detail-item {
+  border-radius: 10px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  padding: 10px 12px;
+}
+
+.detail-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8f7a84;
+}
+
+.detail-value {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #241c21;
+  word-break: break-word;
+}
+
+.header-list {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.header-row {
+  border-radius: 10px;
+  border: 1px solid rgba(33, 33, 33, 0.08);
+  padding: 8px 10px;
+}
+
+.header-key {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8f7a84;
+}
+
+.header-value {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #241c21;
+  word-break: break-word;
+}
+
+@media (max-width: 1024px) {
+  .trace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+}
