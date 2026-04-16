@@ -17,7 +17,7 @@ export type AppRuntimeConfig = {
 
 export const DEFAULT_APP_RUNTIME_CONFIG: AppRuntimeConfig = {
   APP_BASE_URL: 'http://localhost:3000',
-  APP_TOOLS_BASE_URL: 'http://localhost:3030',
+  APP_TOOLS_BASE_URL: '',
   APP_SITE_NAME: 'LinkShift.App',
   APP_SITE_TAGLINE: 'Signal-driven redirect automation',
   APP_SUPPORT_EMAIL: 'support@redirectcontrol.app',

@@ -7,6 +7,7 @@ services:
       NODE_ENV: production
       PORT: "3030"
       APP_WEB_URL: ${APP_WEB_URL}
+      APP_TOOLS_BASE_URL: ${APP_TOOLS_BASE_URL}
       CORS_ORIGINS: ${CORS_ORIGINS}
       TRUST_PROXY: "true"
       REDIS_HOST: redis-tools

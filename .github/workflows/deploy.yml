@@ -63,6 +63,7 @@ jobs:
           {
             echo "APP_DOMAIN_TARGET_IP=$APP_DOMAIN_TARGET_IP"
             echo "APP_BASE_URL=$APP_BASE_URL"
+            echo "APP_TOOLS_BASE_URL=$APP_TOOLS_BASE_URL"
             echo "APP_SITE_NAME=$APP_SITE_NAME"
             echo "APP_SITE_TAGLINE=$APP_SITE_TAGLINE"
             echo "APP_SUPPORT_EMAIL=$APP_SUPPORT_EMAIL"
@@ -94,6 +95,7 @@ jobs:
           build-args: |
             APP_DOMAIN_TARGET_IP=${{ env.APP_DOMAIN_TARGET_IP }}
             APP_BASE_URL=${{ env.APP_BASE_URL }}
+            APP_TOOLS_BASE_URL=${{ env.APP_TOOLS_BASE_URL }}
             APP_SITE_NAME=${{ env.APP_SITE_NAME }}
             APP_SITE_TAGLINE=${{ env.APP_SITE_TAGLINE }}
             APP_SUPPORT_EMAIL=${{ env.APP_SUPPORT_EMAIL }}

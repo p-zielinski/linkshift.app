@@ -42,7 +42,13 @@ async function bootstrap() {
     .filter(Boolean);
 
   const appWebOrigin = safeOrigin(configService.get<string>('APP_WEB_URL') ?? '');
-  const allowedOrigins = [...corsOrigins, ...(appWebOrigin ? [appWebOrigin] : [])];
+  const appToolsOrigin = safeOrigin(configService.get<string>('APP_TOOLS_BASE_URL') ?? '');
+  const allowedOrigins = [
+    ...corsOrigins,
+    ...(appWebOrigin ? [appWebOrigin] : []),
+    ...(appToolsOrigin ? [appToolsOrigin] : []),
+  ]
+    .filter((value, index, array) => array.indexOf(value) === index);
 
   if (allowedOrigins.length === 0) {
     allowedOrigins.push('http://localhost:4200', 'http://localhost:4000');
