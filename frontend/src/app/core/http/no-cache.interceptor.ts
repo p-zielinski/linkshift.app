@@ -7,8 +7,7 @@ export const noCacheInterceptor: HttpInterceptorFn = (req, next) => {
 
   const headers = req.headers
     .set('Cache-Control', 'no-cache')
-    .set('Pragma', 'no-cache')
-    .set('Expires', '0');
+    .set('Pragma', 'no-cache');
 
   return next(req.clone({ headers }));
 };
