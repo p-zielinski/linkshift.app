@@ -43,55 +43,6 @@ services:
           cpus: "0.25"
           memory: 128M
 
-  backend-tools:
-    image: ${BACKEND_TOOLS_IMAGE}
-    environment:
-      NODE_ENV: production
-      PORT: "3030"
-      APP_WEB_URL: ${APP_WEB_URL}
-      CORS_ORIGINS: ${CORS_ORIGINS}
-      TRUST_PROXY: "true"
-      REDIS_HOST: redis-tools
-      REDIS_PORT: "6379"
-      REDIS_USERNAME: default
-      QR_RATE_LIMIT_PER_MINUTE: "600"
-      TRACE_RATE_LIMIT_PER_MINUTE: "240"
-    secrets:
-      - tools_redis_password
-    networks:
-      inter-stack:
-        aliases:
-          - backend-tools
-    logging:
-      driver: json-file
-      options:
-        max-size: "1m"
-        max-file: "2"
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        delay: 5s
-        monitor: 20s
-        max_failure_ratio: 0
-        failure_action: rollback
-        order: start-first
-      rollback_config:
-        parallelism: 1
-        delay: 5s
-        monitor: 20s
-        max_failure_ratio: 0
-        order: start-first
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 30s
-      resources:
-        limits:
-          cpus: "1.00"
-          memory: 384M
-
   redis-tools:
     image: redis:8.4.0
     command: >
@@ -124,7 +75,7 @@ services:
       DOZZLE_LEVEL: info
       DOZZLE_AUTH_PROVIDER: simple
     configs:
-      - source: dozzle_tools_users_v1
+      - source: dozzle_tools_users_v2
         target: /data/users.yml
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -163,7 +114,7 @@ volumes:
 configs:
   caddyfile_tools_v1:
     file: ./config/Caddyfile.tools
-  dozzle_tools_users_v1:
+  dozzle_tools_users_v2:
     file: ./config/dozzle.tools.users.yml
 
 secrets:

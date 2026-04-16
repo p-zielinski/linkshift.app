@@ -1,11 +1,12 @@
 # Deployment Guide (Docker Swarm)
 
-This guide describes how to deploy the infra and app stacks, create secrets, and access services securely.
+This guide describes how to deploy infra/app/tools stacks, create secrets, and access services securely.
 
 ## Overview
 - Infra stack: Caddy, Postgres, Redis, Loki, Promtail, Grafana, Dozzle
 - App stack: Frontend, Backend, db-backup
-- Tools stack: caddy-tools, backend-tools, redis-tools, dozzle-tools
+- Tools infrastructure stack: caddy-tools, redis-tools, dozzle-tools
+- Tools application stack: backend-tools
 - Shared overlay network: `SWARM_OVERLAY_NETWORK`
 
 ## Prerequisites
@@ -17,7 +18,8 @@ This guide describes how to deploy the infra and app stacks, create secrets, and
 ## Files
 - `docker-stack.infra.yml`
 - `docker-stack.app.yml`
-- `docker-stack.tools.yml`
+- `docker-stack.tools.infa.yml`
+- `docker-stack.tools.app.yml`
 - `config/Caddyfile`
 - `config/Caddyfile.tools`
 - `config/dozzle.tools.users.yml.example`
@@ -79,7 +81,7 @@ printf "%s" "zeptomail-key" | docker secret create zeptomail_api_key -
 printf "web-risk-browsing-api-key" | docker secret create web_risk_api_key -
 ```
 
-Tools stack secret:
+Tools stacks secret:
 
 ```bash
 printf "tools-redis-password" | docker secret create tools_redis_password -
@@ -191,7 +193,7 @@ docker stack deploy \
   ${APP_STACK_NAME}
 ```
 
-## 7) Deploy the tools stack
+## 7) Deploy the tools infrastructure stack
 
 Before deploy, prepare Dozzle users file for tools stack:
 
@@ -201,7 +203,7 @@ cp config/dozzle.tools.users.yml.example config/dozzle.tools.users.yml
 
 Edit `config/dozzle.tools.users.yml` and change the password.
 
-Tools stack Caddy publishes ports `80/443`, so deploy tools stack on a separate VPS/swarm from the infra Caddy stack (or customize published ports if you intentionally run both on one host).
+Tools infra Caddy publishes ports `80/443`, so deploy tools infra stack on a separate VPS/swarm from the infra Caddy stack (or customize published ports if you intentionally run both on one host).
 
 Deploy:
 
@@ -212,14 +214,29 @@ set +a
 
 docker stack deploy \
   --with-registry-auth \
-  -c docker-stack.tools.yml \
-  ${TOOLS_STACK_NAME}
+  -c docker-stack.tools.infa.yml \
+  ${TOOLS_INFRA_STACK_NAME}
 ```
 
-Note:
+## 8) Deploy the tools application stack
+
+Deploy:
+
+```bash
+set -a
+source deploy/stack.env
+set +a
+
+docker stack deploy \
+  --with-registry-auth \
+  -c docker-stack.tools.app.yml \
+  ${TOOLS_APP_STACK_NAME}
+```
+
+Notes:
+- Deploy tools infra before tools app (it provides `redis-tools` and `caddy-tools`).
 - `config/Caddyfile.tools` routes `TOOLS_HOST` to `backend-tools:3030`.
 - `TOOLS_DOZZLE_HOST` is protected by `TOOLS_ADMIN_ALLOWLIST` and Dozzle simple auth users file.
-- Keep `TOOLS_STACK_NAME=linkshift-tools`, or update service references in `config/Caddyfile.tools` if you choose a different stack name and DNS aliases.
 
 Quick verify after deploy:
 
@@ -232,12 +249,13 @@ Dozzle usage (tools stack):
 2. Sign in with credentials from `config/dozzle.tools.users.yml`.
 3. Filter services by `backend-tools`, `caddy-tools`, `redis-tools` to inspect runtime logs.
 
-## 8) Verify stacks
+## 9) Verify stacks
 
 ```bash
 docker stack services ${INFRA_STACK_NAME}
 docker stack services ${APP_STACK_NAME}
-docker stack services ${TOOLS_STACK_NAME}
+docker stack services ${TOOLS_INFRA_STACK_NAME}
+docker stack services ${TOOLS_APP_STACK_NAME}
 ```
 
 ## Secure access to Grafana, Dozzle, Loki, Promtail
@@ -415,13 +433,17 @@ export FRONTEND_IMAGE=ghcr.io/your-org/linkshift-frontend:<tag>
 docker stack deploy -c docker-stack.app.yml ${APP_STACK_NAME}
 ```
 
-## GitHub Actions (deploy on merge to main)
-The workflow `.github/workflows/deploy.yml` builds and pushes backend, frontend, and db-backup images, then deploys both stacks.
+## GitHub Actions (manual deployments from dashboard)
+All deployment workflows are manual (`workflow_dispatch`) and run from the branch selected in the GitHub Actions dashboard (`Run workflow`).
+
+Available workflows:
+- `.github/workflows/deploy.yml` — builds backend/frontend/db-backup and deploys `docker-stack.app.yml`.
+- `.github/workflows/deploy-infra.yml` — deploys `docker-stack.infra.yml`.
+- `.github/workflows/deploy-tools-app.yml` — builds/pushes `backend-tools` and deploys `docker-stack.tools.app.yml`.
+- `.github/workflows/deploy-tools-infra.yml` — deploys `docker-stack.tools.infa.yml` (including Redis).
 
 Required GitHub Actions secrets:
 - `STACK_ENV` — contents of your deploy env file (same format as `deploy/stack.env`).
-- `INFRA_STACK_NAME` — infra stack name (e.g. `redirect-infra`).
-- `APP_STACK_NAME` — app stack name (e.g. `redirect-app`).
 - `DEPLOY_HOST` — IP or hostname of the Swarm manager.
 - `DEPLOY_USER` — SSH user for deployment.
 - `DEPLOY_SSH_PRIVATE_KEY` — SSH private key for deployment.
@@ -429,8 +451,14 @@ Required GitHub Actions secrets:
 - `DEPLOY_REGISTRY_PASS` — registry token/password for the server to pull images.
 
 Notes:
-- The workflow overwrites `BACKEND_IMAGE`, `FRONTEND_IMAGE`, and `GIT_COMMIT_HASH` in `STACK_ENV` at deploy time.
-- If your db-backup image name differs, update the tags in `.github/workflows/deploy.yml`.
+- Workflows use stack names from workflow `env` blocks:
+  - `deploy.yml`: `linkshift-app`
+  - `deploy-infra.yml`: `linkshift-infra`
+  - `deploy-tools-app.yml`: `linkshift-tools-app`
+  - `deploy-tools-infra.yml`: `linkshift-tools-infra`
+- Build workflows overwrite image tags in `STACK_ENV` at deploy time:
+  - `deploy.yml`: `BACKEND_IMAGE`, `FRONTEND_IMAGE`, `GIT_COMMIT_HASH`
+  - `deploy-tools-app.yml`: `BACKEND_TOOLS_IMAGE`, `GIT_COMMIT_HASH`
 
 ## Prisma migrations on backend startup
 The backend entrypoint runs Prisma migrations automatically if `DATABASE_URL` is set:

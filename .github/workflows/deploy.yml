@@ -1,13 +1,15 @@
-name: Deploy
+name: Deploy Application Stack (Manual)
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
   packages: write
+
+concurrency:
+  group: deploy-app-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build-backend:
@@ -154,7 +156,6 @@ jobs:
           GIT_COMMIT_HASH=${{ github.sha }}
           EOF
 
-      # --- 1st attempt ---
       - name: Deploy app stack (Attempt 1)
         id: deploy_attempt_1
         continue-on-error: true
@@ -170,12 +171,10 @@ jobs:
           registry_user: ${{ secrets.DEPLOY_REGISTRY_USER }}
           registry_pass: ${{ secrets.DEPLOY_REGISTRY_PASS }}
 
-      # --- Pause if failed ---
       - name: Wait before retry
         if: steps.deploy_attempt_1.outcome == 'failure'
         run: sleep 15
 
-      # --- 2nd attempt ---
       - name: Deploy app stack (Retry)
         if: steps.deploy_attempt_1.outcome == 'failure'
         uses: cssnr/stack-deploy-action@v1

@@ -1,0 +1,61 @@
+name: Deploy Infrastructure Stack (Manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  INFRA_STACK_NAME: linkshift-infra
+
+concurrency:
+  group: deploy-infra-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-infra:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create stack env file
+        run: |
+          cat <<EOF > ./stack.env
+          ${{ secrets.STACK_ENV }}
+          GIT_COMMIT_HASH=${{ github.sha }}
+          EOF
+
+      - name: Deploy infra stack (Attempt 1)
+        id: deploy_attempt_1
+        continue-on-error: true
+        uses: cssnr/stack-deploy-action@v1
+        with:
+          name: ${{ env.INFRA_STACK_NAME }}
+          file: docker-stack.infra.yml
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          env_file: ./stack.env
+          registry_host: ghcr.io
+          registry_user: ${{ secrets.DEPLOY_REGISTRY_USER }}
+          registry_pass: ${{ secrets.DEPLOY_REGISTRY_PASS }}
+
+      - name: Wait before retry
+        if: steps.deploy_attempt_1.outcome == 'failure'
+        run: sleep 15
+
+      - name: Deploy infra stack (Retry)
+        if: steps.deploy_attempt_1.outcome == 'failure'
+        uses: cssnr/stack-deploy-action@v1
+        with:
+          name: ${{ env.INFRA_STACK_NAME }}
+          file: docker-stack.infra.yml
+          host: ${{ secrets.DEPLOY_HOST }}
+          user: ${{ secrets.DEPLOY_USER }}
+          ssh_key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          env_file: ./stack.env
+          registry_host: ghcr.io
+          registry_user: ${{ secrets.DEPLOY_REGISTRY_USER }}
+          registry_pass: ${{ secrets.DEPLOY_REGISTRY_PASS }}
