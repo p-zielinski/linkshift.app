@@ -240,7 +240,8 @@ export class RedirectTraceService {
       if (first === 192 && second === 168) {
         return true;
       }
-      if (first === 172) {
+      // RFC1918 private range is only 172.16.0.0 - 172.31.255.255 (172.16/12).
+      if (first === 172 && second >= 16 && second <= 31) {
         return true;
       }
       if (first === 169 && second === 254) {
