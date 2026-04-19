@@ -1,6 +1,6 @@
 import { z } from 'zod';
 export const CreateCheckoutSchema = z.object({
-  variantId: z.string().min(1),
+  priceId: z.string().min(1),
   successUrl: z.string().url().optional(),
   cancelUrl: z.string().url().optional(),
 });

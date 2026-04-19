@@ -36,12 +36,12 @@ export class BillingController {
       requestId: this.clsService.getId(),
       organizationId,
       userId,
-      variantId: body.variantId,
+      priceId: body.priceId,
     });
-    return this.billingService.createCheckoutByVariant({
+    return this.billingService.createCheckoutByPrice({
       organizationId,
       userId,
-      variantId: body.variantId,
+      priceId: body.priceId,
       successUrl: body.successUrl,
     });
   }
@@ -76,12 +76,12 @@ export class BillingController {
     return this.billingService.getPlanCatalog();
   }
 
-  @Post('webhooks/lemon-squeezy')
-  async lemonWebhook(@Req() request: Request, @Body() body: any) {
+  @Post('webhooks/paddle')
+  async paddleWebhook(@Req() request: Request, @Body() body: any) {
     this.logger.log('Billing webhook received', {
-      eventName: body?.meta?.event_name ?? 'unknown',
+      eventName: body?.event_type ?? 'unknown',
     });
-    const signature = request.header('x-signature') ?? undefined;
+    const signature = request.header('paddle-signature') ?? undefined;
     const rawBody =
       (request as any).rawBody ?? Buffer.from(JSON.stringify(body));
 

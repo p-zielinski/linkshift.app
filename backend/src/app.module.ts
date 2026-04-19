@@ -28,7 +28,7 @@ import { CacheManagerIdsService } from './cache/cache-manager-ids.service';
 import { RedisService } from './redis/redis.service';
 import { RedisModule } from './redis/redis.module';
 import { BillingService } from './billing/billing.service';
-import { LemonSqueezyService } from './billing/lemon-squeezy.service';
+import { PaddleService } from './billing/paddle.service';
 import { LoginRateLimitService } from './auth/login-rate-limit.service';
 import { NgrokDomainAssignerService } from './dev/ngrok-domain-assigner.service';
 import { RedirectTestsService } from './redirect-tests/redirect-tests.service';
@@ -157,7 +157,7 @@ import { ApiKeyService } from './api-key/api-key.service';
     JwtService,
     AuthService,
     BillingService,
-    LemonSqueezyService,
+    PaddleService,
     LoginRateLimitService,
     NgrokDomainAssignerService,
     RedirectTestsService,

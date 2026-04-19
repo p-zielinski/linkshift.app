@@ -75,8 +75,8 @@ App stack secrets:
 printf "jwt-secret" | docker secret create jwt_secret -
 printf "jwt-refresh" | docker secret create jwt_refresh_secret -
 printf "sentry-dsn" | docker secret create sentry_dsn -
-printf "lemon-key" | docker secret create lemon_squeezy_api_key -
-printf "lemon-webhook" | docker secret create lemon_squeezy_webhook_secret -
+printf "paddle-key" | docker secret create paddle_api_key -
+printf "paddle-webhook" | docker secret create paddle_webhook_secret -
 printf "%s" "zeptomail-key" | docker secret create zeptomail_api_key -
 printf "web-risk-browsing-api-key" | docker secret create web_risk_api_key -
 ```

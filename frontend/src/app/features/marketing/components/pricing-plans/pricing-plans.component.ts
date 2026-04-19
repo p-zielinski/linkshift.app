@@ -33,7 +33,7 @@ type PricingPlan = PricingPlanBase & {
 export type PricingPlanSelection = {
   plan: OrganizationPlan;
   interval: BillingInterval;
-  variantId: string;
+  priceId: string;
 };
 
 const PRICING_PLANS: PricingPlanBase[] = [
@@ -227,7 +227,7 @@ export class PricingPlansComponent {
     this.planSelected.emit({
       plan,
       interval: this.billingInterval(),
-      variantId: pricing.variantId,
+      priceId: pricing.priceId,
     });
   }
 
