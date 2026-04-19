@@ -10,6 +10,9 @@
     <mat-button-toggle value="YEARLY">Yearly</mat-button-toggle>
   </mat-button-toggle-group>
 </div>
+<div class="mb-3 text-[12px] text-app-muted">
+  Prices include applicable taxes.
+</div>
 
 <div class="pricing-grid" [class.compact]="compact()">
   @for (plan of plans(); track plan.key) {

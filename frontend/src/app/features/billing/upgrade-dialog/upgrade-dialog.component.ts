@@ -71,18 +71,18 @@ export class UpgradeDialogComponent {
   }
 
   async onPlanSelected(selection: PricingPlanSelection): Promise<void> {
-    const { plan, variantId } = selection;
+    const { plan, priceId } = selection;
     if (plan === OrganizationPlan.FREE) {
       return;
     }
-    if (!variantId) {
+    if (!priceId) {
       return;
     }
 
     this.busy.set(true);
     try {
       const response = await firstValueFrom(
-        this.billingApi.createCheckout(variantId),
+        this.billingApi.createCheckout(priceId),
       );
       window.location.href = response.checkoutUrl;
     } catch (error) {

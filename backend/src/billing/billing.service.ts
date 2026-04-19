@@ -13,22 +13,21 @@ import {
   CHECKOUT_PLANS,
   PLAN_LIMITS,
   getPlanLimits,
-  getVariantIdForPlan,
+  getPriceIdForPlan,
 } from './billing.config';
-import { LemonSqueezyService } from './lemon-squeezy.service';
+import { PaddleService } from './paddle.service';
 import { AppEntity, createCustomCuid } from '../utils';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../email/email.service';
 import { Logger } from 'nestjs-pino';
 
-type LemonWebhookPayload = {
-  meta?: {
-    event_name?: string;
-    custom_data?: Record<string, any>;
-  };
+type PaddleWebhookPayload = {
+  event_type?: string;
+  event_id?: string;
+  notification_id?: string;
   data?: {
     id?: string;
-    attributes?: Record<string, any>;
+    [key: string]: any;
   };
 };
 
@@ -37,7 +36,7 @@ type BillingPlanPrice = {
   interval: BillingInterval;
   amount: number;
   currency: string;
-  variantId: string;
+  priceId: string;
 };
 
 type BillingPlanCatalog = {
@@ -48,46 +47,42 @@ type BillingPlanCatalog = {
 
 @Injectable()
 export class BillingService {
-  private readonly variantIds: {
+  private readonly priceIds: {
     starterMonthly?: string | null;
     starterYearly?: string | null;
     proMonthly?: string | null;
     proYearly?: string | null;
   };
-  private readonly productId: string | null;
   private readonly defaultSuccessUrl: string;
-  private readonly defaultCancelUrl: string;
-  private readonly planCatalogCacheKey = 'BILLING_PLANS_CATALOG_V1';
+  private readonly planCatalogCacheKey = 'BILLING_PLANS_CATALOG_V2';
   private readonly planCatalogTtlSeconds = 15 * 60;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly cacheManagerService: CacheManagerService,
-    private readonly lemon: LemonSqueezyService,
+    private readonly paddle: PaddleService,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
     private readonly logger: Logger,
   ) {
-    this.variantIds = {
+    this.priceIds = {
       starterMonthly:
         this.configService.get<string>(
-          'LEMON_SQUEEZY_VARIANT_BASIC_MONTHLY_ID',
-        ) ?? this.configService.get<string>('LEMON_SQUEEZY_VARIANT_BASIC_ID'),
+          'PADDLE_PRICE_BASIC_MONTHLY_ID',
+        ) ?? this.configService.get<string>('PADDLE_PRICE_BASIC_ID'),
       starterYearly: this.configService.get<string>(
-        'LEMON_SQUEEZY_VARIANT_BASIC_YEARLY_ID',
+        'PADDLE_PRICE_BASIC_YEARLY_ID',
       ),
       proMonthly:
         this.configService.get<string>(
-          'LEMON_SQUEEZY_VARIANT_PRO_MONTHLY_ID',
-        ) ?? this.configService.get<string>('LEMON_SQUEEZY_VARIANT_PRO_ID'),
+          'PADDLE_PRICE_PRO_MONTHLY_ID',
+        ) ?? this.configService.get<string>('PADDLE_PRICE_PRO_ID'),
       proYearly: this.configService.get<string>(
-        'LEMON_SQUEEZY_VARIANT_PRO_YEARLY_ID',
+        'PADDLE_PRICE_PRO_YEARLY_ID',
       ),
     };
-    this.productId =
-      this.configService.get<string>('LEMON_SQUEEZY_PRODUCT_ID') ?? null;
     this.defaultSuccessUrl =
-      this.configService.get<string>('LEMON_SQUEEZY_SUCCESS_URL') ?? '';
+      this.configService.get<string>('PADDLE_SUCCESS_URL') ?? '';
   }
 
   async createCheckout(params: {
@@ -103,26 +98,21 @@ export class BillingService {
     }
 
     const interval = params.interval ?? 'MONTHLY';
-    const variantId = getVariantIdForPlan(
+    const priceId = getPriceIdForPlan(
       params.plan,
       interval,
-      this.variantIds,
+      this.priceIds,
     );
-    if (!variantId) {
-      throw new Error(
-        `Missing Lemon Squeezy variant for ${params.plan} (${interval}).`,
-      );
+    if (!priceId) {
+      throw new Error(`Missing Paddle price for ${params.plan} (${interval}).`);
     }
-
-    const variantIds = this.getPlanVariantIds(params.plan);
 
     return this.createCheckoutInternal({
       organizationId: params.organizationId,
       userId: params.userId,
       plan: params.plan,
       interval,
-      variantId,
-      variantIds,
+      priceId,
       customData: {
         plan: params.plan,
         interval,
@@ -131,21 +121,20 @@ export class BillingService {
     });
   }
 
-  async createCheckoutByVariant(params: {
+  async createCheckoutByPrice(params: {
     organizationId: string;
     userId: string;
-    variantId: string;
+    priceId: string;
     successUrl?: string;
   }) {
-    const standard = this.resolveStandardPlanForVariant(params.variantId);
+    const standard = this.resolveStandardPlanForPrice(params.priceId);
     if (standard) {
       return this.createCheckoutInternal({
         organizationId: params.organizationId,
         userId: params.userId,
         plan: standard.plan,
         interval: standard.interval,
-        variantId: standard.variantId,
-        variantIds: standard.variantIds,
+        priceId: standard.priceId,
         customData: {
           plan: standard.plan,
           interval: standard.interval,
@@ -153,7 +142,7 @@ export class BillingService {
         successUrl: params.successUrl,
       });
     }
-    throw new Error('Unknown Lemon Squeezy variant for checkout.');
+    throw new Error('Unknown Paddle price for checkout.');
   }
 
   async getCustomerPortalUrl(organizationId: string): Promise<string> {
@@ -171,19 +160,42 @@ export class BillingService {
 
     const subscriptionId = config.activeSubscription.providerSubscriptionId;
     if (!subscriptionId) {
-      throw new Error('No active Lemon Squeezy subscription found.');
+      throw new Error('No active Paddle subscription found.');
     }
 
-    const response = await this.lemon.getSubscription(subscriptionId);
+    const response = await this.paddle.getSubscription(subscriptionId);
+    const subscription = response.data ?? {};
     const portalUrl =
-      response.data?.attributes?.urls?.customer_portal ??
-      response.data?.attributes?.customer_portal;
+      subscription.management_urls?.update_payment_method ??
+      subscription.management_urls?.cancel ??
+      subscription.management_urls?.customer_portal ??
+      subscription.urls?.customer_portal ??
+      null;
 
-    if (!portalUrl) {
-      throw new Error('Missing customer portal URL from Lemon Squeezy.');
+    if (portalUrl) {
+      return portalUrl;
     }
 
-    return portalUrl;
+    const customerId =
+      config.activeSubscription.providerCustomerId ??
+      subscription.customer_id ??
+      null;
+    if (customerId) {
+      const portalSession = await this.paddle.createCustomerPortalSession({
+        customerId,
+        subscriptionIds: [subscriptionId],
+      });
+      const sessionUrl =
+        portalSession.data?.urls?.general?.overview ??
+        portalSession.data?.urls?.subscriptions ??
+        portalSession.data?.urls?.customer_portal ??
+        null;
+      if (sessionUrl) {
+        return sessionUrl;
+      }
+    }
+
+    throw new Error('Missing customer portal URL from Paddle.');
   }
 
   async getPlanCatalog(): Promise<BillingPlanCatalog> {
@@ -195,36 +207,36 @@ export class BillingService {
       return cached;
     }
 
-    const planVariants = this.getPlanVariantDefinitions();
-    const variantIds = planVariants
-      .map((entry) => entry.variantId)
+    const planPrices = this.getPlanPriceDefinitions();
+    const priceIds = planPrices
+      .map((entry) => entry.priceId)
       .filter((entry): entry is string => !!entry);
-    const variants = await this.fetchPlanVariants(variantIds);
+    const prices = await this.fetchPlanPrices(priceIds);
     const plans: BillingPlanPrice[] = [];
 
-    for (const entry of planVariants) {
-      if (!entry.variantId) {
-        this.logger.warn('Missing variant configuration', {
+    for (const entry of planPrices) {
+      if (!entry.priceId) {
+        this.logger.warn('Missing Paddle price configuration', {
           plan: entry.plan,
           interval: entry.interval,
         });
         continue;
       }
-      const variant = variants.get(entry.variantId);
-      if (!variant) {
-        this.logger.warn('Variant not returned from Lemon Squeezy', {
-          variantId: entry.variantId,
+      const price = prices.get(entry.priceId);
+      if (!price) {
+        this.logger.warn('Price not returned from Paddle API', {
+          priceId: entry.priceId,
         });
         continue;
       }
 
-      const pricing = this.extractVariantPricing(variant);
+      const pricing = this.extractPricePricing(price);
       plans.push({
         plan: entry.plan,
         interval: entry.interval,
         amount: pricing.amount,
         currency: pricing.currency,
-        variantId: entry.variantId,
+        priceId: entry.priceId,
       });
     }
 
@@ -257,8 +269,7 @@ export class BillingService {
     plan: OrganizationPlan;
     planName?: string | null;
     interval: BillingInterval;
-    variantId: string;
-    variantIds: string[];
+    priceId: string;
     customData: Record<string, any>;
     successUrl?: string;
   }) {
@@ -299,11 +310,8 @@ export class BillingService {
     });
 
     try {
-      const checkout = await this.lemon.createCheckout({
-        variantId: params.variantId,
-        variantIds: params.variantIds,
-        customerEmail: user.email,
-        organizationName: organization.name,
+      const checkout = await this.paddle.createCheckout({
+        priceId: params.priceId,
         customData: {
           organizationId: organization.id,
           userId: user.id,
@@ -343,33 +351,39 @@ export class BillingService {
   async handleWebhook(
     rawBody: Buffer,
     signature: string | undefined,
-    payload: LemonWebhookPayload,
+    payload: PaddleWebhookPayload,
   ): Promise<void> {
-    if (!this.lemon.verifySignature(rawBody, signature)) {
-      throw new Error('Invalid Lemon Squeezy signature.');
+    if (!this.paddle.verifySignature(rawBody, signature)) {
+      throw new Error('Invalid Paddle signature.');
     }
 
-    const eventName = payload.meta?.event_name ?? 'unknown';
-    const attributes = payload.data?.attributes ?? {};
-    const subscriptionId = payload.data?.id ?? null;
+    const eventName = (payload.event_type ?? 'unknown').toString();
+    const normalizedEventName = eventName.toLowerCase();
+    const data = payload.data ?? {};
+    const subscriptionId = this.extractSubscriptionIdFromEvent(
+      normalizedEventName,
+      payload,
+    );
 
-    if (!eventName.includes('subscription')) {
-      this.logger.debug('Ignoring Lemon Squeezy event', { eventName });
+    if (
+      !normalizedEventName.includes('subscription') &&
+      !normalizedEventName.includes('transaction')
+    ) {
+      this.logger.debug('Ignoring billing event', { eventName });
       return;
     }
 
     const customData = {
-      ...(attributes.custom ?? {}),
-      ...(attributes.custom_data ?? {}),
-      ...(payload.meta?.custom_data ?? {}),
+      ...(data.custom_data ?? {}),
+      ...(data.customData ?? {}),
     } as Record<string, any>;
 
     const organizationId =
       customData.organizationId ?? customData.organization_id ?? null;
     const email =
       customData.email ??
-      attributes.user_email ??
-      attributes.customer_email ??
+      data.customer?.email ??
+      data.customer_email ??
       null;
 
     const orgId =
@@ -380,27 +394,23 @@ export class BillingService {
       return;
     }
 
-    const variantIdStr = attributes.variant_id
-      ? String(attributes.variant_id)
-      : null;
-    const plan = this.resolvePlan(customData.plan, attributes.variant_id);
-    const status = this.resolveStatus(attributes.status, eventName);
+    const priceId = this.extractPriceIdFromEventData(data);
+    const plan = this.resolvePlan(customData.plan, priceId);
+    const status = this.resolveStatus(data.status, normalizedEventName);
     const limits = getPlanLimits(plan);
     const planName = customData.planName ?? customData.plan_name ?? null;
 
-    const pricingFallback = variantIdStr
-      ? await this.resolvePricingFromVariant({
-          variantId: variantIdStr,
+    const pricingFallback = priceId
+      ? await this.resolvePricingFromPrice({
+          priceId,
         })
       : null;
-    const rawAmount = this.parseAmount(
-      attributes.price ?? attributes.unit_price ?? attributes.renewal_price,
-    );
-    const intervalValue = attributes.billing_interval ?? attributes.interval;
+    const rawAmount = this.extractAmountFromEventData(data);
+    const intervalValue = this.extractIntervalFromEventData(data);
     const resolvedInterval = intervalValue
       ? this.mapInterval(intervalValue)
       : (pricingFallback?.interval ??
-        this.resolveIntervalFromVariantId(variantIdStr) ??
+        this.resolveIntervalFromPriceId(priceId) ??
         'MONTHLY');
 
     const resolvedAmount =
@@ -408,46 +418,54 @@ export class BillingService {
         ? rawAmount
         : (pricingFallback?.amount ?? rawAmount);
     const resolvedCurrency =
-      attributes.currency ??
-      attributes.currency_code ??
+      this.extractCurrencyFromEventData(data) ??
       pricingFallback?.currency ??
       'EUR';
 
-    const subscriptionUpdate = await this.updateOrganizationSubscription(
-      orgId,
-      {
-        plan,
-        planName,
-        status,
-        providerSubscriptionId: subscriptionId,
-        providerCustomerId: attributes.customer_id ?? null,
-        providerOrderId: this.normalizeProviderOrderId(attributes.order_id),
-        providerVariantId: attributes.variant_id ?? null,
-        activeFrom: this.parseDate(attributes.created_at),
-        activeUntil: this.parseDate(attributes.ends_at),
-        amount: resolvedAmount,
-        currency: resolvedCurrency,
-        interval: resolvedInterval,
-        limits,
-      },
-    );
+    if (subscriptionId) {
+      const subscriptionUpdate = await this.updateOrganizationSubscription(
+        orgId,
+        {
+          plan,
+          planName,
+          status,
+          providerSubscriptionId: subscriptionId,
+          providerCustomerId:
+            data.customer_id ?? data.customer?.id ?? null,
+          providerOrderId: this.normalizeProviderOrderId(
+            data.order_id ?? data.id,
+          ),
+          providerVariantId: priceId,
+          activeFrom: this.extractActiveFromFromEventData(data),
+          activeUntil: this.extractActiveUntilFromEventData(
+            data,
+            status,
+            normalizedEventName,
+          ),
+          amount: resolvedAmount,
+          currency: resolvedCurrency,
+          interval: resolvedInterval,
+          limits,
+        },
+      );
 
-    if (subscriptionUpdate) {
-      const renewsAt = this.parseDate(attributes.renews_at);
-      const notificationEmail =
-        email ?? (await this.findOwnerEmailByOrganizationId(orgId));
-      await this.notifyCustomer({
-        email: notificationEmail,
-        eventName,
-        organizationName: subscriptionUpdate.organizationName,
-        previous: subscriptionUpdate.previous,
-        next: subscriptionUpdate.next,
-        amount: subscriptionUpdate.next.amount,
-        currency: subscriptionUpdate.next.currency,
-        interval: subscriptionUpdate.next.interval,
-        endsAt: subscriptionUpdate.next.activeUntil,
-        renewsAt,
-      });
+      if (subscriptionUpdate) {
+        const renewsAt = this.extractRenewsAtFromEventData(data);
+        const notificationEmail =
+          email ?? (await this.findOwnerEmailByOrganizationId(orgId));
+        await this.notifyCustomer({
+          email: notificationEmail,
+          eventName: normalizedEventName,
+          organizationName: subscriptionUpdate.organizationName,
+          previous: subscriptionUpdate.previous,
+          next: subscriptionUpdate.next,
+          amount: subscriptionUpdate.next.amount,
+          currency: subscriptionUpdate.next.currency,
+          interval: subscriptionUpdate.next.interval,
+          endsAt: subscriptionUpdate.next.activeUntil,
+          renewsAt,
+        });
+      }
     }
 
     const checkoutSessionId =
@@ -457,10 +475,12 @@ export class BillingService {
       await this.updateCheckoutSessionFromWebhook({
         checkoutSessionId,
         eventName,
-        rawStatus: attributes.status,
+        rawStatus: data.status,
         resolvedStatus: status,
         providerSubscriptionId: subscriptionId,
-        providerOrderId: this.normalizeProviderOrderId(attributes.order_id),
+        providerOrderId: this.normalizeProviderOrderId(
+          data.order_id ?? data.id,
+        ),
       });
     }
   }
@@ -530,7 +550,7 @@ export class BillingService {
       currency: details.currency ?? previous.currency,
       interval: details.interval ?? previous.interval,
       limits: details.limits ?? getPlanLimits(details.plan),
-      provider: 'LEMON_SQUEEZY',
+      provider: 'PADDLE',
       providerSubscriptionId: details.providerSubscriptionId,
       providerCustomerId: details.providerCustomerId,
       providerOrderId: details.providerOrderId,
@@ -611,12 +631,17 @@ export class BillingService {
       params.previous.status !== OrganizationStatus.ACTIVE &&
       params.next.status === OrganizationStatus.ACTIVE;
     const isUpdateEvent =
+      normalizedEvent.includes('subscription.updated') ||
+      normalizedEvent.includes('subscription.items.updated') ||
       normalizedEvent.includes('subscription_updated') ||
       normalizedEvent.includes('subscription_change') ||
       normalizedEvent.includes('subscription_plan_changed');
 
     try {
       if (
+        normalizedEvent.includes('subscription.created') ||
+        normalizedEvent.includes('subscription.resumed') ||
+        normalizedEvent.includes('subscription.activated') ||
         normalizedEvent.includes('subscription_created') ||
         normalizedEvent.includes('subscription_resumed') ||
         statusBecameActive
@@ -632,6 +657,7 @@ export class BillingService {
       }
 
       if (
+        normalizedEvent.includes('transaction.paid') ||
         normalizedEvent.includes('payment_success') ||
         normalizedEvent.includes('payment_succeeded')
       ) {
@@ -647,6 +673,7 @@ export class BillingService {
       }
 
       if (
+        normalizedEvent.includes('transaction.payment_failed') ||
         normalizedEvent.includes('payment_failed') ||
         normalizedEvent.includes('payment_failure')
       ) {
@@ -658,6 +685,7 @@ export class BillingService {
       }
 
       if (
+        normalizedEvent.includes('subscription.canceled') ||
         normalizedEvent.includes('subscription_cancelled') ||
         normalizedEvent.includes('subscription_canceled') ||
         normalizedEvent.includes('subscription_expired')
@@ -785,120 +813,98 @@ export class BillingService {
     return null;
   }
 
-  private getPlanVariantIds(plan: OrganizationPlan): string[] {
-    if (plan === OrganizationPlan.BASIC) {
-      return [
-        this.variantIds.starterMonthly,
-        this.variantIds.starterYearly,
-        this.variantIds.proMonthly,
-        this.variantIds.proYearly,
-      ].filter((entry): entry is string => !!entry);
-    }
-    if (plan === OrganizationPlan.PRO) {
-      return [this.variantIds.proMonthly, this.variantIds.proYearly].filter(
-        (entry): entry is string => !!entry,
-      );
-    }
-    return [];
-  }
-
-  private resolveStandardPlanForVariant(variantId: string): {
+  private resolveStandardPlanForPrice(priceId: string): {
     plan: OrganizationPlan;
     interval: BillingInterval;
-    variantId: string;
-    variantIds: string[];
+    priceId: string;
   } | null {
-    if (variantId === this.variantIds.starterMonthly) {
+    if (priceId === this.priceIds.starterMonthly) {
       return {
         plan: OrganizationPlan.BASIC,
         interval: 'MONTHLY',
-        variantId,
-        variantIds: this.getPlanVariantIds(OrganizationPlan.BASIC),
+        priceId,
       };
     }
-    if (variantId === this.variantIds.starterYearly) {
+    if (priceId === this.priceIds.starterYearly) {
       return {
         plan: OrganizationPlan.BASIC,
         interval: 'YEARLY',
-        variantId,
-        variantIds: this.getPlanVariantIds(OrganizationPlan.BASIC),
+        priceId,
       };
     }
-    if (variantId === this.variantIds.proMonthly) {
+    if (priceId === this.priceIds.proMonthly) {
       return {
         plan: OrganizationPlan.PRO,
         interval: 'MONTHLY',
-        variantId,
-        variantIds: this.getPlanVariantIds(OrganizationPlan.PRO),
+        priceId,
       };
     }
-    if (variantId === this.variantIds.proYearly) {
+    if (priceId === this.priceIds.proYearly) {
       return {
         plan: OrganizationPlan.PRO,
         interval: 'YEARLY',
-        variantId,
-        variantIds: this.getPlanVariantIds(OrganizationPlan.PRO),
+        priceId,
       };
     }
     return null;
   }
 
-  private getPlanVariantDefinitions(): Array<{
+  private getPlanPriceDefinitions(): Array<{
     plan: OrganizationPlan;
     interval: BillingInterval;
-    variantId: string | null;
+    priceId: string | null;
   }> {
     return [
       {
         plan: OrganizationPlan.BASIC,
         interval: 'MONTHLY',
-        variantId: this.variantIds.starterMonthly ?? null,
+        priceId: this.priceIds.starterMonthly ?? null,
       },
       {
         plan: OrganizationPlan.BASIC,
         interval: 'YEARLY',
-        variantId: this.variantIds.starterYearly ?? null,
+        priceId: this.priceIds.starterYearly ?? null,
       },
       {
         plan: OrganizationPlan.PRO,
         interval: 'MONTHLY',
-        variantId: this.variantIds.proMonthly ?? null,
+        priceId: this.priceIds.proMonthly ?? null,
       },
       {
         plan: OrganizationPlan.PRO,
         interval: 'YEARLY',
-        variantId: this.variantIds.proYearly ?? null,
+        priceId: this.priceIds.proYearly ?? null,
       },
     ];
   }
 
-  private resolveIntervalFromVariantId(
-    variantId: string | null,
+  private resolveIntervalFromPriceId(
+    priceId: string | null,
   ): BillingInterval | null {
-    if (!variantId) {
+    if (!priceId) {
       return null;
     }
 
-    const match = this.getPlanVariantDefinitions().find(
-      (entry) => entry.variantId === variantId,
+    const match = this.getPlanPriceDefinitions().find(
+      (entry) => entry.priceId === priceId,
     );
     return match?.interval ?? null;
   }
 
-  private async resolvePricingFromVariant(params: {
-    variantId: string;
+  private async resolvePricingFromPrice(params: {
+    priceId: string;
   }): Promise<{
     amount: number;
     currency: string;
     interval: BillingInterval;
   } | null> {
-    if (!params.variantId) {
+    if (!params.priceId) {
       return null;
     }
 
     const catalog = await this.getPlanCatalog();
     const catalogEntry = catalog.plans.find(
-      (entry) => entry.variantId === params.variantId,
+      (entry) => entry.priceId === params.priceId,
     );
     if (catalogEntry) {
       return {
@@ -908,70 +914,160 @@ export class BillingService {
       };
     }
 
-    const variants = await this.fetchPlanVariants([params.variantId]);
-    const variant = variants.get(params.variantId);
-    if (variant) {
-      return this.extractVariantPricing(variant);
+    const prices = await this.fetchPlanPrices([params.priceId]);
+    const price = prices.get(params.priceId);
+    if (price) {
+      return this.extractPricePricing(price);
     }
 
     return null;
   }
 
-  private async fetchPlanVariants(
-    variantIds: string[],
-  ): Promise<Map<string, { id?: string; attributes?: Record<string, any> }>> {
-    const uniqueIds = Array.from(new Set(variantIds));
-    const variantsById = new Map<
-      string,
-      { id?: string; attributes?: Record<string, any> }
-    >();
-
-    if (this.productId) {
-      const response = await this.lemon.listVariants(this.productId);
-      const items = response.data ?? [];
-      for (const item of items) {
-        if (item?.id) {
-          variantsById.set(String(item.id), item);
-        }
-      }
-      return variantsById;
-    }
+  private async fetchPlanPrices(
+    priceIds: string[],
+  ): Promise<Map<string, Record<string, any>>> {
+    const uniqueIds = Array.from(new Set(priceIds));
+    const pricesById = new Map<string, Record<string, any>>();
 
     await Promise.all(
-      uniqueIds.map(async (variantId) => {
-        const response = await this.lemon.getVariant(variantId);
+      uniqueIds.map(async (priceId) => {
+        const response = await this.paddle.getPrice(priceId);
         if (response.data) {
-          variantsById.set(
-            String(response.data.id ?? variantId),
+          pricesById.set(
+            String(response.data.id ?? priceId),
             response.data,
           );
         }
       }),
     );
 
-    return variantsById;
+    return pricesById;
   }
 
-  private extractVariantPricing(variant: {
+  private extractPricePricing(price: {
     id?: string;
-    attributes?: Record<string, any>;
+    [key: string]: any;
   }): { amount: number; currency: string; interval: BillingInterval } {
-    const attributes = variant.attributes ?? {};
     const amount = this.parseAmount(
-      attributes.price ?? attributes.unit_price ?? attributes.renewal_price,
+      price.unit_price?.amount ??
+        price.unitPrice?.amount ??
+        price.unit_amount ??
+        price.amount,
     );
-    const currency = attributes.currency ?? attributes.currency_code ?? 'EUR';
+    const currency =
+      price.unit_price?.currency_code ??
+      price.unitPrice?.currencyCode ??
+      price.currency ??
+      price.currency_code ??
+      'EUR';
     const interval = this.mapInterval(
-      attributes.billing_interval ??
-        attributes.interval_unit ??
-        attributes.interval,
+      price.billing_cycle?.interval ??
+        price.billingCycle?.interval ??
+        price.interval,
     ) as BillingInterval;
+
     return { amount, currency, interval };
+  }
+
+  private extractSubscriptionIdFromEvent(
+    normalizedEventName: string,
+    payload: PaddleWebhookPayload,
+  ): string | null {
+    if (normalizedEventName.includes('subscription') && payload.data?.id) {
+      return String(payload.data.id);
+    }
+    const candidate =
+      payload.data?.subscription_id ??
+      payload.data?.subscription?.id ??
+      null;
+    return candidate ? String(candidate) : null;
+  }
+
+  private extractPriceIdFromEventData(data: Record<string, any>): string | null {
+    const candidate =
+      data.price_id ??
+      data.price?.id ??
+      data.items?.[0]?.price_id ??
+      data.items?.[0]?.price?.id ??
+      data.subscription_details?.items?.[0]?.price?.id ??
+      null;
+
+    return candidate ? String(candidate) : null;
+  }
+
+  private extractAmountFromEventData(data: Record<string, any>): number {
+    return this.parseAmount(
+      data.details?.totals?.total ??
+        data.recurring_totals?.total ??
+        data.totals?.total ??
+        data.unit_totals?.total ??
+        data.items?.[0]?.price?.unit_price?.amount ??
+        data.items?.[0]?.price?.unitPrice?.amount ??
+        0,
+    );
+  }
+
+  private extractCurrencyFromEventData(data: Record<string, any>): string | null {
+    return (
+      data.details?.totals?.currency_code ??
+      data.recurring_totals?.currency_code ??
+      data.totals?.currency_code ??
+      data.items?.[0]?.price?.unit_price?.currency_code ??
+      data.items?.[0]?.price?.unitPrice?.currencyCode ??
+      data.currency_code ??
+      data.currency ??
+      null
+    );
+  }
+
+  private extractIntervalFromEventData(data: Record<string, any>): string | null {
+    return (
+      data.billing_cycle?.interval ??
+      data.items?.[0]?.price?.billing_cycle?.interval ??
+      data.items?.[0]?.price?.billingCycle?.interval ??
+      data.interval ??
+      null
+    );
+  }
+
+  private extractActiveFromFromEventData(data: Record<string, any>): Date | null {
+    return this.parseDate(
+      data.started_at ?? data.first_billed_at ?? data.created_at ?? null,
+    );
+  }
+
+  private extractActiveUntilFromEventData(
+    data: Record<string, any>,
+    status: OrganizationStatus,
+    normalizedEventName: string,
+  ): Date | null {
+    if (
+      status === OrganizationStatus.CANCELED ||
+      normalizedEventName.includes('subscription.canceled')
+    ) {
+      return this.parseDate(
+        data.canceled_at ??
+          data.scheduled_change?.effective_at ??
+          data.current_billing_period?.ends_at ??
+          data.next_billed_at ??
+          null,
+      );
+    }
+
+    return this.parseDate(
+      data.current_billing_period?.ends_at ?? data.next_billed_at ?? null,
+    );
+  }
+
+  private extractRenewsAtFromEventData(data: Record<string, any>): Date | null {
+    return this.parseDate(
+      data.next_billed_at ?? data.current_billing_period?.ends_at ?? null,
+    );
   }
 
   private resolvePlan(
     plan: string | null | undefined,
-    variantId: string | number | null | undefined,
+    priceId: string | number | null | undefined,
   ): OrganizationPlan {
     const normalized = (plan ?? '').toString().toUpperCase();
     if (normalized === 'STARTER') {
@@ -982,18 +1078,18 @@ export class BillingService {
       return normalized as OrganizationPlan;
     }
 
-    const variantIdStr = variantId ? String(variantId) : null;
+    const priceIdStr = priceId ? String(priceId) : null;
     if (
-      variantIdStr &&
-      (variantIdStr === this.variantIds.starterMonthly ||
-        variantIdStr === this.variantIds.starterYearly)
+      priceIdStr &&
+      (priceIdStr === this.priceIds.starterMonthly ||
+        priceIdStr === this.priceIds.starterYearly)
     ) {
       return OrganizationPlan.BASIC;
     }
     if (
-      variantIdStr &&
-      (variantIdStr === this.variantIds.proMonthly ||
-        variantIdStr === this.variantIds.proYearly)
+      priceIdStr &&
+      (priceIdStr === this.priceIds.proMonthly ||
+        priceIdStr === this.priceIds.proYearly)
     ) {
       return OrganizationPlan.PRO;
     }
@@ -1007,17 +1103,30 @@ export class BillingService {
   ): OrganizationStatus {
     const normalized = (rawStatus ?? '').toString().toLowerCase();
     if (
+      eventName.includes('transaction.payment_failed') ||
       eventName.includes('payment_failed') ||
       normalized === 'unpaid' ||
       normalized === 'past_due'
     ) {
       return OrganizationStatus.CANCELED;
     }
-    if (normalized === 'cancelled' || normalized === 'expired') {
+    if (
+      eventName.includes('subscription.canceled') ||
+      normalized === 'cancelled' ||
+      normalized === 'canceled' ||
+      normalized === 'expired' ||
+      normalized === 'inactive'
+    ) {
       return OrganizationStatus.CANCELED;
     }
-    if (normalized === 'paused') {
+    if (
+      eventName.includes('subscription.paused') ||
+      normalized === 'paused'
+    ) {
       return OrganizationStatus.SUSPENDED;
+    }
+    if (normalized === 'trialing') {
+      return OrganizationStatus.ACTIVE;
     }
     return OrganizationStatus.ACTIVE;
   }
@@ -1085,6 +1194,7 @@ export class BillingService {
       return 'EXPIRED';
     }
     if (
+      eventName.includes('transaction.payment_failed') ||
       eventName.includes('payment_failed') ||
       normalized === 'unpaid' ||
       normalized === 'past_due'

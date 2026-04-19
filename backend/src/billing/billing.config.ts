@@ -56,29 +56,29 @@ export function getPlanLimits(plan: OrganizationPlan): PlanLimits {
   return PLAN_LIMITS[plan] ?? PLAN_LIMITS[OrganizationPlan.FREE];
 }
 
-export type VariantIdMap = {
+export type PriceIdMap = {
   starterMonthly?: string | null;
   starterYearly?: string | null;
   proMonthly?: string | null;
   proYearly?: string | null;
 };
 
-export function getVariantIdForPlan(
+export function getPriceIdForPlan(
   plan: OrganizationPlan,
   interval: BillingInterval,
-  variants: VariantIdMap,
+  prices: PriceIdMap,
 ): string | null {
   if (plan === OrganizationPlan.BASIC) {
     if (interval === 'YEARLY') {
-      return variants.starterYearly ?? null;
+      return prices.starterYearly ?? null;
     }
-    return variants.starterMonthly ?? null;
+    return prices.starterMonthly ?? null;
   }
   if (plan === OrganizationPlan.PRO) {
     if (interval === 'YEARLY') {
-      return variants.proYearly ?? null;
+      return prices.proYearly ?? null;
     }
-    return variants.proMonthly ?? null;
+    return prices.proMonthly ?? null;
   }
   return null;
 }

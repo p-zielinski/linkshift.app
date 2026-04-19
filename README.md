@@ -2,7 +2,7 @@
 
 Redirect Master is a multi-tenant redirection platform with a NestJS backend,
 Angular frontend, and shared models. It includes plan-based limits, billing via
-Lemon Squeezy, Redis-backed caching and rate limiting, and an ngrok-based local
+Paddle, Redis-backed caching and rate limiting, and an ngrok-based local
 testing flow for webhooks and redirects.
 
 ## Repository layout
@@ -68,17 +68,16 @@ Auth:
 - `JWT_REFRESH_EXPIRES_IN`: Refresh token TTL (e.g. `7d`, `12h`).
   Refresh tokens are stored in an HttpOnly cookie.
 
-Billing (Lemon Squeezy):
-- `LEMON_SQUEEZY_API_KEY`: API token (in Swarm, use secret `lemon_squeezy_api_key`).
-- `LEMON_SQUEEZY_STORE_ID`: Store identifier.
-- `LEMON_SQUEEZY_PRODUCT_ID`: Optional product ID to speed up variant price lookups.
-- `LEMON_SQUEEZY_WEBHOOK_SECRET`: Webhook signing secret (in Swarm, use secret `lemon_squeezy_webhook_secret`).
-- `LEMON_SQUEEZY_SUCCESS_URL`: Base redirect URL after checkout.
-  The app appends `checkout_session=<id>` to both URLs automatically.
-- `LEMON_SQUEEZY_VARIANT_BASIC_MONTHLY_ID`: Variant ID for the Basic (monthly) plan.
-- `LEMON_SQUEEZY_VARIANT_BASIC_YEARLY_ID`: Variant ID for the Basic (yearly) plan.
-- `LEMON_SQUEEZY_VARIANT_PRO_MONTHLY_ID`: Variant ID for the Pro (monthly) plan.
-- `LEMON_SQUEEZY_VARIANT_PRO_YEARLY_ID`: Variant ID for the Pro (yearly) plan.
+Billing (Paddle):
+- `PADDLE_API_KEY`: API token (in Swarm, use secret `paddle_api_key`).
+- `PADDLE_WEBHOOK_SECRET`: Webhook signing secret (in Swarm, use secret `paddle_webhook_secret`).
+- `PADDLE_SUCCESS_URL`: Base redirect URL after checkout.
+  The app appends `checkout_session=<id>` automatically.
+- `PADDLE_API_VERSION`: Optional API version header value.
+- `PADDLE_PRICE_BASIC_MONTHLY_ID`: Price ID for the Basic (monthly) plan.
+- `PADDLE_PRICE_BASIC_YEARLY_ID`: Price ID for the Basic (yearly) plan.
+- `PADDLE_PRICE_PRO_MONTHLY_ID`: Price ID for the Pro (monthly) plan.
+- `PADDLE_PRICE_PRO_YEARLY_ID`: Price ID for the Pro (yearly) plan.
 
 Ngrok (local dev only):
 - `NGROK_AUTH_TOKEN`: Ngrok auth token used by `start:dev`.
@@ -158,8 +157,8 @@ printf "sentry-dsn" | docker secret create sentry_dsn -
 
 Billing + email + safe browsing secrets (if enabled):
 ```bash
-printf "lemon-api-key" | docker secret create lemon_squeezy_api_key -
-printf "lemon-webhook-secret" | docker secret create lemon_squeezy_webhook_secret -
+printf "paddle-api-key" | docker secret create paddle_api_key -
+printf "paddle-webhook-secret" | docker secret create paddle_webhook_secret -
 printf "zeptomail-api-key" | docker secret create zeptomail_api_key -
 printf "web-risk-browsing-api-key" | docker secret create web_risk_api_key -
 ```
@@ -212,8 +211,8 @@ Custom plans live in the `CustomPlan` table with these fields:
 - `organizationId`: Owning organization ID.
 - `name`: Plan display name shown in the UI.
 - `description`: Optional short description.
-- `monthlyVariantId`: Lemon Squeezy variant ID for monthly billing.
-- `yearlyVariantId`: Lemon Squeezy variant ID for yearly billing.
+- `monthlyPriceId`: Paddle price ID for monthly billing.
+- `yearlyPriceId`: Paddle price ID for yearly billing.
 - `limits`: JSON payload matching `PlanLimits` in `backend/src/billing/billing.config.ts`.
 
 ### Create a custom plan (manual)
@@ -224,8 +223,8 @@ INSERT INTO "CustomPlan" (
   "organizationId",
   "name",
   "description",
-  "monthlyVariantId",
-  "yearlyVariantId",
+  "monthlyPriceId",
+  "yearlyPriceId",
   "limits",
   "createdAt",
   "updatedAt"
@@ -255,7 +254,7 @@ VALUES (
 
 Tip: you can run the insert directly via `psql`:
 ```bash
-psql "$DATABASE_URL" -c "INSERT INTO \"CustomPlan\" (\"id\",\"organizationId\",\"name\",\"description\",\"monthlyVariantId\",\"yearlyVariantId\",\"limits\",\"createdAt\",\"updatedAt\") VALUES ('cpl_custom_001','org_123','Enterprise','Higher limits for the enterprise rollout','1299001','1299002','{\"maxDomainGroups\":5,\"maxDomainsPerGroup\":50,\"maxTotalDomains\":50,\"maxRulesPerGroup\":2000,\"maxTotalRules\":2000,\"maxTestsPerGroup\":4000,\"maxTotalTests\":4000,\"maxUsers\":20,\"redirectionLimitPerMinute\":500}'::jsonb,NOW(),NOW());"
+psql "$DATABASE_URL" -c "INSERT INTO \"CustomPlan\" (\"id\",\"organizationId\",\"name\",\"description\",\"monthlyPriceId\",\"yearlyPriceId\",\"limits\",\"createdAt\",\"updatedAt\") VALUES ('cpl_custom_001','org_123','Enterprise','Higher limits for the enterprise rollout','1299001','1299002','{\"maxDomainGroups\":5,\"maxDomainsPerGroup\":50,\"maxTotalDomains\":50,\"maxRulesPerGroup\":2000,\"maxTotalRules\":2000,\"maxTestsPerGroup\":4000,\"maxTotalTests\":4000,\"maxUsers\":20,\"redirectionLimitPerMinute\":500}'::jsonb,NOW(),NOW());"
 ```
 
 ### Purchase flow
@@ -300,7 +299,7 @@ docker compose up -d
 
 ## Billing flow (high level)
 - Checkout creates a local `BillingCheckoutSession` record.
-- Lemon Squeezy webhooks update subscription status.
+- Paddle webhooks update subscription status.
 - The UI shows a "Processing" dialog and polls the backend for the session status.
 
 ## Testing

@@ -34,7 +34,7 @@ export type BillingPlanPrice = {
   interval: BillingInterval;
   amount: number;
   currency: string;
-  variantId: string;
+  priceId: string;
 };
 
 export type BillingPlanCatalog = {
@@ -51,9 +51,9 @@ export class BillingApiService {
   private readonly apiConfig = inject(API_CONFIG);
   private readonly apiUrl = `${this.apiConfig.baseUrl}/api/v1/billing`;
 
-  createCheckout(variantId: string): Observable<CheckoutResponse> {
+  createCheckout(priceId: string): Observable<CheckoutResponse> {
     return this.http.post<CheckoutResponse>(`${this.apiUrl}/checkout`, {
-      variantId,
+      priceId,
     });
   }
 
