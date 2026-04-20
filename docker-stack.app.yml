@@ -18,6 +18,8 @@ services:
       APP_MIN_AGE: ${APP_MIN_AGE}
       APP_LEGAL_VERSION: ${APP_LEGAL_VERSION}
       APP_AUTH_GATE_ENABLED: ${APP_AUTH_GATE_ENABLED}
+      APP_PADDLE_CLIENT_TOKEN: ${APP_PADDLE_CLIENT_TOKEN}
+      APP_PADDLE_ENV: ${APP_PADDLE_ENV}
     networks:
       inter-stack:
         aliases:

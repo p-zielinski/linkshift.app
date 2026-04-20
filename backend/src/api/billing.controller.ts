@@ -4,6 +4,7 @@ import {
   Get,
   Post,
   Param,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -48,12 +49,25 @@ export class BillingController {
 
   @Get('portal')
   @UseGuards(AuthGuard)
-  async getPortalUrl(@User('organizationId') organizationId: string) {
+  async getPortalUrl(
+    @User('organizationId') organizationId: string,
+    @Query('action') action?: string,
+  ) {
+    const parsedPortalAction = billingSchemas.PortalActionSchema.safeParse(
+      action ?? 'manage',
+    );
+    const portalAction = parsedPortalAction.success
+      ? parsedPortalAction.data
+      : 'manage';
     this.logger.log('Billing portal requested', {
       requestId: this.clsService.getId(),
       organizationId,
+      action: portalAction,
     });
-    const url = await this.billingService.getCustomerPortalUrl(organizationId);
+    const url = await this.billingService.getCustomerPortalUrl(
+      organizationId,
+      portalAction,
+    );
     return { url };
   }
 

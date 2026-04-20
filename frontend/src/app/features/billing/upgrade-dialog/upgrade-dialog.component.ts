@@ -4,14 +4,14 @@ import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { firstValueFrom } from 'rxjs';
-import { BillingApiService } from '../../../core/api/billing-api.service';
 import { PricingPlansComponent, PricingPlanSelection } from '../../marketing/components/pricing-plans/pricing-plans.component';
 import { OrganizationPlan } from '@shared/models/organization-config.model';
 import type { PlanLimits } from '@shared/models/plan-limits.model';
 import { BillingPlansStore } from '../../../core/store/billing-plans.store';
 import { OrganizationUsageStore } from '../../../core/store/organization-usage.store';
 import type { OrganizationUsage } from '../../../core/models/organization-usage.model';
+import { AuthStore } from '../../../core/store/auth.store';
+import { PaddleCheckoutService } from '../../../core/billing/paddle-checkout.service';
 
 export type UpgradeDialogData = {
   currentPlan: OrganizationPlan;
@@ -34,11 +34,12 @@ type PlanBlockReasons = Partial<Record<OrganizationPlan, string>>;
   styleUrl: './upgrade-dialog.component.css',
 })
 export class UpgradeDialogComponent {
-  private readonly billingApi = inject(BillingApiService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialogRef = inject(MatDialogRef<UpgradeDialogComponent>);
   private readonly billingPlansStore = inject(BillingPlansStore);
   private readonly usageStore = inject(OrganizationUsageStore);
+  private readonly authStore = inject(AuthStore);
+  private readonly paddleCheckout = inject(PaddleCheckoutService);
   readonly data = inject<UpgradeDialogData>(MAT_DIALOG_DATA);
   readonly busy = signal(false);
 
@@ -71,7 +72,7 @@ export class UpgradeDialogComponent {
   }
 
   async onPlanSelected(selection: PricingPlanSelection): Promise<void> {
-    const { plan, priceId } = selection;
+    const { plan, interval, priceId } = selection;
     if (plan === OrganizationPlan.FREE) {
       return;
     }
@@ -79,15 +80,51 @@ export class UpgradeDialogComponent {
       return;
     }
 
+    const user = this.authStore.user();
+    const organization = this.authStore.organization();
+    if (!user || !organization) {
+      this.snackBar.open('Session missing. Refresh and try again.', 'Dismiss', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['bg-red-600', 'text-white'],
+      });
+      return;
+    }
+
     this.busy.set(true);
     try {
-      const response = await firstValueFrom(
-        this.billingApi.createCheckout(priceId),
-      );
-      window.location.href = response.checkoutUrl;
+      const result = await this.paddleCheckout.openOverlayCheckout({
+        priceId,
+        customerEmail: user.email,
+        customData: {
+          organizationId: organization.id,
+          userId: user.id,
+          email: user.email,
+          plan,
+          interval,
+        },
+      });
+
+      if (result.status === 'completed') {
+        this.snackBar.open('Checkout completed. Subscription is being updated.', 'Dismiss', {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+          panelClass: ['bg-emerald-600', 'text-white'],
+        });
+        this.dialogRef.close({ upgraded: true });
+        return;
+      }
+
+      this.snackBar.open('Checkout canceled. Your current plan is unchanged.', 'Dismiss', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+      });
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Checkout failed.';
+        error instanceof Error ? error.message : 'Unable to open checkout overlay.';
       this.snackBar.open(message, 'Dismiss', {
         duration: 5000,
         horizontalPosition: 'center',

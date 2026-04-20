@@ -29,6 +29,7 @@ import { UpgradeDialogComponent } from '../billing/upgrade-dialog/upgrade-dialog
 import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { formatPlanLabel } from '../../core/utils/plan-label';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -206,10 +207,36 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     this.scheduleOverflowCheck();
   }
 
-  async openCustomerPortal(): Promise<void> {
+  async openManageSubscription(): Promise<void> {
+    await this.openCustomerPortal('manage');
+  }
+
+  async openCancelSubscription(): Promise<void> {
+    const confirmDialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Cancel subscription',
+        message:
+          'You will be redirected to Paddle to confirm cancellation details. Continue?',
+        confirmLabel: 'Continue',
+        cancelLabel: 'Back',
+        tone: 'warning',
+      },
+      maxWidth: '480px',
+      width: 'min(480px, 92vw)',
+    });
+
+    const confirmed = await firstValueFrom(confirmDialogRef.afterClosed());
+    if (!confirmed) {
+      return;
+    }
+
+    await this.openCustomerPortal('cancel');
+  }
+
+  private async openCustomerPortal(action: 'manage' | 'cancel'): Promise<void> {
     this.billingBusy.set(true);
     try {
-      const response = await firstValueFrom(this.billingApi.getCustomerPortal());
+      const response = await firstValueFrom(this.billingApi.getCustomerPortal(action));
       window.location.href = response.url;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to open portal.';

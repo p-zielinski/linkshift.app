@@ -145,7 +145,10 @@ export class BillingService {
     throw new Error('Unknown Paddle price for checkout.');
   }
 
-  async getCustomerPortalUrl(organizationId: string): Promise<string> {
+  async getCustomerPortalUrl(
+    organizationId: string,
+    action: 'manage' | 'cancel' = 'manage',
+  ): Promise<string> {
     const organization = await this.prisma.organization.findUnique({
       where: { id: organizationId },
     });
@@ -165,12 +168,19 @@ export class BillingService {
 
     const response = await this.paddle.getSubscription(subscriptionId);
     const subscription = response.data ?? {};
+    const managementUrls = subscription.management_urls ?? {};
     const portalUrl =
-      subscription.management_urls?.update_payment_method ??
-      subscription.management_urls?.cancel ??
-      subscription.management_urls?.customer_portal ??
-      subscription.urls?.customer_portal ??
-      null;
+      action === 'cancel'
+        ? managementUrls.cancel ??
+          managementUrls.customer_portal ??
+          managementUrls.update_payment_method ??
+          subscription.urls?.customer_portal ??
+          null
+        : managementUrls.update_payment_method ??
+          managementUrls.customer_portal ??
+          managementUrls.cancel ??
+          subscription.urls?.customer_portal ??
+          null;
 
     if (portalUrl) {
       return portalUrl;

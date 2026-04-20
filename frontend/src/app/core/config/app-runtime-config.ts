@@ -13,6 +13,8 @@ export type AppRuntimeConfig = {
   APP_LEGAL_VERSION: string;
   APP_DOMAIN_TARGET_IP: string;
   APP_AUTH_GATE_ENABLED: string;
+  APP_PADDLE_CLIENT_TOKEN: string;
+  APP_PADDLE_ENV: string;
 };
 
 export const DEFAULT_APP_RUNTIME_CONFIG: AppRuntimeConfig = {
@@ -28,6 +30,8 @@ export const DEFAULT_APP_RUNTIME_CONFIG: AppRuntimeConfig = {
   APP_LEGAL_VERSION: 'v1',
   APP_DOMAIN_TARGET_IP: '',
   APP_AUTH_GATE_ENABLED: 'false',
+  APP_PADDLE_CLIENT_TOKEN: '',
+  APP_PADDLE_ENV: 'sandbox',
 };
 
 export const resolveAppRuntimeConfig = (
