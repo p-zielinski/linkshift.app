@@ -5,10 +5,7 @@ import { API_CONFIG } from '../config/api-config';
 import { BillingInterval, OrganizationPlan } from '@shared/models/organization-config.model';
 import type { PlanLimits } from '@shared/models/plan-limits.model';
 
-type CheckoutResponse = {
-  checkoutUrl: string;
-  checkoutSessionId?: string;
-};
+export type PortalAction = 'manage' | 'cancel';
 
 type PortalResponse = {
   url: string;
@@ -51,14 +48,10 @@ export class BillingApiService {
   private readonly apiConfig = inject(API_CONFIG);
   private readonly apiUrl = `${this.apiConfig.baseUrl}/api/v1/billing`;
 
-  createCheckout(priceId: string): Observable<CheckoutResponse> {
-    return this.http.post<CheckoutResponse>(`${this.apiUrl}/checkout`, {
-      priceId,
+  getCustomerPortal(action: PortalAction = 'manage'): Observable<PortalResponse> {
+    return this.http.get<PortalResponse>(`${this.apiUrl}/portal`, {
+      params: { action },
     });
-  }
-
-  getCustomerPortal(): Observable<PortalResponse> {
-    return this.http.get<PortalResponse>(`${this.apiUrl}/portal`);
   }
 
   getPlans(): Observable<BillingPlanCatalog> {

@@ -13,8 +13,6 @@ import {
   UnauthorizedError,
 } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
-import { BillingService } from '../billing/billing.service';
-import { OrganizationPlan } from '@shared/models/organization-config.model';
 import { LoginRateLimitService } from './login-rate-limit.service';
 import { EmailService } from '../email/email.service';
 import { AuthTokenService } from './auth-token.service';
@@ -30,7 +28,6 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly cacheManagerService: CacheManagerService,
     private readonly clsService: ClsService,
-    private readonly billingService: BillingService,
     private readonly loginRateLimitService: LoginRateLimitService,
     private readonly emailService: EmailService,
     private readonly authTokenService: AuthTokenService,
@@ -109,22 +106,6 @@ export class AuthService {
       }),
     ]);
 
-    const selectedPlan = (data.plan ??
-      OrganizationPlan.FREE) as OrganizationPlan;
-    const selectedInterval = data.billingInterval ?? 'MONTHLY';
-    const shouldCreateCheckout =
-      selectedPlan === OrganizationPlan.BASIC ||
-      selectedPlan === OrganizationPlan.PRO;
-
-    const checkout = shouldCreateCheckout
-      ? await this.billingService.createCheckout({
-          organizationId: result.organization.id,
-          userId: result.user.id,
-          plan: selectedPlan,
-          interval: selectedInterval,
-        })
-      : null;
-
     const verificationToken = await this.authTokenService.createToken(
       'email_verification',
       {
@@ -148,7 +129,6 @@ export class AuthService {
     return {
       user: userWithoutPassword,
       organization: result.organization,
-      checkoutUrl: checkout?.checkoutUrl ?? null,
       ...tokens,
     };
   }

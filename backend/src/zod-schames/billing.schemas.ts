@@ -6,3 +6,7 @@ export const CreateCheckoutSchema = z.object({
 });
 
 export type CreateCheckoutDto = z.infer<typeof CreateCheckoutSchema>;
+
+export const PortalActionSchema = z.enum(['manage', 'cancel']).default('manage');
+
+export type PortalAction = z.infer<typeof PortalActionSchema>;

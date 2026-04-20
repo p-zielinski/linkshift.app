@@ -20,6 +20,17 @@ app.use((req, res, next) => {
   const apiOrigin = safeOrigin(apiBase);
   const toolsApiOrigin = safeOrigin(toolsApiBase);
   const origin = req.headers.origin;
+  const paddleScriptOrigin = 'https://cdn.paddle.com';
+  const paddleConnectOrigins = [
+    'https://api.paddle.com',
+    'https://sandbox-api.paddle.com',
+    'https://checkout.paddle.com',
+    'https://sandbox-checkout.paddle.com',
+  ];
+  const paddleFrameOrigins = [
+    'https://checkout.paddle.com',
+    'https://sandbox-checkout.paddle.com',
+  ];
 
   if (origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
@@ -41,7 +52,12 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'no-referrer');
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
-  const connectOrigins = [apiOrigin, toolsApiOrigin].filter(
+  const connectOrigins = [
+    apiOrigin,
+    toolsApiOrigin,
+    paddleScriptOrigin,
+    ...paddleConnectOrigins,
+  ].filter(
     (value, index, array): value is string => !!value && array.indexOf(value) === index,
   );
   const connectSrc = connectOrigins.length
@@ -52,11 +68,12 @@ app.use((req, res, next) => {
     'Content-Security-Policy',
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      `script-src 'self' 'unsafe-inline' ${paddleScriptOrigin}`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob:",
       `connect-src ${connectSrc}`,
+      `frame-src 'self' ${paddleFrameOrigins.join(' ')}`,
       "frame-ancestors 'none'",
     ].join('; '),
   );
@@ -86,6 +103,8 @@ app.get('/runtime-config.js', (_req, res) => {
     APP_LEGAL_VERSION: process.env['APP_LEGAL_VERSION'] ?? 'v1',
     APP_AUTH_GATE_ENABLED: process.env['APP_AUTH_GATE_ENABLED'] ?? 'false',
     APP_DOMAIN_TARGET_IP: process.env['APP_DOMAIN_TARGET_IP'] ?? '',
+    APP_PADDLE_CLIENT_TOKEN: process.env['APP_PADDLE_CLIENT_TOKEN'] ?? '',
+    APP_PADDLE_ENV: process.env['APP_PADDLE_ENV'] ?? 'sandbox',
   };
 
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
