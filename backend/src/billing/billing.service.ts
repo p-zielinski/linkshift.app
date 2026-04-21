@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import {
   OrganizationConfiguration,
@@ -10,25 +14,27 @@ import {
 import type { PlanLimits } from '@shared/models/plan-limits.model';
 import { CacheManagerService, DataType } from '../cache/cache-manager.service';
 import {
-  CHECKOUT_PLANS,
   PLAN_LIMITS,
   getPlanLimits,
-  getVariantIdForPlan,
+  getPriceIdForPlan,
 } from './billing.config';
-import { LemonSqueezyService } from './lemon-squeezy.service';
+import {
+  PaddleService,
+  PaddleSubscriptionProrationBillingMode,
+  PaddleSubscriptionUpdateItem,
+} from './paddle.service';
 import { AppEntity, createCustomCuid } from '../utils';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../email/email.service';
 import { Logger } from 'nestjs-pino';
 
-type LemonWebhookPayload = {
-  meta?: {
-    event_name?: string;
-    custom_data?: Record<string, any>;
-  };
+type PaddleWebhookPayload = {
+  event_type?: string;
+  event_id?: string;
+  notification_id?: string;
   data?: {
     id?: string;
-    attributes?: Record<string, any>;
+    [key: string]: any;
   };
 };
 
@@ -37,7 +43,7 @@ type BillingPlanPrice = {
   interval: BillingInterval;
   amount: number;
   currency: string;
-  variantId: string;
+  priceId: string;
 };
 
 type BillingPlanCatalog = {
@@ -46,106 +52,100 @@ type BillingPlanCatalog = {
   updatedAt: string;
 };
 
+type BillingChangeCheckoutResult = {
+  flow: 'CHECKOUT';
+  checkoutSessionId: string;
+  plan: OrganizationPlan;
+  interval: BillingInterval;
+  priceId: string;
+};
+
+type BillingChangeUpdatedResult = {
+  flow: 'UPDATED';
+  providerSubscriptionId: string;
+  plan: OrganizationPlan;
+  interval: BillingInterval;
+  prorationBillingMode: PaddleSubscriptionProrationBillingMode;
+  amount: number;
+  currency: string;
+  activeFrom: string | null;
+  activeUntil: string | null;
+};
+
+type BillingChangeNoopResult = {
+  flow: 'NOOP';
+  plan: OrganizationPlan;
+  interval: BillingInterval;
+  priceId: string;
+};
+
+type BillingSubscriptionSyncResult = {
+  synced: boolean;
+  source: 'PADDLE' | 'LOCAL';
+  reason: string | null;
+  activeSubscription: {
+    plan: OrganizationPlan;
+    status: OrganizationStatus;
+    interval: OrganizationSubscription['interval'];
+    providerSubscriptionId: string | null;
+    providerVariantId: string | null;
+    amount: number;
+    currency: string;
+    activeFrom: string | null;
+    activeUntil: string | null;
+  };
+};
+
 @Injectable()
 export class BillingService {
-  private readonly variantIds: {
+  private readonly priceIds: {
     starterMonthly?: string | null;
     starterYearly?: string | null;
     proMonthly?: string | null;
     proYearly?: string | null;
   };
-  private readonly productId: string | null;
   private readonly defaultSuccessUrl: string;
-  private readonly defaultCancelUrl: string;
-  private readonly planCatalogCacheKey = 'BILLING_PLANS_CATALOG_V1';
+  private readonly planCatalogCacheKey = 'BILLING_PLANS_CATALOG_V2';
   private readonly planCatalogTtlSeconds = 15 * 60;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly cacheManagerService: CacheManagerService,
-    private readonly lemon: LemonSqueezyService,
+    private readonly paddle: PaddleService,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
     private readonly logger: Logger,
   ) {
-    this.variantIds = {
+    this.priceIds = {
       starterMonthly:
-        this.configService.get<string>(
-          'LEMON_SQUEEZY_VARIANT_BASIC_MONTHLY_ID',
-        ) ?? this.configService.get<string>('LEMON_SQUEEZY_VARIANT_BASIC_ID'),
+        this.configService.get<string>('PADDLE_PRICE_BASIC_MONTHLY_ID') ??
+        this.configService.get<string>('PADDLE_PRICE_BASIC_ID'),
       starterYearly: this.configService.get<string>(
-        'LEMON_SQUEEZY_VARIANT_BASIC_YEARLY_ID',
+        'PADDLE_PRICE_BASIC_YEARLY_ID',
       ),
       proMonthly:
-        this.configService.get<string>(
-          'LEMON_SQUEEZY_VARIANT_PRO_MONTHLY_ID',
-        ) ?? this.configService.get<string>('LEMON_SQUEEZY_VARIANT_PRO_ID'),
-      proYearly: this.configService.get<string>(
-        'LEMON_SQUEEZY_VARIANT_PRO_YEARLY_ID',
-      ),
+        this.configService.get<string>('PADDLE_PRICE_PRO_MONTHLY_ID') ??
+        this.configService.get<string>('PADDLE_PRICE_PRO_ID'),
+      proYearly: this.configService.get<string>('PADDLE_PRICE_PRO_YEARLY_ID'),
     };
-    this.productId =
-      this.configService.get<string>('LEMON_SQUEEZY_PRODUCT_ID') ?? null;
     this.defaultSuccessUrl =
-      this.configService.get<string>('LEMON_SQUEEZY_SUCCESS_URL') ?? '';
+      this.configService.get<string>('PADDLE_SUCCESS_URL') ?? '';
   }
 
-  async createCheckout(params: {
+  async createCheckoutByPrice(params: {
     organizationId: string;
     userId: string;
-    plan: OrganizationPlan;
-    interval?: BillingInterval;
-    successUrl?: string;
-    cancelUrl?: string;
-  }) {
-    if (!CHECKOUT_PLANS.includes(params.plan)) {
-      throw new Error(`Plan ${params.plan} is not purchasable via checkout.`);
-    }
-
-    const interval = params.interval ?? 'MONTHLY';
-    const variantId = getVariantIdForPlan(
-      params.plan,
-      interval,
-      this.variantIds,
-    );
-    if (!variantId) {
-      throw new Error(
-        `Missing Lemon Squeezy variant for ${params.plan} (${interval}).`,
-      );
-    }
-
-    const variantIds = this.getPlanVariantIds(params.plan);
-
-    return this.createCheckoutInternal({
-      organizationId: params.organizationId,
-      userId: params.userId,
-      plan: params.plan,
-      interval,
-      variantId,
-      variantIds,
-      customData: {
-        plan: params.plan,
-        interval,
-      },
-      successUrl: params.successUrl,
-    });
-  }
-
-  async createCheckoutByVariant(params: {
-    organizationId: string;
-    userId: string;
-    variantId: string;
+    priceId: string;
     successUrl?: string;
   }) {
-    const standard = this.resolveStandardPlanForVariant(params.variantId);
+    const standard = this.resolveStandardPlanForPrice(params.priceId);
     if (standard) {
       return this.createCheckoutInternal({
         organizationId: params.organizationId,
         userId: params.userId,
         plan: standard.plan,
         interval: standard.interval,
-        variantId: standard.variantId,
-        variantIds: standard.variantIds,
+        priceId: standard.priceId,
         customData: {
           plan: standard.plan,
           interval: standard.interval,
@@ -153,7 +153,359 @@ export class BillingService {
         successUrl: params.successUrl,
       });
     }
-    throw new Error('Unknown Lemon Squeezy variant for checkout.');
+    throw new Error('Unknown Paddle price for checkout.');
+  }
+
+  async createCheckoutSession(params: {
+    organizationId: string;
+    userId: string;
+    priceId: string;
+  }) {
+    const standard = this.resolveStandardPlanForPrice(params.priceId);
+    if (!standard) {
+      throw new Error('Unknown Paddle price for checkout session.');
+    }
+
+    const [organization, user] = await Promise.all([
+      this.prisma.organization.findUnique({
+        where: { id: params.organizationId },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: params.userId },
+      }),
+    ]);
+
+    if (!organization || !user) {
+      throw new Error('Organization or user not found for checkout.');
+    }
+
+    const checkoutSessionId = createCustomCuid(AppEntity.CheckoutSession, 20);
+
+    await this.prisma.billingCheckoutSession.create({
+      data: {
+        id: checkoutSessionId,
+        organizationId: organization.id,
+        userId: user.id,
+        plan: standard.plan,
+        status: 'PENDING',
+        metadata: {
+          organizationName: organization.name,
+          email: user.email,
+          interval: standard.interval,
+          planName: null,
+        },
+      },
+    });
+
+    return {
+      checkoutSessionId,
+      plan: standard.plan,
+      interval: standard.interval,
+      priceId: standard.priceId,
+    };
+  }
+
+  async changeSubscriptionByPrice(params: {
+    organizationId: string;
+    userId: string;
+    priceId: string;
+  }): Promise<
+    | BillingChangeCheckoutResult
+    | BillingChangeUpdatedResult
+    | BillingChangeNoopResult
+  > {
+    const standard = this.resolveStandardPlanForPrice(params.priceId);
+    if (!standard) {
+      throw new Error('Unknown Paddle price for subscription change.');
+    }
+
+    const [organization, user] = await Promise.all([
+      this.prisma.organization.findUnique({
+        where: { id: params.organizationId },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: params.userId },
+      }),
+    ]);
+
+    if (!organization || !user) {
+      throw new Error(
+        'Organization or user not found for subscription change.',
+      );
+    }
+
+    const config = OrganizationConfiguration.fromJson(
+      organization.configuration,
+    );
+    const activeSubscription = config.activeSubscription;
+    const providerSubscriptionId =
+      activeSubscription.providerSubscriptionId ?? null;
+
+    if (!providerSubscriptionId) {
+      const checkout = await this.createCheckoutSession({
+        organizationId: organization.id,
+        userId: user.id,
+        priceId: params.priceId,
+      });
+      return {
+        flow: 'CHECKOUT',
+        ...checkout,
+      };
+    }
+
+    const currentBillingInterval = this.toBillingInterval(
+      activeSubscription.interval,
+    );
+    const intervalChangeRequested =
+      !!currentBillingInterval && currentBillingInterval !== standard.interval;
+    const hasCancelableActiveSubscription =
+      activeSubscription.status !== OrganizationStatus.CANCELED;
+
+    if (intervalChangeRequested && hasCancelableActiveSubscription) {
+      throw new BadRequestException(
+        'Changing billing interval is not available for an active subscription. Cancel your current subscription first, then choose a new interval.',
+      );
+    }
+
+    try {
+      const subscriptionResponse = await this.paddle.getSubscription(
+        providerSubscriptionId,
+      );
+      const subscriptionData = subscriptionResponse.data ?? {};
+      const subscriptionStatus = (subscriptionData.status ?? '')
+        .toString()
+        .toLowerCase();
+      const cancellationScheduled =
+        this.hasScheduledCancellation(subscriptionData);
+
+      if (cancellationScheduled) {
+        throw new BadRequestException(
+          'Subscription change is unavailable because cancellation is already scheduled for the end of the billing period. Open Manage subscription to remove the scheduled cancellation first.',
+        );
+      }
+
+      if (
+        subscriptionStatus === 'canceled' ||
+        subscriptionStatus === 'cancelled' ||
+        subscriptionStatus === 'expired' ||
+        subscriptionStatus === 'inactive'
+      ) {
+        const checkout = await this.createCheckoutSession({
+          organizationId: organization.id,
+          userId: user.id,
+          priceId: params.priceId,
+        });
+        return {
+          flow: 'CHECKOUT',
+          ...checkout,
+        };
+      }
+
+      const providerCurrentPriceId =
+        this.extractPriceIdFromEventData(subscriptionData);
+      if (providerCurrentPriceId === standard.priceId) {
+        const localInterval = this.toBillingInterval(
+          activeSubscription.interval,
+        );
+        const localStateInSync =
+          (activeSubscription.providerVariantId ?? null) === standard.priceId &&
+          activeSubscription.plan === standard.plan &&
+          localInterval === standard.interval;
+
+        if (!localStateInSync) {
+          const localUpdate =
+            await this.syncOrganizationSubscriptionFromProviderSnapshot({
+              organizationId: organization.id,
+              subscriptionData,
+              fallbackPriceId: standard.priceId,
+              fallbackInterval: standard.interval,
+            });
+          if (!localUpdate) {
+            throw new Error('Unable to synchronize subscription state.');
+          }
+        }
+
+        return {
+          flow: 'NOOP',
+          plan: standard.plan,
+          interval: standard.interval,
+          priceId: standard.priceId,
+        };
+      }
+
+      if (
+        !providerCurrentPriceId &&
+        (activeSubscription.providerVariantId ?? null) === standard.priceId
+      ) {
+        return {
+          flow: 'NOOP',
+          plan: standard.plan,
+          interval: standard.interval,
+          priceId: standard.priceId,
+        };
+      }
+
+      let prorationBillingMode = await this.resolveProrationBillingMode({
+        activeSubscription,
+        targetPriceId: standard.priceId,
+        targetInterval: standard.interval,
+      });
+
+      const items = this.buildSubscriptionUpdateItems({
+        subscriptionData,
+        currentVariantId: activeSubscription.providerVariantId,
+        targetPriceId: standard.priceId,
+      });
+
+      let updatedSubscription: Awaited<
+        ReturnType<PaddleService['updateSubscription']>
+      > | null = null;
+
+      const applySubscriptionUpdate = async (
+        mode: PaddleSubscriptionProrationBillingMode,
+      ) => {
+        await this.paddle.previewSubscriptionUpdate({
+          subscriptionId: providerSubscriptionId,
+          items,
+          prorationBillingMode: mode,
+        });
+        return this.paddle.updateSubscription({
+          subscriptionId: providerSubscriptionId,
+          items,
+          prorationBillingMode: mode,
+          onPaymentFailure: 'prevent_change',
+        });
+      };
+
+      try {
+        updatedSubscription =
+          await applySubscriptionUpdate(prorationBillingMode);
+      } catch (error) {
+        if (
+          prorationBillingMode === 'prorated_next_billing_period' &&
+          this.isProrationModeInvalidForScheduledChange(error)
+        ) {
+          prorationBillingMode = 'do_not_bill';
+          updatedSubscription =
+            await applySubscriptionUpdate(prorationBillingMode);
+        } else if (
+          prorationBillingMode === 'prorated_immediately' &&
+          this.isMinimumPaymentAmountError(error)
+        ) {
+          prorationBillingMode = 'prorated_next_billing_period';
+          try {
+            updatedSubscription =
+              await applySubscriptionUpdate(prorationBillingMode);
+          } catch (fallbackError) {
+            if (this.isProrationModeInvalidForScheduledChange(fallbackError)) {
+              prorationBillingMode = 'do_not_bill';
+              updatedSubscription =
+                await applySubscriptionUpdate(prorationBillingMode);
+            } else {
+              throw fallbackError;
+            }
+          }
+        } else {
+          throw error;
+        }
+      }
+
+      if (!updatedSubscription) {
+        throw new Error('Subscription update did not return data.');
+      }
+
+      const localUpdate =
+        await this.syncOrganizationSubscriptionFromProviderSnapshot({
+          organizationId: organization.id,
+          subscriptionData: updatedSubscription.data ?? {},
+          fallbackPriceId: standard.priceId,
+          fallbackInterval: standard.interval,
+        });
+
+      if (!localUpdate) {
+        throw new Error('Unable to synchronize subscription state.');
+      }
+
+      return {
+        flow: 'UPDATED',
+        providerSubscriptionId: localUpdate.next.providerSubscriptionId ?? '',
+        plan: localUpdate.next.plan,
+        interval: localUpdate.next.interval as BillingInterval,
+        prorationBillingMode,
+        amount: localUpdate.next.amount,
+        currency: localUpdate.next.currency,
+        activeFrom: localUpdate.next.activeFrom?.toISOString?.() ?? null,
+        activeUntil: localUpdate.next.activeUntil?.toISOString?.() ?? null,
+      };
+    } catch (error) {
+      const mappedError = this.mapSubscriptionChangeError(error);
+      if (mappedError) {
+        throw new BadRequestException(mappedError);
+      }
+      throw error;
+    }
+  }
+
+  async syncSubscriptionFromProvider(params: {
+    organizationId: string;
+  }): Promise<BillingSubscriptionSyncResult> {
+    const organization = await this.prisma.organization.findUnique({
+      where: { id: params.organizationId },
+    });
+    if (!organization) {
+      throw new NotFoundException('Organization not found.');
+    }
+
+    const config = OrganizationConfiguration.fromJson(
+      organization.configuration,
+    );
+    const activeSubscription = config.activeSubscription;
+    const providerSubscriptionId =
+      activeSubscription.providerSubscriptionId ?? null;
+
+    if (!providerSubscriptionId) {
+      return {
+        synced: false,
+        source: 'LOCAL',
+        reason:
+          'No Paddle subscription id found in organization configuration.',
+        activeSubscription:
+          this.buildSubscriptionSyncSnapshot(activeSubscription),
+      };
+    }
+
+    const subscriptionResponse = await this.paddle.getSubscription(
+      providerSubscriptionId,
+    );
+    const subscriptionData = subscriptionResponse.data ?? {};
+    const fallbackInterval =
+      this.toBillingInterval(activeSubscription.interval) ?? 'MONTHLY';
+    const fallbackPriceId =
+      activeSubscription.providerVariantId ??
+      getPriceIdForPlan(
+        activeSubscription.plan,
+        fallbackInterval,
+        this.priceIds,
+      );
+
+    const localUpdate =
+      await this.syncOrganizationSubscriptionFromProviderSnapshot({
+        organizationId: organization.id,
+        subscriptionData,
+        fallbackPriceId,
+        fallbackInterval,
+      });
+
+    return {
+      synced: !!localUpdate,
+      source: 'PADDLE',
+      reason: localUpdate
+        ? null
+        : 'Provider snapshot could not be applied to local configuration.',
+      activeSubscription: this.buildSubscriptionSyncSnapshot(
+        localUpdate?.next ?? activeSubscription,
+      ),
+    };
   }
 
   async getCustomerPortalUrl(organizationId: string): Promise<string> {
@@ -171,19 +523,37 @@ export class BillingService {
 
     const subscriptionId = config.activeSubscription.providerSubscriptionId;
     if (!subscriptionId) {
-      throw new Error('No active Lemon Squeezy subscription found.');
+      throw new Error('No active Paddle subscription found.');
     }
 
-    const response = await this.lemon.getSubscription(subscriptionId);
-    const portalUrl =
-      response.data?.attributes?.urls?.customer_portal ??
-      response.data?.attributes?.customer_portal;
+    const response = await this.paddle.getSubscription(subscriptionId);
+    const subscription = response.data ?? {};
+    const portalUrl = subscription.urls?.customer_portal;
 
-    if (!portalUrl) {
-      throw new Error('Missing customer portal URL from Lemon Squeezy.');
+    if (portalUrl) {
+      return portalUrl;
     }
 
-    return portalUrl;
+    const customerId =
+      config.activeSubscription.providerCustomerId ??
+      subscription.customer_id ??
+      null;
+    if (customerId) {
+      const portalSession = await this.paddle.createCustomerPortalSession({
+        customerId,
+        subscriptionIds: [subscriptionId],
+      });
+      const sessionUrl =
+        portalSession.data?.urls?.general?.overview ??
+        portalSession.data?.urls?.subscriptions ??
+        portalSession.data?.urls?.customer_portal ??
+        null;
+      if (sessionUrl) {
+        return sessionUrl;
+      }
+    }
+
+    throw new Error('Missing customer portal URL from Paddle.');
   }
 
   async getPlanCatalog(): Promise<BillingPlanCatalog> {
@@ -195,36 +565,36 @@ export class BillingService {
       return cached;
     }
 
-    const planVariants = this.getPlanVariantDefinitions();
-    const variantIds = planVariants
-      .map((entry) => entry.variantId)
+    const planPrices = this.getPlanPriceDefinitions();
+    const priceIds = planPrices
+      .map((entry) => entry.priceId)
       .filter((entry): entry is string => !!entry);
-    const variants = await this.fetchPlanVariants(variantIds);
+    const prices = await this.fetchPlanPrices(priceIds);
     const plans: BillingPlanPrice[] = [];
 
-    for (const entry of planVariants) {
-      if (!entry.variantId) {
-        this.logger.warn('Missing variant configuration', {
+    for (const entry of planPrices) {
+      if (!entry.priceId) {
+        this.logger.warn('Missing Paddle price configuration', {
           plan: entry.plan,
           interval: entry.interval,
         });
         continue;
       }
-      const variant = variants.get(entry.variantId);
-      if (!variant) {
-        this.logger.warn('Variant not returned from Lemon Squeezy', {
-          variantId: entry.variantId,
+      const price = prices.get(entry.priceId);
+      if (!price) {
+        this.logger.warn('Price not returned from Paddle API', {
+          priceId: entry.priceId,
         });
         continue;
       }
 
-      const pricing = this.extractVariantPricing(variant);
+      const pricing = this.extractPricePricing(price);
       plans.push({
         plan: entry.plan,
         interval: entry.interval,
         amount: pricing.amount,
         currency: pricing.currency,
-        variantId: entry.variantId,
+        priceId: entry.priceId,
       });
     }
 
@@ -257,8 +627,7 @@ export class BillingService {
     plan: OrganizationPlan;
     planName?: string | null;
     interval: BillingInterval;
-    variantId: string;
-    variantIds: string[];
+    priceId: string;
     customData: Record<string, any>;
     successUrl?: string;
   }) {
@@ -299,11 +668,8 @@ export class BillingService {
     });
 
     try {
-      const checkout = await this.lemon.createCheckout({
-        variantId: params.variantId,
-        variantIds: params.variantIds,
-        customerEmail: user.email,
-        organizationName: organization.name,
+      const checkout = await this.paddle.createCheckout({
+        priceId: params.priceId,
         customData: {
           organizationId: organization.id,
           userId: user.id,
@@ -343,34 +709,47 @@ export class BillingService {
   async handleWebhook(
     rawBody: Buffer,
     signature: string | undefined,
-    payload: LemonWebhookPayload,
+    payload: PaddleWebhookPayload,
   ): Promise<void> {
-    if (!this.lemon.verifySignature(rawBody, signature)) {
-      throw new Error('Invalid Lemon Squeezy signature.');
+    if (!this.paddle.verifySignature(rawBody, signature)) {
+      throw new Error('Invalid Paddle signature.');
     }
 
-    const eventName = payload.meta?.event_name ?? 'unknown';
-    const attributes = payload.data?.attributes ?? {};
-    const subscriptionId = payload.data?.id ?? null;
+    const eventName = (payload.event_type ?? 'unknown').toString();
+    const normalizedEventName = eventName.toLowerCase();
+    const data = payload.data ?? {};
+    const subscriptionId = this.extractSubscriptionIdFromEvent(
+      normalizedEventName,
+      payload,
+    );
 
-    if (!eventName.includes('subscription')) {
-      this.logger.debug('Ignoring Lemon Squeezy event', { eventName });
+    if (
+      !normalizedEventName.includes('subscription') &&
+      !normalizedEventName.includes('transaction')
+    ) {
+      this.logger.debug('Ignoring billing event', { eventName });
+      return;
+    }
+    if (
+      normalizedEventName === 'transaction.updated' &&
+      payload?.data?.origin === 'subscription_payment_method_change'
+    ) {
+      this.logger.debug(
+        'Ignoring transaction.updated event for payment method change',
+        { eventName },
+      );
       return;
     }
 
     const customData = {
-      ...(attributes.custom ?? {}),
-      ...(attributes.custom_data ?? {}),
-      ...(payload.meta?.custom_data ?? {}),
+      ...(data.custom_data ?? {}),
+      ...(data.customData ?? {}),
     } as Record<string, any>;
 
     const organizationId =
       customData.organizationId ?? customData.organization_id ?? null;
     const email =
-      customData.email ??
-      attributes.user_email ??
-      attributes.customer_email ??
-      null;
+      customData.email ?? data.customer?.email ?? data.customer_email ?? null;
 
     const orgId =
       organizationId ?? (await this.findOrganizationIdByEmail(email));
@@ -380,74 +759,41 @@ export class BillingService {
       return;
     }
 
-    const variantIdStr = attributes.variant_id
-      ? String(attributes.variant_id)
-      : null;
-    const plan = this.resolvePlan(customData.plan, attributes.variant_id);
-    const status = this.resolveStatus(attributes.status, eventName);
-    const limits = getPlanLimits(plan);
-    const planName = customData.planName ?? customData.plan_name ?? null;
+    const priceId = this.extractPriceIdFromEventData(data);
+    const fallbackInterval = this.resolveIntervalFromPriceId(priceId) ?? 'MONTHLY';
 
-    const pricingFallback = variantIdStr
-      ? await this.resolvePricingFromVariant({
-          variantId: variantIdStr,
-        })
-      : null;
-    const rawAmount = this.parseAmount(
-      attributes.price ?? attributes.unit_price ?? attributes.renewal_price,
-    );
-    const intervalValue = attributes.billing_interval ?? attributes.interval;
-    const resolvedInterval = intervalValue
-      ? this.mapInterval(intervalValue)
-      : (pricingFallback?.interval ??
-        this.resolveIntervalFromVariantId(variantIdStr) ??
-        'MONTHLY');
+    if (subscriptionId) {
+      const subscriptionSnapshotResponse =
+        await this.paddle.getSubscription(subscriptionId);
+      const subscriptionSnapshotData = subscriptionSnapshotResponse.data ?? {};
+      const subscriptionUpdate =
+        await this.syncOrganizationSubscriptionFromProviderSnapshot({
+          organizationId: orgId,
+          subscriptionData: subscriptionSnapshotData,
+          fallbackPriceId: priceId,
+          fallbackInterval,
+          eventName: normalizedEventName,
+        });
 
-    const resolvedAmount =
-      rawAmount > 0 || plan === OrganizationPlan.FREE
-        ? rawAmount
-        : (pricingFallback?.amount ?? rawAmount);
-    const resolvedCurrency =
-      attributes.currency ??
-      attributes.currency_code ??
-      pricingFallback?.currency ??
-      'EUR';
-
-    const subscriptionUpdate = await this.updateOrganizationSubscription(
-      orgId,
-      {
-        plan,
-        planName,
-        status,
-        providerSubscriptionId: subscriptionId,
-        providerCustomerId: attributes.customer_id ?? null,
-        providerOrderId: this.normalizeProviderOrderId(attributes.order_id),
-        providerVariantId: attributes.variant_id ?? null,
-        activeFrom: this.parseDate(attributes.created_at),
-        activeUntil: this.parseDate(attributes.ends_at),
-        amount: resolvedAmount,
-        currency: resolvedCurrency,
-        interval: resolvedInterval,
-        limits,
-      },
-    );
-
-    if (subscriptionUpdate) {
-      const renewsAt = this.parseDate(attributes.renews_at);
-      const notificationEmail =
-        email ?? (await this.findOwnerEmailByOrganizationId(orgId));
-      await this.notifyCustomer({
-        email: notificationEmail,
-        eventName,
-        organizationName: subscriptionUpdate.organizationName,
-        previous: subscriptionUpdate.previous,
-        next: subscriptionUpdate.next,
-        amount: subscriptionUpdate.next.amount,
-        currency: subscriptionUpdate.next.currency,
-        interval: subscriptionUpdate.next.interval,
-        endsAt: subscriptionUpdate.next.activeUntil,
-        renewsAt,
-      });
+      if (subscriptionUpdate) {
+        const renewsAt = this.extractRenewsAtFromEventData(
+          subscriptionSnapshotData,
+        );
+        const notificationEmail =
+          email ?? (await this.findOwnerEmailByOrganizationId(orgId));
+        await this.notifyCustomer({
+          email: notificationEmail,
+          eventName: normalizedEventName,
+          organizationName: subscriptionUpdate.organizationName,
+          previous: subscriptionUpdate.previous,
+          next: subscriptionUpdate.next,
+          amount: subscriptionUpdate.next.amount,
+          currency: subscriptionUpdate.next.currency,
+          interval: subscriptionUpdate.next.interval,
+          endsAt: subscriptionUpdate.next.activeUntil,
+          renewsAt,
+        });
+      }
     }
 
     const checkoutSessionId =
@@ -457,10 +803,11 @@ export class BillingService {
       await this.updateCheckoutSessionFromWebhook({
         checkoutSessionId,
         eventName,
-        rawStatus: attributes.status,
-        resolvedStatus: status,
+        rawStatus: data.status,
         providerSubscriptionId: subscriptionId,
-        providerOrderId: this.normalizeProviderOrderId(attributes.order_id),
+        providerOrderId: this.normalizeProviderOrderId(
+          data.order_id ?? data.id,
+        ),
       });
     }
   }
@@ -488,7 +835,7 @@ export class BillingService {
     details: {
       plan: OrganizationPlan;
       planName: string | null;
-      status: OrganizationStatus;
+      status: OrganizationStatus | null;
       providerSubscriptionId: string | null;
       providerCustomerId: string | null;
       providerOrderId: string | null;
@@ -520,17 +867,38 @@ export class BillingService {
       organization.configuration,
     );
     const previous = config.activeSubscription;
+    const previousSubscriptionId = previous.providerSubscriptionId ?? null;
+    const incomingSubscriptionId = details.providerSubscriptionId ?? null;
+
+    if (
+      previousSubscriptionId &&
+      incomingSubscriptionId &&
+      previousSubscriptionId !== incomingSubscriptionId &&
+      details.status !== OrganizationStatus.ACTIVE
+    ) {
+      this.logger.warn(
+        'Ignoring non-active webhook for non-current subscription',
+        {
+          organizationId,
+          previousSubscriptionId,
+          incomingSubscriptionId,
+          incomingStatus: details.status,
+        },
+      );
+      return null;
+    }
+
     const nextSubscription = new OrganizationSubscription({
       plan: details.plan,
       planName: details.planName ?? null,
-      status: details.status,
+      status: details.status ?? previous.status,
       activeFrom: details.activeFrom ?? previous.activeFrom,
       activeUntil: details.activeUntil,
       amount: details.amount ?? previous.amount,
       currency: details.currency ?? previous.currency,
       interval: details.interval ?? previous.interval,
       limits: details.limits ?? getPlanLimits(details.plan),
-      provider: 'LEMON_SQUEEZY',
+      provider: 'PADDLE',
       providerSubscriptionId: details.providerSubscriptionId,
       providerCustomerId: details.providerCustomerId,
       providerOrderId: details.providerOrderId,
@@ -548,8 +916,25 @@ export class BillingService {
     const subscriptionChanged =
       previous.plan !== nextSubscription.plan ||
       previous.status !== nextSubscription.status ||
+      previous.interval !== nextSubscription.interval ||
+      previous.amount !== nextSubscription.amount ||
+      previous.currency !== nextSubscription.currency ||
       (previous.providerSubscriptionId ?? null) !==
-        (nextSubscription.providerSubscriptionId ?? null);
+        (nextSubscription.providerSubscriptionId ?? null) ||
+      (previous.providerVariantId ?? null) !==
+        (nextSubscription.providerVariantId ?? null) ||
+      (previous.providerOrderId ?? null) !==
+        (nextSubscription.providerOrderId ?? null) ||
+      (previous.providerCustomerId ?? null) !==
+        (nextSubscription.providerCustomerId ?? null) ||
+      previous.activeUntil?.getTime?.() !==
+        nextSubscription.activeUntil?.getTime?.() ||
+      previous.activeFrom?.getTime?.() !==
+        nextSubscription.activeFrom?.getTime?.() ||
+      previous.planName !== nextSubscription.planName ||
+      JSON.stringify(previous.limits) !==
+        JSON.stringify(nextSubscription.limits) ||
+      previous.provider !== nextSubscription.provider;
 
     if (subscriptionChanged) {
       config.subscriptionHistory = [
@@ -611,12 +996,17 @@ export class BillingService {
       params.previous.status !== OrganizationStatus.ACTIVE &&
       params.next.status === OrganizationStatus.ACTIVE;
     const isUpdateEvent =
+      normalizedEvent.includes('subscription.updated') ||
+      normalizedEvent.includes('subscription.items.updated') ||
       normalizedEvent.includes('subscription_updated') ||
       normalizedEvent.includes('subscription_change') ||
       normalizedEvent.includes('subscription_plan_changed');
 
     try {
       if (
+        normalizedEvent.includes('subscription.created') ||
+        normalizedEvent.includes('subscription.resumed') ||
+        normalizedEvent.includes('subscription.activated') ||
         normalizedEvent.includes('subscription_created') ||
         normalizedEvent.includes('subscription_resumed') ||
         statusBecameActive
@@ -632,6 +1022,7 @@ export class BillingService {
       }
 
       if (
+        normalizedEvent.includes('transaction.paid') ||
         normalizedEvent.includes('payment_success') ||
         normalizedEvent.includes('payment_succeeded')
       ) {
@@ -647,6 +1038,7 @@ export class BillingService {
       }
 
       if (
+        normalizedEvent.includes('transaction.payment_failed') ||
         normalizedEvent.includes('payment_failed') ||
         normalizedEvent.includes('payment_failure')
       ) {
@@ -658,6 +1050,7 @@ export class BillingService {
       }
 
       if (
+        normalizedEvent.includes('subscription.canceled') ||
         normalizedEvent.includes('subscription_cancelled') ||
         normalizedEvent.includes('subscription_canceled') ||
         normalizedEvent.includes('subscription_expired')
@@ -785,120 +1178,96 @@ export class BillingService {
     return null;
   }
 
-  private getPlanVariantIds(plan: OrganizationPlan): string[] {
-    if (plan === OrganizationPlan.BASIC) {
-      return [
-        this.variantIds.starterMonthly,
-        this.variantIds.starterYearly,
-        this.variantIds.proMonthly,
-        this.variantIds.proYearly,
-      ].filter((entry): entry is string => !!entry);
-    }
-    if (plan === OrganizationPlan.PRO) {
-      return [this.variantIds.proMonthly, this.variantIds.proYearly].filter(
-        (entry): entry is string => !!entry,
-      );
-    }
-    return [];
-  }
-
-  private resolveStandardPlanForVariant(variantId: string): {
+  private resolveStandardPlanForPrice(priceId: string): {
     plan: OrganizationPlan;
     interval: BillingInterval;
-    variantId: string;
-    variantIds: string[];
+    priceId: string;
   } | null {
-    if (variantId === this.variantIds.starterMonthly) {
+    if (priceId === this.priceIds.starterMonthly) {
       return {
         plan: OrganizationPlan.BASIC,
         interval: 'MONTHLY',
-        variantId,
-        variantIds: this.getPlanVariantIds(OrganizationPlan.BASIC),
+        priceId,
       };
     }
-    if (variantId === this.variantIds.starterYearly) {
+    if (priceId === this.priceIds.starterYearly) {
       return {
         plan: OrganizationPlan.BASIC,
         interval: 'YEARLY',
-        variantId,
-        variantIds: this.getPlanVariantIds(OrganizationPlan.BASIC),
+        priceId,
       };
     }
-    if (variantId === this.variantIds.proMonthly) {
+    if (priceId === this.priceIds.proMonthly) {
       return {
         plan: OrganizationPlan.PRO,
         interval: 'MONTHLY',
-        variantId,
-        variantIds: this.getPlanVariantIds(OrganizationPlan.PRO),
+        priceId,
       };
     }
-    if (variantId === this.variantIds.proYearly) {
+    if (priceId === this.priceIds.proYearly) {
       return {
         plan: OrganizationPlan.PRO,
         interval: 'YEARLY',
-        variantId,
-        variantIds: this.getPlanVariantIds(OrganizationPlan.PRO),
+        priceId,
       };
     }
     return null;
   }
 
-  private getPlanVariantDefinitions(): Array<{
+  private getPlanPriceDefinitions(): Array<{
     plan: OrganizationPlan;
     interval: BillingInterval;
-    variantId: string | null;
+    priceId: string | null;
   }> {
     return [
       {
         plan: OrganizationPlan.BASIC,
         interval: 'MONTHLY',
-        variantId: this.variantIds.starterMonthly ?? null,
+        priceId: this.priceIds.starterMonthly ?? null,
       },
       {
         plan: OrganizationPlan.BASIC,
         interval: 'YEARLY',
-        variantId: this.variantIds.starterYearly ?? null,
+        priceId: this.priceIds.starterYearly ?? null,
       },
       {
         plan: OrganizationPlan.PRO,
         interval: 'MONTHLY',
-        variantId: this.variantIds.proMonthly ?? null,
+        priceId: this.priceIds.proMonthly ?? null,
       },
       {
         plan: OrganizationPlan.PRO,
         interval: 'YEARLY',
-        variantId: this.variantIds.proYearly ?? null,
+        priceId: this.priceIds.proYearly ?? null,
       },
     ];
   }
 
-  private resolveIntervalFromVariantId(
-    variantId: string | null,
+  private resolveIntervalFromPriceId(
+    priceId: string | null,
   ): BillingInterval | null {
-    if (!variantId) {
+    if (!priceId) {
       return null;
     }
 
-    const match = this.getPlanVariantDefinitions().find(
-      (entry) => entry.variantId === variantId,
+    const match = this.getPlanPriceDefinitions().find(
+      (entry) => entry.priceId === priceId,
     );
     return match?.interval ?? null;
   }
 
-  private async resolvePricingFromVariant(params: {
-    variantId: string;
-  }): Promise<{
+  private async resolvePricingFromPrice(params: { priceId: string }): Promise<{
     amount: number;
     currency: string;
     interval: BillingInterval;
   } | null> {
-    if (!params.variantId) {
+    if (!params.priceId) {
       return null;
     }
 
     const catalog = await this.getPlanCatalog();
     const catalogEntry = catalog.plans.find(
-      (entry) => entry.variantId === params.variantId,
+      (entry) => entry.priceId === params.priceId,
     );
     if (catalogEntry) {
       return {
@@ -908,70 +1277,164 @@ export class BillingService {
       };
     }
 
-    const variants = await this.fetchPlanVariants([params.variantId]);
-    const variant = variants.get(params.variantId);
-    if (variant) {
-      return this.extractVariantPricing(variant);
+    const prices = await this.fetchPlanPrices([params.priceId]);
+    const price = prices.get(params.priceId);
+    if (price) {
+      return this.extractPricePricing(price);
     }
 
     return null;
   }
 
-  private async fetchPlanVariants(
-    variantIds: string[],
-  ): Promise<Map<string, { id?: string; attributes?: Record<string, any> }>> {
-    const uniqueIds = Array.from(new Set(variantIds));
-    const variantsById = new Map<
-      string,
-      { id?: string; attributes?: Record<string, any> }
-    >();
-
-    if (this.productId) {
-      const response = await this.lemon.listVariants(this.productId);
-      const items = response.data ?? [];
-      for (const item of items) {
-        if (item?.id) {
-          variantsById.set(String(item.id), item);
-        }
-      }
-      return variantsById;
-    }
+  private async fetchPlanPrices(
+    priceIds: string[],
+  ): Promise<Map<string, Record<string, any>>> {
+    const uniqueIds = Array.from(new Set(priceIds));
+    const pricesById = new Map<string, Record<string, any>>();
 
     await Promise.all(
-      uniqueIds.map(async (variantId) => {
-        const response = await this.lemon.getVariant(variantId);
+      uniqueIds.map(async (priceId) => {
+        const response = await this.paddle.getPrice(priceId);
         if (response.data) {
-          variantsById.set(
-            String(response.data.id ?? variantId),
-            response.data,
-          );
+          pricesById.set(String(response.data.id ?? priceId), response.data);
         }
       }),
     );
 
-    return variantsById;
+    return pricesById;
   }
 
-  private extractVariantPricing(variant: {
-    id?: string;
-    attributes?: Record<string, any>;
-  }): { amount: number; currency: string; interval: BillingInterval } {
-    const attributes = variant.attributes ?? {};
+  private extractPricePricing(price: { id?: string; [key: string]: any }): {
+    amount: number;
+    currency: string;
+    interval: BillingInterval;
+  } {
     const amount = this.parseAmount(
-      attributes.price ?? attributes.unit_price ?? attributes.renewal_price,
+      price.unit_price?.amount ??
+        price.unitPrice?.amount ??
+        price.unit_amount ??
+        price.amount,
     );
-    const currency = attributes.currency ?? attributes.currency_code ?? 'EUR';
+    const currency =
+      price.unit_price?.currency_code ??
+      price.unitPrice?.currencyCode ??
+      price.currency ??
+      price.currency_code ??
+      'EUR';
     const interval = this.mapInterval(
-      attributes.billing_interval ??
-        attributes.interval_unit ??
-        attributes.interval,
+      price.billing_cycle?.interval ??
+        price.billingCycle?.interval ??
+        price.interval,
     ) as BillingInterval;
+
     return { amount, currency, interval };
+  }
+
+  private extractSubscriptionIdFromEvent(
+    normalizedEventName: string,
+    payload: PaddleWebhookPayload,
+  ): string | null {
+    if (normalizedEventName.includes('subscription') && payload.data?.id) {
+      return String(payload.data.id);
+    }
+    const candidate =
+      payload.data?.subscription_id ?? payload.data?.subscription?.id ?? null;
+    return candidate ? String(candidate) : null;
+  }
+
+  private extractPriceIdFromEventData(
+    data: Record<string, any>,
+  ): string | null {
+    const candidate =
+      data.price_id ??
+      data.price?.id ??
+      data.items?.[0]?.price_id ??
+      data.items?.[0]?.price?.id ??
+      data.subscription_details?.items?.[0]?.price?.id ??
+      null;
+
+    return candidate ? String(candidate) : null;
+  }
+
+  private extractAmountFromEventData(data: Record<string, any>): number {
+    return this.parseAmount(
+      data.details?.totals?.total ??
+        data.recurring_totals?.total ??
+        data.totals?.total ??
+        data.unit_totals?.total ??
+        data.items?.[0]?.price?.unit_price?.amount ??
+        data.items?.[0]?.price?.unitPrice?.amount ??
+        0,
+    );
+  }
+
+  private extractCurrencyFromEventData(
+    data: Record<string, any>,
+  ): string | null {
+    return (
+      data.details?.totals?.currency_code ??
+      data.recurring_totals?.currency_code ??
+      data.totals?.currency_code ??
+      data.items?.[0]?.price?.unit_price?.currency_code ??
+      data.items?.[0]?.price?.unitPrice?.currencyCode ??
+      data.currency_code ??
+      data.currency ??
+      null
+    );
+  }
+
+  private extractIntervalFromEventData(
+    data: Record<string, any>,
+  ): string | null {
+    return (
+      data.billing_cycle?.interval ??
+      data.items?.[0]?.price?.billing_cycle?.interval ??
+      data.items?.[0]?.price?.billingCycle?.interval ??
+      data.interval ??
+      null
+    );
+  }
+
+  private extractActiveFromFromEventData(
+    data: Record<string, any>,
+  ): Date | null {
+    return this.parseDate(
+      data.started_at ?? data.first_billed_at ?? data.created_at ?? null,
+    );
+  }
+
+  private extractActiveUntilFromEventData(
+    data: Record<string, any>,
+    status: OrganizationStatus,
+    normalizedEventName: string,
+  ): Date | null {
+    if (
+      status === OrganizationStatus.CANCELED ||
+      normalizedEventName.includes('subscription.canceled')
+    ) {
+      return this.parseDate(
+        data.canceled_at ??
+          data.scheduled_change?.effective_at ??
+          data.current_billing_period?.ends_at ??
+          data.next_billed_at ??
+          null,
+      );
+    }
+
+    return this.parseDate(
+      data.current_billing_period?.ends_at ?? data.next_billed_at ?? null,
+    );
+  }
+
+  private extractRenewsAtFromEventData(data: Record<string, any>): Date | null {
+    return this.parseDate(
+      data.next_billed_at ?? data.current_billing_period?.ends_at ?? null,
+    );
   }
 
   private resolvePlan(
     plan: string | null | undefined,
-    variantId: string | number | null | undefined,
+    priceId: string | number | null | undefined,
   ): OrganizationPlan {
     const normalized = (plan ?? '').toString().toUpperCase();
     if (normalized === 'STARTER') {
@@ -982,18 +1445,18 @@ export class BillingService {
       return normalized as OrganizationPlan;
     }
 
-    const variantIdStr = variantId ? String(variantId) : null;
+    const priceIdStr = priceId ? String(priceId) : null;
     if (
-      variantIdStr &&
-      (variantIdStr === this.variantIds.starterMonthly ||
-        variantIdStr === this.variantIds.starterYearly)
+      priceIdStr &&
+      (priceIdStr === this.priceIds.starterMonthly ||
+        priceIdStr === this.priceIds.starterYearly)
     ) {
       return OrganizationPlan.BASIC;
     }
     if (
-      variantIdStr &&
-      (variantIdStr === this.variantIds.proMonthly ||
-        variantIdStr === this.variantIds.proYearly)
+      priceIdStr &&
+      (priceIdStr === this.priceIds.proMonthly ||
+        priceIdStr === this.priceIds.proYearly)
     ) {
       return OrganizationPlan.PRO;
     }
@@ -1004,29 +1467,48 @@ export class BillingService {
   private resolveStatus(
     rawStatus: string | null | undefined,
     eventName: string,
-  ): OrganizationStatus {
+  ): OrganizationStatus | null {
     const normalized = (rawStatus ?? '').toString().toLowerCase();
     if (
+      eventName.includes('transaction.payment_failed') ||
       eventName.includes('payment_failed') ||
       normalized === 'unpaid' ||
       normalized === 'past_due'
     ) {
       return OrganizationStatus.CANCELED;
     }
-    if (normalized === 'cancelled' || normalized === 'expired') {
+    if (
+      eventName.includes('subscription.canceled') ||
+      normalized === 'cancelled' ||
+      normalized === 'canceled' ||
+      normalized === 'expired' ||
+      normalized === 'inactive'
+    ) {
       return OrganizationStatus.CANCELED;
     }
-    if (normalized === 'paused') {
+    if (eventName.includes('subscription.paused') || normalized === 'paused') {
       return OrganizationStatus.SUSPENDED;
     }
-    return OrganizationStatus.ACTIVE;
+    if (
+      eventName.includes('transaction.paid') ||
+      eventName.includes('payment_success') ||
+      eventName.includes('payment_succeeded') ||
+      eventName.includes('subscription.created') ||
+      eventName.includes('subscription.resumed') ||
+      eventName.includes('subscription.activated') ||
+      normalized === 'trialing' ||
+      normalized === 'active' ||
+      normalized === 'paid'
+    ) {
+      return OrganizationStatus.ACTIVE;
+    }
+    return null;
   }
 
   private async updateCheckoutSessionFromWebhook(params: {
     checkoutSessionId: string;
     eventName: string;
     rawStatus: string | null | undefined;
-    resolvedStatus: OrganizationStatus;
     providerSubscriptionId: string | null;
     providerOrderId: string | null;
   }): Promise<void> {
@@ -1051,7 +1533,6 @@ export class BillingService {
 
     if (session.status === 'PENDING') {
       const nextStatus = this.resolveCheckoutStatus(
-        params.resolvedStatus,
         params.rawStatus,
         params.eventName,
       );
@@ -1072,33 +1553,377 @@ export class BillingService {
   }
 
   private resolveCheckoutStatus(
-    resolvedStatus: OrganizationStatus,
     rawStatus: string | null | undefined,
     eventName: string,
   ): 'PENDING' | 'PAID' | 'CANCELED' | 'FAILED' | 'EXPIRED' {
-    if (resolvedStatus === OrganizationStatus.ACTIVE) {
+    const normalizedEvent = eventName.toLowerCase();
+    const normalized = (rawStatus ?? '').toString().toLowerCase();
+
+    if (
+      normalizedEvent.includes('transaction.paid') ||
+      normalizedEvent.includes('payment_success') ||
+      normalizedEvent.includes('payment_succeeded') ||
+      normalized === 'paid' ||
+      normalized === 'completed'
+    ) {
       return 'PAID';
     }
 
-    const normalized = (rawStatus ?? '').toString().toLowerCase();
     if (normalized === 'expired') {
       return 'EXPIRED';
     }
     if (
-      eventName.includes('payment_failed') ||
+      normalizedEvent.includes('transaction.payment_failed') ||
+      normalizedEvent.includes('payment_failed') ||
       normalized === 'unpaid' ||
       normalized === 'past_due'
     ) {
       return 'FAILED';
     }
-    if (resolvedStatus === OrganizationStatus.CANCELED) {
+    if (
+      normalizedEvent.includes('subscription.canceled') ||
+      normalizedEvent.includes('subscription_cancelled') ||
+      normalizedEvent.includes('subscription_canceled') ||
+      normalized === 'cancelled' ||
+      normalized === 'canceled' ||
+      normalized === 'inactive'
+    ) {
       return 'CANCELED';
     }
-    if (resolvedStatus === OrganizationStatus.SUSPENDED) {
+    if (
+      normalizedEvent.includes('subscription.paused') ||
+      normalized === 'paused'
+    ) {
       return 'FAILED';
     }
 
-    return 'FAILED';
+    return 'PENDING';
+  }
+
+  private async resolveProrationBillingMode(params: {
+    activeSubscription: OrganizationSubscription;
+    targetPriceId: string;
+    targetInterval: BillingInterval;
+  }): Promise<PaddleSubscriptionProrationBillingMode> {
+    const targetPricing = await this.resolvePricingFromPrice({
+      priceId: params.targetPriceId,
+    });
+    const currentAnnualized = this.annualizeAmount(
+      params.activeSubscription.amount,
+      params.activeSubscription.interval,
+    );
+    const targetAnnualized = this.annualizeAmount(
+      targetPricing?.amount ?? params.activeSubscription.amount,
+      targetPricing?.interval ?? params.targetInterval,
+    );
+
+    if (targetAnnualized > currentAnnualized) {
+      return 'prorated_immediately';
+    }
+    if (targetAnnualized < currentAnnualized) {
+      return 'prorated_next_billing_period';
+    }
+    return 'do_not_bill';
+  }
+
+  private annualizeAmount(
+    amount: number,
+    interval: OrganizationSubscription['interval'],
+  ): number {
+    if (!Number.isFinite(amount)) {
+      return 0;
+    }
+    if (interval === 'YEARLY') {
+      return amount;
+    }
+    if (interval === 'LIFETIME') {
+      return amount;
+    }
+    return amount * 12;
+  }
+
+  private toBillingInterval(
+    interval: OrganizationSubscription['interval'],
+  ): BillingInterval | null {
+    if (interval === 'MONTHLY') {
+      return 'MONTHLY';
+    }
+    if (interval === 'YEARLY') {
+      return 'YEARLY';
+    }
+    return null;
+  }
+
+  private buildSubscriptionUpdateItems(params: {
+    subscriptionData: Record<string, any>;
+    currentVariantId: string | null;
+    targetPriceId: string;
+  }): PaddleSubscriptionUpdateItem[] {
+    const rawItems = Array.isArray(params.subscriptionData.items)
+      ? params.subscriptionData.items
+      : [];
+    if (rawItems.length === 0) {
+      throw new Error('Current Paddle subscription has no items.');
+    }
+
+    const items = rawItems.map((item: Record<string, any>) => {
+      const priceId = this.normalizeProviderOrderId(
+        item.price_id ?? item.price?.id ?? null,
+      );
+      if (!priceId) {
+        throw new Error(
+          'Current Paddle subscription item is missing price_id.',
+        );
+      }
+      const quantityRaw = Number(item.quantity ?? 1);
+      const quantity =
+        Number.isFinite(quantityRaw) && quantityRaw > 0
+          ? Math.round(quantityRaw)
+          : 1;
+
+      return {
+        priceId,
+        quantity,
+      };
+    });
+
+    const managedItemIndex = this.resolveManagedSubscriptionItemIndex({
+      items,
+      currentVariantId: params.currentVariantId,
+    });
+    if (managedItemIndex < 0) {
+      throw new Error(
+        'Unable to determine which subscription item should be replaced.',
+      );
+    }
+
+    return items.map((item, index) => ({
+      price_id:
+        index === managedItemIndex ? params.targetPriceId : item.priceId,
+      quantity: item.quantity,
+    }));
+  }
+
+  private resolveManagedSubscriptionItemIndex(params: {
+    items: Array<{ priceId: string; quantity: number }>;
+    currentVariantId: string | null;
+  }): number {
+    if (params.currentVariantId) {
+      const currentItemIndex = params.items.findIndex(
+        (item) => item.priceId === params.currentVariantId,
+      );
+      if (currentItemIndex >= 0) {
+        return currentItemIndex;
+      }
+    }
+
+    const managedItemIndex = params.items.findIndex(
+      (item) => !!this.resolveStandardPlanForPrice(item.priceId),
+    );
+    if (managedItemIndex >= 0) {
+      return managedItemIndex;
+    }
+
+    if (params.items.length === 1) {
+      return 0;
+    }
+
+    return -1;
+  }
+
+  private async syncOrganizationSubscriptionFromProviderSnapshot(params: {
+    organizationId: string;
+    subscriptionData: Record<string, any>;
+    fallbackPriceId?: string | null;
+    fallbackInterval: BillingInterval;
+    eventName?: string;
+  }) {
+    const normalizedEventName = (
+      params.eventName ?? 'subscription.updated'
+    ).toLowerCase();
+    const priceId =
+      this.extractPriceIdFromEventData(params.subscriptionData) ??
+      params.fallbackPriceId ??
+      null;
+    const plan = this.resolvePlan(null, priceId);
+    const status =
+      this.resolveStatus(params.subscriptionData.status, normalizedEventName) ??
+      OrganizationStatus.ACTIVE;
+    const limits = getPlanLimits(plan);
+    const planName =
+      params.subscriptionData.custom_data?.planName ??
+      params.subscriptionData.custom_data?.plan_name ??
+      params.subscriptionData.customData?.planName ??
+      params.subscriptionData.customData?.plan_name ??
+      null;
+    const pricingFallback = priceId
+      ? await this.resolvePricingFromPrice({
+          priceId,
+        })
+      : null;
+    const rawAmount = this.extractAmountFromEventData(params.subscriptionData);
+    const intervalValue = this.extractIntervalFromEventData(
+      params.subscriptionData,
+    );
+    const resolvedInterval = intervalValue
+      ? this.mapInterval(intervalValue)
+      : (pricingFallback?.interval ?? params.fallbackInterval);
+    const resolvedAmount =
+      rawAmount > 0 || plan === OrganizationPlan.FREE
+        ? rawAmount
+        : (pricingFallback?.amount ?? rawAmount);
+    const resolvedCurrency =
+      this.extractCurrencyFromEventData(params.subscriptionData) ??
+      pricingFallback?.currency ??
+      'EUR';
+    const providerSubscriptionId =
+      this.normalizeProviderOrderId(params.subscriptionData.id) ?? null;
+
+    if (!providerSubscriptionId) {
+      throw new Error('Updated Paddle subscription is missing id.');
+    }
+
+    return this.updateOrganizationSubscription(params.organizationId, {
+      plan,
+      planName,
+      status,
+      providerSubscriptionId,
+      providerCustomerId:
+        this.normalizeProviderOrderId(
+          params.subscriptionData.customer_id ??
+            params.subscriptionData.customer?.id ??
+            null,
+        ) ?? null,
+      providerOrderId: this.normalizeProviderOrderId(
+        params.subscriptionData.order_id ?? params.subscriptionData.id,
+      ),
+      providerVariantId: priceId,
+      activeFrom: this.extractActiveFromFromEventData(params.subscriptionData),
+      activeUntil: this.extractActiveUntilFromEventData(
+        params.subscriptionData,
+        status,
+        normalizedEventName,
+      ),
+      amount: resolvedAmount,
+      currency: resolvedCurrency,
+      interval: resolvedInterval,
+      limits,
+    });
+  }
+
+  private buildSubscriptionSyncSnapshot(
+    subscription: OrganizationSubscription,
+  ) {
+    return {
+      plan: subscription.plan,
+      status: subscription.status,
+      interval: subscription.interval,
+      providerSubscriptionId: subscription.providerSubscriptionId ?? null,
+      providerVariantId: subscription.providerVariantId ?? null,
+      amount: subscription.amount,
+      currency: subscription.currency,
+      activeFrom: subscription.activeFrom?.toISOString?.() ?? null,
+      activeUntil: subscription.activeUntil?.toISOString?.() ?? null,
+    };
+  }
+
+  private isProrationModeInvalidForScheduledChange(error: unknown): boolean {
+    if (!(error instanceof Error)) {
+      return false;
+    }
+    const normalized = error.message.toLowerCase();
+    return (
+      normalized.includes(
+        'subscription_invalid_billing_mode_for_scheduled_change',
+      ) ||
+      (normalized.includes('scheduled') &&
+        (normalized.includes('billing mode') ||
+          normalized.includes('proration_billing_mode')))
+    );
+  }
+
+  private hasScheduledCancellation(
+    subscriptionData: Record<string, any>,
+  ): boolean {
+    const scheduledChange =
+      subscriptionData.scheduled_change ?? subscriptionData.scheduledChange;
+    if (!scheduledChange || typeof scheduledChange !== 'object') {
+      return false;
+    }
+    const action = (scheduledChange.action ?? '')
+      .toString()
+      .toLowerCase()
+      .trim();
+    if (!action) {
+      return false;
+    }
+    return action.includes('cancel');
+  }
+
+  private isMinimumPaymentAmountError(error: unknown): boolean {
+    if (!(error instanceof Error)) {
+      return false;
+    }
+    const normalized = error.message.toLowerCase();
+    return (
+      normalized.includes(
+        'transaction balance is less than what we can charge',
+      ) ||
+      (normalized.includes('minimum payment amount') &&
+        normalized.includes('subscription update'))
+    );
+  }
+
+  private mapSubscriptionChangeError(error: unknown): string | null {
+    if (error instanceof BadRequestException) {
+      const response = error.getResponse();
+      if (typeof response === 'string' && response.trim()) {
+        return response;
+      }
+      if (
+        response &&
+        typeof response === 'object' &&
+        'message' in response &&
+        typeof (response as { message?: unknown }).message === 'string'
+      ) {
+        const message = (response as { message: string }).message.trim();
+        if (message) {
+          return message;
+        }
+      }
+    }
+
+    if (!(error instanceof Error)) {
+      return null;
+    }
+
+    const normalized = error.message.toLowerCase();
+    if (this.isMinimumPaymentAmountError(error)) {
+      return 'Unable to apply an immediate billing adjustment because the prorated amount is below Paddle minimum charge. Please try again later or cancel and create a new subscription.';
+    }
+    if (
+      normalized.includes(
+        'the new items are not valid for updating this subscription',
+      )
+    ) {
+      return 'Changing billing interval is not available for an active subscription. Cancel your current subscription first, then choose a new interval.';
+    }
+    if (
+      normalized.includes(
+        'changing billing interval is not available for an active subscription',
+      )
+    ) {
+      return error.message;
+    }
+    if (
+      normalized.includes('scheduled change') &&
+      (normalized.includes('proration_billing_mode') ||
+        normalized.includes('billing mode'))
+    ) {
+      return 'Subscription update is temporarily blocked because this subscription already has a scheduled change. Open Manage subscription and resolve the scheduled change first.';
+    }
+
+    return null;
   }
 
   private appendCheckoutSessionId(

@@ -138,9 +138,7 @@ export const AuthStore = signalStore(
       return api.register(payload).pipe(
         tap((response) => {
           setSession(response);
-          if (!response.checkoutUrl) {
-            prefetchCoreData();
-          }
+          prefetchCoreData();
         }),
         catchError((error) => {
           setError(error, 'Registration failed');

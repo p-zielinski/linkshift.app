@@ -30,6 +30,8 @@ import { SITE_CONFIG } from '../../core/config/site-config';
 import { BillingPlansStore } from '../../core/store/billing-plans.store';
 import { APP_CONFIG } from '../../core/config/app-runtime-config';
 import { formatLimitSummary } from '../../core/utils/plan-limits';
+import { BillingPlanPrice } from '../../core/api/billing-api.service';
+import { PaddleCheckoutFlowService } from '../../core/billing/paddle-checkout-flow.service';
 
 @Component({
   selector: 'app-auth-page',
@@ -60,6 +62,7 @@ export class AuthPageComponent {
   private readonly billingPlansStore = inject(BillingPlansStore);
   private readonly appConfig = inject(APP_CONFIG);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly checkoutFlow = inject(PaddleCheckoutFlowService);
 
   loginModel = signal({
     email: '',
@@ -133,12 +136,9 @@ export class AuthPageComponent {
   );
 
   private readonly pricingByPlan = computed(() => {
-    const map = new Map<string, { amount: number; currency: string }>();
+    const map = new Map<string, BillingPlanPrice>();
     for (const entry of this.billingPlansStore.plans()) {
-      map.set(`${entry.plan}:${entry.interval}`, {
-        amount: entry.amount,
-        currency: entry.currency,
-      });
+      map.set(`${entry.plan}:${entry.interval}`, entry);
     }
     return map;
   });
@@ -213,13 +213,65 @@ export class AuthPageComponent {
   async onRegister(event?: Event): Promise<void> {
     event?.preventDefault();
     await submit(this.registerForm, async (formValue) => {
+      const { confirmPassword: _confirmPassword, ...payload } = formValue().value();
       try {
-        const { confirmPassword: _confirmPassword, ...payload } = formValue().value();
-        const response = await firstValueFrom(this.authStore.register(payload));
-        if (response.checkoutUrl) {
-          window.location.href = response.checkoutUrl;
-          return undefined;
+        await firstValueFrom(this.authStore.register(payload));
+      } catch {
+        return undefined;
+      }
+
+      if (payload.plan !== OrganizationPlan.FREE) {
+        const priceId = this.getPriceId(payload.plan, payload.billingInterval);
+        if (!priceId) {
+          this.snackBar.open(
+            'Missing price mapping for selected plan. You can retry from the dashboard.',
+            'Dismiss',
+            {
+              duration: 6000,
+              horizontalPosition: 'center',
+              verticalPosition: 'bottom',
+              panelClass: ['bg-amber-600', 'text-white'],
+            },
+          );
+        } else {
+          try {
+            const checkoutResult = await this.checkoutFlow.startCheckout({
+              priceId,
+              plan: payload.plan,
+              interval: payload.billingInterval,
+              source: 'registration',
+            });
+
+            if (checkoutResult.status === 'completed') {
+              this.snackBar.open('Payment received. We are confirming plan activation.', 'Dismiss', {
+                duration: 5000,
+                horizontalPosition: 'center',
+                verticalPosition: 'bottom',
+                panelClass: ['bg-emerald-600', 'text-white'],
+              });
+            } else {
+              this.snackBar.open('Checkout canceled. You can upgrade later from dashboard.', 'Dismiss', {
+                duration: 5000,
+                horizontalPosition: 'center',
+                verticalPosition: 'bottom',
+              });
+            }
+          } catch (checkoutError) {
+            const message =
+              checkoutError instanceof Error
+                ? checkoutError.message
+                : 'Unable to open checkout overlay. You can retry from dashboard.';
+            this.snackBar.open(message, 'Dismiss', {
+              duration: 6000,
+              horizontalPosition: 'center',
+              verticalPosition: 'bottom',
+              panelClass: ['bg-amber-600', 'text-white'],
+            });
+          }
         }
+      }
+
+      try {
         await this.router.navigateByUrl('/dashboard');
       } catch {
         return undefined;
@@ -245,7 +297,7 @@ export class AuthPageComponent {
     plan: OrganizationPlan,
     interval: BillingInterval,
   ): string {
-    const pricing = this.pricingByPlan().get(`${plan}:${interval}`);
+    const pricing = this.getPlanPrice(plan, interval);
     if (!pricing) {
       return 'Contact us';
     }
@@ -255,5 +307,19 @@ export class AuthPageComponent {
         : pricing.amount.toFixed(2);
     const suffix = interval === 'YEARLY' ? 'year' : 'month';
     return `${normalized} ${pricing.currency} / ${suffix}`;
+  }
+
+  private getPlanPrice(
+    plan: OrganizationPlan,
+    interval: BillingInterval,
+  ): BillingPlanPrice | null {
+    return this.pricingByPlan().get(`${plan}:${interval}`) ?? null;
+  }
+
+  private getPriceId(
+    plan: OrganizationPlan,
+    interval: BillingInterval,
+  ): string | null {
+    return this.getPlanPrice(plan, interval)?.priceId ?? null;
   }
 }

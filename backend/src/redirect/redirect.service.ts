@@ -810,7 +810,9 @@ export class RedirectService {
         };
       })
       .filter(
-        (entry): entry is {
+        (
+          entry,
+        ): entry is {
           rule: (typeof rules)[number];
           hits: number;
           topLinkMapKeys: RedirectRuleAnalyticsLinkMapKey[];
@@ -860,7 +862,11 @@ export class RedirectService {
     }
 
     const rows = await this.prisma.$queryRaw<
-      Array<{ ruleId: string; linkMapKey: string; hits: bigint | number | string }>
+      Array<{
+        ruleId: string;
+        linkMapKey: string;
+        hits: bigint | number | string;
+      }>
     >(Prisma.sql`
       SELECT
         ranked."ruleId",
@@ -1025,9 +1031,10 @@ export class RedirectService {
     }
   }
 
-  private resolveAnalyticsRange(
-    query: TopRedirectRulesQueryDto,
-  ): { start: Date; end: Date } {
+  private resolveAnalyticsRange(query: TopRedirectRulesQueryDto): {
+    start: Date;
+    end: Date;
+  } {
     if (query.start && query.end) {
       return this.normalizeHourlyRange(query.start, query.end);
     }
@@ -1587,7 +1594,10 @@ export class RedirectService {
       });
 
     // 3. Set Cache through Manager
-    await this.cacheManagerService.setRedirectContext(normalizedHostname, domain);
+    await this.cacheManagerService.setRedirectContext(
+      normalizedHostname,
+      domain,
+    );
 
     return domain;
   }
@@ -2267,10 +2277,7 @@ export class RedirectService {
     return remainder;
   }
 
-  private buildMatchContext(
-    req: Request,
-    url: URL,
-  ): RedirectMatchContext {
+  private buildMatchContext(req: Request, url: URL): RedirectMatchContext {
     const path = url.pathname.startsWith('/')
       ? url.pathname
       : `/${url.pathname}`;

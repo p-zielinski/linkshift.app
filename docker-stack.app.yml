@@ -18,6 +18,8 @@ services:
       APP_MIN_AGE: ${APP_MIN_AGE}
       APP_LEGAL_VERSION: ${APP_LEGAL_VERSION}
       APP_AUTH_GATE_ENABLED: ${APP_AUTH_GATE_ENABLED}
+      APP_PADDLE_CLIENT_TOKEN: ${APP_PADDLE_CLIENT_TOKEN}
+      APP_PADDLE_ENV: ${APP_PADDLE_ENV}
     networks:
       inter-stack:
         aliases:
@@ -46,13 +48,12 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       REDIS_USERNAME: default
-      LEMON_SQUEEZY_STORE_ID: ${LEMON_SQUEEZY_STORE_ID}
-      LEMON_SQUEEZY_SUCCESS_URL: ${LEMON_SQUEEZY_SUCCESS_URL}
-      LEMON_SQUEEZY_PRODUCT_ID: ${LEMON_SQUEEZY_PRODUCT_ID}
-      LEMON_SQUEEZY_VARIANT_BASIC_MONTHLY_ID: ${LEMON_SQUEEZY_VARIANT_BASIC_MONTHLY_ID}
-      LEMON_SQUEEZY_VARIANT_BASIC_YEARLY_ID: ${LEMON_SQUEEZY_VARIANT_BASIC_YEARLY_ID}
-      LEMON_SQUEEZY_VARIANT_PRO_MONTHLY_ID: ${LEMON_SQUEEZY_VARIANT_PRO_MONTHLY_ID}
-      LEMON_SQUEEZY_VARIANT_PRO_YEARLY_ID: ${LEMON_SQUEEZY_VARIANT_PRO_YEARLY_ID}
+      PADDLE_SUCCESS_URL: ${PADDLE_SUCCESS_URL}
+      PADDLE_API_VERSION: ${PADDLE_API_VERSION}
+      PADDLE_PRICE_BASIC_MONTHLY_ID: ${PADDLE_PRICE_BASIC_MONTHLY_ID}
+      PADDLE_PRICE_BASIC_YEARLY_ID: ${PADDLE_PRICE_BASIC_YEARLY_ID}
+      PADDLE_PRICE_PRO_MONTHLY_ID: ${PADDLE_PRICE_PRO_MONTHLY_ID}
+      PADDLE_PRICE_PRO_YEARLY_ID: ${PADDLE_PRICE_PRO_YEARLY_ID}
       ZEPTOMAIL_API_URL: ${ZEPTOMAIL_API_URL}
       ZEPTOMAIL_FROM_ADDRESS: ${ZEPTOMAIL_FROM_ADDRESS}
       ZEPTOMAIL_FROM_NAME: ${ZEPTOMAIL_FROM_NAME}
@@ -63,8 +64,8 @@ services:
       - jwt_secret
       - jwt_refresh_secret
       - sentry_dsn
-      - lemon_squeezy_api_key
-      - lemon_squeezy_webhook_secret
+      - paddle_api_key
+      - paddle_webhook_secret
       - zeptomail_api_key
       - web_risk_api_key
     networks:
@@ -133,9 +134,9 @@ secrets:
     external: true
   sentry_dsn:
     external: true
-  lemon_squeezy_api_key:
+  paddle_api_key:
     external: true
-  lemon_squeezy_webhook_secret:
+  paddle_webhook_secret:
     external: true
   zeptomail_api_key:
     external: true

@@ -22,13 +22,18 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../core/store/auth.store';
-import { OrganizationConfiguration } from '@shared/models/organization-config.model';
+import {
+  BillingInterval,
+  OrganizationConfiguration,
+  OrganizationStatus,
+} from '@shared/models/organization-config.model';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { BillingApiService } from '../../core/api/billing-api.service';
 import { UpgradeDialogComponent } from '../billing/upgrade-dialog/upgrade-dialog.component';
 import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { formatPlanLabel } from '../../core/utils/plan-label';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -206,7 +211,33 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     this.scheduleOverflowCheck();
   }
 
-  async openCustomerPortal(): Promise<void> {
+  async openManageSubscription(): Promise<void> {
+    await this.openCustomerPortal();
+  }
+
+  async openCancelSubscription(): Promise<void> {
+    const confirmDialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Cancel subscription',
+        message:
+          'You will be redirected to Paddle to confirm cancellation details. Continue?',
+        confirmLabel: 'Continue',
+        cancelLabel: 'Back',
+        tone: 'warning',
+      },
+      maxWidth: '480px',
+      width: 'min(480px, 92vw)',
+    });
+
+    const confirmed = await firstValueFrom(confirmDialogRef.afterClosed());
+    if (!confirmed) {
+      return;
+    }
+
+    await this.openCustomerPortal();
+  }
+
+  private async openCustomerPortal(): Promise<void> {
     this.billingBusy.set(true);
     try {
       const response = await firstValueFrom(this.billingApi.getCustomerPortal());
@@ -225,8 +256,17 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
   }
 
   openUpgradeDialog(): void {
+    const activeSubscription = this.activeSubscription();
+    const currentInterval: BillingInterval =
+      activeSubscription.interval === 'YEARLY' ? 'YEARLY' : 'MONTHLY';
+
     this.dialog.open(UpgradeDialogComponent, {
-      data: { currentPlan: this.activeSubscription().plan },
+      data: {
+        currentPlan: activeSubscription.plan,
+        currentInterval,
+        currentStatus: activeSubscription.status as OrganizationStatus,
+        hasProviderSubscription: !!activeSubscription.providerSubscriptionId,
+      },
       closeOnNavigation: true,
       maxWidth: '960px',
       width: 'min(960px, 96vw)',
