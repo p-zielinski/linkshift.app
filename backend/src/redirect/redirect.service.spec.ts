@@ -17,6 +17,7 @@ import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
 import { Logger } from 'nestjs-pino';
 import { LinkMapService } from '../link-map/link-map.service';
+import { ROBOTS_ALLOW_ALL_CONTENT } from '@shared/models/robots-policy.model';
 
 const mockPrismaService = {
   domain: {
@@ -1724,6 +1725,135 @@ describe('RedirectService', () => {
         cacheManagerService.checkRateLimit,
       ).toHaveBeenCalledWith(RateLimitScope.REDIRECTION, 'org_1', 10);
       expect(res.redirect).toHaveBeenCalledWith(301, 'https://example.com/new');
+    });
+
+    it('should return robots.txt content and skip redirect rules when robots policy is active', async () => {
+      const req = createMockRequest('http://example.com/robots.txt?from=test');
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+        type: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      } as any;
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_1',
+          robotsPolicy: 'ALLOW_ALL',
+          customRobotsContent: null,
+          redirectRules: [
+            {
+              source: '/robots.txt',
+              destination: 'https://example.com/should-not-run',
+              statusCode: 301,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'exact',
+            },
+          ],
+        },
+      });
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue({
+        configuration: null,
+      });
+      (
+        cacheManagerService.checkRateLimit as jest.Mock
+      ).mockResolvedValue(undefined);
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
+        undefined,
+      );
+
+      await service.applyRedirect(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.type).toHaveBeenCalledWith('text/plain; charset=utf-8');
+      expect(res.send).toHaveBeenCalledWith(ROBOTS_ALLOW_ALL_CONTENT);
+      expect(res.redirect).not.toHaveBeenCalled();
+    });
+
+    it('should continue standard rule matching for /robots.txt when robots policy is NONE', async () => {
+      const req = createMockRequest('http://example.com/robots.txt');
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+        type: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      } as any;
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_1',
+          robotsPolicy: 'NONE',
+          customRobotsContent: null,
+          redirectRules: [
+            {
+              source: '/robots.txt',
+              destination: 'https://example.com/robots-public',
+              statusCode: 301,
+              matchMethod: [],
+              queryMatch: 'exact',
+              pathMatch: 'exact',
+            },
+          ],
+        },
+      });
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue({
+        configuration: null,
+      });
+      (
+        cacheManagerService.checkRateLimit as jest.Mock
+      ).mockResolvedValue(undefined);
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
+        undefined,
+      );
+
+      await service.applyRedirect(req, res);
+
+      expect(res.redirect).toHaveBeenCalledWith(
+        301,
+        'https://example.com/robots-public',
+      );
+      expect(res.send).not.toHaveBeenCalled();
+    });
+
+    it('should return custom robots.txt content when robots policy is CUSTOM', async () => {
+      const req = createMockRequest('http://example.com/robots.txt');
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+        type: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      } as any;
+
+      const customRobots = 'User-agent: *\nDisallow: /private';
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_1',
+          robotsPolicy: 'CUSTOM',
+          customRobotsContent: customRobots,
+          redirectRules: [],
+        },
+      });
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue({
+        configuration: null,
+      });
+      (
+        cacheManagerService.checkRateLimit as jest.Mock
+      ).mockResolvedValue(undefined);
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
+        undefined,
+      );
+
+      await service.applyRedirect(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.type).toHaveBeenCalledWith('text/plain; charset=utf-8');
+      expect(res.send).toHaveBeenCalledWith(customRobots);
+      expect(res.redirect).not.toHaveBeenCalled();
     });
 
     it('should apply a stored www to apex rule and keep path with query', async () => {

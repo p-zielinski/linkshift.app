@@ -29,6 +29,13 @@ import {
   RateLimitScope,
 } from '../cache/cache-manager.service';
 import { OrganizationConfiguration } from '@shared/models/organization-config.model';
+import {
+  DEFAULT_ROBOTS_POLICY,
+  ROBOTS_ALLOW_ALL_CONTENT,
+  ROBOTS_DISALLOW_ALL_CONTENT,
+  ROBOTS_DISALLOW_BAD_BOTS_CONTENT,
+  type RobotsPolicy,
+} from '@shared/models/robots-policy.model';
 import { Domain, DomainGroup, Organization } from '@shared/prisma-client';
 import {
   BadRequestError,
@@ -257,6 +264,49 @@ export class RedirectService {
 
   private getCaddyDomainCacheKey(hostname: string): string {
     return `CADDY_DOMAIN_ALLOWED:${hostname}`;
+  }
+
+  private getRequestPath(req: Request): string {
+    const original = req.originalUrl ?? req.url ?? req.path ?? '/';
+
+    try {
+      const parsed = new URL(original, 'http://linkshift.local');
+      return parsed.pathname || '/';
+    } catch {
+      return req.path || '/';
+    }
+  }
+
+  private normalizeCustomRobotsContent(
+    value: string | null | undefined,
+  ): string | null {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const normalized = value.trim();
+    return normalized.length > 0 ? value : null;
+  }
+
+  private resolveRobotsTxtContent(
+    robotsPolicy: RobotsPolicy | null | undefined,
+    customRobotsContent: string | null | undefined,
+  ): string | null {
+    const policy = robotsPolicy ?? DEFAULT_ROBOTS_POLICY;
+
+    switch (policy) {
+      case 'ALLOW_ALL':
+        return ROBOTS_ALLOW_ALL_CONTENT;
+      case 'DISALLOW_ALL':
+        return ROBOTS_DISALLOW_ALL_CONTENT;
+      case 'DISALLOW_BAD_BOTS':
+        return ROBOTS_DISALLOW_BAD_BOTS_CONTENT;
+      case 'CUSTOM':
+        return this.normalizeCustomRobotsContent(customRobotsContent);
+      case 'NONE':
+      default:
+        return null;
+    }
   }
 
   private async invalidateCaddyDomainCache(hostname: string): Promise<void> {
@@ -607,11 +657,19 @@ export class RedirectService {
   async createDomainGroup(organizationId: string, data: CreateDomainGroupDto) {
     await this.organizationService.checkDomainGroupLimit(organizationId);
 
+    const robotsPolicy = data.robotsPolicy ?? DEFAULT_ROBOTS_POLICY;
+    const customRobotsContent =
+      robotsPolicy === 'CUSTOM'
+        ? this.normalizeCustomRobotsContent(data.customRobotsContent)
+        : null;
+
     return this.prisma.domainGroup.create({
       data: {
         id: createCustomCuid(AppEntity.DomainGroup),
         name: data.name,
         organizationId,
+        robotsPolicy,
+        customRobotsContent,
       },
     });
   }
@@ -639,11 +697,23 @@ export class RedirectService {
       );
     }
 
+    const robotsPolicy = data.robotsPolicy ?? existing.robotsPolicy;
+    const nextCustomContent =
+      data.customRobotsContent !== undefined
+        ? data.customRobotsContent
+        : existing.customRobotsContent;
+    const customRobotsContent =
+      robotsPolicy === 'CUSTOM'
+        ? this.normalizeCustomRobotsContent(nextCustomContent)
+        : null;
+
     // 2. Update
     const domainGroup = await this.prisma.domainGroup.update({
       where: { id },
       data: {
         name: data.name,
+        robotsPolicy,
+        customRobotsContent,
         updatedAt: new Date(),
       },
     });
@@ -1604,6 +1674,7 @@ export class RedirectService {
 
   async applyRedirect(req: express.Request, res: express.Response) {
     const hostname = this.normalizeHostname(req.hostname);
+    const requestPath = this.getRequestPath(req);
 
     // 1. Get Domain Context (Cached)
     const domain = await this.getDomainRedirectContext(hostname);
@@ -1653,6 +1724,18 @@ export class RedirectService {
         return;
       }
       throw error;
+    }
+
+    if (requestPath === '/robots.txt') {
+      const robotsTxtContent = this.resolveRobotsTxtContent(
+        domain.domainGroup.robotsPolicy,
+        domain.domainGroup.customRobotsContent,
+      );
+
+      if (robotsTxtContent !== null) {
+        res.status(200).type('text/plain; charset=utf-8').send(robotsTxtContent);
+        return;
+      }
     }
 
     // 3. Convert database rules to RedirectRule format

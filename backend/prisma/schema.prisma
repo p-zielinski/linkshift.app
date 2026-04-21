@@ -35,6 +35,14 @@ enum RedirectPathMatch {
   prefix
 }
 
+enum RobotsPolicy {
+  NONE
+  ALLOW_ALL
+  DISALLOW_ALL
+  DISALLOW_BAD_BOTS
+  CUSTOM
+}
+
 enum BillingCheckoutStatus {
   PENDING
   PAID
@@ -138,6 +146,8 @@ model DomainGroup {
   id             String   @id
   name           String
   organizationId String
+  robotsPolicy   RobotsPolicy @default(NONE)
+  customRobotsContent String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   deletedAt      DateTime?

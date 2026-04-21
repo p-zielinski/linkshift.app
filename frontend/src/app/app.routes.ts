@@ -168,6 +168,11 @@ export const routes: Routes = [
         component: BlogArticlePageComponent,
         data: { article: 'http-redirect-trace-tool' },
       },
+      {
+        path: 'blog/robots-txt-management-in-linkshift',
+        component: BlogArticlePageComponent,
+        data: { article: 'robots-txt-management-in-linkshift' },
+      },
       { path: 'pricing', component: PricingPageComponent },
       { path: 'use-cases', component: UseCasesPageComponent },
       { path: 'qr-code-generator', component: QrCodeGeneratorPageComponent },

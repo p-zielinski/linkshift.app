@@ -6,6 +6,7 @@ import {
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
 import { form, required, submit, FormField } from '@angular/forms/signals';
 import { applyZodField } from '../../core/forms/zod-validators';
@@ -22,6 +23,11 @@ import {
   WizardStepDirective,
   WizardStepSummaryDirective,
 } from '../../shared/components/wizard/wizard-step.directive';
+import {
+  DEFAULT_ROBOTS_POLICY,
+  MAX_CUSTOM_ROBOTS_CONTENT_LENGTH,
+  type RobotsPolicy,
+} from '@shared/models/robots-policy.model';
 
 export type DomainGroupDialogData = {
   group?: DomainGroup;
@@ -34,6 +40,7 @@ export type DomainGroupDialogData = {
     CommonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     FormField,
     WizardComponent,
     WizardStepDirective,
@@ -59,17 +66,57 @@ export class DomainGroupFormDialogComponent {
   readonly dialogTitle = this.isEdit ? 'Edit domain group' : 'Create domain group';
   readonly submitLabel = this.isEdit ? 'Save' : 'Create';
   readonly loadingMessage = this.isEdit ? 'Updating domain group...' : 'Creating domain group...';
+  readonly maxCustomRobotsContentLength = MAX_CUSTOM_ROBOTS_CONTENT_LENGTH;
+  readonly robotsPolicyOptions: { value: RobotsPolicy; label: string }[] = [
+    { value: 'NONE', label: 'Do not use (None)' },
+    { value: 'ALLOW_ALL', label: 'Allow all' },
+    { value: 'DISALLOW_ALL', label: 'Disallow all' },
+    { value: 'DISALLOW_BAD_BOTS', label: 'Disallow bad bots' },
+    { value: 'CUSTOM', label: 'Custom' },
+  ];
 
   groupModel = signal({
-    name: this.group?.name ?? ''
+    name: this.group?.name ?? '',
+    robotsPolicy: this.group?.robotsPolicy ?? DEFAULT_ROBOTS_POLICY,
+    customRobotsContent: this.group?.customRobotsContent ?? '',
   });
 
   groupForm = form(this.groupModel, (f) => {
     required(f.name);
+    required(f.robotsPolicy);
     applyZodField(f.name, domainGroupSchema.shape.name);
+    applyZodField(f.robotsPolicy, domainGroupSchema.shape.robotsPolicy);
+    applyZodField(f.customRobotsContent, domainGroupSchema.shape.customRobotsContent);
   });
 
   nameError = computed(() => this.getFieldError(this.groupForm.name()));
+  readonly robotsPolicyError = computed(() => this.getFieldError(this.groupForm.robotsPolicy()));
+  readonly isCustomPolicy = computed(() => this.groupModel().robotsPolicy === 'CUSTOM');
+  readonly robotsPolicyLabel = computed(
+    () =>
+      this.robotsPolicyOptions.find((option) => option.value === this.groupModel().robotsPolicy)?.label ??
+      'Do not use (None)'
+  );
+  readonly customRobotsContentError = computed(() => {
+    if (!this.isCustomPolicy()) {
+      return null;
+    }
+
+    const field = this.groupForm.customRobotsContent();
+    if (!field.touched()) {
+      return null;
+    }
+
+    const value = this.groupModel().customRobotsContent ?? '';
+    if (!value.trim()) {
+      return 'Custom robots.txt content is required.';
+    }
+    if (value.length > this.maxCustomRobotsContentLength) {
+      return `Content is too long (max ${this.maxCustomRobotsContentLength} characters).`;
+    }
+
+    return this.getFieldError(field);
+  });
   readonly isSaving = computed(() => {
     const requestId = this.activeRequestId();
     if (!requestId) {
@@ -77,14 +124,35 @@ export class DomainGroupFormDialogComponent {
     }
     return !!this.store.isLoading()[requestId];
   });
-  readonly canSubmit = computed(() => this.groupForm.name().valid());
+  readonly robotsSectionValid = computed(() => {
+    if (!this.groupForm.robotsPolicy().valid()) {
+      return false;
+    }
+    if (!this.isCustomPolicy()) {
+      return true;
+    }
+    const value = this.groupModel().customRobotsContent ?? '';
+    return (
+      value.trim().length > 0 && value.length <= this.maxCustomRobotsContentLength
+    );
+  });
+  readonly canSubmit = computed(
+    () => this.groupForm.name().valid() && this.robotsSectionValid()
+  );
   readonly steps = computed<WizardStep[]>(() => [
     {
       id: 'details',
       label: 'Details',
       title: 'Domain group details',
       description: 'Name the domain group.',
-      complete: this.canSubmit(),
+      complete: this.groupForm.name().valid(),
+    },
+    {
+      id: 'robots',
+      label: 'Robots.txt',
+      title: 'Robots.txt policy',
+      description: 'Choose built-in policy or provide custom content.',
+      complete: this.robotsSectionValid(),
     },
   ]);
 
@@ -125,14 +193,26 @@ export class DomainGroupFormDialogComponent {
   async onSubmit(event?: Event): Promise<void> {
     event?.preventDefault();
     await submit(this.groupForm, async (formValue) => {
+      if (this.isCustomPolicy() && !this.robotsSectionValid()) {
+        this.groupForm.customRobotsContent().markAsTouched();
+        return undefined;
+      }
+
       this.store.clearError();
       this.isSubmitting.set(true);
       this.errorSequenceAtSubmit.set(this.store.errorSequence());
       const id = this.group?.id;
       this.activeRequestId.set(id ?? CREATE_ENTITY_ID);
+      const value = formValue().value();
       this.store.upsert({
         id,
-        entity: formValue().value()
+        entity: {
+          ...value,
+          customRobotsContent:
+            value.robotsPolicy === 'CUSTOM'
+              ? this.normalizeCustomRobotsContent(value.customRobotsContent)
+              : null,
+        }
       });
       return undefined;
     });
@@ -153,5 +233,13 @@ export class DomainGroupFormDialogComponent {
     }
 
     return errors[0].message ?? 'Invalid value';
+  }
+
+  private normalizeCustomRobotsContent(value: string | undefined): string | null {
+    if (!value || value.trim().length === 0) {
+      return null;
+    }
+
+    return value;
   }
 }
