@@ -47,6 +47,27 @@ export class BillingController {
     });
   }
 
+  @Post('checkout-sessions')
+  @UseGuards(AuthGuard)
+  async createCheckoutSession(
+    @User('organizationId') organizationId: string,
+    @User('userId') userId: string,
+    @Body(new ZodPipe(billingSchemas.CreateCheckoutSessionSchema))
+    body: billingSchemas.CreateCheckoutSessionDto,
+  ) {
+    this.logger.log('Billing checkout session requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      userId,
+      priceId: body.priceId,
+    });
+    return this.billingService.createCheckoutSession({
+      organizationId,
+      userId,
+      priceId: body.priceId,
+    });
+  }
+
   @Get('portal')
   @UseGuards(AuthGuard)
   async getPortalUrl(

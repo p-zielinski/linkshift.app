@@ -26,6 +26,13 @@ export type CheckoutSessionResponse = {
   completedAt?: string | null;
 };
 
+export type CreateCheckoutSessionResponse = {
+  checkoutSessionId: string;
+  plan: OrganizationPlan;
+  interval: BillingInterval;
+  priceId: string;
+};
+
 export type BillingPlanPrice = {
   plan: OrganizationPlan;
   interval: BillingInterval;
@@ -52,6 +59,15 @@ export class BillingApiService {
     return this.http.get<PortalResponse>(`${this.apiUrl}/portal`, {
       params: { action },
     });
+  }
+
+  createCheckoutSession(
+    priceId: string,
+  ): Observable<CreateCheckoutSessionResponse> {
+    return this.http.post<CreateCheckoutSessionResponse>(
+      `${this.apiUrl}/checkout-sessions`,
+      { priceId },
+    );
   }
 
   getPlans(): Observable<BillingPlanCatalog> {

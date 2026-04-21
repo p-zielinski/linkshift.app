@@ -145,6 +145,55 @@ export class BillingService {
     throw new Error('Unknown Paddle price for checkout.');
   }
 
+  async createCheckoutSession(params: {
+    organizationId: string;
+    userId: string;
+    priceId: string;
+  }) {
+    const standard = this.resolveStandardPlanForPrice(params.priceId);
+    if (!standard) {
+      throw new Error('Unknown Paddle price for checkout session.');
+    }
+
+    const [organization, user] = await Promise.all([
+      this.prisma.organization.findUnique({
+        where: { id: params.organizationId },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: params.userId },
+      }),
+    ]);
+
+    if (!organization || !user) {
+      throw new Error('Organization or user not found for checkout.');
+    }
+
+    const checkoutSessionId = createCustomCuid(AppEntity.CheckoutSession, 20);
+
+    await this.prisma.billingCheckoutSession.create({
+      data: {
+        id: checkoutSessionId,
+        organizationId: organization.id,
+        userId: user.id,
+        plan: standard.plan,
+        status: 'PENDING',
+        metadata: {
+          organizationName: organization.name,
+          email: user.email,
+          interval: standard.interval,
+          planName: null,
+        },
+      },
+    });
+
+    return {
+      checkoutSessionId,
+      plan: standard.plan,
+      interval: standard.interval,
+      priceId: standard.priceId,
+    };
+  }
+
   async getCustomerPortalUrl(
     organizationId: string,
     action: 'manage' | 'cancel' = 'manage',

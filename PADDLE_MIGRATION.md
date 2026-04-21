@@ -22,15 +22,18 @@ Nie jest wymagana dedykowana strona checkoutu. Klient zostaje w aplikacji, a Pad
 ## Aktualny flow płatności
 1. Użytkownik wybiera plan i interwał (`BASIC/PRO`, `MONTHLY/YEARLY`).
 2. Frontend bierze odpowiadający `priceId` z katalogu planów (`/api/v1/billing/plans`).
-3. Frontend otwiera overlay przez `PaddleCheckoutService`.
-4. Do `customData` trafiają minimum:
+3. Frontend zakłada sesję śledzenia checkoutu (`POST /api/v1/billing/checkout-sessions`) i dostaje `checkoutSessionId`.
+4. Frontend otwiera overlay przez `PaddleCheckoutService`.
+5. Do `customData` trafiają minimum:
    - `organizationId`
    - `userId`
    - `email`
    - `plan`
    - `interval`
-5. Paddle wysyła webhook.
-6. Backend weryfikuje podpis webhooka i aktualizuje subskrypcję organizacji.
+   - `checkoutSessionId`
+6. Po `checkout.completed` frontend otwiera dialog `Processing checkout`, który polluje `/api/v1/billing/checkout-sessions/:id`.
+7. Paddle wysyła webhook.
+8. Backend weryfikuje podpis webhooka, aktualizuje subskrypcję i status sesji checkout.
 
 ## Webhooki Paddle
 Endpoint:
