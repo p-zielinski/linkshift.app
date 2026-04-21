@@ -36,10 +36,14 @@ export class ApiRedirectionMiddleware implements NestMiddleware {
       req.originalUrl === '/api/v1/billing/webhooks/paddle' &&
       req.method === 'POST'
     ) {
-      this.logger.debug('ApiRedirectionMiddleware bypass (paddle dev webhook)', {
-        method: req.method,
-        originalUrl: req.originalUrl,
-      });
+      this.logger.debug('Redirect rule apply', { body: req.body });
+      this.logger.debug(
+        'ApiRedirectionMiddleware bypass (paddle dev webhook)',
+        {
+          method: req.method,
+          originalUrl: req.originalUrl,
+        },
+      );
       return next();
     }
 

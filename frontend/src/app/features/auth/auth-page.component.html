@@ -98,13 +98,9 @@
             </mat-form-field>
 
             <div class="plan-picker">
-              <div class="text-[13px] font-semibold text-app-ink-strong">
-                Choose your plan
-              </div>
+              <div class="text-[13px] font-semibold text-app-ink-strong">Choose your plan</div>
               <div class="interval-toggle">
-                <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">
-                  Billing
-                </div>
+                <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Billing</div>
                 <mat-button-toggle-group
                   class="interval-toggle-group"
                   [formField]="registerForm.billingInterval"
@@ -112,6 +108,9 @@
                   <mat-button-toggle value="MONTHLY">Monthly</mat-button-toggle>
                   <mat-button-toggle value="YEARLY">Yearly</mat-button-toggle>
                 </mat-button-toggle-group>
+              </div>
+              <div class="text-[11px] text-app-muted">
+                Billing cycle changes are available only after canceling an active subscription.
               </div>
               <mat-radio-group class="plan-grid" [formField]="registerForm.plan">
                 @for (plan of plans(); track plan.id) {
@@ -128,7 +127,9 @@
               </mat-radio-group>
             </div>
 
-            <div class="grid gap-2 rounded-[16px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+            <div
+              class="grid gap-2 rounded-[16px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted"
+            >
               <mat-checkbox [formField]="registerForm.acceptTerms">
                 I agree to the
                 <a routerLink="/terms" class="text-app-accent-strong">Terms of Service</a>.
@@ -176,8 +177,8 @@
               Private testing in progress
             </div>
             <div>
-              Registration and sign-in are temporarily closed while we finalize
-              testing. Please check back in a few days or contact us for access.
+              Registration and sign-in are temporarily closed while we finalize testing. Please
+              check back in a few days or contact us for access.
             </div>
             <div class="mt-2 flex flex-wrap gap-2">
               <button mat-flat-button color="primary" type="button" routerLink="/contact">

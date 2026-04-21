@@ -1,16 +1,30 @@
 <div class="flex flex-col gap-4">
   <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
     <div class="text-[12px] uppercase tracking-[0.12em] text-zinc-500">Billing</div>
-    <mat-button-toggle-group
-      class="rounded-full border border-black/10 bg-white p-1"
-      [value]="billingInterval()"
-      (change)="setInterval($event.value)"
-      aria-label="Billing interval"
-    >
-      <mat-button-toggle value="MONTHLY">Monthly</mat-button-toggle>
-      <mat-button-toggle value="YEARLY">Yearly</mat-button-toggle>
-    </mat-button-toggle-group>
+    @if (billingIntervalLocked() && currentInterval()) {
+      <div
+        class="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-[12px] font-semibold text-amber-800"
+      >
+        {{ currentInterval() === 'YEARLY' ? 'Yearly billing' : 'Monthly billing' }}
+      </div>
+    } @else {
+      <mat-button-toggle-group
+        class="rounded-full border border-black/10 bg-white p-1"
+        [value]="billingInterval()"
+        (change)="setInterval($event.value)"
+        aria-label="Billing interval"
+      >
+        <mat-button-toggle value="MONTHLY">Monthly</mat-button-toggle>
+        <mat-button-toggle value="YEARLY">Yearly</mat-button-toggle>
+      </mat-button-toggle-group>
+    }
   </div>
+
+  @if (billingIntervalLocked() && billingIntervalLockReason()) {
+    <div class="text-[12px] text-amber-700">
+      {{ billingIntervalLockReason() }}
+    </div>
+  }
 
   <div class="text-[12px] text-zinc-500">Prices include applicable taxes.</div>
 

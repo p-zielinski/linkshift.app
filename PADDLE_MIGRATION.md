@@ -22,9 +22,13 @@ Nie jest wymagana dedykowana strona checkoutu. Klient zostaje w aplikacji, a Pad
 ## Aktualny flow płatności
 1. Użytkownik wybiera plan i interwał (`BASIC/PRO`, `MONTHLY/YEARLY`).
 2. Frontend bierze odpowiadający `priceId` z katalogu planów (`/api/v1/billing/plans`).
-3. Frontend zakłada sesję śledzenia checkoutu (`POST /api/v1/billing/checkout-sessions`) i dostaje `checkoutSessionId`.
-4. Frontend otwiera overlay przez `PaddleCheckoutService`.
-5. Do `customData` trafiają minimum:
+3. Frontend wywołuje `POST /api/v1/billing/subscription/change`.
+4. Backend rozdziela flow:
+   - `flow=UPDATED`: istniejąca subskrypcja Paddle jest aktualizowana (`PATCH /subscriptions/{id}`) z `proration_billing_mode`.
+   - `flow=CHECKOUT`: dla braku aktywnej subskrypcji backend zakłada sesję checkout (`POST /api/v1/billing/checkout-sessions`), a frontend otwiera overlay.
+   - `POST /api/v1/billing/subscription/sync`: wymusza synchronizację `activeSubscription` z aktualnym snapshotem subskrypcji z Paddle.
+   - Zmiana cyklu (`MONTHLY <-> YEARLY`) dla aktywnej subskrypcji jest zablokowana i wymaga najpierw anulowania obecnej subskrypcji.
+5. Dla ścieżki checkout do `customData` trafiają minimum:
    - `organizationId`
    - `userId`
    - `email`
@@ -33,7 +37,7 @@ Nie jest wymagana dedykowana strona checkoutu. Klient zostaje w aplikacji, a Pad
    - `checkoutSessionId`
 6. Po `checkout.completed` frontend otwiera dialog `Processing checkout`, który polluje `/api/v1/billing/checkout-sessions/:id`.
 7. Paddle wysyła webhook.
-8. Backend weryfikuje podpis webhooka, aktualizuje subskrypcję i status sesji checkout.
+8. Backend weryfikuje podpis webhooka i synchronizuje `activeSubscription` oraz status sesji checkout (jeśli dotyczy).
 
 ## Webhooki Paddle
 Endpoint:
@@ -106,7 +110,7 @@ Dla overlay checkout frontend SSR serwer dopuszcza:
 ## Lista kontrolna (final)
 - [x] Checkout przez Paddle.js overlay (bez redirect flow)
 - [x] Rejestracja nie zwraca/nie używa `checkoutUrl`
-- [x] Upgrade dialog używa overlay
+- [x] Upgrade/downgrade używa `subscription.change` (PATCH istniejącej subskrypcji), a overlay tylko gdy wymagany checkout
 - [x] Dashboard rozdziela manage vs cancel
 - [x] Frontend runtime ma `APP_PADDLE_CLIENT_TOKEN` i `APP_PADDLE_ENV`
 - [x] CSP dopuszcza Paddle overlay

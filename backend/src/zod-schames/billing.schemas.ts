@@ -15,6 +15,12 @@ export type CreateCheckoutSessionDto = z.infer<
   typeof CreateCheckoutSessionSchema
 >;
 
+export const ChangeSubscriptionSchema = z.object({
+  priceId: z.string().min(1),
+});
+
+export type ChangeSubscriptionDto = z.infer<typeof ChangeSubscriptionSchema>;
+
 export const PortalActionSchema = z.enum(['manage', 'cancel']).default('manage');
 
 export type PortalAction = z.infer<typeof PortalActionSchema>;

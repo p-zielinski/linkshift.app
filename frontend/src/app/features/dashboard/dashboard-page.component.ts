@@ -22,7 +22,11 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../core/store/auth.store';
-import { OrganizationConfiguration } from '@shared/models/organization-config.model';
+import {
+  BillingInterval,
+  OrganizationConfiguration,
+  OrganizationStatus,
+} from '@shared/models/organization-config.model';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { BillingApiService } from '../../core/api/billing-api.service';
 import { UpgradeDialogComponent } from '../billing/upgrade-dialog/upgrade-dialog.component';
@@ -208,7 +212,7 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
   }
 
   async openManageSubscription(): Promise<void> {
-    await this.openCustomerPortal('manage');
+    await this.openCustomerPortal();
   }
 
   async openCancelSubscription(): Promise<void> {
@@ -230,13 +234,13 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    await this.openCustomerPortal('cancel');
+    await this.openCustomerPortal();
   }
 
-  private async openCustomerPortal(action: 'manage' | 'cancel'): Promise<void> {
+  private async openCustomerPortal(): Promise<void> {
     this.billingBusy.set(true);
     try {
-      const response = await firstValueFrom(this.billingApi.getCustomerPortal(action));
+      const response = await firstValueFrom(this.billingApi.getCustomerPortal());
       window.location.href = response.url;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to open portal.';
@@ -252,8 +256,17 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
   }
 
   openUpgradeDialog(): void {
+    const activeSubscription = this.activeSubscription();
+    const currentInterval: BillingInterval =
+      activeSubscription.interval === 'YEARLY' ? 'YEARLY' : 'MONTHLY';
+
     this.dialog.open(UpgradeDialogComponent, {
-      data: { currentPlan: this.activeSubscription().plan },
+      data: {
+        currentPlan: activeSubscription.plan,
+        currentInterval,
+        currentStatus: activeSubscription.status as OrganizationStatus,
+        hasProviderSubscription: !!activeSubscription.providerSubscriptionId,
+      },
       closeOnNavigation: true,
       maxWidth: '960px',
       width: 'min(960px, 96vw)',

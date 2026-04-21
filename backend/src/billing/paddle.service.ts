@@ -35,6 +35,20 @@ type PaddlePortalSessionResponse = {
   };
 };
 
+export type PaddleSubscriptionUpdateItem = {
+  price_id: string;
+  quantity: number;
+};
+
+export type PaddleSubscriptionProrationBillingMode =
+  | 'prorated_immediately'
+  | 'prorated_next_billing_period'
+  | 'do_not_bill';
+
+export type PaddleSubscriptionOnPaymentFailure =
+  | 'prevent_change'
+  | 'apply_change';
+
 @Injectable()
 export class PaddleService {
   private readonly apiKey: string;
@@ -103,6 +117,57 @@ export class PaddleService {
       `/subscriptions/${subscriptionId}`,
       {
         method: 'GET',
+      },
+    );
+  }
+
+  async cancelSubscription(
+    subscriptionId: string,
+    effectiveFrom: 'immediately' | 'next_billing_period' = 'immediately',
+  ) {
+    return this.request<PaddleSubscriptionResponse>(
+      `/subscriptions/${subscriptionId}/cancel`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          effective_from: effectiveFrom,
+        }),
+      },
+    );
+  }
+
+  async previewSubscriptionUpdate(params: {
+    subscriptionId: string;
+    items: PaddleSubscriptionUpdateItem[];
+    prorationBillingMode: PaddleSubscriptionProrationBillingMode;
+  }) {
+    return this.request<PaddleSubscriptionResponse>(
+      `/subscriptions/${params.subscriptionId}/preview`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          items: params.items,
+          proration_billing_mode: params.prorationBillingMode,
+        }),
+      },
+    );
+  }
+
+  async updateSubscription(params: {
+    subscriptionId: string;
+    items: PaddleSubscriptionUpdateItem[];
+    prorationBillingMode: PaddleSubscriptionProrationBillingMode;
+    onPaymentFailure?: PaddleSubscriptionOnPaymentFailure;
+  }) {
+    return this.request<PaddleSubscriptionResponse>(
+      `/subscriptions/${params.subscriptionId}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          items: params.items,
+          proration_billing_mode: params.prorationBillingMode,
+          on_payment_failure: params.onPaymentFailure ?? 'prevent_change',
+        }),
       },
     );
   }

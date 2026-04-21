@@ -1,21 +1,27 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { PricingPlansComponent, PricingPlanSelection } from '../../marketing/components/pricing-plans/pricing-plans.component';
-import { OrganizationPlan } from '@shared/models/organization-config.model';
+import {
+  BillingInterval,
+  OrganizationPlan,
+  OrganizationStatus,
+} from '@shared/models/organization-config.model';
 import type { PlanLimits } from '@shared/models/plan-limits.model';
 import { BillingPlansStore } from '../../../core/store/billing-plans.store';
 import { OrganizationUsageStore } from '../../../core/store/organization-usage.store';
 import type { OrganizationUsage } from '../../../core/models/organization-usage.model';
 import { PaddleCheckoutFlowService } from '../../../core/billing/paddle-checkout-flow.service';
-import { AuthStore } from '../../../core/store/auth.store';
-import { firstValueFrom } from 'rxjs';
 
 export type UpgradeDialogData = {
   currentPlan: OrganizationPlan;
+  currentInterval: BillingInterval;
+  currentStatus: OrganizationStatus;
+  hasProviderSubscription: boolean;
 };
 
 type PlanBlockReasons = Partial<Record<OrganizationPlan, string>>;
@@ -40,9 +46,18 @@ export class UpgradeDialogComponent {
   private readonly billingPlansStore = inject(BillingPlansStore);
   private readonly usageStore = inject(OrganizationUsageStore);
   private readonly checkoutFlow = inject(PaddleCheckoutFlowService);
-  private readonly authStore = inject(AuthStore);
   readonly data = inject<UpgradeDialogData>(MAT_DIALOG_DATA);
   readonly busy = signal(false);
+  readonly billingIntervalLocked = computed(
+    () =>
+      this.data.hasProviderSubscription &&
+      this.data.currentStatus !== OrganizationStatus.CANCELED,
+  );
+  readonly billingIntervalLockReason = computed(() =>
+    this.billingIntervalLocked()
+      ? 'Billing interval cannot be changed while your current subscription is active. Cancel the subscription first, then choose a new monthly/yearly cycle.'
+      : null,
+  );
 
   readonly planBlockReasons = computed<PlanBlockReasons>(() => {
     const usage = this.usageStore.usage();
@@ -83,12 +98,37 @@ export class UpgradeDialogComponent {
     this.dialogRef.close({ checkoutStarted: true });
     this.busy.set(true);
     try {
-      const result = await this.checkoutFlow.startCheckout({
+      const result = await this.checkoutFlow.startSubscriptionChange({
         priceId,
         plan,
         interval,
         source: 'upgrade_dialog',
       });
+
+      if (result.kind === 'updated') {
+        const message =
+          result.change.prorationBillingMode === 'prorated_immediately'
+            ? 'Plan updated. Billing adjustment was applied immediately.'
+            : result.change.prorationBillingMode === 'prorated_next_billing_period'
+              ? 'Plan updated. Billing adjustment will be applied at the next renewal.'
+              : 'Plan updated successfully.';
+        this.snackBar.open(message, 'Dismiss', {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+          panelClass: ['bg-emerald-600', 'text-white'],
+        });
+        return;
+      }
+
+      if (result.kind === 'noop') {
+        this.snackBar.open('Selected plan is already active.', 'Dismiss', {
+          duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+        });
+        return;
+      }
 
       if (result.status === 'completed') {
         this.snackBar.open('Payment received. We are confirming plan activation.', 'Dismiss', {
@@ -106,7 +146,7 @@ export class UpgradeDialogComponent {
         verticalPosition: 'bottom',
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to open checkout overlay.';
+      const message = this.resolveErrorMessage(error);
       this.snackBar.open(message, 'Dismiss', {
         duration: 5000,
         horizontalPosition: 'center',
@@ -120,6 +160,35 @@ export class UpgradeDialogComponent {
 
   close(): void {
     this.dialogRef.close();
+  }
+
+  private resolveErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      const responseBody = error.error as
+        | { message?: string; error?: string }
+        | string
+        | null;
+      if (typeof responseBody === 'string' && responseBody.trim()) {
+        return responseBody;
+      }
+      if (responseBody && typeof responseBody === 'object') {
+        if (typeof responseBody.message === 'string' && responseBody.message.trim()) {
+          return responseBody.message;
+        }
+        if (typeof responseBody.error === 'string' && responseBody.error.trim()) {
+          return responseBody.error;
+        }
+      }
+      if (typeof error.message === 'string' && error.message.trim()) {
+        return error.message;
+      }
+    }
+
+    if (error instanceof Error && error.message.trim()) {
+      return error.message;
+    }
+
+    return 'Unable to change subscription at the moment.';
   }
 
   private getOverageDetails(usage: OrganizationUsage, limits: PlanLimits): string[] {
