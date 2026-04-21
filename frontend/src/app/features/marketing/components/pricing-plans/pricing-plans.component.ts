@@ -100,7 +100,6 @@ const PLAN_METADATA = new Map(PRICING_PLANS.map((plan) => [plan.key, plan]));
     MatTooltipModule,
   ],
   templateUrl: './pricing-plans.component.html',
-  styleUrl: './pricing-plans.component.css',
 })
 export class PricingPlansComponent {
   private readonly billingPlansStore = inject(BillingPlansStore);
@@ -133,7 +132,7 @@ export class PricingPlansComponent {
           ]
         : PLAN_ORDER;
 
-    return orderedKeys.map((planKey) => {
+    const plans = orderedKeys.map((planKey) => {
       const basePlan = PLAN_METADATA.get(planKey) ?? this.buildFallbackPlan(planKey);
       const planLimits = limitsByPlan?.[planKey];
       const limits = planLimits ? formatLimitChips(planLimits) : [];
@@ -144,6 +143,7 @@ export class PricingPlansComponent {
           limits,
           price: '0 EUR',
           priceNote: 'per month',
+          sortAmount: 0,
         };
       }
 
@@ -156,6 +156,7 @@ export class PricingPlansComponent {
           priceNote: 'pricing unavailable',
           savingsNote: null,
           unavailable: true,
+          sortAmount: Number.NEGATIVE_INFINITY,
         };
       }
 
@@ -165,8 +166,13 @@ export class PricingPlansComponent {
         price: this.formatPrice(pricing.amount, pricing.currency),
         priceNote,
         savingsNote: this.getSavingsNote(planKey, pricing.currency),
+        sortAmount: pricing.amount,
       };
     });
+
+    plans.sort((a, b) => b.sortAmount - a.sortAmount);
+
+    return plans.map(({ sortAmount: _, ...plan }) => plan);
   });
 
   constructor() {

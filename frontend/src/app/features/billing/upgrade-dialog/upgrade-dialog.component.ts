@@ -92,6 +92,7 @@ export class UpgradeDialogComponent {
       return;
     }
 
+    this.dialogRef.close({ checkoutStarted: true });
     this.busy.set(true);
     try {
       const result = await this.paddleCheckout.openOverlayCheckout({
