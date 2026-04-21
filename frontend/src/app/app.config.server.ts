@@ -27,6 +27,9 @@ const serverConfig: ApplicationConfig = {
           APP_LEGAL_VERSION: process.env['' + 'APP_LEGAL_VERSION'],
           APP_DOMAIN_TARGET_IP: process.env['' + 'APP_DOMAIN_TARGET_IP'],
           APP_AUTH_GATE_ENABLED: process.env['' + 'APP_AUTH_GATE_ENABLED'],
+          APP_PADDLE_CLIENT_TOKEN:
+            process.env['' + 'APP_PADDLE_CLIENT_TOKEN'],
+          APP_PADDLE_ENV: process.env['' + 'APP_PADDLE_ENV'],
         });
         inject(TransferState).set(APP_CONFIG_KEY, config);
         return config;

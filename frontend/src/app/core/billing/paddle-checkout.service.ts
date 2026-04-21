@@ -89,6 +89,15 @@ export class PaddleCheckoutService {
         resolve(result);
       };
 
+      const fail = (errorMessage: string) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        this.eventHandlers.delete(eventCallback);
+        reject(new Error(errorMessage));
+      };
+
       const eventCallback = (event: PaddleEvent) => {
         if (!event?.name) {
           return;
@@ -112,6 +121,22 @@ export class PaddleCheckoutService {
             return;
           }
           settle({ status: 'closed', event });
+          return;
+        }
+
+        if (event.name === 'checkout.error') {
+          const errorData = event.data?.['error'] as Record<string, any> | undefined;
+          const message =
+            (errorData?.['detail'] as string | undefined) ??
+            (errorData?.['message'] as string | undefined) ??
+            'Paddle checkout failed.';
+          fail(message);
+          return;
+        }
+
+        if (event.name === 'checkout.warning') {
+          // Helps debug provider-side config issues without interrupting checkout flow.
+          console.warn('Paddle checkout warning', event.data);
         }
       };
 

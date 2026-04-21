@@ -5,9 +5,16 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import express from 'express';
-import { join } from 'node:path';
+import { existsSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
-require('dotenv').config();
+const dotenv = require('dotenv');
+const envCandidates = [
+  resolve(process.cwd(), '.env'),
+  resolve(import.meta.dirname, '../../../.env'),
+];
+const envPath = envCandidates.find((candidate) => existsSync(candidate));
+dotenv.config(envPath ? { path: envPath } : undefined);
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 const app = express();
@@ -20,16 +27,39 @@ app.use((req, res, next) => {
   const apiOrigin = safeOrigin(apiBase);
   const toolsApiOrigin = safeOrigin(toolsApiBase);
   const origin = req.headers.origin;
-  const paddleScriptOrigin = 'https://cdn.paddle.com';
+  const paddleScriptOrigins = [
+    'https://cdn.paddle.com',
+    'https://sandbox-cdn.paddle.com',
+  ];
+  const paddleStyleOrigins = [
+    'https://cdn.paddle.com',
+    'https://sandbox-cdn.paddle.com',
+  ];
+  const paddleAssetOrigins = [
+    'https://cdn.paddle.com',
+    'https://sandbox-cdn.paddle.com',
+  ];
   const paddleConnectOrigins = [
     'https://api.paddle.com',
     'https://sandbox-api.paddle.com',
     'https://checkout.paddle.com',
     'https://sandbox-checkout.paddle.com',
+    'https://buy.paddle.com',
+    'https://sandbox-buy.paddle.com',
+    'https://vendors.paddle.com',
+    'https://sandbox-vendors.paddle.com',
+    'https://pay.paddle.io',
+    'https://sandbox-pay.paddle.io',
   ];
   const paddleFrameOrigins = [
     'https://checkout.paddle.com',
     'https://sandbox-checkout.paddle.com',
+    'https://buy.paddle.com',
+    'https://sandbox-buy.paddle.com',
+    'https://vendors.paddle.com',
+    'https://sandbox-vendors.paddle.com',
+    'https://pay.paddle.io',
+    'https://sandbox-pay.paddle.io',
   ];
 
   if (origin) {
@@ -55,7 +85,7 @@ app.use((req, res, next) => {
   const connectOrigins = [
     apiOrigin,
     toolsApiOrigin,
-    paddleScriptOrigin,
+    ...paddleScriptOrigins,
     ...paddleConnectOrigins,
   ].filter(
     (value, index, array): value is string => !!value && array.indexOf(value) === index,
@@ -68,10 +98,10 @@ app.use((req, res, next) => {
     'Content-Security-Policy',
     [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline' ${paddleScriptOrigin}`,
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob:",
+      `script-src 'self' 'unsafe-inline' ${paddleScriptOrigins.join(' ')}`,
+      `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${paddleStyleOrigins.join(' ')}`,
+      `font-src 'self' https://fonts.gstatic.com ${paddleAssetOrigins.join(' ')}`,
+      `img-src 'self' data: blob: ${paddleAssetOrigins.join(' ')}`,
       `connect-src ${connectSrc}`,
       `frame-src 'self' ${paddleFrameOrigins.join(' ')}`,
       "frame-ancestors 'none'",
