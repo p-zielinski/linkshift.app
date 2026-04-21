@@ -11,6 +11,8 @@ import { BillingPlansStore } from '../../../core/store/billing-plans.store';
 import { OrganizationUsageStore } from '../../../core/store/organization-usage.store';
 import type { OrganizationUsage } from '../../../core/models/organization-usage.model';
 import { PaddleCheckoutFlowService } from '../../../core/billing/paddle-checkout-flow.service';
+import { AuthStore } from '../../../core/store/auth.store';
+import { firstValueFrom } from 'rxjs';
 
 export type UpgradeDialogData = {
   currentPlan: OrganizationPlan;
@@ -38,6 +40,7 @@ export class UpgradeDialogComponent {
   private readonly billingPlansStore = inject(BillingPlansStore);
   private readonly usageStore = inject(OrganizationUsageStore);
   private readonly checkoutFlow = inject(PaddleCheckoutFlowService);
+  private readonly authStore = inject(AuthStore);
   readonly data = inject<UpgradeDialogData>(MAT_DIALOG_DATA);
   readonly busy = signal(false);
 
@@ -56,8 +59,7 @@ export class UpgradeDialogComponent {
       }
       const overages = this.getOverageDetails(usage, targetLimits);
       if (overages.length > 0) {
-        reasons[OrganizationPlan.BASIC] =
-          `Reduce usage to downgrade: ${overages.join(', ')}.`;
+        reasons[OrganizationPlan.BASIC] = `Reduce usage to downgrade: ${overages.join(', ')}.`;
       }
     }
 
@@ -104,8 +106,7 @@ export class UpgradeDialogComponent {
         verticalPosition: 'bottom',
       });
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Unable to open checkout overlay.';
+      const message = error instanceof Error ? error.message : 'Unable to open checkout overlay.';
       this.snackBar.open(message, 'Dismiss', {
         duration: 5000,
         horizontalPosition: 'center',
@@ -121,10 +122,7 @@ export class UpgradeDialogComponent {
     this.dialogRef.close();
   }
 
-  private getOverageDetails(
-    usage: OrganizationUsage,
-    limits: PlanLimits,
-  ): string[] {
+  private getOverageDetails(usage: OrganizationUsage, limits: PlanLimits): string[] {
     const details: string[] = [];
     if (usage.domainGroups > limits.maxDomainGroups) {
       details.push(`Domain groups ${usage.domainGroups}/${limits.maxDomainGroups}`);
@@ -148,9 +146,7 @@ export class UpgradeDialogComponent {
       details.push(`Link maps ${usage.linkMaps}/${limits.maxLinkMaps}`);
     }
     if (usage.linkMapEntries > limits.maxLinkMapEntriesTotal) {
-      details.push(
-        `Link map entries ${usage.linkMapEntries}/${limits.maxLinkMapEntriesTotal}`,
-      );
+      details.push(`Link map entries ${usage.linkMapEntries}/${limits.maxLinkMapEntriesTotal}`);
     }
     return details;
   }

@@ -22,6 +22,7 @@ type PaddleGlobal = {
   Initialize: (params: Record<string, any>) => void;
   Checkout: {
     open: (params: PaddleCheckoutOpenParams) => void;
+    close?: () => void;
   };
 };
 
@@ -78,13 +79,19 @@ export class PaddleCheckoutService {
 
     return new Promise<OverlayCheckoutResult>((resolve, reject) => {
       let settled = false;
+      let checkoutLoaded = false;
+      let completionReceived = false;
       let checkoutId: string | null = null;
+      const openTimeout = setTimeout(() => {
+        fail('Unable to initialize Paddle checkout. Please try again.');
+      }, 20_000);
 
       const settle = (result: OverlayCheckoutResult) => {
         if (settled) {
           return;
         }
         settled = true;
+        clearTimeout(openTimeout);
         this.eventHandlers.delete(eventCallback);
         resolve(result);
       };
@@ -94,6 +101,7 @@ export class PaddleCheckoutService {
           return;
         }
         settled = true;
+        clearTimeout(openTimeout);
         this.eventHandlers.delete(eventCallback);
         reject(new Error(errorMessage));
       };
@@ -104,20 +112,38 @@ export class PaddleCheckoutService {
         }
 
         if (event.name === 'checkout.loaded') {
+          checkoutLoaded = true;
           checkoutId = this.resolveCheckoutId(event);
           return;
         }
 
         if (event.name === 'checkout.completed') {
+          if (!checkoutLoaded) {
+            return;
+          }
           if (!this.matchesCheckout(checkoutId, event)) {
             return;
           }
+          completionReceived = true;
           settle({ status: 'completed', event });
+
+          // Close overlay after resolving completion to avoid closed>completed race.
+          try {
+            setTimeout(() => paddle.Checkout.close?.(), 300);
+          } catch {
+            // Ignore close errors and continue status flow.
+          }
           return;
         }
 
         if (event.name === 'checkout.closed') {
+          if (!checkoutLoaded) {
+            return;
+          }
           if (!this.matchesCheckout(checkoutId, event)) {
+            return;
+          }
+          if (completionReceived) {
             return;
           }
           settle({ status: 'closed', event });
@@ -125,6 +151,9 @@ export class PaddleCheckoutService {
         }
 
         if (event.name === 'checkout.error') {
+          if (!checkoutLoaded) {
+            return;
+          }
           const errorData = event.data?.['error'] as Record<string, any> | undefined;
           const message =
             (errorData?.['detail'] as string | undefined) ??
@@ -161,8 +190,9 @@ export class PaddleCheckoutService {
           customData: params.customData ?? {},
         });
       } catch (error) {
-        this.eventHandlers.delete(eventCallback);
-        reject(error);
+        const message =
+          error instanceof Error ? error.message : 'Unable to open Paddle checkout.';
+        fail(message);
       }
     });
   }

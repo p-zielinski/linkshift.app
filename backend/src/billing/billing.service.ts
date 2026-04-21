@@ -67,58 +67,18 @@ export class BillingService {
   ) {
     this.priceIds = {
       starterMonthly:
-        this.configService.get<string>(
-          'PADDLE_PRICE_BASIC_MONTHLY_ID',
-        ) ?? this.configService.get<string>('PADDLE_PRICE_BASIC_ID'),
+        this.configService.get<string>('PADDLE_PRICE_BASIC_MONTHLY_ID') ??
+        this.configService.get<string>('PADDLE_PRICE_BASIC_ID'),
       starterYearly: this.configService.get<string>(
         'PADDLE_PRICE_BASIC_YEARLY_ID',
       ),
       proMonthly:
-        this.configService.get<string>(
-          'PADDLE_PRICE_PRO_MONTHLY_ID',
-        ) ?? this.configService.get<string>('PADDLE_PRICE_PRO_ID'),
-      proYearly: this.configService.get<string>(
-        'PADDLE_PRICE_PRO_YEARLY_ID',
-      ),
+        this.configService.get<string>('PADDLE_PRICE_PRO_MONTHLY_ID') ??
+        this.configService.get<string>('PADDLE_PRICE_PRO_ID'),
+      proYearly: this.configService.get<string>('PADDLE_PRICE_PRO_YEARLY_ID'),
     };
     this.defaultSuccessUrl =
       this.configService.get<string>('PADDLE_SUCCESS_URL') ?? '';
-  }
-
-  async createCheckout(params: {
-    organizationId: string;
-    userId: string;
-    plan: OrganizationPlan;
-    interval?: BillingInterval;
-    successUrl?: string;
-    cancelUrl?: string;
-  }) {
-    if (!CHECKOUT_PLANS.includes(params.plan)) {
-      throw new Error(`Plan ${params.plan} is not purchasable via checkout.`);
-    }
-
-    const interval = params.interval ?? 'MONTHLY';
-    const priceId = getPriceIdForPlan(
-      params.plan,
-      interval,
-      this.priceIds,
-    );
-    if (!priceId) {
-      throw new Error(`Missing Paddle price for ${params.plan} (${interval}).`);
-    }
-
-    return this.createCheckoutInternal({
-      organizationId: params.organizationId,
-      userId: params.userId,
-      plan: params.plan,
-      interval,
-      priceId,
-      customData: {
-        plan: params.plan,
-        interval,
-      },
-      successUrl: params.successUrl,
-    });
   }
 
   async createCheckoutByPrice(params: {
@@ -220,16 +180,16 @@ export class BillingService {
     const managementUrls = subscription.management_urls ?? {};
     const portalUrl =
       action === 'cancel'
-        ? managementUrls.cancel ??
+        ? (managementUrls.cancel ??
           managementUrls.customer_portal ??
           managementUrls.update_payment_method ??
           subscription.urls?.customer_portal ??
-          null
-        : managementUrls.update_payment_method ??
+          null)
+        : (managementUrls.update_payment_method ??
           managementUrls.customer_portal ??
           managementUrls.cancel ??
           subscription.urls?.customer_portal ??
-          null;
+          null);
 
     if (portalUrl) {
       return portalUrl;
@@ -440,10 +400,7 @@ export class BillingService {
     const organizationId =
       customData.organizationId ?? customData.organization_id ?? null;
     const email =
-      customData.email ??
-      data.customer?.email ??
-      data.customer_email ??
-      null;
+      customData.email ?? data.customer?.email ?? data.customer_email ?? null;
 
     const orgId =
       organizationId ?? (await this.findOrganizationIdByEmail(email));
@@ -489,8 +446,7 @@ export class BillingService {
           planName,
           status,
           providerSubscriptionId: subscriptionId,
-          providerCustomerId:
-            data.customer_id ?? data.customer?.id ?? null,
+          providerCustomerId: data.customer_id ?? data.customer?.id ?? null,
           providerOrderId: this.normalizeProviderOrderId(
             data.order_id ?? data.id,
           ),
@@ -498,7 +454,7 @@ export class BillingService {
           activeFrom: this.extractActiveFromFromEventData(data),
           activeUntil: this.extractActiveUntilFromEventData(
             data,
-            status,
+            status ?? OrganizationStatus.ACTIVE,
             normalizedEventName,
           ),
           amount: resolvedAmount,
@@ -535,7 +491,6 @@ export class BillingService {
         checkoutSessionId,
         eventName,
         rawStatus: data.status,
-        resolvedStatus: status,
         providerSubscriptionId: subscriptionId,
         providerOrderId: this.normalizeProviderOrderId(
           data.order_id ?? data.id,
@@ -567,7 +522,7 @@ export class BillingService {
     details: {
       plan: OrganizationPlan;
       planName: string | null;
-      status: OrganizationStatus;
+      status: OrganizationStatus | null;
       providerSubscriptionId: string | null;
       providerCustomerId: string | null;
       providerOrderId: string | null;
@@ -602,7 +557,7 @@ export class BillingService {
     const nextSubscription = new OrganizationSubscription({
       plan: details.plan,
       planName: details.planName ?? null,
-      status: details.status,
+      status: details.status ?? previous.status,
       activeFrom: details.activeFrom ?? previous.activeFrom,
       activeUntil: details.activeUntil,
       amount: details.amount ?? previous.amount,
@@ -647,11 +602,13 @@ export class BillingService {
         configuration: serializedConfig,
       },
     });
+    this.logger.error({ updatedOrganization });
 
     await this.cacheManagerService.setDataExist({
       data: updatedOrganization,
       dataType: DataType.ORGANIZATIONS,
     });
+    this.logger.error(32323232);
 
     return {
       previous,
@@ -950,9 +907,7 @@ export class BillingService {
     return match?.interval ?? null;
   }
 
-  private async resolvePricingFromPrice(params: {
-    priceId: string;
-  }): Promise<{
+  private async resolvePricingFromPrice(params: { priceId: string }): Promise<{
     amount: number;
     currency: string;
     interval: BillingInterval;
@@ -992,10 +947,7 @@ export class BillingService {
       uniqueIds.map(async (priceId) => {
         const response = await this.paddle.getPrice(priceId);
         if (response.data) {
-          pricesById.set(
-            String(response.data.id ?? priceId),
-            response.data,
-          );
+          pricesById.set(String(response.data.id ?? priceId), response.data);
         }
       }),
     );
@@ -1003,10 +955,11 @@ export class BillingService {
     return pricesById;
   }
 
-  private extractPricePricing(price: {
-    id?: string;
-    [key: string]: any;
-  }): { amount: number; currency: string; interval: BillingInterval } {
+  private extractPricePricing(price: { id?: string; [key: string]: any }): {
+    amount: number;
+    currency: string;
+    interval: BillingInterval;
+  } {
     const amount = this.parseAmount(
       price.unit_price?.amount ??
         price.unitPrice?.amount ??
@@ -1036,13 +989,13 @@ export class BillingService {
       return String(payload.data.id);
     }
     const candidate =
-      payload.data?.subscription_id ??
-      payload.data?.subscription?.id ??
-      null;
+      payload.data?.subscription_id ?? payload.data?.subscription?.id ?? null;
     return candidate ? String(candidate) : null;
   }
 
-  private extractPriceIdFromEventData(data: Record<string, any>): string | null {
+  private extractPriceIdFromEventData(
+    data: Record<string, any>,
+  ): string | null {
     const candidate =
       data.price_id ??
       data.price?.id ??
@@ -1066,7 +1019,9 @@ export class BillingService {
     );
   }
 
-  private extractCurrencyFromEventData(data: Record<string, any>): string | null {
+  private extractCurrencyFromEventData(
+    data: Record<string, any>,
+  ): string | null {
     return (
       data.details?.totals?.currency_code ??
       data.recurring_totals?.currency_code ??
@@ -1079,7 +1034,9 @@ export class BillingService {
     );
   }
 
-  private extractIntervalFromEventData(data: Record<string, any>): string | null {
+  private extractIntervalFromEventData(
+    data: Record<string, any>,
+  ): string | null {
     return (
       data.billing_cycle?.interval ??
       data.items?.[0]?.price?.billing_cycle?.interval ??
@@ -1089,7 +1046,9 @@ export class BillingService {
     );
   }
 
-  private extractActiveFromFromEventData(data: Record<string, any>): Date | null {
+  private extractActiveFromFromEventData(
+    data: Record<string, any>,
+  ): Date | null {
     return this.parseDate(
       data.started_at ?? data.first_billed_at ?? data.created_at ?? null,
     );
@@ -1159,7 +1118,7 @@ export class BillingService {
   private resolveStatus(
     rawStatus: string | null | undefined,
     eventName: string,
-  ): OrganizationStatus {
+  ): OrganizationStatus | null {
     const normalized = (rawStatus ?? '').toString().toLowerCase();
     if (
       eventName.includes('transaction.payment_failed') ||
@@ -1178,23 +1137,29 @@ export class BillingService {
     ) {
       return OrganizationStatus.CANCELED;
     }
-    if (
-      eventName.includes('subscription.paused') ||
-      normalized === 'paused'
-    ) {
+    if (eventName.includes('subscription.paused') || normalized === 'paused') {
       return OrganizationStatus.SUSPENDED;
     }
-    if (normalized === 'trialing') {
+    if (
+      eventName.includes('transaction.paid') ||
+      eventName.includes('payment_success') ||
+      eventName.includes('payment_succeeded') ||
+      eventName.includes('subscription.created') ||
+      eventName.includes('subscription.resumed') ||
+      eventName.includes('subscription.activated') ||
+      normalized === 'trialing' ||
+      normalized === 'active' ||
+      normalized === 'paid'
+    ) {
       return OrganizationStatus.ACTIVE;
     }
-    return OrganizationStatus.ACTIVE;
+    return null;
   }
 
   private async updateCheckoutSessionFromWebhook(params: {
     checkoutSessionId: string;
     eventName: string;
     rawStatus: string | null | undefined;
-    resolvedStatus: OrganizationStatus;
     providerSubscriptionId: string | null;
     providerOrderId: string | null;
   }): Promise<void> {
@@ -1219,7 +1184,6 @@ export class BillingService {
 
     if (session.status === 'PENDING') {
       const nextStatus = this.resolveCheckoutStatus(
-        params.resolvedStatus,
         params.rawStatus,
         params.eventName,
       );
@@ -1240,35 +1204,53 @@ export class BillingService {
   }
 
   private resolveCheckoutStatus(
-    resolvedStatus: OrganizationStatus,
     rawStatus: string | null | undefined,
     eventName: string,
   ): 'PENDING' | 'PAID' | 'CANCELED' | 'FAILED' | 'EXPIRED' {
-    if (resolvedStatus === OrganizationStatus.ACTIVE) {
+    const normalizedEvent = eventName.toLowerCase();
+    const normalized = (rawStatus ?? '').toString().toLowerCase();
+
+    if (
+      normalizedEvent.includes('transaction.paid') ||
+      normalizedEvent.includes('payment_success') ||
+      normalizedEvent.includes('payment_succeeded') ||
+      normalized === 'paid' ||
+      normalized === 'completed'
+    ) {
       return 'PAID';
     }
 
-    const normalized = (rawStatus ?? '').toString().toLowerCase();
     if (normalized === 'expired') {
       return 'EXPIRED';
     }
     if (
-      eventName.includes('transaction.payment_failed') ||
-      eventName.includes('payment_failed') ||
+      normalizedEvent.includes('transaction.payment_failed') ||
+      normalizedEvent.includes('payment_failed') ||
       normalized === 'unpaid' ||
       normalized === 'past_due'
     ) {
       return 'FAILED';
     }
-    if (resolvedStatus === OrganizationStatus.CANCELED) {
+    if (
+      normalizedEvent.includes('subscription.canceled') ||
+      normalizedEvent.includes('subscription_cancelled') ||
+      normalizedEvent.includes('subscription_canceled') ||
+      normalized === 'cancelled' ||
+      normalized === 'canceled' ||
+      normalized === 'inactive'
+    ) {
       return 'CANCELED';
     }
-    if (resolvedStatus === OrganizationStatus.SUSPENDED) {
+    if (
+      normalizedEvent.includes('subscription.paused') ||
+      normalized === 'paused'
+    ) {
       return 'FAILED';
     }
 
-    return 'FAILED';
+    return 'PENDING';
   }
+
 
   private appendCheckoutSessionId(
     baseUrl: string,

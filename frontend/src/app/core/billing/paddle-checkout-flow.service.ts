@@ -5,7 +5,10 @@ import {
   BillingInterval,
   OrganizationPlan,
 } from '@shared/models/organization-config.model';
-import { BillingApiService } from '../api/billing-api.service';
+import {
+  BillingApiService,
+  CheckoutSessionStatus,
+} from '../api/billing-api.service';
 import {
   OpenOverlayCheckoutParams,
   OverlayCheckoutResult,
@@ -13,6 +16,7 @@ import {
 } from './paddle-checkout.service';
 import { CheckoutStatusDialogComponent } from '../../features/billing/checkout-status-dialog/checkout-status-dialog.component';
 import { AuthStore } from '../store/auth.store';
+import { OrganizationUsageStore } from '../store/organization-usage.store';
 
 export type StartPaddleCheckoutParams = {
   priceId: string;
@@ -29,10 +33,15 @@ export type StartPaddleCheckoutResult = OverlayCheckoutResult & {
   providedIn: 'root',
 })
 export class PaddleCheckoutFlowService {
+  private static readonly POLL_INTERVAL_MS = 3000;
+  private static readonly MAX_POLL_DURATION_MS = 90_000;
+
   private readonly billingApi = inject(BillingApiService);
   private readonly paddleCheckout = inject(PaddleCheckoutService);
   private readonly authStore = inject(AuthStore);
+  private readonly usageStore = inject(OrganizationUsageStore);
   private readonly dialog = inject(MatDialog);
+  private readonly activeMonitors = new Set<string>();
 
   async startCheckout(
     params: StartPaddleCheckoutParams,
