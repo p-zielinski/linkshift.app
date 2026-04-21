@@ -602,13 +602,11 @@ export class BillingService {
         configuration: serializedConfig,
       },
     });
-    this.logger.error({ updatedOrganization });
 
     await this.cacheManagerService.setDataExist({
       data: updatedOrganization,
       dataType: DataType.ORGANIZATIONS,
     });
-    this.logger.error(32323232);
 
     return {
       previous,
@@ -1250,7 +1248,6 @@ export class BillingService {
 
     return 'PENDING';
   }
-
 
   private appendCheckoutSessionId(
     baseUrl: string,
