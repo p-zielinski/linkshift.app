@@ -68,27 +68,51 @@ export class BillingController {
     });
   }
 
+  @Post('subscription/change')
+  @UseGuards(AuthGuard)
+  async changeSubscription(
+    @User('organizationId') organizationId: string,
+    @User('userId') userId: string,
+    @Body(new ZodPipe(billingSchemas.ChangeSubscriptionSchema))
+    body: billingSchemas.ChangeSubscriptionDto,
+  ) {
+    this.logger.log('Billing subscription change requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      userId,
+      priceId: body.priceId,
+    });
+    return this.billingService.changeSubscriptionByPrice({
+      organizationId,
+      userId,
+      priceId: body.priceId,
+    });
+  }
+
+  @Post('subscription/sync')
+  @UseGuards(AuthGuard)
+  async syncSubscription(
+    @User('organizationId') organizationId: string,
+    @User('userId') userId: string,
+  ) {
+    this.logger.log('Billing subscription sync requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      userId,
+    });
+    return this.billingService.syncSubscriptionFromProvider({
+      organizationId,
+    });
+  }
+
   @Get('portal')
   @UseGuards(AuthGuard)
-  async getPortalUrl(
-    @User('organizationId') organizationId: string,
-    @Query('action') action?: string,
-  ) {
-    const parsedPortalAction = billingSchemas.PortalActionSchema.safeParse(
-      action ?? 'manage',
-    );
-    const portalAction = parsedPortalAction.success
-      ? parsedPortalAction.data
-      : 'manage';
+  async getPortalUrl(@User('organizationId') organizationId: string) {
     this.logger.log('Billing portal requested', {
       requestId: this.clsService.getId(),
       organizationId,
-      action: portalAction,
     });
-    const url = await this.billingService.getCustomerPortalUrl(
-      organizationId,
-      portalAction,
-    );
+    const url = await this.billingService.getCustomerPortalUrl(organizationId);
     return { url };
   }
 

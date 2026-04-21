@@ -5,11 +5,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { BillingInterval, OrganizationPlan } from '@shared/models/organization-config.model';
+import { firstValueFrom } from 'rxjs';
 import { BillingPlansStore } from '../../../../core/store/billing-plans.store';
 import type { BillingPlanPrice } from '../../../../core/api/billing-api.service';
 import { formatLimitChips } from '../../../../core/utils/plan-limits';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 type PricingPlanBase = {
   key: OrganizationPlan;
@@ -103,10 +106,14 @@ const PLAN_METADATA = new Map(PRICING_PLANS.map((plan) => [plan.key, plan]));
 })
 export class PricingPlansComponent {
   private readonly billingPlansStore = inject(BillingPlansStore);
+  private readonly dialog = inject(MatDialog);
 
   readonly compact = input<boolean>(false);
   readonly actionMode = input<'link' | 'select'>('link');
   readonly currentPlan = input<OrganizationPlan | null>(null);
+  readonly currentInterval = input<BillingInterval | null>(null);
+  readonly billingIntervalLocked = input<boolean>(false);
+  readonly billingIntervalLockReason = input<string | null>(null);
   readonly planBlockReasons = input<Partial<Record<OrganizationPlan, string>> | null>(null);
   readonly planSelected = output<PricingPlanSelection>();
   readonly billingInterval = signal<BillingInterval>('MONTHLY');
@@ -179,6 +186,19 @@ export class PricingPlansComponent {
     effect(() => {
       this.billingPlansStore.loadPlans();
     });
+
+    effect(() => {
+      if (!this.billingIntervalLocked()) {
+        return;
+      }
+      const lockedInterval = this.currentInterval();
+      if (!lockedInterval) {
+        return;
+      }
+      if (this.billingInterval() !== lockedInterval) {
+        this.billingInterval.set(lockedInterval);
+      }
+    });
   }
 
   getFeatures(plan: PricingPlan): string[] {
@@ -209,7 +229,14 @@ export class PricingPlansComponent {
   }
 
   isCurrentPlan(plan: OrganizationPlan): boolean {
-    return this.currentPlan() === plan;
+    if (this.currentPlan() !== plan || this.currentPlan() === OrganizationPlan.FREE) {
+      return false;
+    }
+    const currentInterval = this.currentInterval();
+    if (!currentInterval) {
+      return true;
+    }
+    return currentInterval === this.billingInterval();
   }
 
   isSelectablePlan(plan: OrganizationPlan): boolean {
@@ -219,7 +246,7 @@ export class PricingPlansComponent {
     return !this.isPlanBlocked(plan);
   }
 
-  selectPlan(plan: OrganizationPlan): void {
+  async selectPlan(plan: OrganizationPlan): Promise<void> {
     if (this.actionMode() !== 'select') {
       return;
     }
@@ -230,6 +257,14 @@ export class PricingPlansComponent {
     if (!pricing) {
       return;
     }
+    const shouldContinue = await this.confirmUpgradeSelectionIfRequired(
+      plan,
+      this.billingInterval(),
+      pricing.currency,
+    );
+    if (!shouldContinue) {
+      return;
+    }
     this.planSelected.emit({
       plan,
       interval: this.billingInterval(),
@@ -238,6 +273,9 @@ export class PricingPlansComponent {
   }
 
   setInterval(interval: BillingInterval): void {
+    if (this.billingIntervalLocked()) {
+      return;
+    }
     if (this.billingInterval() === interval) {
       return;
     }
@@ -262,6 +300,88 @@ export class PricingPlansComponent {
 
   private getPlanPrice(plan: OrganizationPlan, interval: BillingInterval): BillingPlanPrice | null {
     return this.pricingByPlan().get(`${plan}:${interval}`) ?? null;
+  }
+
+  private async confirmUpgradeSelectionIfRequired(
+    targetPlan: OrganizationPlan,
+    targetInterval: BillingInterval,
+    currency: string,
+  ): Promise<boolean> {
+    if (!this.isUpgradeSelection(targetPlan, targetInterval)) {
+      return true;
+    }
+
+    const targetPlanName = this.getPlanName(targetPlan);
+    const targetAmount = this.getPlanPrice(targetPlan, targetInterval)?.amount ?? null;
+    const amountLabel =
+      targetAmount === null
+        ? null
+        : `${this.formatPrice(targetAmount, currency)} ${targetInterval === 'YEARLY' ? 'per year' : 'per month'}`;
+
+    const confirmDialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Upgrade subscription',
+        message: amountLabel
+          ? `Upgrading to ${targetPlanName} (${amountLabel}) may trigger an immediate prorated charge for the remaining billing period. Continue?`
+          : `Upgrading to ${targetPlanName} may trigger an immediate prorated charge for the remaining billing period. Continue?`,
+        confirmLabel: 'Continue',
+        cancelLabel: 'Cancel',
+        tone: 'warning',
+      },
+      maxWidth: '480px',
+      width: 'min(480px, 92vw)',
+    });
+
+    return !!(await firstValueFrom(confirmDialogRef.afterClosed()));
+  }
+
+  private isUpgradeSelection(
+    targetPlan: OrganizationPlan,
+    targetInterval: BillingInterval,
+  ): boolean {
+    const currentPlan = this.currentPlan();
+    if (!currentPlan || currentPlan === targetPlan || currentPlan === OrganizationPlan.FREE) {
+      return false;
+    }
+
+    const currentInterval = this.currentInterval() ?? targetInterval;
+    const currentAnnualized = this.resolveAnnualizedPlanAmount(
+      currentPlan,
+      currentInterval,
+    );
+    const targetAnnualized = this.resolveAnnualizedPlanAmount(
+      targetPlan,
+      targetInterval,
+    );
+
+    if (currentAnnualized !== null && targetAnnualized !== null) {
+      return targetAnnualized > currentAnnualized;
+    }
+
+    return this.getPlanRank(targetPlan) > this.getPlanRank(currentPlan);
+  }
+
+  private resolveAnnualizedPlanAmount(
+    plan: OrganizationPlan,
+    interval: BillingInterval,
+  ): number | null {
+    if (plan === OrganizationPlan.FREE) {
+      return 0;
+    }
+    const pricing = this.getPlanPrice(plan, interval);
+    if (!pricing) {
+      return null;
+    }
+    return interval === 'YEARLY' ? pricing.amount : pricing.amount * 12;
+  }
+
+  private getPlanRank(plan: OrganizationPlan): number {
+    const index = PLAN_ORDER.indexOf(plan);
+    return index >= 0 ? index : -1;
+  }
+
+  private getPlanName(plan: OrganizationPlan): string {
+    return PLAN_METADATA.get(plan)?.name ?? String(plan);
   }
 
   private formatPrice(amount: number, currency: string): string {
