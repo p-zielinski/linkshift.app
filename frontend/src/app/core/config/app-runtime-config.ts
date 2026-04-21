@@ -51,9 +51,17 @@ export const APP_CONFIG = new InjectionToken<AppRuntimeConfig>('APP_CONFIG', {
   providedIn: 'root',
   factory: () => {
     const transferState = inject(TransferState);
-    const browserConfig = (globalThis as any).APP_CONFIG;
-    const config = transferState.get(APP_CONFIG_KEY, browserConfig);
+    const browserConfig = (globalThis as any).APP_CONFIG as
+      | Partial<AppRuntimeConfig>
+      | undefined;
+    const transferConfig = transferState.get<Partial<AppRuntimeConfig> | null>(
+      APP_CONFIG_KEY,
+      null,
+    );
 
-    return resolveAppRuntimeConfig(config);
+    return resolveAppRuntimeConfig({
+      ...(transferConfig ?? {}),
+      ...(browserConfig ?? {}),
+    });
   },
 });
