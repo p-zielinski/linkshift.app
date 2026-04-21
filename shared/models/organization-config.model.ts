@@ -21,7 +21,7 @@ export class OrganizationSubscription {
   plan: OrganizationPlan = OrganizationPlan.FREE;
   planName: string | null = null;
   status: OrganizationStatus = OrganizationStatus.ACTIVE;
-  provider: 'LEMON_SQUEEZY' | 'MANUAL' | null = null;
+  provider: 'PADDLE' | 'MANUAL' | null = null;
   providerCustomerId: string | null = null;
   providerSubscriptionId: string | null = null;
   providerOrderId: string | null = null;

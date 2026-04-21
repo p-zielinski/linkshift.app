@@ -33,11 +33,12 @@ export class ApiRedirectionMiddleware implements NestMiddleware {
 
     if (
       !this.isProduction &&
-      req.originalUrl === '/api/v1/billing/webhooks/lemon-squeezy' &&
+      req.originalUrl === '/api/v1/billing/webhooks/paddle' &&
       req.method === 'POST'
     ) {
+      this.logger.debug('Redirect rule apply', { body: req.body });
       this.logger.debug(
-        'ApiRedirectionMiddleware bypass (lemon-squeezy dev webhook)',
+        'ApiRedirectionMiddleware bypass (paddle dev webhook)',
         {
           method: req.method,
           originalUrl: req.originalUrl,

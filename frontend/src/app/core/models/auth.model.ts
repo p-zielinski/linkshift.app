@@ -10,7 +10,6 @@ export type AuthResponse = {
   accessToken: string;
   user: User;
   organization: Organization;
-  checkoutUrl?: string | null;
 };
 
 export type AuthSession = {

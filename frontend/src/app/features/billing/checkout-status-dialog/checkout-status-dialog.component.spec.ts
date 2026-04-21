@@ -3,6 +3,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { of } from 'rxjs';
 import { CheckoutStatusDialogComponent } from './checkout-status-dialog.component';
 import { BillingApiService } from '../../../core/api/billing-api.service';
+import { AuthStore } from '../../../core/store/auth.store';
+import { OrganizationUsageStore } from '../../../core/store/organization-usage.store';
 
 class MockBillingApiService {
   responses = [
@@ -36,6 +38,8 @@ describe('CheckoutStatusDialogComponent', () => {
       imports: [CheckoutStatusDialogComponent],
       providers: [
         { provide: BillingApiService, useClass: MockBillingApiService },
+        { provide: AuthStore, useValue: { fetchSession: () => of({}) } },
+        { provide: OrganizationUsageStore, useValue: { loadUsage: () => undefined } },
         { provide: MAT_DIALOG_DATA, useValue: { sessionId: 'chk_1' } },
         { provide: MatDialogRef, useValue: { close: () => {} } },
       ],
