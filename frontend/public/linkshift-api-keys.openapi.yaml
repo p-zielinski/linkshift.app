@@ -1073,10 +1073,17 @@ components:
         id: { type: string }
         name: { type: string }
         organizationId: { type: string }
+        robotsPolicy:
+          $ref: '#/components/schemas/RobotsPolicy'
+        customRobotsContent:
+          type: string
+          nullable: true
+          maxLength: 4096
+          description: Used only when robotsPolicy is CUSTOM.
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
         deletedAt: { type: string, format: date-time, nullable: true }
-      required: [id, name, organizationId, createdAt, updatedAt]
+      required: [id, name, organizationId, robotsPolicy, createdAt, updatedAt]
 
     Domain:
       type: object
@@ -1282,16 +1289,38 @@ components:
       type: string
       enum: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
 
+    RobotsPolicy:
+      type: string
+      description: |
+        Controls robots.txt behavior for all domains in a domain group.
+        CUSTOM requires customRobotsContent.
+      default: NONE
+      enum: [NONE, ALLOW_ALL, DISALLOW_ALL, DISALLOW_BAD_BOTS, CUSTOM]
+
     CreateDomainGroupRequest:
       type: object
       properties:
         name: { type: string, minLength: 1 }
+        robotsPolicy:
+          $ref: '#/components/schemas/RobotsPolicy'
+        customRobotsContent:
+          type: string
+          nullable: true
+          maxLength: 4096
+          description: Required when robotsPolicy is CUSTOM.
       required: [name]
 
     UpdateDomainGroupRequest:
       type: object
       properties:
         name: { type: string, minLength: 1 }
+        robotsPolicy:
+          $ref: '#/components/schemas/RobotsPolicy'
+        customRobotsContent:
+          type: string
+          nullable: true
+          maxLength: 4096
+          description: Required when robotsPolicy is CUSTOM.
       required: [name]
 
     CreateDomainRequest:

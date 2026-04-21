@@ -15,7 +15,9 @@ Base path: `/api/v1/domain-groups`
 
 ```json
 {
-  "name": "Production"
+  "name": "Production",
+  "robotsPolicy": "NONE",
+  "customRobotsContent": null
 }
 ```
 
@@ -31,6 +33,8 @@ Base path: `/api/v1/domain-groups`
 Notes:
 - Group ownership is enforced by organization context from API key.
 - Soft-delete semantics are used internally.
+- `robotsPolicy` supports: `NONE`, `ALLOW_ALL`, `DISALLOW_ALL`, `DISALLOW_BAD_BOTS`, `CUSTOM`.
+- `customRobotsContent` is used only when `robotsPolicy` is `CUSTOM` (max 4096 chars).
 
 ## Domains
 

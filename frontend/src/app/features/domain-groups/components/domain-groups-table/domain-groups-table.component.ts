@@ -28,7 +28,27 @@ export class DomainGroupsTableComponent {
   @Output() edit = new EventEmitter<DomainGroup>();
   @Output() delete = new EventEmitter<string>();
 
-  readonly columns = ['name', 'id', 'domains', 'createdAt', 'actions'];
+  readonly columns = ['name', 'robots', 'id', 'domains', 'createdAt', 'actions'];
+
+  robotsPolicyLabel(policy: DomainGroup['robotsPolicy']): string {
+    switch (policy) {
+      case 'ALLOW_ALL':
+        return 'Allow all';
+      case 'DISALLOW_ALL':
+        return 'Disallow all';
+      case 'DISALLOW_BAD_BOTS':
+        return 'Disallow bad bots';
+      case 'CUSTOM':
+        return 'Custom';
+      case 'NONE':
+      default:
+        return 'None';
+    }
+  }
+
+  robotsPolicyActive(policy: DomainGroup['robotsPolicy']): boolean {
+    return policy !== 'NONE';
+  }
 
   domainCount(groupId: string): number {
     return this.domainCounts()[groupId] ?? 0;
