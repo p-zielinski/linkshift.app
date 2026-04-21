@@ -7,6 +7,14 @@ export const CreateCheckoutSchema = z.object({
 
 export type CreateCheckoutDto = z.infer<typeof CreateCheckoutSchema>;
 
+export const CreateCheckoutSessionSchema = z.object({
+  priceId: z.string().min(1),
+});
+
+export type CreateCheckoutSessionDto = z.infer<
+  typeof CreateCheckoutSessionSchema
+>;
+
 export const PortalActionSchema = z.enum(['manage', 'cancel']).default('manage');
 
 export type PortalAction = z.infer<typeof PortalActionSchema>;

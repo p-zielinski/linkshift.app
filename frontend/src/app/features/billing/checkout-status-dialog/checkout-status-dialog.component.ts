@@ -13,6 +13,7 @@ import {
   CheckoutSessionStatus,
 } from '../../../core/api/billing-api.service';
 import { AuthStore } from '../../../core/store/auth.store';
+import { OrganizationUsageStore } from '../../../core/store/organization-usage.store';
 import { formatPlanLabel } from '../../../core/utils/plan-label';
 
 type CheckoutStatusDialogData = {
@@ -34,6 +35,7 @@ type CheckoutStatusDialogData = {
 export class CheckoutStatusDialogComponent {
   private readonly billingApi = inject(BillingApiService);
   private readonly authStore = inject(AuthStore);
+  private readonly usageStore = inject(OrganizationUsageStore);
   private readonly dialogRef = inject(
     MatDialogRef<CheckoutStatusDialogComponent>,
   );
@@ -41,6 +43,7 @@ export class CheckoutStatusDialogComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly stopPolling$ = new Subject<void>();
   private sessionRefreshTriggered = false;
+  private autoCloseScheduled = false;
   readonly sessionNotFound = signal(false);
 
   readonly sessionId = this.data.sessionId;
@@ -137,6 +140,7 @@ export class CheckoutStatusDialogComponent {
 
         if (session.status === 'PAID') {
           this.refreshSessionOnce();
+          this.scheduleAutoClose();
         }
 
         if (session.status !== 'PENDING') {
@@ -153,6 +157,17 @@ export class CheckoutStatusDialogComponent {
     this.authStore
       .fetchSession()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ error: () => undefined });
+      .subscribe({
+        next: () => this.usageStore.loadUsage(),
+        error: () => undefined,
+      });
+  }
+
+  private scheduleAutoClose(): void {
+    if (this.autoCloseScheduled) {
+      return;
+    }
+    this.autoCloseScheduled = true;
+    setTimeout(() => this.close(), 1800);
   }
 }

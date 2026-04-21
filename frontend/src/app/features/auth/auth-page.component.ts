@@ -31,8 +31,7 @@ import { BillingPlansStore } from '../../core/store/billing-plans.store';
 import { APP_CONFIG } from '../../core/config/app-runtime-config';
 import { formatLimitSummary } from '../../core/utils/plan-limits';
 import { BillingPlanPrice } from '../../core/api/billing-api.service';
-import { PaddleCheckoutService } from '../../core/billing/paddle-checkout.service';
-import type { AuthResponse } from '../../core/models/auth.model';
+import { PaddleCheckoutFlowService } from '../../core/billing/paddle-checkout-flow.service';
 
 @Component({
   selector: 'app-auth-page',
@@ -63,7 +62,7 @@ export class AuthPageComponent {
   private readonly billingPlansStore = inject(BillingPlansStore);
   private readonly appConfig = inject(APP_CONFIG);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly paddleCheckout = inject(PaddleCheckoutService);
+  private readonly checkoutFlow = inject(PaddleCheckoutFlowService);
 
   loginModel = signal({
     email: '',
@@ -215,9 +214,8 @@ export class AuthPageComponent {
     event?.preventDefault();
     await submit(this.registerForm, async (formValue) => {
       const { confirmPassword: _confirmPassword, ...payload } = formValue().value();
-      let response: AuthResponse;
       try {
-        response = await firstValueFrom(this.authStore.register(payload));
+        await firstValueFrom(this.authStore.register(payload));
       } catch {
         return undefined;
       }
@@ -237,21 +235,15 @@ export class AuthPageComponent {
           );
         } else {
           try {
-            const checkoutResult = await this.paddleCheckout.openOverlayCheckout({
+            const checkoutResult = await this.checkoutFlow.startCheckout({
               priceId,
-              customerEmail: response.user.email,
-              customData: {
-                organizationId: response.organization.id,
-                userId: response.user.id,
-                email: response.user.email,
-                plan: payload.plan,
-                interval: payload.billingInterval,
-                source: 'registration',
-              },
+              plan: payload.plan,
+              interval: payload.billingInterval,
+              source: 'registration',
             });
 
             if (checkoutResult.status === 'completed') {
-              this.snackBar.open('Checkout completed. Subscription is being updated.', 'Dismiss', {
+              this.snackBar.open('Payment received. We are confirming plan activation.', 'Dismiss', {
                 duration: 5000,
                 horizontalPosition: 'center',
                 verticalPosition: 'bottom',

@@ -10,8 +10,7 @@ import type { PlanLimits } from '@shared/models/plan-limits.model';
 import { BillingPlansStore } from '../../../core/store/billing-plans.store';
 import { OrganizationUsageStore } from '../../../core/store/organization-usage.store';
 import type { OrganizationUsage } from '../../../core/models/organization-usage.model';
-import { AuthStore } from '../../../core/store/auth.store';
-import { PaddleCheckoutService } from '../../../core/billing/paddle-checkout.service';
+import { PaddleCheckoutFlowService } from '../../../core/billing/paddle-checkout-flow.service';
 
 export type UpgradeDialogData = {
   currentPlan: OrganizationPlan;
@@ -38,8 +37,7 @@ export class UpgradeDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<UpgradeDialogComponent>);
   private readonly billingPlansStore = inject(BillingPlansStore);
   private readonly usageStore = inject(OrganizationUsageStore);
-  private readonly authStore = inject(AuthStore);
-  private readonly paddleCheckout = inject(PaddleCheckoutService);
+  private readonly checkoutFlow = inject(PaddleCheckoutFlowService);
   readonly data = inject<UpgradeDialogData>(MAT_DIALOG_DATA);
   readonly busy = signal(false);
 
@@ -80,41 +78,23 @@ export class UpgradeDialogComponent {
       return;
     }
 
-    const user = this.authStore.user();
-    const organization = this.authStore.organization();
-    if (!user || !organization) {
-      this.snackBar.open('Session missing. Refresh and try again.', 'Dismiss', {
-        duration: 5000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-        panelClass: ['bg-red-600', 'text-white'],
-      });
-      return;
-    }
-
     this.dialogRef.close({ checkoutStarted: true });
     this.busy.set(true);
     try {
-      const result = await this.paddleCheckout.openOverlayCheckout({
+      const result = await this.checkoutFlow.startCheckout({
         priceId,
-        customerEmail: user.email,
-        customData: {
-          organizationId: organization.id,
-          userId: user.id,
-          email: user.email,
-          plan,
-          interval,
-        },
+        plan,
+        interval,
+        source: 'upgrade_dialog',
       });
 
       if (result.status === 'completed') {
-        this.snackBar.open('Checkout completed. Subscription is being updated.', 'Dismiss', {
+        this.snackBar.open('Payment received. We are confirming plan activation.', 'Dismiss', {
           duration: 5000,
           horizontalPosition: 'center',
           verticalPosition: 'bottom',
           panelClass: ['bg-emerald-600', 'text-white'],
         });
-        this.dialogRef.close({ upgraded: true });
         return;
       }
 
