@@ -134,7 +134,7 @@ app.get('/runtime-config.js', (_req, res) => {
     APP_AUTH_GATE_ENABLED: process.env['APP_AUTH_GATE_ENABLED'] ?? 'false',
     APP_DOMAIN_TARGET_IP: process.env['APP_DOMAIN_TARGET_IP'] ?? '',
     APP_PADDLE_CLIENT_TOKEN: process.env['APP_PADDLE_CLIENT_TOKEN'] ?? '',
-    APP_PADDLE_ENV: process.env['APP_PADDLE_ENV'] ?? 'sandbox',
+    APP_PADDLE_ENV: process.env['APP_PADDLE_ENV'] ?? '',
   };
 
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
