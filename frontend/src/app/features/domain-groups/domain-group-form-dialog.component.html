@@ -12,6 +12,10 @@
       <div class="text-xs text-app-muted">{{ groupModel().name || 'Unnamed group' }}</div>
     </ng-template>
 
+    <ng-template wizardStepSummary="robots">
+      <div class="text-xs text-app-muted">{{ robotsPolicyLabel() }}</div>
+    </ng-template>
+
     <ng-template wizardStep="details">
       <div class="grid gap-4">
         <mat-form-field appearance="outline" class="w-full">
@@ -21,6 +25,35 @@
             <mat-error>{{ error }}</mat-error>
           }
         </mat-form-field>
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="robots">
+      <div class="grid gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Robots.txt policy</mat-label>
+          <mat-select [formField]="groupForm.robotsPolicy">
+            @for (option of robotsPolicyOptions; track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
+          </mat-select>
+          @if (robotsPolicyError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        @if (isCustomPolicy()) {
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Custom robots.txt content</mat-label>
+            <textarea matInput rows="10" [formField]="groupForm.customRobotsContent"></textarea>
+            <mat-hint align="end">
+              {{ groupModel().customRobotsContent.length }} / {{ maxCustomRobotsContentLength }}
+            </mat-hint>
+            @if (customRobotsContentError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+        }
       </div>
     </ng-template>
   </app-wizard>

@@ -99,6 +99,12 @@ const FEATURES: MarketingFeature[] = [
     title: 'Domain-group governance',
     description: 'Set rules once and reuse them across production, staging, and typo domains.',
   },
+  {
+    icon: 'description',
+    title: 'Built-in robots.txt control',
+    description:
+      'Manage robots.txt per redirect group with ready policies or custom content for advanced SEO control.',
+  },
 ];
 
 const MODEL_CARDS = [
@@ -206,6 +212,7 @@ export class HomePageComponent implements OnInit {
     'Regex sources with capture groups',
     'Exact, prefix, and query matching',
     'Link maps with analytics visibility',
+    'Robots.txt templates or custom group-level content',
     'Organization-scoped API keys for automation',
     'Automatic SSL certificate provisioning',
   ];
