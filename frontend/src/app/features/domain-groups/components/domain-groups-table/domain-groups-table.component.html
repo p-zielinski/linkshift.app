@@ -24,6 +24,24 @@
     </td>
   </ng-container>
 
+  <ng-container matColumnDef="robots">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
+      Robots.txt
+    </th>
+    <td mat-cell *matCellDef="let group" class="py-3 min-w-[150px] max-w-[250px] truncate">
+      <span
+        class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[12px]"
+        [ngClass]="
+          robotsPolicyActive(group.robotsPolicy)
+            ? 'bg-green-50 text-green-700'
+            : 'bg-app-muted/10 text-app-muted'
+        "
+      >
+        {{ robotsPolicyLabel(group.robotsPolicy) }}
+      </span>
+    </td>
+  </ng-container>
+
   <ng-container matColumnDef="domains">
     <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[150px] max-w-[250px] truncate">
       Domains

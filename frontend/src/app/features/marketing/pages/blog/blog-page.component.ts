@@ -30,7 +30,7 @@ export class BlogPageComponent implements OnInit {
   readonly highlights = [
     'Comparison articles about real competitors',
     'Conclusions based on official websites and documentation',
-    'Technical scenarios: regex, query matching, and link maps',
+    'Technical scenarios: regex, query matching, link maps, and robots.txt',
   ];
 
   ngOnInit(): void {

@@ -2085,6 +2085,141 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       },
     ],
   },
+  {
+    slug: 'robots-txt-management-in-linkshift',
+    title: 'Robots.txt management in LinkShift: group-level control for safer SEO operations',
+    description:
+      'LinkShift now supports built-in robots.txt management at redirect-group level with ready policies and custom mode.',
+    seoTitle: 'Robots.txt management in LinkShift | Group-level SEO control',
+    seoDescription:
+      'Manage robots.txt per redirect group in LinkShift. Choose NONE, ALLOW_ALL, DISALLOW_ALL, DISALLOW_BAD_BOTS, or CUSTOM and keep SEO behavior consistent across domains.',
+    competitor: 'Manual robots.txt file management',
+    category: 'domain-path-redirection',
+    publishedAt: '2026-04-22',
+    updatedAt: '2026-04-22',
+    factCheckedAt: '2026-04-22',
+    readTimeMinutes: 9,
+    tags: [
+      'robots.txt management',
+      'technical seo',
+      'redirect groups',
+      'seo governance',
+      'linkshift robots policy',
+    ],
+    heroHighlights: [
+      'Configure robots.txt once per redirect group and apply policy consistently to assigned domains',
+      'Use ready policies for common scenarios or switch to full CUSTOM content when needed',
+      'When policy is enabled, /robots.txt is served directly from LinkShift without extra infrastructure edits',
+    ],
+    comparisonRows: [
+      {
+        area: 'Where robots.txt is configured',
+        linkshift: 'At redirect-group level in dashboard',
+        competitor: 'Per-domain server, CDN, or hosting configuration',
+      },
+      {
+        area: 'Built-in policy templates',
+        linkshift: 'NONE, ALLOW_ALL, DISALLOW_ALL, DISALLOW_BAD_BOTS, CUSTOM',
+        competitor: 'Manual file editing with no standard policy presets',
+      },
+      {
+        area: 'Consistency across domains',
+        linkshift: 'One policy applied to all domains in the group',
+        competitor: 'High risk of drift between environments and host variants',
+      },
+      {
+        area: 'Operational speed',
+        linkshift: 'Policy change from one UI workflow',
+        competitor: 'Ticket-based or infrastructure-level changes',
+      },
+      {
+        area: 'Fallback behavior',
+        linkshift: 'Policy NONE keeps standard redirect-rule flow for /robots.txt',
+        competitor: 'Depends on server order and local implementation',
+      },
+    ],
+    sections: [
+      {
+        title: 'What is new: robots.txt controlled by redirect group',
+        paragraphs: [
+          'LinkShift now includes first-class robots.txt support directly in redirect-group configuration.',
+          'This means you can manage crawler directives where redirect logic is already governed, instead of spreading robots files across servers, CDNs, and environment-specific configs.',
+          'For teams handling multiple domains and migration windows, this reduces operational risk and keeps SEO behavior predictable.',
+        ],
+      },
+      {
+        title: 'Available robots.txt policies in LinkShift',
+        paragraphs: [
+          'Each redirect group now supports one explicit robotsPolicy setting plus optional customRobotsContent.',
+          'The policy determines what LinkShift returns for exact path /robots.txt on domains assigned to that group.',
+        ],
+        bullets: [
+          'NONE: disables built-in robots.txt handling and keeps normal redirect-rule matching',
+          'ALLOW_ALL: serves User-agent: * with Allow: /',
+          'DISALLOW_ALL: serves User-agent: * with Disallow: /',
+          'DISALLOW_BAD_BOTS: serves a predefined blocklist for known aggressive or low-value bots',
+          'CUSTOM: serves your own robots.txt content (up to 4096 characters)',
+        ],
+      },
+      {
+        title: 'How request handling works for /robots.txt',
+        paragraphs: [
+          'When request path is exactly /robots.txt and group policy is different than NONE, LinkShift returns plain-text robots content with HTTP 200 immediately.',
+          'In that case, standard redirect-rule search is intentionally skipped to avoid conflicting behavior.',
+          'If policy is NONE, LinkShift does not intercept and routing continues through standard redirect rules, exactly like before.',
+        ],
+      },
+      {
+        title: 'Why this matters for technical SEO and migrations',
+        paragraphs: [
+          'During domain migrations and restructuring projects, robots.txt often changes temporarily between crawl-open and crawl-restricted states.',
+          'Group-level policies make these transitions faster: you can switch posture intentionally without touching each domain stack.',
+          'This is especially useful when one redirect group governs production + support domains where policy consistency is critical.',
+        ],
+        bullets: [
+          'Faster rollout of temporary crawl restrictions',
+          'Less mismatch between apex/www or regional host configurations',
+          'Clearer operational ownership for SEO and platform teams',
+        ],
+      },
+      {
+        title: 'When to choose CUSTOM mode',
+        paragraphs: [
+          'Use CUSTOM when you need explicit directives beyond preset policies, for example selective Disallow paths, custom sitemap references, or crawler-specific rules.',
+          'LinkShift validates content length (max 4096 characters) to keep storage and cache behavior safe while still allowing practical flexibility for most robots.txt use cases.',
+        ],
+      },
+      {
+        title: 'Practical rollout checklist',
+        paragraphs: [
+          'Before changing policy in production, decide whether your goal is open crawl, full block, or selective bot control.',
+          'Then verify resulting /robots.txt response on representative domains from the group and confirm expected SEO behavior in your monitoring workflow.',
+        ],
+        bullets: [
+          'Pick policy per redirect group, not per single emergency request',
+          'Use DISALLOW_ALL only for deliberate short windows',
+          'Prefer CUSTOM when you need granular path-level crawl control',
+          'Review policy after migration milestones to avoid stale restrictions',
+        ],
+      },
+    ],
+    honestWhenCompetitorWins: [
+      'When your organization already has a mature, centralized robots.txt pipeline fully integrated with infrastructure-as-code and strict release governance.',
+      'When each domain must keep fully independent crawler policy with no shared group-level behavior.',
+    ],
+    references: [
+      { label: 'LinkShift - home', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - blog', href: 'https://linkshift.app/blog' },
+      {
+        label: 'Google Search Central - robots.txt introduction',
+        href: 'https://developers.google.com/search/docs/crawling-indexing/robots/intro',
+      },
+      {
+        label: 'Google Search Central - robots.txt specification',
+        href: 'https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt',
+      },
+    ],
+  },
 ];
 
 export const BLOG_ARTICLES: BlogArticle[] = BLOG_ARTICLES_DATA.sort((a, b) =>

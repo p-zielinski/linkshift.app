@@ -108,6 +108,17 @@ export const RedirectPathMatch: {
 export type RedirectPathMatch = (typeof RedirectPathMatch)[keyof typeof RedirectPathMatch]
 
 
+export const RobotsPolicy: {
+  NONE: 'NONE',
+  ALLOW_ALL: 'ALLOW_ALL',
+  DISALLOW_ALL: 'DISALLOW_ALL',
+  DISALLOW_BAD_BOTS: 'DISALLOW_BAD_BOTS',
+  CUSTOM: 'CUSTOM'
+};
+
+export type RobotsPolicy = (typeof RobotsPolicy)[keyof typeof RobotsPolicy]
+
+
 export const BillingCheckoutStatus: {
   PENDING: 'PENDING',
   PAID: 'PAID',
@@ -131,6 +142,10 @@ export const RedirectQueryMatch: typeof $Enums.RedirectQueryMatch
 export type RedirectPathMatch = $Enums.RedirectPathMatch
 
 export const RedirectPathMatch: typeof $Enums.RedirectPathMatch
+
+export type RobotsPolicy = $Enums.RobotsPolicy
+
+export const RobotsPolicy: typeof $Enums.RobotsPolicy
 
 export type BillingCheckoutStatus = $Enums.BillingCheckoutStatus
 
@@ -6939,6 +6954,8 @@ export namespace Prisma {
     id: string | null
     name: string | null
     organizationId: string | null
+    robotsPolicy: $Enums.RobotsPolicy | null
+    customRobotsContent: string | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -6948,6 +6965,8 @@ export namespace Prisma {
     id: string | null
     name: string | null
     organizationId: string | null
+    robotsPolicy: $Enums.RobotsPolicy | null
+    customRobotsContent: string | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -6957,6 +6976,8 @@ export namespace Prisma {
     id: number
     name: number
     organizationId: number
+    robotsPolicy: number
+    customRobotsContent: number
     createdAt: number
     updatedAt: number
     deletedAt: number
@@ -6968,6 +6989,8 @@ export namespace Prisma {
     id?: true
     name?: true
     organizationId?: true
+    robotsPolicy?: true
+    customRobotsContent?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -6977,6 +7000,8 @@ export namespace Prisma {
     id?: true
     name?: true
     organizationId?: true
+    robotsPolicy?: true
+    customRobotsContent?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -6986,6 +7011,8 @@ export namespace Prisma {
     id?: true
     name?: true
     organizationId?: true
+    robotsPolicy?: true
+    customRobotsContent?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -7068,6 +7095,8 @@ export namespace Prisma {
     id: string
     name: string
     organizationId: string
+    robotsPolicy: $Enums.RobotsPolicy
+    customRobotsContent: string | null
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -7094,6 +7123,8 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     organizationId?: boolean
+    robotsPolicy?: boolean
+    customRobotsContent?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7109,6 +7140,8 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     organizationId?: boolean
+    robotsPolicy?: boolean
+    customRobotsContent?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7119,6 +7152,8 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     organizationId?: boolean
+    robotsPolicy?: boolean
+    customRobotsContent?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7129,12 +7164,14 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     organizationId?: boolean
+    robotsPolicy?: boolean
+    customRobotsContent?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
   }
 
-  export type DomainGroupOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "organizationId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["domainGroup"]>
+  export type DomainGroupOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "organizationId" | "robotsPolicy" | "customRobotsContent" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["domainGroup"]>
   export type DomainGroupInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     domains?: boolean | DomainGroup$domainsArgs<ExtArgs>
@@ -7163,6 +7200,8 @@ export namespace Prisma {
       id: string
       name: string
       organizationId: string
+      robotsPolicy: $Enums.RobotsPolicy
+      customRobotsContent: string | null
       createdAt: Date
       updatedAt: Date
       deletedAt: Date | null
@@ -7597,6 +7636,8 @@ export namespace Prisma {
     readonly id: FieldRef<"DomainGroup", 'String'>
     readonly name: FieldRef<"DomainGroup", 'String'>
     readonly organizationId: FieldRef<"DomainGroup", 'String'>
+    readonly robotsPolicy: FieldRef<"DomainGroup", 'RobotsPolicy'>
+    readonly customRobotsContent: FieldRef<"DomainGroup", 'String'>
     readonly createdAt: FieldRef<"DomainGroup", 'DateTime'>
     readonly updatedAt: FieldRef<"DomainGroup", 'DateTime'>
     readonly deletedAt: FieldRef<"DomainGroup", 'DateTime'>
@@ -16275,6 +16316,8 @@ export namespace Prisma {
     id: 'id',
     name: 'name',
     organizationId: 'organizationId',
+    robotsPolicy: 'robotsPolicy',
+    customRobotsContent: 'customRobotsContent',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     deletedAt: 'deletedAt'
@@ -16496,6 +16539,20 @@ export namespace Prisma {
    * Reference to a field of type 'Boolean'
    */
   export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+  /**
+   * Reference to a field of type 'RobotsPolicy'
+   */
+  export type EnumRobotsPolicyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RobotsPolicy'>
+    
+
+
+  /**
+   * Reference to a field of type 'RobotsPolicy[]'
+   */
+  export type ListEnumRobotsPolicyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RobotsPolicy[]'>
     
 
 
@@ -16945,6 +17002,8 @@ export namespace Prisma {
     id?: StringFilter<"DomainGroup"> | string
     name?: StringFilter<"DomainGroup"> | string
     organizationId?: StringFilter<"DomainGroup"> | string
+    robotsPolicy?: EnumRobotsPolicyFilter<"DomainGroup"> | $Enums.RobotsPolicy
+    customRobotsContent?: StringNullableFilter<"DomainGroup"> | string | null
     createdAt?: DateTimeFilter<"DomainGroup"> | Date | string
     updatedAt?: DateTimeFilter<"DomainGroup"> | Date | string
     deletedAt?: DateTimeNullableFilter<"DomainGroup"> | Date | string | null
@@ -16959,6 +17018,8 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     organizationId?: SortOrder
+    robotsPolicy?: SortOrder
+    customRobotsContent?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -16976,6 +17037,8 @@ export namespace Prisma {
     NOT?: DomainGroupWhereInput | DomainGroupWhereInput[]
     name?: StringFilter<"DomainGroup"> | string
     organizationId?: StringFilter<"DomainGroup"> | string
+    robotsPolicy?: EnumRobotsPolicyFilter<"DomainGroup"> | $Enums.RobotsPolicy
+    customRobotsContent?: StringNullableFilter<"DomainGroup"> | string | null
     createdAt?: DateTimeFilter<"DomainGroup"> | Date | string
     updatedAt?: DateTimeFilter<"DomainGroup"> | Date | string
     deletedAt?: DateTimeNullableFilter<"DomainGroup"> | Date | string | null
@@ -16990,6 +17053,8 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     organizationId?: SortOrder
+    robotsPolicy?: SortOrder
+    customRobotsContent?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -17005,6 +17070,8 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"DomainGroup"> | string
     name?: StringWithAggregatesFilter<"DomainGroup"> | string
     organizationId?: StringWithAggregatesFilter<"DomainGroup"> | string
+    robotsPolicy?: EnumRobotsPolicyWithAggregatesFilter<"DomainGroup"> | $Enums.RobotsPolicy
+    customRobotsContent?: StringNullableWithAggregatesFilter<"DomainGroup"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"DomainGroup"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"DomainGroup"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"DomainGroup"> | Date | string | null
@@ -18015,6 +18082,8 @@ export namespace Prisma {
   export type DomainGroupCreateInput = {
     id: string
     name: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -18029,6 +18098,8 @@ export namespace Prisma {
     id: string
     name: string
     organizationId: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -18041,6 +18112,8 @@ export namespace Prisma {
   export type DomainGroupUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -18055,6 +18128,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     organizationId?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -18068,6 +18143,8 @@ export namespace Prisma {
     id: string
     name: string
     organizationId: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -18076,6 +18153,8 @@ export namespace Prisma {
   export type DomainGroupUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -18085,6 +18164,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     organizationId?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -19162,6 +19243,13 @@ export namespace Prisma {
     deletedAt?: SortOrder
   }
 
+  export type EnumRobotsPolicyFilter<$PrismaModel = never> = {
+    equals?: $Enums.RobotsPolicy | EnumRobotsPolicyFieldRefInput<$PrismaModel>
+    in?: $Enums.RobotsPolicy[] | ListEnumRobotsPolicyFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RobotsPolicy[] | ListEnumRobotsPolicyFieldRefInput<$PrismaModel>
+    not?: NestedEnumRobotsPolicyFilter<$PrismaModel> | $Enums.RobotsPolicy
+  }
+
   export type DomainListRelationFilter = {
     every?: DomainWhereInput
     some?: DomainWhereInput
@@ -19196,6 +19284,8 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     organizationId?: SortOrder
+    robotsPolicy?: SortOrder
+    customRobotsContent?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -19205,6 +19295,8 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     organizationId?: SortOrder
+    robotsPolicy?: SortOrder
+    customRobotsContent?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -19214,9 +19306,21 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     organizationId?: SortOrder
+    robotsPolicy?: SortOrder
+    customRobotsContent?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
+  }
+
+  export type EnumRobotsPolicyWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RobotsPolicy | EnumRobotsPolicyFieldRefInput<$PrismaModel>
+    in?: $Enums.RobotsPolicy[] | ListEnumRobotsPolicyFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RobotsPolicy[] | ListEnumRobotsPolicyFieldRefInput<$PrismaModel>
+    not?: NestedEnumRobotsPolicyWithAggregatesFilter<$PrismaModel> | $Enums.RobotsPolicy
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRobotsPolicyFilter<$PrismaModel>
+    _max?: NestedEnumRobotsPolicyFilter<$PrismaModel>
   }
 
   export type DomainGroupScalarRelationFilter = {
@@ -20212,6 +20316,10 @@ export namespace Prisma {
     connect?: RedirectTestWhereUniqueInput | RedirectTestWhereUniqueInput[]
   }
 
+  export type EnumRobotsPolicyFieldUpdateOperationsInput = {
+    set?: $Enums.RobotsPolicy
+  }
+
   export type OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput = {
     create?: XOR<OrganizationCreateWithoutDomainGroupsInput, OrganizationUncheckedCreateWithoutDomainGroupsInput>
     connectOrCreate?: OrganizationCreateOrConnectWithoutDomainGroupsInput
@@ -20813,6 +20921,23 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
+  export type NestedEnumRobotsPolicyFilter<$PrismaModel = never> = {
+    equals?: $Enums.RobotsPolicy | EnumRobotsPolicyFieldRefInput<$PrismaModel>
+    in?: $Enums.RobotsPolicy[] | ListEnumRobotsPolicyFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RobotsPolicy[] | ListEnumRobotsPolicyFieldRefInput<$PrismaModel>
+    not?: NestedEnumRobotsPolicyFilter<$PrismaModel> | $Enums.RobotsPolicy
+  }
+
+  export type NestedEnumRobotsPolicyWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RobotsPolicy | EnumRobotsPolicyFieldRefInput<$PrismaModel>
+    in?: $Enums.RobotsPolicy[] | ListEnumRobotsPolicyFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RobotsPolicy[] | ListEnumRobotsPolicyFieldRefInput<$PrismaModel>
+    not?: NestedEnumRobotsPolicyWithAggregatesFilter<$PrismaModel> | $Enums.RobotsPolicy
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRobotsPolicyFilter<$PrismaModel>
+    _max?: NestedEnumRobotsPolicyFilter<$PrismaModel>
+  }
+
   export type NestedEnumRedirectQueryMatchFilter<$PrismaModel = never> = {
     equals?: $Enums.RedirectQueryMatch | EnumRedirectQueryMatchFieldRefInput<$PrismaModel>
     in?: $Enums.RedirectQueryMatch[] | ListEnumRedirectQueryMatchFieldRefInput<$PrismaModel>
@@ -20965,6 +21090,8 @@ export namespace Prisma {
   export type DomainGroupCreateWithoutOrganizationInput = {
     id: string
     name: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -20977,6 +21104,8 @@ export namespace Prisma {
   export type DomainGroupUncheckedCreateWithoutOrganizationInput = {
     id: string
     name: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -21234,6 +21363,8 @@ export namespace Prisma {
     id?: StringFilter<"DomainGroup"> | string
     name?: StringFilter<"DomainGroup"> | string
     organizationId?: StringFilter<"DomainGroup"> | string
+    robotsPolicy?: EnumRobotsPolicyFilter<"DomainGroup"> | $Enums.RobotsPolicy
+    customRobotsContent?: StringNullableFilter<"DomainGroup"> | string | null
     createdAt?: DateTimeFilter<"DomainGroup"> | Date | string
     updatedAt?: DateTimeFilter<"DomainGroup"> | Date | string
     deletedAt?: DateTimeNullableFilter<"DomainGroup"> | Date | string | null
@@ -22158,6 +22289,8 @@ export namespace Prisma {
   export type DomainGroupCreateWithoutDomainsInput = {
     id: string
     name: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -22171,6 +22304,8 @@ export namespace Prisma {
     id: string
     name: string
     organizationId: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -22198,6 +22333,8 @@ export namespace Prisma {
   export type DomainGroupUpdateWithoutDomainsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22211,6 +22348,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     organizationId?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22222,6 +22361,8 @@ export namespace Prisma {
   export type DomainGroupCreateWithoutRedirectRulesInput = {
     id: string
     name: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -22235,6 +22376,8 @@ export namespace Prisma {
     id: string
     name: string
     organizationId: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -22333,6 +22476,8 @@ export namespace Prisma {
   export type DomainGroupUpdateWithoutRedirectRulesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22346,6 +22491,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     organizationId?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22410,6 +22557,8 @@ export namespace Prisma {
   export type DomainGroupCreateWithoutLinkMapsInput = {
     id: string
     name: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -22423,6 +22572,8 @@ export namespace Prisma {
     id: string
     name: string
     organizationId: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -22526,6 +22677,8 @@ export namespace Prisma {
   export type DomainGroupUpdateWithoutLinkMapsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22539,6 +22692,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     organizationId?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22863,6 +23018,8 @@ export namespace Prisma {
   export type DomainGroupCreateWithoutRedirectTestsInput = {
     id: string
     name: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -22876,6 +23033,8 @@ export namespace Prisma {
     id: string
     name: string
     organizationId: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -22944,6 +23103,8 @@ export namespace Prisma {
   export type DomainGroupUpdateWithoutRedirectTestsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22957,6 +23118,8 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     organizationId?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23153,6 +23316,8 @@ export namespace Prisma {
   export type DomainGroupCreateManyOrganizationInput = {
     id: string
     name: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -23280,6 +23445,8 @@ export namespace Prisma {
   export type DomainGroupUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23292,6 +23459,8 @@ export namespace Prisma {
   export type DomainGroupUncheckedUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23304,6 +23473,8 @@ export namespace Prisma {
   export type DomainGroupUncheckedUpdateManyWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
