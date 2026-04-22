@@ -30,26 +30,32 @@ app.use((req, res, next) => {
   const paddleScriptOrigins = [
     'https://cdn.paddle.com',
     'https://sandbox-cdn.paddle.com',
+    'https://public.profitwell.com',
   ];
   const paddleStyleOrigins = [
     'https://cdn.paddle.com',
     'https://sandbox-cdn.paddle.com',
+    'https://public.profitwell.com',
   ];
   const paddleAssetOrigins = [
     'https://cdn.paddle.com',
     'https://sandbox-cdn.paddle.com',
+    'https://public.profitwell.com',
   ];
   const paddleConnectOrigins = [
     'https://api.paddle.com',
     'https://sandbox-api.paddle.com',
     'https://checkout.paddle.com',
     'https://sandbox-checkout.paddle.com',
+    'https://checkout-service.paddle.com',
+    'https://sandbox-checkout-service.paddle.com',
     'https://buy.paddle.com',
     'https://sandbox-buy.paddle.com',
     'https://vendors.paddle.com',
     'https://sandbox-vendors.paddle.com',
     'https://pay.paddle.io',
     'https://sandbox-pay.paddle.io',
+    'https://public.profitwell.com',
   ];
   const paddleFrameOrigins = [
     'https://checkout.paddle.com',
