@@ -25,12 +25,19 @@ security:
   - ApiKeyAuth: []
 tags:
   - name: Organization
+    description: Organization-scoped operational data available for the current API key.
   - name: Domain Groups
+    description: Domain group management, including robots policy defaults for assigned domains.
   - name: Domains
+    description: Domain inventory and grouping used by redirect execution.
   - name: Redirect Rules
+    description: Core redirect routing rules, analytics, and simulation endpoints.
   - name: Redirect Tests
+    description: Stored redirect test fixtures for regression and CI validation.
   - name: Link Maps
+    description: Key-value routing maps referenced by redirect rules.
   - name: Link Map Entries
+    description: Entry-level CRUD and bulk import operations for link maps.
 paths:
   /api/v1/organization/usage:
     get:
@@ -56,6 +63,7 @@ paths:
     get:
       tags: [Domain Groups]
       summary: List domain groups
+      description: Returns all active domain groups owned by the authenticated organization.
       operationId: listDomainGroups
       responses:
         '200':
@@ -73,6 +81,7 @@ paths:
     post:
       tags: [Domain Groups]
       summary: Create domain group
+      description: Creates a domain group and optionally configures robots policy defaults.
       operationId: createDomainGroup
       requestBody:
         required: true
@@ -102,6 +111,7 @@ paths:
     get:
       tags: [Domain Groups]
       summary: Get domain group
+      description: Returns one domain group by ID when it belongs to the authenticated organization.
       operationId: getDomainGroup
       responses:
         '200':
@@ -121,6 +131,7 @@ paths:
     put:
       tags: [Domain Groups]
       summary: Update domain group
+      description: Updates mutable domain-group fields such as name and robots policy options.
       operationId: updateDomainGroup
       requestBody:
         required: true
@@ -145,7 +156,8 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Domain Groups]
-      summary: Delete domain group (soft delete)
+      summary: Delete domain group
+      description: Marks a domain group as deleted without physically removing historical records.
       operationId: deleteDomainGroup
       responses:
         '200':
@@ -163,6 +175,7 @@ paths:
     get:
       tags: [Domains]
       summary: List domains
+      description: Returns all active domains for the authenticated organization.
       operationId: listDomains
       responses:
         '200':
@@ -180,6 +193,7 @@ paths:
     post:
       tags: [Domains]
       summary: Create domain
+      description: Creates a new domain in a target domain group after uniqueness and ownership checks.
       operationId: createDomain
       requestBody:
         required: true
@@ -211,6 +225,7 @@ paths:
     get:
       tags: [Domains]
       summary: Get domain
+      description: Returns one domain by ID when it belongs to the authenticated organization.
       operationId: getDomain
       responses:
         '200':
@@ -230,6 +245,7 @@ paths:
     put:
       tags: [Domains]
       summary: Update domain
+      description: Updates mutable domain fields such as name or assigned domain group.
       operationId: updateDomain
       requestBody:
         required: true
@@ -256,7 +272,8 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Domains]
-      summary: Delete domain (soft delete)
+      summary: Delete domain
+      description: Marks a domain as deleted without hard-removing it from storage.
       operationId: deleteDomain
       responses:
         '200':
@@ -281,11 +298,13 @@ paths:
         - name: domainGroupId
           in: query
           required: true
+          description: Domain group scope for listing rules.
           schema:
             type: string
         - name: limit
           in: query
           required: false
+          description: Maximum number of items to return (cursor page size).
           schema:
             type: integer
             minimum: 1
@@ -294,11 +313,13 @@ paths:
         - name: search
           in: query
           required: false
+          description: Free-text search over rule source/destination fields.
           schema:
             type: string
         - name: startAfterId
           in: query
           required: false
+          description: Cursor token using the last item ID from previous page.
           schema:
             type: string
       responses:
@@ -352,11 +373,13 @@ paths:
     get:
       tags: [Redirect Rules]
       summary: Get top redirect rules analytics
+      description: Returns aggregated hit statistics for rules within the selected time window.
       operationId: getRedirectRuleAnalytics
       parameters:
         - name: limit
           in: query
           required: false
+          description: Number of top rules returned in analytics results.
           schema:
             type: integer
             minimum: 1
@@ -365,18 +388,21 @@ paths:
         - name: range
           in: query
           required: false
+          description: Predefined analytics range (used when start/end are not provided).
           schema:
             type: string
             enum: [day, week, month]
         - name: start
           in: query
           required: false
+          description: Inclusive start of analytics window (ISO-8601 UTC datetime).
           schema:
             type: string
             format: date-time
         - name: end
           in: query
           required: false
+          description: Exclusive end of analytics window (ISO-8601 UTC datetime).
           schema:
             type: string
             format: date-time
@@ -400,6 +426,7 @@ paths:
     post:
       tags: [Redirect Rules]
       summary: Simulate redirect rule matching
+      description: Evaluates request samples against current rules without applying live redirects.
       operationId: simulateRedirectRules
       requestBody:
         required: true
@@ -429,6 +456,7 @@ paths:
     get:
       tags: [Redirect Rules]
       summary: Get redirect rule
+      description: Returns one redirect rule by ID.
       operationId: getRedirectRule
       responses:
         '200':
@@ -448,6 +476,7 @@ paths:
     put:
       tags: [Redirect Rules]
       summary: Update redirect rule
+      description: Updates a redirect rule and re-runs backend validation constraints.
       operationId: updateRedirectRule
       requestBody:
         required: true
@@ -474,7 +503,8 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Redirect Rules]
-      summary: Delete redirect rule (soft delete)
+      summary: Delete redirect rule
+      description: Soft-deletes a redirect rule so it no longer participates in matching.
       operationId: deleteRedirectRule
       responses:
         '200':
@@ -492,16 +522,19 @@ paths:
     get:
       tags: [Redirect Tests]
       summary: List redirect tests
+      description: Lists stored redirect test cases for a domain group with cursor pagination.
       operationId: listRedirectTests
       parameters:
         - name: domainGroupId
           in: query
           required: true
+          description: Domain group scope for listing test fixtures.
           schema:
             type: string
         - name: limit
           in: query
           required: false
+          description: Maximum number of tests returned in one page.
           schema:
             type: integer
             minimum: 1
@@ -510,11 +543,13 @@ paths:
         - name: search
           in: query
           required: false
+          description: Optional text search over test path/query content.
           schema:
             type: string
         - name: startAfterId
           in: query
           required: false
+          description: Cursor token using the last item ID from previous page.
           schema:
             type: string
       responses:
@@ -533,6 +568,7 @@ paths:
     post:
       tags: [Redirect Tests]
       summary: Create redirect test
+      description: Stores a redirect expectation fixture used for simulation-based regression checks.
       operationId: createRedirectTest
       requestBody:
         required: true
@@ -564,6 +600,7 @@ paths:
     get:
       tags: [Redirect Tests]
       summary: Get redirect test
+      description: Returns one stored redirect test fixture by ID.
       operationId: getRedirectTest
       responses:
         '200':
@@ -583,6 +620,7 @@ paths:
     put:
       tags: [Redirect Tests]
       summary: Update redirect test
+      description: Updates mutable fields of a stored redirect test fixture.
       operationId: updateRedirectTest
       requestBody:
         required: true
@@ -609,7 +647,8 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Redirect Tests]
-      summary: Delete redirect test (soft delete)
+      summary: Delete redirect test
+      description: Soft-deletes a redirect test fixture.
       operationId: deleteRedirectTest
       responses:
         '200':
@@ -627,11 +666,13 @@ paths:
     get:
       tags: [Link Maps]
       summary: List link maps
+      description: Lists link maps for a domain group, including matching behavior settings.
       operationId: listLinkMaps
       parameters:
         - name: domainGroupId
           in: query
           required: true
+          description: Domain group scope for listing link maps.
           schema:
             type: string
       responses:
@@ -650,6 +691,7 @@ paths:
     post:
       tags: [Link Maps]
       summary: Create link map
+      description: Creates a link map that can be referenced by redirect rules for key-based resolution.
       operationId: createLinkMap
       requestBody:
         required: true
@@ -681,6 +723,7 @@ paths:
     get:
       tags: [Link Maps]
       summary: Get link map
+      description: Returns one link map by ID.
       operationId: getLinkMap
       responses:
         '200':
@@ -700,6 +743,7 @@ paths:
     put:
       tags: [Link Maps]
       summary: Update link map
+      description: Updates link-map behavior such as case sensitivity, query matching, or fallback destination.
       operationId: updateLinkMap
       requestBody:
         required: true
@@ -726,7 +770,8 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Link Maps]
-      summary: Delete link map (soft delete)
+      summary: Delete link map
+      description: Soft-deletes a link map. Deletion may be blocked when map is used by active rules.
       operationId: deleteLinkMap
       responses:
         '200':
@@ -746,16 +791,19 @@ paths:
     get:
       tags: [Link Map Entries]
       summary: List link map entries
+      description: Lists entries of one link map using cursor pagination and optional search.
       operationId: listLinkMapEntries
       parameters:
         - name: linkMapId
           in: query
           required: true
+          description: Parent link-map ID used to scope entry listing.
           schema:
             type: string
         - name: limit
           in: query
           required: false
+          description: Maximum number of entries returned in one page.
           schema:
             type: integer
             minimum: 1
@@ -764,11 +812,13 @@ paths:
         - name: search
           in: query
           required: false
+          description: Optional search string matched against entry keys.
           schema:
             type: string
         - name: startAfterId
           in: query
           required: false
+          description: Cursor token using the last item ID from previous page.
           schema:
             type: string
       responses:
@@ -787,6 +837,7 @@ paths:
     post:
       tags: [Link Map Entries]
       summary: Create link map entry
+      description: Creates one key-to-destination mapping in a link map.
       operationId: createLinkMapEntry
       requestBody:
         required: true
@@ -814,6 +865,7 @@ paths:
     delete:
       tags: [Link Map Entries]
       summary: Delete multiple link map entries by IDs
+      description: Bulk-deletes selected entries in a single request.
       operationId: deleteManyLinkMapEntries
       requestBody:
         required: true
@@ -847,6 +899,7 @@ paths:
     post:
       tags: [Link Map Entries]
       summary: Import link map entries
+      description: Bulk upserts entries for a link map and returns import totals plus row-level failures.
       operationId: importLinkMapEntries
       requestBody:
         required: true
@@ -876,6 +929,7 @@ paths:
     post:
       tags: [Link Map Entries]
       summary: Roll back imported link map entries
+      description: Deletes selected imported entries to revert a previous import batch.
       operationId: rollbackLinkMapEntriesImport
       requestBody:
         required: true
@@ -911,6 +965,7 @@ paths:
     get:
       tags: [Link Map Entries]
       summary: Get link map entry
+      description: Returns one link-map entry by ID.
       operationId: getLinkMapEntry
       responses:
         '200':
@@ -930,6 +985,7 @@ paths:
     put:
       tags: [Link Map Entries]
       summary: Update link map entry
+      description: Updates key or destination for a link-map entry.
       operationId: updateLinkMapEntry
       requestBody:
         required: true
@@ -957,6 +1013,7 @@ paths:
     delete:
       tags: [Link Map Entries]
       summary: Delete link map entry
+      description: Soft-deletes one link-map entry by ID.
       operationId: deleteLinkMapEntry
       responses:
         '200':
@@ -983,6 +1040,7 @@ components:
       name: id
       in: path
       required: true
+      description: Resource identifier.
       schema:
         type: string
 
@@ -1051,28 +1109,36 @@ components:
 
   schemas:
     ErrorResponse:
+      description: Standardized error payload returned by API endpoints.
       type: object
       properties:
         code:
           type: integer
+          description: HTTP-like numeric status code.
         key:
           type: string
+          description: Stable machine-readable error key.
         message:
           type: string
+          description: Short error summary.
         details:
           type: string
+          description: Human-readable details explaining the error.
         requestId:
           type: string
+          description: Correlation ID useful for support and troubleshooting.
         feature:
           type: string
+          description: Optional feature gate identifier when relevant (for example `api_access`).
       required: [code, key, message]
 
     DomainGroup:
+      description: Domain-group entity used to scope domains, rules, tests, and link maps.
       type: object
       properties:
-        id: { type: string }
-        name: { type: string }
-        organizationId: { type: string }
+        id: { type: string, description: Domain-group ID. }
+        name: { type: string, description: Human-readable domain-group name. }
+        organizationId: { type: string, description: Owning organization ID. }
         robotsPolicy:
           $ref: '#/components/schemas/RobotsPolicy'
         customRobotsContent:
@@ -1080,47 +1146,78 @@ components:
           nullable: true
           maxLength: 4096
           description: Used only when robotsPolicy is CUSTOM.
-        createdAt: { type: string, format: date-time }
-        updatedAt: { type: string, format: date-time }
-        deletedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time, description: Creation timestamp (UTC). }
+        updatedAt: { type: string, format: date-time, description: Last update timestamp (UTC). }
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Soft-delete timestamp in UTC when deleted.
       required: [id, name, organizationId, robotsPolicy, createdAt, updatedAt]
 
     Domain:
+      description: Domain entity assigned to a domain group.
       type: object
       properties:
-        id: { type: string }
-        name: { type: string }
-        domainGroupId: { type: string }
-        createdAt: { type: string, format: date-time }
-        updatedAt: { type: string, format: date-time }
-        deletedAt: { type: string, format: date-time, nullable: true }
+        id: { type: string, description: Domain ID. }
+        name: { type: string, description: Fully qualified domain name. }
+        domainGroupId: { type: string, description: Parent domain-group ID. }
+        createdAt: { type: string, format: date-time, description: Creation timestamp (UTC). }
+        updatedAt: { type: string, format: date-time, description: Last update timestamp (UTC). }
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Soft-delete timestamp in UTC when deleted.
       required: [id, name, domainGroupId, createdAt, updatedAt]
 
     RedirectRule:
+      description: Redirect rule resolved during request matching.
       type: object
       properties:
-        id: { type: string }
-        source: { type: string }
-        destination: { type: string, nullable: true }
-        statusCode: { type: integer, enum: [301, 302, 307, 308] }
+        id: { type: string, description: Redirect-rule ID. }
+        source: { type: string, description: Source matcher expression. }
+        destination:
+          type: string
+          nullable: true
+          description: Static redirect destination URL. Null when dynamic destination is used via link map.
+        statusCode:
+          type: integer
+          enum: [301, 302, 307, 308]
+          description: HTTP redirect status returned for matches.
         matchMethod:
           type: array
+          description: Allowed request methods. Empty array means all methods.
           items:
             $ref: '#/components/schemas/HttpMethod'
         queryMatch:
           type: string
           enum: [exact, ignore, subset]
+          description: Query-string matching strategy.
         pathMatch:
           type: string
           enum: [exact, prefix]
-        linkMapId: { type: string, nullable: true }
-        isBlocked: { type: boolean }
-        blockedAt: { type: string, format: date-time, nullable: true }
-        priority: { type: integer }
-        domainGroupId: { type: string }
-        createdAt: { type: string, format: date-time }
-        updatedAt: { type: string, format: date-time }
-        deletedAt: { type: string, format: date-time, nullable: true }
+          description: Path matching strategy.
+        linkMapId:
+          type: string
+          nullable: true
+          description: Optional linked map used for key-based destinations.
+        isBlocked:
+          { type: boolean, description: Whether the rule is currently blocked from execution. }
+        blockedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when the rule was blocked.
+        priority: { type: integer, description: Rule priority (higher first). }
+        domainGroupId: { type: string, description: Parent domain-group ID. }
+        createdAt: { type: string, format: date-time, description: Creation timestamp (UTC). }
+        updatedAt: { type: string, format: date-time, description: Last update timestamp (UTC). }
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Soft-delete timestamp in UTC when deleted.
       required:
         - id
         - source
@@ -1134,17 +1231,28 @@ components:
         - updatedAt
 
     RedirectTest:
+      description: Stored redirect test fixture used for regression checks.
       type: object
       properties:
-        id: { type: string }
-        organizationId: { type: string }
-        domainGroupId: { type: string }
-        pathWithQuery: { type: string }
-        requestData: { type: object, additionalProperties: true }
-        expectedResult: { type: object, additionalProperties: true }
-        createdAt: { type: string, format: date-time }
-        updatedAt: { type: string, format: date-time }
-        deletedAt: { type: string, format: date-time, nullable: true }
+        id: { type: string, description: Redirect-test ID. }
+        organizationId: { type: string, description: Owning organization ID. }
+        domainGroupId: { type: string, description: Domain-group scope for this test. }
+        pathWithQuery: { type: string, description: Request path including query string. }
+        requestData:
+          type: object
+          additionalProperties: true
+          description: Optional request metadata such as method, headers, query, protocol, or user-agent.
+        expectedResult:
+          type: object
+          additionalProperties: true
+          description: Expected simulation outcome payload.
+        createdAt: { type: string, format: date-time, description: Creation timestamp (UTC). }
+        updatedAt: { type: string, format: date-time, description: Last update timestamp (UTC). }
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Soft-delete timestamp in UTC when deleted.
       required:
         - id
         - organizationId
@@ -1156,19 +1264,28 @@ components:
         - updatedAt
 
     LinkMap:
+      description: Link map used to resolve short keys to destinations.
       type: object
       properties:
-        id: { type: string }
-        name: { type: string }
-        domainGroupId: { type: string }
-        caseSensitive: { type: boolean }
+        id: { type: string, description: Link-map ID. }
+        name: { type: string, description: Human-readable link-map name. }
+        domainGroupId: { type: string, description: Parent domain-group ID. }
+        caseSensitive: { type: boolean, description: Controls key matching case sensitivity. }
         queryMatch:
           type: string
           enum: [exact, ignore, subset]
-        fallbackDestination: { type: string, nullable: true }
-        createdAt: { type: string, format: date-time }
-        updatedAt: { type: string, format: date-time }
-        deletedAt: { type: string, format: date-time, nullable: true }
+          description: Query-string matching strategy for key resolution requests.
+        fallbackDestination:
+          type: string
+          nullable: true
+          description: Optional destination used when no key matches.
+        createdAt: { type: string, format: date-time, description: Creation timestamp (UTC). }
+        updatedAt: { type: string, format: date-time, description: Last update timestamp (UTC). }
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Soft-delete timestamp in UTC when deleted.
       required:
         - id
         - name
@@ -1179,16 +1296,21 @@ components:
         - updatedAt
 
     LinkMapEntry:
+      description: One key-to-destination mapping inside a link map.
       type: object
       properties:
-        id: { type: string }
-        linkMapId: { type: string }
-        key: { type: string }
-        keyNormalized: { type: string }
-        destination: { type: string }
-        createdAt: { type: string, format: date-time }
-        updatedAt: { type: string, format: date-time }
-        deletedAt: { type: string, format: date-time, nullable: true }
+        id: { type: string, description: Link-map entry ID. }
+        linkMapId: { type: string, description: Parent link-map ID. }
+        key: { type: string, description: User-provided lookup key. }
+        keyNormalized: { type: string, description: Backend-normalized key used in matching. }
+        destination: { type: string, description: Destination URL for the key. }
+        createdAt: { type: string, format: date-time, description: Creation timestamp (UTC). }
+        updatedAt: { type: string, format: date-time, description: Last update timestamp (UTC). }
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Soft-delete timestamp in UTC when deleted.
       required:
         - id
         - linkMapId
@@ -1199,93 +1321,109 @@ components:
         - updatedAt
 
     OrganizationUsage:
+      description: Snapshot of current organization resource usage counters.
       type: object
       properties:
-        domainGroups: { type: integer }
-        domains: { type: integer }
-        rules: { type: integer }
-        tests: { type: integer }
-        users: { type: integer }
-        apiKeys: { type: integer }
-        linkMaps: { type: integer }
-        linkMapEntries: { type: integer }
+        domainGroups: { type: integer, description: Number of active domain groups. }
+        domains: { type: integer, description: Number of active domains. }
+        rules: { type: integer, description: Number of active redirect rules. }
+        tests: { type: integer, description: Number of active redirect tests. }
+        users: { type: integer, description: Number of organization members. }
+        apiKeys: { type: integer, description: Number of configured organization API keys. }
+        linkMaps: { type: integer, description: Number of active link maps. }
+        linkMapEntries: { type: integer, description: Number of active link-map entries. }
       required: [domainGroups, domains, rules, tests, users, apiKeys, linkMaps, linkMapEntries]
 
     QueryResultMeta:
+      description: Metadata envelope shared by cursor-paginated query responses.
       type: object
       properties:
-        dataType: { type: string }
-        hasMore: { type: boolean }
-        moreStartingAfterId: { type: string }
+        dataType: { type: string, description: Logical item type in the `data` array. }
+        hasMore:
+          { type: boolean, description: Whether there are additional results after this page. }
+        moreStartingAfterId: { type: string, description: Cursor token to request the next page. }
       required: [dataType, hasMore]
 
     DomainGroupQueryResult:
+      description: Paginated domain-group query response.
       allOf:
         - $ref: '#/components/schemas/QueryResultMeta'
         - type: object
           properties:
             data:
               type: array
+              description: Domain-group items in current page.
               items:
                 $ref: '#/components/schemas/DomainGroup'
           required: [data]
 
     DomainQueryResult:
+      description: Paginated domain query response.
       allOf:
         - $ref: '#/components/schemas/QueryResultMeta'
         - type: object
           properties:
             data:
               type: array
+              description: Domain items in current page.
               items:
                 $ref: '#/components/schemas/Domain'
           required: [data]
 
     RedirectRuleQueryResult:
+      description: Paginated redirect-rule query response.
       allOf:
         - $ref: '#/components/schemas/QueryResultMeta'
         - type: object
           properties:
             data:
               type: array
+              description: Redirect-rule items in current page.
               items:
                 $ref: '#/components/schemas/RedirectRule'
           required: [data]
 
     RedirectTestQueryResult:
+      description: Paginated redirect-test query response.
       allOf:
         - $ref: '#/components/schemas/QueryResultMeta'
         - type: object
           properties:
             data:
               type: array
+              description: Redirect-test items in current page.
               items:
                 $ref: '#/components/schemas/RedirectTest'
           required: [data]
 
     LinkMapQueryResult:
+      description: Paginated link-map query response.
       allOf:
         - $ref: '#/components/schemas/QueryResultMeta'
         - type: object
           properties:
             data:
               type: array
+              description: Link-map items in current page.
               items:
                 $ref: '#/components/schemas/LinkMap'
           required: [data]
 
     LinkMapEntryQueryResult:
+      description: Paginated link-map-entry query response.
       allOf:
         - $ref: '#/components/schemas/QueryResultMeta'
         - type: object
           properties:
             data:
               type: array
+              description: Link-map-entry items in current page.
               items:
                 $ref: '#/components/schemas/LinkMapEntry'
           required: [data]
 
     HttpMethod:
+      description: HTTP request method.
       type: string
       enum: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
 
@@ -1298,9 +1436,10 @@ components:
       enum: [NONE, ALLOW_ALL, DISALLOW_ALL, DISALLOW_BAD_BOTS, CUSTOM]
 
     CreateDomainGroupRequest:
+      description: Payload for creating a domain group.
       type: object
       properties:
-        name: { type: string, minLength: 1 }
+        name: { type: string, minLength: 1, description: Domain-group name. }
         robotsPolicy:
           $ref: '#/components/schemas/RobotsPolicy'
         customRobotsContent:
@@ -1311,9 +1450,10 @@ components:
       required: [name]
 
     UpdateDomainGroupRequest:
+      description: Payload for updating a domain group.
       type: object
       properties:
-        name: { type: string, minLength: 1 }
+        name: { type: string, minLength: 1, description: Domain-group name. }
         robotsPolicy:
           $ref: '#/components/schemas/RobotsPolicy'
         customRobotsContent:
@@ -1324,110 +1464,163 @@ components:
       required: [name]
 
     CreateDomainRequest:
+      description: Payload for creating a domain.
       type: object
       properties:
-        name: { type: string }
-        domainGroupId: { type: string }
+        name: { type: string, description: Fully qualified domain name. }
+        domainGroupId: { type: string, description: Target domain-group ID. }
       required: [name, domainGroupId]
 
     UpdateDomainRequest:
+      description: Payload for updating a domain.
       type: object
       properties:
-        name: { type: string }
-        domainGroupId: { type: string }
+        name: { type: string, description: Fully qualified domain name. }
+        domainGroupId: { type: string, description: Target domain-group ID. }
 
     CreateRedirectRuleRequest:
+      description: Payload for creating a redirect rule.
       type: object
       properties:
-        source: { type: string, minLength: 1, maxLength: 16384 }
-        destination: { type: string, maxLength: 16384, nullable: true }
-        statusCode: { type: integer, enum: [301, 302, 307, 308], default: 302 }
+        source:
+          { type: string, minLength: 1, maxLength: 16384, description: Source matcher expression. }
+        destination:
+          type: string
+          maxLength: 16384
+          nullable: true
+          description: Static destination URL. Keep null when using `linkMapId`.
+        statusCode:
+          type: integer
+          enum: [301, 302, 307, 308]
+          default: 302
+          description: HTTP redirect status used for rule matches.
         matchMethod:
           type: array
+          description: Allowed request methods. Empty array means all methods.
           items:
             $ref: '#/components/schemas/HttpMethod'
         queryMatch:
           type: string
           enum: [exact, ignore, subset]
           default: exact
+          description: Query-string matching strategy.
         pathMatch:
           type: string
           enum: [exact, prefix]
           default: exact
-        linkMapId: { type: string, nullable: true }
-        priority: { type: integer, minimum: 0, maximum: 1000, default: 0 }
-        domainGroupId: { type: string }
+          description: Path matching strategy.
+        linkMapId:
+          type: string
+          nullable: true
+          description: Optional link-map ID for key-based destinations.
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 1000
+          default: 0
+          description: Rule priority (higher first).
+        domainGroupId: { type: string, description: Target domain-group ID. }
       required: [source, domainGroupId]
 
     UpdateRedirectRuleRequest:
+      description: Payload for updating a redirect rule.
       type: object
       properties:
-        source: { type: string, minLength: 1, maxLength: 16384 }
-        destination: { type: string, maxLength: 16384, nullable: true }
-        statusCode: { type: integer, enum: [301, 302, 307, 308] }
+        source:
+          { type: string, minLength: 1, maxLength: 16384, description: Source matcher expression. }
+        destination:
+          type: string
+          maxLength: 16384
+          nullable: true
+          description: Static destination URL. Keep null when using `linkMapId`.
+        statusCode:
+          type: integer
+          enum: [301, 302, 307, 308]
+          description: HTTP redirect status used for rule matches.
         matchMethod:
           type: array
+          description: Allowed request methods. Empty array means all methods.
           items:
             $ref: '#/components/schemas/HttpMethod'
-        queryMatch: { type: string, enum: [exact, ignore, subset] }
-        pathMatch: { type: string, enum: [exact, prefix] }
-        linkMapId: { type: string, nullable: true }
-        priority: { type: integer, minimum: 0, maximum: 1000 }
+        queryMatch:
+          type: string
+          enum: [exact, ignore, subset]
+          description: Query-string matching strategy.
+        pathMatch: { type: string, enum: [exact, prefix], description: Path matching strategy. }
+        linkMapId:
+          type: string
+          nullable: true
+          description: Optional link-map ID for key-based destinations.
+        priority:
+          { type: integer, minimum: 0, maximum: 1000, description: Rule priority (higher first). }
 
     SimulateRedirectsRequest:
+      description: Batch request payload for rule simulation.
       type: object
       properties:
         entries:
           type: array
           minItems: 1
           maxItems: 100
+          description: Request samples that should be evaluated by the simulation engine.
           items:
             type: object
             properties:
-              domainGroupId: { type: string }
-              hostname: { type: string }
-              path: { type: string }
+              domainGroupId: { type: string, description: Domain-group scope for this sample. }
+              hostname: { type: string, description: Optional request host header. }
+              path: { type: string, description: Request path (without protocol/host). }
               method:
                 $ref: '#/components/schemas/HttpMethod'
               protocol:
                 type: string
                 enum: [http, https]
-              ip: { type: string }
-              userAgent: { type: string }
+                description: Request protocol used in matching context.
+              ip: { type: string, description: Optional client IP used by conditional rules. }
+              userAgent:
+                { type: string, description: Optional user-agent used by conditional rules. }
               headers:
                 type: object
+                description: Optional request headers map.
                 additionalProperties:
                   type: string
               query:
                 type: object
+                description: Optional query parameters map.
                 additionalProperties: true
             required: [domainGroupId, path]
       required: [entries]
 
     RedirectSimulationResponse:
+      description: Simulation result payload for each input request sample.
       type: object
       properties:
         results:
           type: array
+          description: Simulation result rows matching the input order.
           items:
             type: object
             properties:
-              index: { type: integer }
-              domainGroupId: { type: string }
-              method: { type: string }
-              path: { type: string }
-              hostname: { type: string }
-              matched: { type: boolean }
-              statusCode: { type: integer }
-              target: { type: string, nullable: true }
+              index: { type: integer, description: Index of input entry. }
+              domainGroupId: { type: string, description: Domain-group scope used in simulation. }
+              method: { type: string, description: Effective HTTP method used for matching. }
+              path: { type: string, description: Effective request path used for matching. }
+              hostname: { type: string, description: Effective host used for matching. }
+              matched: { type: boolean, description: Whether a redirect rule matched. }
+              statusCode: { type: integer, description: Resulting HTTP status code. }
+              target:
+                type: string
+                nullable: true
+                description: Resolved redirect target URL when matched.
             required: [index, domainGroupId, method, path, hostname, matched, statusCode]
       required: [results]
 
     RedirectRuleAnalyticsResponse:
+      description: Aggregated rule-level traffic analytics.
       type: object
       properties:
         data:
           type: array
+          description: Per-rule analytics entries.
           items:
             type: object
             properties:
@@ -1435,136 +1628,195 @@ components:
                 $ref: '#/components/schemas/RedirectRule'
               hits:
                 type: integer
+                description: Total matched hits in selected range.
               topLinkMapKeys:
                 type: array
+                description: Most frequent link-map keys matched by this rule.
                 items:
                   type: object
                   properties:
-                    key: { type: string }
-                    hits: { type: integer }
+                    key: { type: string, description: Resolved link-map key. }
+                    hits: { type: integer, description: Number of hits for this key. }
                   required: [key, hits]
               topRequestVariants:
                 type: array
+                description: Most frequent request variant signatures for this rule.
                 items:
                   type: object
                   properties:
-                    requestMethod: { type: string }
-                    requestPath: { type: string }
-                    requestQuery: { type: string }
-                    requestUrl: { type: string }
-                    destination: { type: string }
-                    linkMapKey: { type: string, nullable: true }
-                    hits: { type: integer }
+                    requestMethod: { type: string, description: Request method. }
+                    requestPath: { type: string, description: Request path. }
+                    requestQuery: { type: string, description: Request query string. }
+                    requestUrl: { type: string, description: Full normalized request URL. }
+                    destination:
+                      { type: string, description: Destination URL returned by matching. }
+                    linkMapKey:
+                      type: string
+                      nullable: true
+                      description: Link-map key used in resolution when applicable.
+                    hits: { type: integer, description: Hit count for this variant. }
                   required:
                     [requestMethod, requestPath, requestQuery, requestUrl, destination, hits]
             required: [rule, hits, topLinkMapKeys, topRequestVariants]
       required: [data]
 
     CreateRedirectTestRequest:
+      description: Payload for creating a redirect test fixture.
       type: object
       properties:
-        domainGroupId: { type: string }
-        pathWithQuery: { type: string, minLength: 1, maxLength: 16384 }
+        domainGroupId: { type: string, description: Domain-group scope for the test. }
+        pathWithQuery:
+          type: string
+          minLength: 1
+          maxLength: 16384
+          description: Request path including query string.
         requestData:
           type: object
+          description: Optional request context map (method, protocol, query, headers, IP, user-agent).
           additionalProperties: true
         expectedResult:
           type: object
+          description: Expected simulation outcome.
           properties:
-            matched: { type: boolean }
-            statusCode: { type: integer, minimum: 100, maximum: 599 }
-            target: { type: string, nullable: true }
+            matched: { type: boolean, description: Expected match/no-match decision. }
+            statusCode:
+              { type: integer, minimum: 100, maximum: 599, description: Expected HTTP status code. }
+            target:
+              { type: string, nullable: true, description: Expected destination URL (or null). }
           required: [matched, statusCode, target]
       required: [domainGroupId, pathWithQuery, expectedResult]
 
     UpdateRedirectTestRequest:
+      description: Payload for updating a redirect test fixture.
       type: object
       properties:
-        pathWithQuery: { type: string, minLength: 1, maxLength: 16384 }
+        pathWithQuery:
+          type: string
+          minLength: 1
+          maxLength: 16384
+          description: Request path including query string.
         requestData:
           type: object
+          description: Optional request context map (method, protocol, query, headers, IP, user-agent).
           additionalProperties: true
         expectedResult:
           type: object
+          description: Expected simulation outcome.
           properties:
-            matched: { type: boolean }
-            statusCode: { type: integer, minimum: 100, maximum: 599 }
-            target: { type: string, nullable: true }
+            matched: { type: boolean, description: Expected match/no-match decision. }
+            statusCode:
+              { type: integer, minimum: 100, maximum: 599, description: Expected HTTP status code. }
+            target:
+              { type: string, nullable: true, description: Expected destination URL (or null). }
           required: [matched, statusCode, target]
 
     CreateLinkMapRequest:
+      description: Payload for creating a link map.
       type: object
       properties:
-        name: { type: string, minLength: 1, maxLength: 120 }
-        domainGroupId: { type: string }
-        caseSensitive: { type: boolean, default: false }
-        queryMatch: { type: string, enum: [exact, ignore, subset], default: ignore }
-        fallbackDestination: { type: string }
+        name: { type: string, minLength: 1, maxLength: 120, description: Link-map display name. }
+        domainGroupId: { type: string, description: Parent domain-group ID. }
+        caseSensitive:
+          { type: boolean, default: false, description: Whether key matching is case sensitive. }
+        queryMatch:
+          type: string
+          enum: [exact, ignore, subset]
+          default: ignore
+          description: Query matching strategy for key resolution requests.
+        fallbackDestination:
+          { type: string, description: Fallback destination URL used when key lookup misses. }
       required: [name, domainGroupId]
 
     UpdateLinkMapRequest:
+      description: Payload for updating a link map.
       type: object
       properties:
-        name: { type: string, minLength: 1, maxLength: 120 }
-        caseSensitive: { type: boolean }
-        queryMatch: { type: string, enum: [exact, ignore, subset] }
-        fallbackDestination: { type: string, nullable: true }
+        name: { type: string, minLength: 1, maxLength: 120, description: Link-map display name. }
+        caseSensitive: { type: boolean, description: Whether key matching is case sensitive. }
+        queryMatch:
+          type: string
+          enum: [exact, ignore, subset]
+          description: Query matching strategy for key resolution requests.
+        fallbackDestination:
+          type: string
+          nullable: true
+          description: Fallback destination URL used when key lookup misses.
 
     CreateLinkMapEntryRequest:
+      description: Payload for creating one link-map entry.
       type: object
       properties:
-        linkMapId: { type: string }
-        key: { type: string, minLength: 1, maxLength: 1024 }
-        destination: { type: string, minLength: 1, maxLength: 16384 }
+        linkMapId: { type: string, description: Parent link-map ID. }
+        key: { type: string, minLength: 1, maxLength: 1024, description: Lookup key. }
+        destination:
+          type: string
+          minLength: 1
+          maxLength: 16384
+          description: Destination URL resolved for the key.
       required: [linkMapId, key, destination]
 
     UpdateLinkMapEntryRequest:
+      description: Payload for updating one link-map entry.
       type: object
       properties:
-        key: { type: string, minLength: 1, maxLength: 1024 }
-        destination: { type: string, minLength: 1, maxLength: 16384 }
+        key: { type: string, minLength: 1, maxLength: 1024, description: Lookup key. }
+        destination:
+          type: string
+          minLength: 1
+          maxLength: 16384
+          description: Destination URL resolved for the key.
 
     DeleteLinkMapEntriesByIdRequest:
+      description: Payload for bulk deletion of link-map entries.
       type: object
       properties:
-        linkMapId: { type: string }
+        linkMapId: { type: string, description: Parent link-map ID. }
         entryIds:
           type: array
           minItems: 1
           maxItems: 1000
+          description: Entry IDs that should be deleted.
           items: { type: string }
       required: [linkMapId, entryIds]
 
     ImportLinkMapEntriesRequest:
+      description: Payload for bulk import/upsert of link-map entries.
       type: object
       properties:
-        linkMapId: { type: string }
+        linkMapId: { type: string, description: Parent link-map ID. }
         entries:
           type: array
           minItems: 1
           maxItems: 500
+          description: Entries to create or update.
           items:
             type: object
             properties:
-              key: { type: string, minLength: 1, maxLength: 1024 }
-              destination: { type: string, minLength: 1, maxLength: 16384 }
+              key: { type: string, minLength: 1, maxLength: 1024, description: Lookup key. }
+              destination:
+                type: string
+                minLength: 1
+                maxLength: 16384
+                description: Destination URL resolved for the key.
             required: [key, destination]
       required: [linkMapId, entries]
 
     ImportLinkMapEntriesResponse:
+      description: Import summary including totals and row-level failures.
       type: object
       properties:
-        total: { type: integer }
-        created: { type: integer }
-        updated: { type: integer }
-        failed: { type: integer }
+        total: { type: integer, description: Number of processed rows. }
+        created: { type: integer, description: Number of newly created entries. }
+        updated: { type: integer, description: Number of updated entries. }
+        failed: { type: integer, description: Number of rows rejected during import. }
         failures:
           type: array
+          description: Row-level failures with index, key, and reason.
           items:
             type: object
             properties:
-              index: { type: integer }
-              key: { type: string }
-              reason: { type: string }
+              index: { type: integer, description: Index of failed row in import payload. }
+              key: { type: string, description: Entry key from failed row. }
+              reason: { type: string, description: Validation or processing failure reason. }
             required: [index, key, reason]
       required: [total, created, updated, failed, failures]

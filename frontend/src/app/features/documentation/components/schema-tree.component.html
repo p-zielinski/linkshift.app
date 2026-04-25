@@ -1,0 +1,77 @@
+<mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="schema-tree">
+  <mat-nested-tree-node *matTreeNodeDef="let node">
+    <div class="mat-tree-node" matTreeNodePadding>
+      <button
+        mat-icon-button
+        matTreeNodeToggle
+        [disabled]="!hasChild(0, node)"
+        [attr.aria-label]="'Toggle ' + node.name"
+      >
+        <mat-icon>
+          {{
+            hasChild(0, node)
+              ? treeControl.isExpanded(node)
+                ? 'expand_more'
+                : 'chevron_right'
+              : 'chevron_right'
+          }}
+        </mat-icon>
+      </button>
+      <ng-container [ngTemplateOutlet]="nodeContent" [ngTemplateOutletContext]="{ node: node }" />
+    </div>
+    @if (hasChild(0, node)) {
+      <div [class.hidden]="!treeControl.isExpanded(node)">
+        <ng-container matTreeNodeOutlet />
+      </div>
+    }
+  </mat-nested-tree-node>
+</mat-tree>
+
+<ng-template #nodeContent let-node="node">
+  <div class="schema-node-content">
+    <div class="schema-node-main">
+      <span class="schema-node-name">{{ node.name }}</span>
+      <span class="schema-node-type">{{ node.typeLabel }}</span>
+      @if (node.required) {
+        <span class="schema-badge schema-badge-required">required</span>
+      }
+      @if (node.nullable) {
+        <span class="schema-badge">nullable</span>
+      }
+      @if (node.circularRef) {
+        <span class="schema-badge schema-badge-warning">circular</span>
+      }
+      @if (node.readOnly) {
+        <span class="schema-badge">readOnly</span>
+      }
+      @if (node.writeOnly) {
+        <span class="schema-badge">writeOnly</span>
+      }
+      @if (node.deprecated) {
+        <span class="schema-badge schema-badge-warning">deprecated</span>
+      }
+    </div>
+
+    @if (node.description) {
+      <div class="schema-node-detail">{{ node.description }}</div>
+    }
+
+    <div class="schema-node-meta">
+      @if (node.format) {
+        <span><strong>format:</strong> {{ node.format }}</span>
+      }
+      @if (node.defaultValue) {
+        <span><strong>default:</strong> {{ node.defaultValue }}</span>
+      }
+      @if (node.enumValues) {
+        <span><strong>enum:</strong> {{ node.enumValues }}</span>
+      }
+      @for (constraint of node.constraints; track constraint) {
+        <span
+          ><strong>{{ constraint.split(':')[0] }}:</strong>
+          {{ constraint.split(':').slice(1).join(':').trim() }}</span
+        >
+      }
+    </div>
+  </div>
+</ng-template>

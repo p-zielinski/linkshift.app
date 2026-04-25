@@ -3,6 +3,7 @@
 @use '@angular/material' as mat;
 
 @import 'plyr/dist/plyr.css';
+@import 'github-markdown-css/github-markdown.css';
 
 @include mat.core();
 
@@ -253,4 +254,10 @@ body {
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
+}
+
+.docs-try-me-dialog .mat-mdc-dialog-surface {
+  border-radius: 16px !important;
+  border: 1px solid rgba(31, 24, 28, 0.14);
+  background: linear-gradient(170deg, #fff7fa 0%, #fff 45%, #f8f2f6 100%);
 }
