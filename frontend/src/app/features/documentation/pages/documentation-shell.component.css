@@ -1,0 +1,34 @@
+.docs-shell {
+  min-height: max(72dvh, 680px);
+  background: linear-gradient(175deg, #fff6f9 0%, #fff 45%, #f7f0f5 100%);
+}
+
+.docs-sidebar {
+  width: 340px;
+  border-right: 1px solid rgba(31, 24, 28, 0.1);
+  background: linear-gradient(180deg, #fff7fa 0%, #fff 100%);
+}
+
+:host ::ng-deep .docs-shell .mat-drawer-content {
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
+}
+
+:host ::ng-deep .docs-sidebar .mat-drawer-inner-container {
+  scrollbar-gutter: stable;
+}
+
+:host ::ng-deep .docs-sidebar .mat-mdc-list-item.active {
+  background: rgba(192, 55, 98, 0.16);
+}
+
+:host ::ng-deep .docs-sidebar .mat-expansion-panel {
+  box-shadow: none;
+  border: 1px solid rgba(31, 24, 28, 0.1);
+}
+
+@media (max-width: 1023px) {
+  .docs-shell {
+    min-height: calc(100dvh - 132px);
+  }
+}

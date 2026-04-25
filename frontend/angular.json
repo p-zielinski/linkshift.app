@@ -25,6 +25,7 @@
               }
             ],
             "styles": ["src/tailwind.css", "src/styles.scss"],
+            "allowedCommonJsDependencies": ["yaml", "qs"],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "ssr": {

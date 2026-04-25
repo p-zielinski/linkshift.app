@@ -63,6 +63,7 @@ const NAV_ITEMS: NavItem[] = [
     requiresDomainGroups: true,
   },
   { label: 'Tools', route: '/tools', icon: 'construction', matchSubRoutes: true },
+  { label: 'Docs', route: '/docs', icon: 'description', matchSubRoutes: true },
 ];
 
 const MOBILE_BREAKPOINT = '(max-width: 1023px)';

@@ -1,0 +1,157 @@
+@if (openApi.loading() && !endpoint()) {
+  <mat-card class="max-w-2xl p-5">
+    <h1 class="text-xl font-semibold">Loading endpoint</h1>
+    <p class="mt-2 text-app-muted">OpenAPI specification is loading...</p>
+  </mat-card>
+} @else if (endpoint(); as endpointData) {
+  <section class="grid gap-4">
+    <mat-card
+      class="border border-[rgba(31,24,28,0.15)] bg-[linear-gradient(170deg,#fff4f8_0%,#fff_55%,#f7f0f5_100%)] p-5 sm:p-6"
+    >
+      <div class="flex flex-wrap gap-2">
+        <span
+          class="rounded-full border border-[rgba(192,55,98,0.45)] bg-[rgba(192,55,98,0.16)] px-2 py-0.5 text-[11px] font-bold text-[#8f2045]"
+        >
+          {{ endpointData.method.toUpperCase() }}
+        </span>
+        @if (endpointData.deprecated) {
+          <span
+            class="rounded-full border border-[rgba(31,24,28,0.2)] bg-[rgba(153,98,5,0.12)] px-2 py-0.5 text-[11px] text-[#7b4b00]"
+            >Deprecated</span
+          >
+        }
+      </div>
+
+      <h1 class="mt-3 text-2xl font-semibold">{{ endpointData.summary }}</h1>
+      <div class="mt-2">
+        <code class="rounded-lg bg-[rgba(31,24,28,0.08)] px-2 py-1 text-xs"
+          >{{ openApi.apiBaseUrl() }}{{ endpointData.path }}</code
+        >
+      </div>
+
+      @if (endpointData.description) {
+        <p class="mt-3 text-sm text-app-muted">{{ endpointData.description }}</p>
+      }
+
+      <div class="mt-3 flex flex-wrap gap-3 text-sm">
+        <span
+          ><strong>Operation ID:</strong> <code>{{ endpointData.operationId }}</code></span
+        >
+        <span><strong>Tags:</strong> {{ endpointData.tags.join(', ') }}</span>
+      </div>
+
+      <div class="mt-4">
+        <div class="flex flex-wrap gap-2">
+          <button mat-flat-button color="primary" type="button" (click)="openTryMeDialog()">
+            Open Try me
+          </button>
+          <a mat-stroked-button routerLink="/docs/reference">Back to API reference</a>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="p-5 sm:p-6">
+      <h2 class="text-lg font-semibold">Security</h2>
+      @if (securityDetails().length) {
+        <ul class="mt-3 grid list-disc gap-2 pl-5 text-sm">
+          @for (security of securityDetails(); track security.name + security.details) {
+            <li>
+              <strong>{{ security.name }}:</strong> {{ security.details }}
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="mt-3 text-sm text-app-muted">
+          No explicit security requirement for this operation.
+        </p>
+      }
+    </mat-card>
+
+    <mat-card class="p-5 sm:p-6">
+      <h2 class="text-lg font-semibold">Parameters</h2>
+      @if (endpointData.parameters.length) {
+        <div class="mt-3 grid gap-4">
+          @for (entry of parameterSections(); track entry.label) {
+            <div class="grid gap-2">
+              <h3 class="text-sm font-semibold">{{ entry.label }}</h3>
+              @for (parameter of entry.params; track parameter.name) {
+                <div class="rounded-xl border border-[rgba(31,24,28,0.12)] p-3">
+                  <div class="flex items-center gap-2">
+                    <span class="font-semibold">{{ parameter.name }}</span>
+                    @if (parameter.required) {
+                      <span
+                        class="rounded-full border border-[rgba(31,24,28,0.2)] bg-[rgba(192,55,98,0.12)] px-2 py-0.5 text-[11px] text-[#8f2045]"
+                        >required</span
+                      >
+                    }
+                  </div>
+                  <div class="mt-2 grid gap-1 text-sm text-[#352a32]">
+                    <span><strong>Type:</strong> {{ parameterType(parameter) }}</span>
+                    @if (parameter.description) {
+                      <span><strong>Description:</strong> {{ parameter.description }}</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="mt-3 text-sm text-app-muted">This endpoint has no parameters.</p>
+      }
+    </mat-card>
+
+    <mat-card class="p-5 sm:p-6">
+      <h2 class="text-lg font-semibold">Request body schema</h2>
+      <div class="mt-3">
+        @if (requestBodyTree()) {
+          <app-schema-tree [rootNode]="requestBodyTree()" />
+        } @else {
+          <p class="text-sm text-app-muted">No request body schema.</p>
+        }
+      </div>
+    </mat-card>
+
+    <mat-card class="p-5 sm:p-6">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-lg font-semibold">Response schema</h2>
+        @if (responseTrees().length) {
+          <mat-button-toggle-group
+            [value]="selectedResponseCode()"
+            (valueChange)="onResponseSelectionChange($event)"
+          >
+            @for (response of responseTrees(); track response.statusCode) {
+              <mat-button-toggle [value]="response.statusCode">{{
+                response.statusCode
+              }}</mat-button-toggle>
+            }
+          </mat-button-toggle-group>
+        }
+      </div>
+
+      @if (selectedResponse(); as response) {
+        <p class="mt-3 text-sm text-app-muted">{{ response.description }}</p>
+        <div class="mt-2 text-sm">
+          Content type: <code>{{ response.contentType }}</code>
+        </div>
+        <div class="mt-3">
+          @if (response.tree) {
+            <app-schema-tree [rootNode]="response.tree" />
+          } @else {
+            <p class="text-sm text-app-muted">No structured response body schema.</p>
+          }
+        </div>
+      } @else {
+        <p class="mt-3 text-sm text-app-muted">No response schema available.</p>
+      }
+    </mat-card>
+  </section>
+} @else {
+  <mat-card class="max-w-2xl p-5">
+    <h1 class="text-xl font-semibold">Endpoint not found</h1>
+    <p class="mt-2 text-app-muted">Check the endpoint list in API reference.</p>
+    <a mat-flat-button color="primary" routerLink="/docs/reference" class="mt-4"
+      >Go to API reference</a
+    >
+  </mat-card>
+}

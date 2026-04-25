@@ -1,0 +1,35 @@
+:host {
+  display: block;
+}
+
+.docs-markdown.markdown-body {
+  color: var(--app-text);
+  background: transparent;
+  max-width: none;
+  line-height: 1.65;
+}
+
+.docs-markdown.markdown-body pre {
+  border-radius: 12px;
+  border: 1px solid rgba(31, 24, 28, 0.14);
+  background: #fff;
+}
+
+.docs-markdown.markdown-body code,
+.docs-markdown.markdown-body pre,
+.docs-markdown.markdown-body tt {
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.docs-markdown.markdown-body blockquote {
+  border-left-color: rgba(192, 55, 98, 0.42);
+}
+
+.docs-markdown.markdown-body table th,
+.docs-markdown.markdown-body table td {
+  border-color: rgba(31, 24, 28, 0.14);
+}
+
+.docs-markdown.markdown-body a {
+  color: var(--app-accent-strong);
+}
