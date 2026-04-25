@@ -1,0 +1,52 @@
+<section class="grid gap-4">
+  <mat-card
+    class="border border-[rgba(31,24,28,0.14)] bg-[radial-gradient(circle_at_top_right,#fff3f7_0%,#fff_48%,#f7f2f6_100%)] p-5 sm:p-6"
+  >
+    <h1 class="text-2xl font-semibold">LinkShift API and platform docs</h1>
+    <p class="mt-3 max-w-[76ch] text-app-muted">
+      Use this documentation to understand LinkShift resource model, run API calls with API keys,
+      and inspect request/response contracts straight from OpenAPI.
+    </p>
+
+    <div class="mt-4 grid gap-3 sm:grid-cols-3">
+      <div class="rounded-xl border border-[rgba(31,24,28,0.1)] bg-white/85 p-3">
+        <div class="text-xl font-semibold">{{ endpointCount() }}</div>
+        <div class="text-xs text-app-muted">Endpoints</div>
+      </div>
+      <div class="rounded-xl border border-[rgba(31,24,28,0.1)] bg-white/85 p-3">
+        <div class="text-xl font-semibold">{{ tagCount() }}</div>
+        <div class="text-xs text-app-muted">Tags</div>
+      </div>
+      <div class="rounded-xl border border-[rgba(31,24,28,0.1)] bg-white/85 p-3">
+        <div class="text-xl font-semibold">{{ docsContent.pages.length }}</div>
+        <div class="text-xs text-app-muted">Guides and concepts</div>
+      </div>
+    </div>
+
+    <div class="mt-5 flex flex-wrap gap-2">
+      <a mat-flat-button color="primary" routerLink="/docs/reference">Browse API reference</a>
+      <a mat-stroked-button routerLink="/docs/guides/getting-started">Read getting started</a>
+    </div>
+  </mat-card>
+
+  <div class="grid gap-4 lg:grid-cols-2">
+    <mat-card class="p-5 sm:p-6">
+      <h2 class="text-lg font-semibold">What LinkShift provides</h2>
+      <ul class="mt-3 grid list-disc gap-2 pl-5 text-sm leading-6">
+        <li>Domain-group model for multi-domain redirect governance.</li>
+        <li>Redirect rules with strict backend validation and simulation support.</li>
+        <li>Link maps and link map entries for scalable short-key routing.</li>
+        <li>Redirect tests for CI-safe behavior verification.</li>
+      </ul>
+    </mat-card>
+
+    <mat-card class="p-5 sm:p-6">
+      <h2 class="text-lg font-semibold">How this docs section is built</h2>
+      <ul class="mt-3 grid list-disc gap-2 pl-5 text-sm leading-6">
+        @for (highlight of highlights; track highlight) {
+          <li>{{ highlight }}</li>
+        }
+      </ul>
+    </mat-card>
+  </div>
+</section>

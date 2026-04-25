@@ -2086,6 +2086,107 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
     ],
   },
   {
+    slug: 'linkshift-api-documentation-hub',
+    title: 'LinkShift API documentation hub: endpoint pages, schema trees, and Try me',
+    description:
+      'New API documentation in LinkShift now includes endpoint-level pages, expandable request/response schemas, and interactive requests.',
+    seoTitle: 'LinkShift API documentation hub | OpenAPI endpoint pages and Try me',
+    seoDescription:
+      'Explore the new LinkShift API docs: OpenAPI-driven endpoint pages, schema trees for payloads, and in-browser Try me request execution.',
+    competitor: 'Scattered API notes across tools',
+    category: 'link-management',
+    publishedAt: '2026-04-25',
+    updatedAt: '2026-04-25',
+    factCheckedAt: '2026-04-25',
+    readTimeMinutes: 6,
+    tags: [
+      'api documentation',
+      'openapi 3.1',
+      'try me',
+      'schema explorer',
+      'linkshift api',
+    ],
+    heroHighlights: [
+      'Every API endpoint now has its own page and stable URL',
+      'Request and response payloads are shown as expandable schema trees',
+      'Try me supports browser fetch with session-level API key and base URL persistence',
+    ],
+    comparisonRows: [
+      {
+        area: 'Endpoint discoverability',
+        linkshift: 'Tag-grouped sidebar + dedicated page per endpoint',
+        competitor: 'Mixed docs or static snippets without endpoint pages',
+      },
+      {
+        area: 'Schema readability',
+        linkshift: 'Expandable tree with types, nullable/default, and constraints',
+        competitor: 'Flat JSON examples without structure metadata',
+      },
+      {
+        area: 'Request execution',
+        linkshift: 'Try me with API key and URL persisted in session',
+        competitor: 'No in-doc execution or external-only clients',
+      },
+      {
+        area: 'Source of truth',
+        linkshift: 'OpenAPI 3.1 drives endpoint details and schemas',
+        competitor: 'Manual docs updates prone to drift',
+      },
+      {
+        area: 'Operational docs',
+        linkshift: 'Backend markdown guides integrated in docs section',
+        competitor: 'Separate and disconnected engineering notes',
+      },
+    ],
+    sections: [
+      {
+        title: 'What is included in the new docs hub',
+        paragraphs: [
+          'LinkShift now ships a dedicated documentation section under /docs with endpoint pages generated from OpenAPI definitions.',
+          'Each endpoint page includes operation metadata, parameter details, security requirements, request body schema, response schemas, and interactive execution.',
+        ],
+      },
+      {
+        title: 'Why OpenAPI as source of truth matters',
+        paragraphs: [
+          'When endpoint pages are generated from OpenAPI, new endpoints and schema updates appear in docs without manual rewrites of every section.',
+          'That reduces divergence risk between implementation and documentation, especially for request and response payload contracts.',
+        ],
+        bullets: [
+          'Tag groups and endpoint pages come directly from OpenAPI paths and operationIds',
+          'Request and response schema trees are resolved from references at runtime',
+          'Try me defaults are inferred from schema examples/defaults when possible',
+        ],
+      },
+      {
+        title: 'Try me workflow in practice',
+        paragraphs: [
+          'Try me uses browser fetch and supports base URL plus API key persistence in session storage, so values survive docs navigation in one browser session.',
+          'Query payloads are serialized with qs-compatible formatting and request bodies are sent as JSON when schema indicates content.',
+        ],
+      },
+      {
+        title: 'Maintenance model',
+        paragraphs: [
+          'Documentation includes a sync command that ingests backend markdown guides and OpenAPI endpoint snapshots.',
+          'This gives teams a repeatable workflow when API contracts evolve and new docs sections need to be refreshed.',
+        ],
+      },
+    ],
+    honestWhenCompetitorWins: [
+      'When your team only needs a minimal endpoint list and does not need schema exploration.',
+      'When API testing must happen exclusively in external tooling due to strict browser policies.',
+    ],
+    references: [
+      { label: 'LinkShift docs hub', href: 'https://linkshift.app/docs' },
+      { label: 'LinkShift API reference', href: 'https://linkshift.app/docs/reference' },
+      {
+        label: 'OpenAPI Specification 3.1',
+        href: 'https://spec.openapis.org/oas/latest.html',
+      },
+    ],
+  },
+  {
     slug: 'robots-txt-management-in-linkshift',
     title: 'Robots.txt management in LinkShift: group-level control for safer SEO operations',
     description:

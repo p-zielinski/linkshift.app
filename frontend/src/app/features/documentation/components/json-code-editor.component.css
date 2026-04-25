@@ -1,0 +1,18 @@
+:host {
+  display: block;
+}
+
+.editor-wrapper {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.editor-label {
+  font-size: 0.84rem;
+  color: var(--app-muted);
+  font-weight: 600;
+}
+
+.editor-host {
+  width: 100%;
+}
