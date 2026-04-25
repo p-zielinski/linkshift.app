@@ -35,6 +35,7 @@ import { CookiesPageComponent } from './features/legal/cookies-page.component';
 import { DoNotSellPageComponent } from './features/legal/do-not-sell-page.component';
 import { LegalConsentPageComponent } from './features/legal/legal-consent-page.component';
 import { legalConsentGuard } from './core/legal/legal-consent.guard';
+import { DOCUMENTATION_CHILD_ROUTES } from './features/documentation/documentation.routes';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'home' },
@@ -47,6 +48,7 @@ export const routes: Routes = [
     component: MarketingShellComponent,
     children: [
       { path: 'home', component: HomePageComponent },
+      ...DOCUMENTATION_CHILD_ROUTES,
       { path: 'blog', component: BlogPageComponent },
       {
         path: 'blog/redirect-pizza-vs-linkshift',
@@ -172,6 +174,11 @@ export const routes: Routes = [
         path: 'blog/robots-txt-management-in-linkshift',
         component: BlogArticlePageComponent,
         data: { article: 'robots-txt-management-in-linkshift' },
+      },
+      {
+        path: 'blog/linkshift-api-documentation-hub',
+        component: BlogArticlePageComponent,
+        data: { article: 'linkshift-api-documentation-hub' },
       },
       { path: 'pricing', component: PricingPageComponent },
       { path: 'use-cases', component: UseCasesPageComponent },
