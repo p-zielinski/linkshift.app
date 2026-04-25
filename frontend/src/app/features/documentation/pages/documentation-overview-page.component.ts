@@ -27,6 +27,7 @@ export class DocumentationOverviewPageComponent implements OnInit {
 
   readonly openApi = inject(DocumentationOpenApiService);
   readonly docsContent = inject(DocumentationContentService);
+  readonly openApiSpecPath = '/linkshift-api-keys.openapi.yaml';
 
   readonly endpointCount = computed(() => this.openApi.endpoints().length);
   readonly tagCount = computed(() => this.openApi.tagGroups().length);

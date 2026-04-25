@@ -24,7 +24,9 @@
     </div>
 
     <div class="mt-5 flex flex-wrap gap-2">
-      <a mat-flat-button color="primary" routerLink="/docs/reference">Browse API reference</a>
+      <a mat-flat-button color="primary" [href]="openApiSpecPath" download>
+        Download OpenAPI spec
+      </a>
       <a mat-stroked-button routerLink="/docs/guides/getting-started">Read getting started</a>
     </div>
   </mat-card>
