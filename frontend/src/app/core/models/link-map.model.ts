@@ -84,8 +84,3 @@ export type ImportLinkMapEntriesResult = {
   importedEntryIds: string[];
   errors: ImportLinkMapEntriesError[];
 };
-
-export type RollbackImportedLinkMapEntriesDto = {
-  linkMapId: string;
-  entryIds: string[];
-};
