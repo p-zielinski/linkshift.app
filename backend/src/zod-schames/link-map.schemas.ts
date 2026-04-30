@@ -120,20 +120,6 @@ export const ImportLinkMapEntriesSchema = z.object({
   entries: z.array(LinkMapEntrySchema).min(1).max(500),
 });
 
-export const RollbackImportedLinkMapEntriesSchema = z.object({
-  linkMapId: z
-    .string()
-    .regex(getEntityIdRegex(AppEntity.LinkMap), 'Invalid Link map ID'),
-  entryIds: z
-    .array(
-      z
-        .string()
-        .regex(getEntityIdRegex(AppEntity.LinkMapEntry), 'Invalid Link map entry ID'),
-    )
-    .min(1)
-    .max(500),
-});
-
 export type CreateLinkMapDto = z.infer<typeof CreateLinkMapSchema>;
 export type UpdateLinkMapDto = z.infer<typeof UpdateLinkMapSchema>;
 export type ListLinkMapsQueryDto = z.infer<typeof ListLinkMapsQuerySchema>;
@@ -145,6 +131,3 @@ export type CreateLinkMapEntryDto = z.infer<typeof CreateLinkMapEntrySchema>;
 export type UpdateLinkMapEntryDto = z.infer<typeof UpdateLinkMapEntrySchema>;
 export type DeleteLinkMapEntriesByIdDto = z.infer<typeof DeleteLinkMapEntriesByIdSchema>;
 export type ImportLinkMapEntriesDto = z.infer<typeof ImportLinkMapEntriesSchema>;
-export type RollbackImportedLinkMapEntriesDto = z.infer<
-  typeof RollbackImportedLinkMapEntriesSchema
->;

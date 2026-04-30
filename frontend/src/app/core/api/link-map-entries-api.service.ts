@@ -9,7 +9,6 @@ import type {
   ImportLinkMapEntriesResult,
   LinkMapEntry,
   LinkMapEntryListQuery,
-  RollbackImportedLinkMapEntriesDto,
   UpdateLinkMapEntryDto,
 } from '../models/link-map.model';
 import { buildHttpParams } from './api.utils';
@@ -54,11 +53,5 @@ export class LinkMapEntriesApiService {
 
   importEntries(payload: ImportLinkMapEntriesDto): Observable<ImportLinkMapEntriesResult> {
     return this.http.post<ImportLinkMapEntriesResult>(`${this.apiUrl}/import`, payload);
-  }
-
-  rollbackImport(
-    payload: RollbackImportedLinkMapEntriesDto,
-  ): Observable<{ deletedCount: number }> {
-    return this.http.post<{ deletedCount: number }>(`${this.apiUrl}/import/rollback`, payload);
   }
 }

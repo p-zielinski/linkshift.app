@@ -140,21 +140,4 @@ export class LinkMapEntriesController {
 
     return this.linkMapService.importEntries(organizationId, body);
   }
-
-  @Post('import/rollback')
-  @UseGuards(ApiOrUserAuthGuard)
-  async rollbackImport(
-    @User('organizationId') organizationId: string,
-    @Body(new ZodPipe(linkMapSchemas.RollbackImportedLinkMapEntriesSchema))
-    body: linkMapSchemas.RollbackImportedLinkMapEntriesDto,
-  ) {
-    this.logger.log('Link map entries import rollback requested', {
-      requestId: this.clsService.getId(),
-      organizationId,
-      linkMapId: body.linkMapId,
-      entriesCount: body.entryIds.length,
-    });
-
-    return this.linkMapService.rollbackImportedEntries(organizationId, body);
-  }
 }

@@ -49,7 +49,7 @@ const MARKDOWN_FILES = [
     slug: 'link-map-entries',
     category: 'guide',
     source: resolve(backendDocsRoot, 'public-api', 'link-map-entries.md'),
-    description: 'Entry CRUD, import/rollback workflows, and list pagination for link maps.',
+    description: 'Entry CRUD, bulk import/delete workflows, and list pagination for link maps.',
   },
   {
     slug: 'redirect-tests',

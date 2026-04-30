@@ -13,7 +13,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
 
-const MOBILE_BREAKPOINT = '(max-width: 1023px)';
+const MOBILE_BREAKPOINT = '(max-width: 767px)';
 
 @Component({
   selector: 'app-documentation-site-shell',

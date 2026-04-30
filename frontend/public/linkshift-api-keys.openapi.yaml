@@ -925,40 +925,6 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
-  /api/v1/link-map-entries/import/rollback:
-    post:
-      tags: [Link Map Entries]
-      summary: Roll back imported link map entries
-      description: Deletes selected imported entries to revert a previous import batch.
-      operationId: rollbackLinkMapEntriesImport
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeleteLinkMapEntriesByIdRequest'
-      responses:
-        '200':
-          description: Rollback summary
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  deletedCount:
-                    type: integer
-                required: [deletedCount]
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '402':
-          $ref: '#/components/responses/PaymentRequired'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-
   /api/v1/link-map-entries/{id}:
     parameters:
       - $ref: '#/components/parameters/EntityId'

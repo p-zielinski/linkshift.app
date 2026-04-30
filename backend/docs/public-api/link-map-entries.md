@@ -13,7 +13,6 @@ Base path: `/api/v1/link-map-entries`
 - `DELETE /api/v1/link-map-entries/:id`
 - `DELETE /api/v1/link-map-entries` (bulk delete by IDs)
 - `POST /api/v1/link-map-entries/import`
-- `POST /api/v1/link-map-entries/import/rollback`
 
 ## Query Parameters for List
 
@@ -33,7 +32,7 @@ Use `POST`/`PUT` for interactive updates.
 Use `POST /import` for batch ingestion. Response reports created/updated/failed counts.
 
 ### 3) Safe rollback
-Use `POST /import/rollback` with imported IDs to revert a batch.
+Use `DELETE /api/v1/link-map-entries` with `linkMapId` and imported `entryIds` to revert a batch.
 
 ## Constraints
 

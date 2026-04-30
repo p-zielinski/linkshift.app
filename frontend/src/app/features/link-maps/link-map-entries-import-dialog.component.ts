@@ -132,7 +132,7 @@ export class LinkMapEntriesImportDialogComponent {
     this.submitError.set(null);
     try {
       await firstValueFrom(
-        this.api.rollbackImport({
+        this.api.deleteMany({
           linkMapId: this.data.linkMapId,
           entryIds: result.importedEntryIds,
         }),

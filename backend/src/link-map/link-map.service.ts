@@ -15,7 +15,6 @@ import {
   DeleteLinkMapEntriesByIdDto,
   ImportLinkMapEntriesDto,
   ListLinkMapEntriesQueryDto,
-  RollbackImportedLinkMapEntriesDto,
   UpdateLinkMapDto,
   UpdateLinkMapEntryDto,
   UpsertLinkMapEntriesDto,
@@ -787,16 +786,6 @@ export class LinkMapService {
       importedEntryIds,
       errors: errors.sort((left, right) => left.index - right.index),
     };
-  }
-
-  async rollbackImportedEntries(
-    organizationId: string,
-    payload: RollbackImportedLinkMapEntriesDto,
-  ) {
-    return this.deleteEntriesById(organizationId, {
-      linkMapId: payload.linkMapId,
-      entryIds: payload.entryIds,
-    });
   }
 
   async upsertEntries(

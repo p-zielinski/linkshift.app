@@ -13,6 +13,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatListModule } from '@angular/material/list';
 import { SITE_CONFIG } from '../../../../core/config/site-config';
 import { LogoComponent } from '../../../../shared/components/logo/logo.component';
 
@@ -29,6 +30,7 @@ const MOBILE_BREAKPOINT = '(max-width: 767px)';
     MatButtonModule,
     MatIconModule,
     MatSidenavModule,
+    MatListModule,
     LogoComponent,
   ],
   templateUrl: './marketing-shell.component.html',

@@ -113,6 +113,7 @@ export class DocumentationShellComponent {
     { label: 'Blog', route: '/blog' },
     { label: 'Pricing', route: '/pricing' },
     { label: 'Contact', route: '/contact' },
+    { label: 'Go to app', route: '/auth' },
   ];
 
   toggleDrawer(): void {

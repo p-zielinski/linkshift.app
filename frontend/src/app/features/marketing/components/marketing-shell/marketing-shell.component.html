@@ -1,6 +1,6 @@
 <mat-sidenav-container class="min-h-screen w-full">
   <mat-sidenav
-    class="md:hidden"
+    class="marketing-sidebar md:hidden"
     [mode]="isMobile() ? 'over' : 'side'"
     [opened]="mobileNavOpen()"
     [fixedInViewport]="true"
@@ -17,56 +17,61 @@
         <app-logo />
       </a>
 
-      <nav class="flex flex-col gap-2">
-        <a
-          mat-button
-          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-          routerLink="/home"
-          routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
-          (click)="onNavigate()"
-          >Home</a
-        >
-        <a
-          mat-button
-          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-          routerLink="/use-cases"
-          routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
-          (click)="onNavigate()"
-          >Use Cases</a
-        >
-        <a
-          mat-button
-          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-          routerLink="/docs"
-          routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
-          (click)="onNavigate()"
-          >Docs</a
-        >
-        <a
-          mat-button
-          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-          routerLink="/blog"
-          routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
-          (click)="onNavigate()"
-          >Blog</a
-        >
-        <a
-          mat-button
-          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-          routerLink="/pricing"
-          routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
-          (click)="onNavigate()"
-          >Pricing</a
-        >
-        <a
-          mat-button
-          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-          routerLink="/contact"
-          routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
-          (click)="onNavigate()"
-          >Contact</a
-        >
-      </nav>
+      <div class="pb-4">
+        <div class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted">
+          Site
+        </div>
+        <mat-nav-list>
+          <a
+            mat-list-item
+            class="rounded-lg"
+            routerLink="/home"
+            routerLinkActive="active"
+            (click)="onNavigate()"
+            >Home</a
+          >
+          <a
+            mat-list-item
+            class="rounded-lg"
+            routerLink="/use-cases"
+            routerLinkActive="active"
+            (click)="onNavigate()"
+            >Use Cases</a
+          >
+          <a
+            mat-list-item
+            class="rounded-lg"
+            routerLink="/docs"
+            routerLinkActive="active"
+            (click)="onNavigate()"
+            >Docs</a
+          >
+          <a
+            mat-list-item
+            class="rounded-lg"
+            routerLink="/blog"
+            routerLinkActive="active"
+            (click)="onNavigate()"
+            >Blog</a
+          >
+          <a
+            mat-list-item
+            class="rounded-lg"
+            routerLink="/pricing"
+            routerLinkActive="active"
+            (click)="onNavigate()"
+            >Pricing</a
+          >
+          <a
+            mat-list-item
+            class="rounded-lg"
+            routerLink="/contact"
+            routerLinkActive="active"
+            (click)="onNavigate()"
+            >Contact</a
+          >
+        </mat-nav-list>
+      </div>
 
       <div class="mt-auto flex flex-col gap-2 pt-4">
         <a
