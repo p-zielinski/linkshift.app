@@ -1,15 +1,21 @@
 @if (page(); as pageData) {
   <section class="grid gap-4">
-    <mat-card class="border border-[rgba(31,24,28,0.14)] bg-[radial-gradient(circle_at_top_right,#fff2f7_0%,#fff_50%,#f8f2f6_100%)] p-5 sm:p-6">
+    <mat-card
+      class="border border-[rgba(31,24,28,0.14)] bg-[radial-gradient(circle_at_top_right,#fff2f7_0%,#fff_50%,#f8f2f6_100%)] p-5 sm:p-6"
+    >
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="rounded-full border border-[rgba(31,24,28,0.24)] px-2.5 py-0.5 text-[11px] uppercase tracking-[0.06em]">
+        <div
+          class="rounded-full border border-[rgba(31,24,28,0.24)] px-2.5 py-0.5 text-[11px] uppercase tracking-[0.06em]"
+        >
           {{ pageData.category === 'concept' ? 'Concept' : 'Guide' }}
         </div>
         <a mat-stroked-button routerLink="/docs/reference">API reference</a>
       </div>
       <h1 class="mt-3 text-2xl font-semibold">{{ pageData.title }}</h1>
       <p class="mt-2 text-app-muted">{{ pageData.description }}</p>
-      <div class="mt-3 text-xs text-app-muted">Source: <code>{{ pageData.sourcePath }}</code></div>
+      <div class="mt-3 text-xs text-app-muted">
+        Source: <code>{{ pageData.sourcePath }}</code>
+      </div>
     </mat-card>
 
     <mat-card class="p-5 sm:p-6">

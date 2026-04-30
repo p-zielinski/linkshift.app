@@ -23,7 +23,9 @@
 
     <ng-template wizardStepSummary="destination">
       <div class="text-xs text-app-muted">
-        {{ isLinkMapRule() ? 'Link map routing' : (ruleModel().destination || 'Destination missing') }}
+        {{
+          isLinkMapRule() ? 'Link map routing' : ruleModel().destination || 'Destination missing'
+        }}
       </div>
     </ng-template>
 
@@ -32,7 +34,9 @@
     </ng-template>
 
     <ng-template wizardStepSummary="summary">
-      <div class="text-xs text-app-muted">{{ canSubmit() ? 'Ready to save' : 'Review required' }}</div>
+      <div class="text-xs text-app-muted">
+        {{ canSubmit() ? 'Ready to save' : 'Review required' }}
+      </div>
     </ng-template>
 
     <ng-template wizardStep="scope">
@@ -55,7 +59,9 @@
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Source</mat-label>
           <input matInput type="text" [formField]="field('source')" />
-          <mat-hint>Use an exact path, <code>/pattern/flags</code> regex, or <code>*</code>.</mat-hint>
+          <mat-hint
+            >Use an exact path, <code>/pattern/flags</code> regex, or <code>*</code>.</mat-hint
+          >
           @if (sourceError(); as error) {
             <mat-error>{{ error }}</mat-error>
           }
@@ -126,7 +132,9 @@
           </mat-form-field>
         </div>
 
-        <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+        <div
+          class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted"
+        >
           <div class="flex flex-wrap items-center justify-between gap-2">
             <span class="font-semibold text-app-text">Link map routing (optional)</span>
             <div class="flex flex-wrap items-center gap-2">
@@ -153,12 +161,12 @@
           </div>
           <div class="mt-2 grid gap-3">
             <div>
-              Link maps resolve destinations from a short key. The key is the path after your source prefix
-              (<code>/short</code> + request <code>/short/abc</code> → key <code>abc</code>).
+              Link maps resolve destinations from a short key. The key is the path after your source
+              prefix (<code>/short</code> + request <code>/short/abc</code> → key <code>abc</code>).
             </div>
             <div>
-              Query matching for link maps is configured on the map itself (exact, ignore, subset). The redirect
-              rule always ignores the query and only provides the prefix + key.
+              Query matching for link maps is configured on the map itself (exact, ignore, subset).
+              The redirect rule always ignores the query and only provides the prefix + key.
             </div>
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Link map</mat-label>
@@ -170,7 +178,9 @@
                   </mat-option>
                 }
               </mat-select>
-              <mat-hint>When selected, path match becomes prefix and query match is ignored.</mat-hint>
+              <mat-hint
+                >When selected, path match becomes prefix and query match is ignored.</mat-hint
+              >
             </mat-form-field>
             @if (linkMapsLoading()) {
               <div class="text-[11px]">Loading maps...</div>
@@ -179,10 +189,14 @@
               <div class="text-app-danger">{{ linkMapsError() }}</div>
             }
             @if (usageError()) {
-              <div class="text-app-danger">Unable to load usage limits. Link map creation is disabled.</div>
+              <div class="text-app-danger">
+                Unable to load usage limits. Link map creation is disabled.
+              </div>
             }
             @if (linkMapLimitReached()) {
-              <div class="text-app-danger">Link map limit reached. Remove a map or upgrade to add more.</div>
+              <div class="text-app-danger">
+                Link map limit reached. Remove a map or upgrade to add more.
+              </div>
             }
             @if (selectedLinkMap(); as map) {
               <div class="grid gap-1 text-[11px] text-app-muted">
@@ -200,7 +214,9 @@
           </div>
         </div>
 
-        <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+        <div
+          class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted"
+        >
           <div class="font-semibold text-app-text">Match modes explained</div>
           <div class="mt-2 grid gap-2">
             <div class="text-app-muted">
@@ -229,7 +245,9 @@
           </div>
         </div>
 
-        <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+        <div
+          class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted"
+        >
           <div class="font-semibold text-app-text">Match examples</div>
           <div class="mt-2 grid gap-2">
             <div class="grid gap-1">
@@ -245,7 +263,8 @@
               <span class="font-mono">Source: /^\/go\/([^/]+)\/([^/]+)$/</span>
               <span class="font-mono">Request: /go/docs/api</span>
               <span class="font-mono">
-                Destination: https://docs.example.com/target/$1/$2 → https://docs.example.com/target/docs/api
+                Destination: https://docs.example.com/target/$1/$2 →
+                https://docs.example.com/target/docs/api
               </span>
               <span class="text-app-muted">
                 Works only when Source is a regex. $1 is the first capture group, $2 is the second.
@@ -260,10 +279,12 @@
                 Destination: https://{{ '{' }}domain.extension{{ '}' }}/$1
               </span>
               <span class="font-mono">
-                Request: https://www.example.com/pricing?ref=ad -> https://example.com/pricing?ref=ad
+                Request: https://www.example.com/pricing?ref=ad ->
+                https://example.com/pricing?ref=ad
               </span>
               <span class="text-app-muted">
-                Keep Query match as Exact (or Subset). Ignore query will drop query from $1 for regex rules.
+                Keep Query match as Exact (or Subset). Ignore query will drop query from $1 for
+                regex rules.
               </span>
               <span class="text-app-muted">
                 Apply this rule on source hosts that start with <code>www.</code>.
@@ -296,17 +317,17 @@
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Destination</mat-label>
             <input matInput type="text" [formField]="field('destination')" />
-            <mat-hint>
-              Must start with <code>http://</code> or <code>https://</code>.
-            </mat-hint>
+            <mat-hint> Must start with <code>http://</code> or <code>https://</code>. </mat-hint>
             @if (destinationError(); as error) {
               <mat-error>{{ error }}</mat-error>
             }
           </mat-form-field>
         } @else {
-          <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted">
-            Destination is not required because this rule uses a link map. The map resolves the final destination
-            and can define its own fallback.
+          <div
+            class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted"
+          >
+            Destination is not required because this rule uses a link map. The map resolves the
+            final destination and can define its own fallback.
           </div>
         }
 
@@ -314,7 +335,10 @@
           <mat-expansion-panel>
             <mat-expansion-panel-header>
               <mat-panel-title>Variables</mat-panel-title>
-              <mat-panel-description>Use &nbsp;<code>{{ '{' }}variable{{ '}' }}</code>&nbsp; to insert values.</mat-panel-description>
+              <mat-panel-description
+                >Use &nbsp;<code>{{ '{' }}variable{{ '}' }}</code
+                >&nbsp; to insert values.</mat-panel-description
+              >
             </mat-expansion-panel-header>
             <div class="grid gap-3 text-xs">
               @for (item of variableReferences; track item.token) {
@@ -333,13 +357,18 @@
             <mat-expansion-panel-header>
               <mat-panel-title>Manipulators</mat-panel-title>
               <mat-panel-description>
-                Add modifiers after a variable, e.g. <code>{{ '{' }}path:to_lower_case.url_encode{{ '}' }}</code>.
+                Add modifiers after a variable, e.g.
+                <code>{{ '{' }}path:to_lower_case.url_encode{{ '}' }}</code
+                >.
               </mat-panel-description>
             </mat-expansion-panel-header>
             <div class="grid gap-3 text-xs">
-              <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-app-muted">
+              <div
+                class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-app-muted"
+              >
                 Modifiers can also be used on functions, e.g.
-                <span class="font-mono">{{ '{' }}time():to_iso_string{{ '}' }}</span>.
+                <span class="font-mono">{{ '{' }}time():to_iso_string{{ '}' }}</span
+                >.
               </div>
               @for (item of manipulatorReferences; track item.token) {
                 <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
@@ -361,7 +390,9 @@
             <div class="grid gap-3">
               <div class="grid gap-3 text-xs">
                 @for (item of operatorReferences; track item.token) {
-                  <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2">
+                  <div
+                    class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2"
+                  >
                     <div class="flex flex-wrap items-center gap-2">
                       <span class="font-mono font-semibold">{{ item.token }}</span>
                       <span class="text-app-muted">{{ item.description }}</span>
@@ -375,7 +406,8 @@
               >
                 Example:
                 <span class="ml-2 font-mono">
-                  {{ '{' }}method{{ '}' }} == 'POST' ? https://example.com/write : https://example.com/read
+                  {{ '{' }}method{{ '}' }} == 'POST' ? https://example.com/write :
+                  https://example.com/read
                 </span>
               </div>
             </div>
@@ -384,7 +416,9 @@
           <mat-expansion-panel>
             <mat-expansion-panel-header>
               <mat-panel-title>Functions</mat-panel-title>
-              <mat-panel-description>Use functions in placeholders or conditions.</mat-panel-description>
+              <mat-panel-description
+                >Use functions in placeholders or conditions.</mat-panel-description
+              >
             </mat-expansion-panel-header>
             <div class="grid gap-3 text-xs">
               @for (item of functionReferences; track item.token) {
@@ -400,7 +434,9 @@
           </mat-expansion-panel>
         </mat-accordion>
 
-        <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+        <div
+          class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted"
+        >
           <div class="font-semibold text-app-text">Destination examples</div>
           <div class="mt-2 grid gap-2 font-mono">
             <span>https://example.com/{{ '{' }}path{{ '}' }}</span>
@@ -410,9 +446,7 @@
             </span>
             <span>https://{{ '{' }}domain.extension{{ '}' }}/$1 (with source /^\/(.*)$/)</span>
             <span>https://site.com?ts={{ '{' }}time():to_iso_string{{ '}' }}</span>
-            <span>
-              random(0,100) &lt; 30 ? https://a.com : https://b.com
-            </span>
+            <span> random(0,100) &lt; 30 ? https://a.com : https://b.com </span>
           </div>
         </div>
       </div>
@@ -420,7 +454,9 @@
 
     <ng-template wizardStep="status">
       <div class="grid gap-4">
-        <div class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted">
+        <div
+          class="rounded-[14px] border border-app-border-soft bg-app-surface px-4 py-3 text-xs text-app-muted"
+        >
           <div class="font-semibold text-app-text">What this means</div>
           <div class="mt-2 grid gap-2">
             <span>301/308 are permanent; 302/307 are temporary.</span>
@@ -463,7 +499,7 @@
             <div class="flex flex-wrap items-center justify-between gap-2">
               <span class="text-app-muted">Destination</span>
               <span class="font-mono">
-                {{ isLinkMapRule() ? 'Link map routing' : (ruleModel().destination || '—') }}
+                {{ isLinkMapRule() ? 'Link map routing' : ruleModel().destination || '—' }}
               </span>
             </div>
             <div class="flex flex-wrap items-center justify-between gap-2">

@@ -10,7 +10,9 @@
 >
   <mat-card class="hero-card">
     <div class="hero-card-header">
-      <div class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[12px] text-app-muted">
+      <div
+        class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[12px] text-app-muted"
+      >
         Migration guide
       </div>
       <span class="hero-card-title">{{ content().heroPanelTitle }}</span>
@@ -35,7 +37,7 @@
   [title]="content().featuresTitle"
   [subtitle]="content().featuresSubtitle"
 >
-  <app-marketing-feature-grid [features]="content().features"></app-marketing-feature-grid>
+  <app-marketing-feature-grid [features]="content().features" />
 </app-marketing-section>
 
 <app-marketing-section
@@ -65,11 +67,12 @@
 >
   <div class="examples-grid grid gap-6 lg:grid-cols-2">
     @for (example of content().examples; track example.title) {
-      <app-marketing-example-card [example]="example"></app-marketing-example-card>
+      <app-marketing-example-card [example]="example" />
     }
   </div>
   <p class="mt-4 text-[13px] text-app-muted">
-    Rule destinations accept placeholders, modifiers, and conditional expressions without separate scripts.
+    Rule destinations accept placeholders, modifiers, and conditional expressions without separate
+    scripts.
   </p>
 </app-marketing-section>
 
@@ -86,5 +89,5 @@
     secondaryLabel="Explore the dashboard"
     secondaryLink="/dashboard"
     [note]="content().ctaNote"
-  ></app-marketing-cta>
+  />
 </app-marketing-section>

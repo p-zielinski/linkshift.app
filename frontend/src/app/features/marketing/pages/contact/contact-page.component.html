@@ -9,13 +9,7 @@
         <mat-icon>{{ topic.icon }}</mat-icon>
         <h3>{{ topic.title }}</h3>
         <p class="text-[13px] text-app-muted">{{ topic.description }}</p>
-        <a
-          mat-flat-button
-          color="primary"
-          [href]="mailtoLink(topic.subject)"
-        >
-          Email us
-        </a>
+        <a mat-flat-button color="primary" [href]="mailtoLink(topic.subject)"> Email us </a>
       </mat-card>
     }
   </div>

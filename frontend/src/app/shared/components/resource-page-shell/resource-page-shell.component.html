@@ -1,9 +1,9 @@
 <div class="flex min-h-[calc(100vh-48px)] flex-col">
   <app-page-header [title]="title()" [subtitle]="subtitle()">
-    <ng-content select="[page-actions]"></ng-content>
+    <ng-content select="[page-actions]" />
   </app-page-header>
 
   <div class="flex min-h-0 flex-1 flex-col gap-4" [ngClass]="contentClass()">
-    <ng-content></ng-content>
+    <ng-content />
   </div>
 </div>

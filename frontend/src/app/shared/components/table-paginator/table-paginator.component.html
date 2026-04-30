@@ -3,7 +3,7 @@
   [ngClass]="{
     'justify-start': position() === 'start',
     'justify-center': position() === 'center',
-    'justify-end': position() === 'end'
+    'justify-end': position() === 'end',
   }"
 >
   @if (showCurrentPage()) {
@@ -19,10 +19,7 @@
     } @else {
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-[96px]">
         <mat-label class="sr-only">Rows per page</mat-label>
-        <mat-select
-          [value]="pageLimit()"
-          (selectionChange)="onPageLimitChange($event.value)"
-        >
+        <mat-select [value]="pageLimit()" (selectionChange)="onPageLimitChange($event.value)">
           @for (limit of pageLimitOptions(); track limit) {
             <mat-option [value]="limit">{{ limit }}</mat-option>
           }
@@ -32,11 +29,7 @@
   </div>
 
   <div class="flex items-center gap-1">
-    <button
-      mat-icon-button
-      [disabled]="!canGoPrevious"
-      (click)="onPreviousPage()"
-    >
+    <button mat-icon-button [disabled]="!canGoPrevious" (click)="onPreviousPage()">
       <mat-icon
         matTooltip="Previous page"
         [class.text-app-accent-strong]="canGoPrevious"
@@ -45,11 +38,7 @@
         chevron_left
       </mat-icon>
     </button>
-    <button
-      mat-icon-button
-      [disabled]="!canGoNext"
-      (click)="onNextPage()"
-    >
+    <button mat-icon-button [disabled]="!canGoNext" (click)="onNextPage()">
       <mat-icon
         matTooltip="Next page"
         [class.text-app-accent-strong]="canGoNext"

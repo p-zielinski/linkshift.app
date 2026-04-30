@@ -10,7 +10,9 @@
   >
     <ng-template wizardStepSummary="details">
       <div class="text-xs text-app-muted">{{ domainModel().name || 'No domain yet' }}</div>
-      <div class="text-[11px] text-app-muted">{{ domainModel().domainGroupId || 'Select group' }}</div>
+      <div class="text-[11px] text-app-muted">
+        {{ domainModel().domainGroupId || 'Select group' }}
+      </div>
     </ng-template>
 
     <ng-template wizardStep="details">

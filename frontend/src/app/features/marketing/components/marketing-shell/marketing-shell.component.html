@@ -1,4 +1,4 @@
-<mat-sidenav-container class="marketing-shell min-h-screen">
+<mat-sidenav-container class="min-h-screen w-full">
   <mat-sidenav
     class="md:hidden"
     [mode]="isMobile() ? 'over' : 'side'"
@@ -9,120 +9,280 @@
     <div
       class="flex h-full flex-col bg-[linear-gradient(160deg,#fff0f5_0%,#fff_55%,#f7edf2_100%)] px-4 py-5"
     >
-      <a class="brand mb-4" routerLink="/home" (click)="onNavigate()">
+      <a
+        class="mb-4 inline-flex items-center gap-2.5 no-underline text-inherit"
+        routerLink="/home"
+        (click)="onNavigate()"
+      >
         <app-logo />
       </a>
 
       <nav class="flex flex-col gap-2">
-        <a mat-button routerLink="/home" routerLinkActive="active" (click)="onNavigate()">Home</a>
-        <a mat-button routerLink="/use-cases" routerLinkActive="active" (click)="onNavigate()"
+        <a
+          mat-button
+          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+          routerLink="/home"
+          routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+          (click)="onNavigate()"
+          >Home</a
+        >
+        <a
+          mat-button
+          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+          routerLink="/use-cases"
+          routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+          (click)="onNavigate()"
           >Use Cases</a
         >
-        <a mat-button routerLink="/docs" routerLinkActive="active" (click)="onNavigate()">Docs</a>
-        <a mat-button routerLink="/blog" routerLinkActive="active" (click)="onNavigate()">Blog</a>
-        <a mat-button routerLink="/pricing" routerLinkActive="active" (click)="onNavigate()"
+        <a
+          mat-button
+          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+          routerLink="/docs"
+          routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+          (click)="onNavigate()"
+          >Docs</a
+        >
+        <a
+          mat-button
+          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+          routerLink="/blog"
+          routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+          (click)="onNavigate()"
+          >Blog</a
+        >
+        <a
+          mat-button
+          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+          routerLink="/pricing"
+          routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+          (click)="onNavigate()"
           >Pricing</a
         >
-        <a mat-button routerLink="/contact" routerLinkActive="active" (click)="onNavigate()"
+        <a
+          mat-button
+          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+          routerLink="/contact"
+          routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+          (click)="onNavigate()"
           >Contact</a
         >
       </nav>
 
       <div class="mt-auto flex flex-col gap-2 pt-4">
-        <a mat-button routerLink="/auth" (click)="onNavigate()">Sign in</a>
+        <a
+          mat-button
+          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+          routerLink="/auth"
+          (click)="onNavigate()"
+          >Sign in</a
+        >
         <a mat-flat-button color="primary" routerLink="/auth" (click)="onNavigate()">Start now</a>
       </div>
     </div>
   </mat-sidenav>
 
-  <mat-sidenav-content class="marketing-shell-content">
-    <mat-toolbar class="marketing-toolbar">
-      <div class="toolbar-left">
-        <button
-          mat-icon-button
-          type="button"
-          class="md:hidden"
-          aria-label="Open menu"
-          (click)="toggleMobileNav()"
-        >
-          <mat-icon>menu</mat-icon>
-        </button>
-        <a class="brand" routerLink="/home">
-          <app-logo />
-        </a>
-      </div>
-
-      <span class="spacer"></span>
-
-      <nav class="nav-links hidden md:inline-flex">
-        <a mat-button routerLink="/home" routerLinkActive="active">Home</a>
-        <a mat-button routerLink="/use-cases" routerLinkActive="active">Use Cases</a>
-        <a mat-button routerLink="/docs" routerLinkActive="active">Docs</a>
-        <a mat-button routerLink="/blog" routerLinkActive="active">Blog</a>
-        <a mat-button routerLink="/pricing" routerLinkActive="active">Pricing</a>
-        <a mat-button routerLink="/contact" routerLinkActive="active">Contact</a>
-      </nav>
-
-      <div class="nav-actions md:hidden">
-        <a mat-flat-button color="primary" routerLink="/auth">Go to App</a>
-      </div>
-
-      <div class="nav-actions hidden md:inline-flex">
-        <a mat-button routerLink="/auth">Sign in</a>
-        <a mat-flat-button color="primary" routerLink="/auth">Start now</a>
-      </div>
-    </mat-toolbar>
-
-    <main class="marketing-content">
-      <router-outlet />
-    </main>
-
-    <footer class="marketing-footer">
-      <div class="footer-grid">
-        <div>
-          <div class="footer-brand">{{ siteConfig.name }}</div>
-          <div class="text-[13px] text-app-muted">{{ siteConfig.tagline }}</div>
-        </div>
-        <div>
-          <div class="footer-title">Product</div>
-          <div class="footer-links">
-            <a routerLink="/home">Capabilities</a>
-            <a routerLink="/use-cases">Use Cases</a>
-            <a routerLink="/docs">Docs</a>
-            <a routerLink="/blog">Blog</a>
-            <a routerLink="/pricing">Pricing</a>
-            <a routerLink="/contact">Contact</a>
-            <a routerLink="/blog/redirect-pizza-vs-linkshift">redirect.pizza vs LinkShift</a>
-            <a routerLink="/blog/bitly-vs-linkshift">Bitly vs LinkShift</a>
-            <a href="https://status.linkshift.app/" target="_blank" rel="noopener noreferrer"
-              >Status page</a
+  <mat-sidenav-content class="block h-full">
+    <div class="flex min-h-screen flex-col">
+      <mat-toolbar
+        class="sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fff3f6_0%,#fff_55%,#f7edf2_100%)] text-[#241c21]"
+      >
+        <div class="mx-auto flex w-full max-w-[1280px] flex-wrap items-center gap-4 px-4 py-2">
+          <div class="inline-flex items-center gap-3">
+            <button
+              mat-icon-button
+              type="button"
+              class="md:hidden"
+              aria-label="Open menu"
+              (click)="toggleMobileNav()"
             >
+              <mat-icon>menu</mat-icon>
+            </button>
+            <a
+              class="inline-flex items-center gap-2.5 no-underline text-inherit"
+              routerLink="/home"
+            >
+              <app-logo />
+            </a>
+          </div>
+
+          <span class="flex-1"></span>
+
+          <nav class="hidden items-center gap-1 md:inline-flex">
+            <a
+              mat-button
+              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+              routerLink="/home"
+              routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+              >Home</a
+            >
+            <a
+              mat-button
+              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+              routerLink="/use-cases"
+              routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+              >Use Cases</a
+            >
+            <a
+              mat-button
+              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+              routerLink="/docs"
+              routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+              >Docs</a
+            >
+            <a
+              mat-button
+              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+              routerLink="/blog"
+              routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+              >Blog</a
+            >
+            <a
+              mat-button
+              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+              routerLink="/pricing"
+              routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+              >Pricing</a
+            >
+            <a
+              mat-button
+              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+              routerLink="/contact"
+              routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+              >Contact</a
+            >
+          </nav>
+
+          <div class="md:hidden">
+            <a mat-flat-button color="primary" routerLink="/auth">Go to App</a>
+          </div>
+
+          <div class="hidden items-center gap-2 md:inline-flex">
+            <a
+              mat-button
+              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+              routerLink="/auth"
+              >Sign in</a
+            >
+            <a mat-flat-button color="primary" routerLink="/auth">Start now</a>
           </div>
         </div>
-        <div>
-          <div class="footer-title">Tools</div>
-          <div class="footer-links">
-            <a routerLink="/qr-code-generator">QR code generator</a>
-            <a routerLink="/redirect-tester">Redirect trace tester</a>
+      </mat-toolbar>
+
+      <main class="mx-auto w-full max-w-[1280px] flex-1 p-3 sm:p-4 lg:p-5">
+        <div class="mt-2">
+          <router-outlet />
+        </div>
+      </main>
+
+      <footer class="border-t border-[rgba(33,33,33,0.08)] bg-[#fff8fb]">
+        <div
+          class="mx-auto grid w-full max-w-[1280px] gap-6 p-4 sm:p-5 lg:p-8 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]"
+        >
+          <div>
+            <div class="mb-1.5 text-lg font-bold">{{ siteConfig.name }}</div>
+            <div class="text-sm text-app-muted">{{ siteConfig.tagline }}</div>
+          </div>
+          <div>
+            <div class="mb-2.5 font-semibold">Product</div>
+            <div class="grid gap-1.5">
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/home"
+                >Capabilities</a
+              >
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/use-cases"
+                >Use Cases</a
+              >
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/docs"
+                >Docs</a
+              >
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/blog"
+                >Blog</a
+              >
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/pricing"
+                >Pricing</a
+              >
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/contact"
+                >Contact</a
+              >
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/blog/redirect-pizza-vs-linkshift"
+                >redirect.pizza vs LinkShift</a
+              >
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/blog/bitly-vs-linkshift"
+                >Bitly vs LinkShift</a
+              >
+              <a
+                href="https://status.linkshift.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                >Status page</a
+              >
+            </div>
+          </div>
+          <div>
+            <div class="mb-2.5 font-semibold">Tools</div>
+            <div class="grid gap-1.5">
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/qr-code-generator"
+                >QR code generator</a
+              >
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/redirect-tester"
+                >Redirect trace tester</a
+              >
+            </div>
+          </div>
+          <div>
+            <div class="mb-2.5 font-semibold">Assurance</div>
+            <p class="text-sm text-app-muted">
+              30-day satisfaction guarantee. Cancel within 30 days and request a refund with no
+              explanation needed.
+            </p>
+          </div>
+          <div>
+            <div class="mb-2.5 font-semibold">Legal</div>
+            <div class="grid gap-1.5">
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/terms"
+                >Terms</a
+              >
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/privacy"
+                >Privacy</a
+              >
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/cookies"
+                >Cookies</a
+              >
+              <a
+                class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
+                routerLink="/do-not-sell"
+                >Do not sell or share</a
+              >
+            </div>
           </div>
         </div>
-        <div>
-          <div class="footer-title">Assurance</div>
-          <p class="text-[13px] text-app-muted">
-            30-day satisfaction guarantee. Cancel within 30 days and request a refund with no
-            explanation needed.
-          </p>
-        </div>
-        <div>
-          <div class="footer-title">Legal</div>
-          <div class="footer-links">
-            <a routerLink="/terms">Terms</a>
-            <a routerLink="/privacy">Privacy</a>
-            <a routerLink="/cookies">Cookies</a>
-            <a routerLink="/do-not-sell">Do not sell or share</a>
-          </div>
-        </div>
-      </div>
-    </footer>
+      </footer>
+    </div>
   </mat-sidenav-content>
 </mat-sidenav-container>

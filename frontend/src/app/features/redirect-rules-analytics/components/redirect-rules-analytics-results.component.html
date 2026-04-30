@@ -31,11 +31,13 @@
     [stroke]="chartOptions.stroke"
     [tooltip]="chartOptions.tooltip"
     [grid]="chartOptions.grid"
-  ></apx-chart>
+  />
 
   <div class="mt-5 grid gap-3">
     @for (entry of entries; track entry.rule.id) {
-      <div class="flex flex-wrap items-center justify-between gap-4 rounded-[16px] bg-app-accent-soft p-3">
+      <div
+        class="flex flex-wrap items-center justify-between gap-4 rounded-[16px] bg-app-accent-soft p-3"
+      >
         <div class="flex min-w-0 flex-1 flex-wrap items-center gap-4">
           <div class="flex min-w-[90px] flex-col text-[18px] font-semibold leading-tight">
             {{ entry.hits | number }}
@@ -44,23 +46,35 @@
           <div class="grid min-w-0 flex-1 gap-2">
             <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
               <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Source</span>
-              <span class="truncate text-[13px] text-app-foreground" [attr.title]="entry.rule.source">
+              <span
+                class="truncate text-[13px] text-app-foreground"
+                [attr.title]="entry.rule.source"
+              >
                 {{ entry.rule.source }}
               </span>
             </div>
             <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
-              <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Destination</span>
-              <span class="truncate text-[13px] text-app-foreground" [attr.title]="entry.rule.destination || entry.rule.source">
+              <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted"
+                >Destination</span
+              >
+              <span
+                class="truncate text-[13px] text-app-foreground"
+                [attr.title]="entry.rule.destination || entry.rule.source"
+              >
                 {{ entry.rule.destination || 'Dynamic / link map destination' }}
               </span>
             </div>
 
             @if (entry.topLinkMapKeys.length > 0) {
               <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
-                <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Link keys</span>
+                <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted"
+                  >Link keys</span
+                >
                 <div class="flex min-w-0 flex-wrap gap-2 text-[12px]">
                   @for (keyEntry of entry.topLinkMapKeys; track keyEntry.key) {
-                    <span class="rounded-full border border-app-border-soft bg-app-surface px-2 py-1">
+                    <span
+                      class="rounded-full border border-app-border-soft bg-app-surface px-2 py-1"
+                    >
                       {{ keyEntry.key }} · {{ keyEntry.hits | number }}
                     </span>
                   }
@@ -70,11 +84,21 @@
 
             @if (entry.topRequestVariants.length > 0) {
               <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
-                <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Top requests</span>
+                <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted"
+                  >Top requests</span
+                >
                 <div class="grid min-w-0 gap-2">
-                  @for (variant of entry.topRequestVariants.slice(0, 3); track variant.requestMethod + variant.requestUrl + variant.destination) {
-                    <div class="rounded-[10px] border border-app-border-soft bg-app-surface px-2 py-1 text-[12px] text-app-foreground">
-                      <div class="truncate font-medium" [attr.title]="variant.requestMethod + ' ' + variant.requestUrl">
+                  @for (
+                    variant of entry.topRequestVariants.slice(0, 3);
+                    track variant.requestMethod + variant.requestUrl + variant.destination
+                  ) {
+                    <div
+                      class="rounded-[10px] border border-app-border-soft bg-app-surface px-2 py-1 text-[12px] text-app-foreground"
+                    >
+                      <div
+                        class="truncate font-medium"
+                        [attr.title]="variant.requestMethod + ' ' + variant.requestUrl"
+                      >
                         {{ variant.requestMethod }} {{ variant.requestUrl }}
                       </div>
                       <div class="truncate text-app-muted" [attr.title]="variant.destination">
@@ -87,12 +111,7 @@
             }
           </div>
         </div>
-        <button
-          mat-stroked-button
-          type="button"
-          class="shrink-0"
-          (click)="openDetails.emit(entry)"
-        >
+        <button mat-stroked-button type="button" class="shrink-0" (click)="openDetails.emit(entry)">
           Details
         </button>
       </div>

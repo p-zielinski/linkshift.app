@@ -1,5 +1,9 @@
 <div
-  [ngClass]="['rounded-[18px] border border-app-border-soft bg-app-surface', padding(), className()]"
+  [ngClass]="[
+    'rounded-[18px] border border-app-border-soft bg-app-surface',
+    padding(),
+    className(),
+  ]"
 >
-  <ng-content></ng-content>
+  <ng-content />
 </div>

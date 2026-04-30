@@ -2,7 +2,7 @@
   <mat-card class="auth-card w-[min(520px,96vw)] rounded-[20px] p-6">
     @if (loading()) {
       <div class="flex flex-col items-center gap-3 text-center">
-        <mat-progress-spinner diameter="48" mode="indeterminate"></mat-progress-spinner>
+        <mat-progress-spinner diameter="48" mode="indeterminate" />
         <p class="text-[13px] text-app-muted">Loading invite...</p>
       </div>
     } @else if (error()) {
@@ -12,7 +12,8 @@
     } @else if (completed()) {
       <h2 class="m-0 text-lg font-semibold text-app-foreground">Invitation accepted</h2>
       <p class="mt-2 text-[13px] text-app-muted">
-        Your account has been created. Please verify your email and wait for an owner to unblock your access.
+        Your account has been created. Please verify your email and wait for an owner to unblock
+        your access.
       </p>
       <a routerLink="/auth" class="mt-4 inline-flex text-[12px] text-app-muted">Go to login</a>
     } @else {
@@ -41,16 +42,20 @@
           }
         </mat-form-field>
 
-        <div class="grid gap-2 rounded-[16px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+        <div
+          class="grid gap-2 rounded-[16px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted"
+        >
           <mat-checkbox [formField]="form.acceptTerms">
-            I agree to the <a routerLink="/terms" class="text-app-accent-strong">Terms of Service</a>.
+            I agree to the
+            <a routerLink="/terms" class="text-app-accent-strong">Terms of Service</a>.
           </mat-checkbox>
           @if (termsError()) {
             <div class="text-[11px] text-red-600">{{ termsError() }}</div>
           }
 
           <mat-checkbox [formField]="form.acceptPrivacy">
-            I agree to the <a routerLink="/privacy" class="text-app-accent-strong">Privacy Policy</a>.
+            I agree to the
+            <a routerLink="/privacy" class="text-app-accent-strong">Privacy Policy</a>.
           </mat-checkbox>
           @if (privacyError()) {
             <div class="text-[11px] text-red-600">{{ privacyError() }}</div>
@@ -64,9 +69,7 @@
           }
         </div>
 
-        <button mat-flat-button color="primary" type="submit">
-          Create account
-        </button>
+        <button mat-flat-button color="primary" type="submit">Create account</button>
       </form>
     }
   </mat-card>

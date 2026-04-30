@@ -138,6 +138,8 @@ body {
 .mat-mdc-card.mdc-card {
   background-color: var(--app-surface);
   color: var(--app-text);
+  border-radius: 16px;
+  border: 1px solid rgba(216, 76, 119, 0.18);
 }
 
 .mat-mdc-form-field .mat-mdc-input-element,

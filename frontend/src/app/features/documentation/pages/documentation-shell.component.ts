@@ -24,13 +24,16 @@ import { MatListModule } from '@angular/material/list';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { filter } from 'rxjs/operators';
 import { DocumentationOpenApiService } from '../services/documentation-openapi.service';
 import { DocumentationContentService } from '../services/documentation-content.service';
 import { OpenApiTagGroup } from '../models/openapi.types';
+import { LogoComponent } from '../../../shared/components/logo/logo.component';
 
 const MOBILE_BREAKPOINT = '(max-width: 1023px)';
+const SMALL_SCREEN_BREAKPOINT = '(max-width: 767px)';
 
 @Component({
   selector: 'app-documentation-shell',
@@ -45,7 +48,9 @@ const MOBILE_BREAKPOINT = '(max-width: 1023px)';
     MatExpansionModule,
     MatIconModule,
     MatButtonModule,
+    MatToolbarModule,
     MatProgressSpinnerModule,
+    LogoComponent,
   ],
   templateUrl: './documentation-shell.component.html',
   styleUrl: './documentation-shell.component.css',
@@ -60,6 +65,7 @@ export class DocumentationShellComponent {
   private readonly breakpointObserver = inject(BreakpointObserver);
 
   readonly isMobile = signal(false);
+  readonly isSmallScreen = signal(false);
   readonly mobileDrawerOpen = signal(false);
   readonly manuallyExpandedGroups = signal<string[]>([]);
 
@@ -70,14 +76,17 @@ export class DocumentationShellComponent {
 
     if (isPlatformBrowser(this.platformId)) {
       this.isMobile.set(this.breakpointObserver.isMatched(MOBILE_BREAKPOINT));
+      this.isSmallScreen.set(this.breakpointObserver.isMatched(SMALL_SCREEN_BREAKPOINT));
     }
 
     this.breakpointObserver
-      .observe(MOBILE_BREAKPOINT)
+      .observe([MOBILE_BREAKPOINT, SMALL_SCREEN_BREAKPOINT])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((state) => {
-        this.isMobile.set(state.matches);
-        if (!state.matches) {
+        const isMobile = state.breakpoints[MOBILE_BREAKPOINT] ?? false;
+        this.isMobile.set(isMobile);
+        this.isSmallScreen.set(state.breakpoints[SMALL_SCREEN_BREAKPOINT] ?? false);
+        if (!isMobile) {
           this.mobileDrawerOpen.set(false);
         }
       });
@@ -95,6 +104,15 @@ export class DocumentationShellComponent {
   readonly introLinks = [
     { label: 'Overview', route: '/docs' },
     { label: 'API reference', route: '/docs/reference' },
+  ];
+
+  readonly siteLinks = [
+    { label: 'Home', route: '/home' },
+    { label: 'Use Cases', route: '/use-cases' },
+    { label: 'Docs', route: '/docs' },
+    { label: 'Blog', route: '/blog' },
+    { label: 'Pricing', route: '/pricing' },
+    { label: 'Contact', route: '/contact' },
   ];
 
   toggleDrawer(): void {
