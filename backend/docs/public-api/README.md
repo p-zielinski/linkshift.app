@@ -4,18 +4,10 @@ This guide explains how to use LinkShift programmatically with organization API 
 
 ## Authentication
 
-Send your API key in one of the following ways:
-
-1. Recommended header:
+Send your API key with following header:
 
 ```http
 X-API-Key: <your_api_key>
-```
-
-2. Alternative header format (also accepted by backend):
-
-```http
-Authorization: ApiKey <your_api_key>
 ```
 
 ## API Key Scope and Plan Behavior
@@ -49,12 +41,6 @@ This is separate from redirect runtime rate limiting used by public redirect tra
 - [Link Maps](./link-maps.md)
 - [Link Map Entries](./link-map-entries.md)
 - [Redirect Tests](./redirect-tests.md)
-
-## OpenAPI Specification
-
-Use the strict OpenAPI file:
-
-- `backend/docs/openapi/linkshift-api-keys.openapi.yaml`
 
 ## Error Model
 

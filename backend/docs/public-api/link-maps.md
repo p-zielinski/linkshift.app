@@ -28,7 +28,3 @@ A single redirect rule can point to a link map, allowing many key -> destination
 - Plan limits are enforced for map count and entry counts.
 - Deleting a map that is still referenced by active redirect rules is blocked.
 - Destination safety checks are enforced in backend services before writes.
-
-For deeper implementation details see internal engineering doc:
-
-- `backend/docs/link-maps.md`
