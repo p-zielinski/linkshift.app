@@ -75,7 +75,7 @@
             <div class="grid gap-2">
               <h3 class="text-sm font-semibold">{{ entry.label }}</h3>
               @for (parameter of entry.params; track parameter.name) {
-                <div class="rounded-xl border border-[rgba(31,24,28,0.12)] p-3">
+                <div class="rounded-xl borderp-3">
                   <div class="flex items-center gap-2">
                     <span class="font-semibold">{{ parameter.name }}</span>
                     @if (parameter.required) {

@@ -28,12 +28,7 @@
   </mat-form-field>
   <mat-form-field appearance="outline" class="min-w-[220px]">
     <mat-label>End date & time</mat-label>
-    <input
-      matInput
-      type="datetime-local"
-      [value]="rangeEnd"
-      (change)="onRangeEndChange($event)"
-    />
+    <input matInput type="datetime-local" [value]="rangeEnd" (change)="onRangeEndChange($event)" />
   </mat-form-field>
   <button mat-flat-button color="primary" type="button" (click)="applyRange.emit()">
     Apply range

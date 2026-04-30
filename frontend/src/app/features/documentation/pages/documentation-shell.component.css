@@ -1,5 +1,13 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
 .docs-shell {
-  min-height: max(72dvh, 680px);
+  height: 100%;
+  min-height: 100%;
+  width: 100%;
   background: linear-gradient(175deg, #fff6f9 0%, #fff 45%, #f7f0f5 100%);
 }
 
@@ -25,10 +33,4 @@
 :host ::ng-deep .docs-sidebar .mat-expansion-panel {
   box-shadow: none;
   border: 1px solid rgba(31, 24, 28, 0.1);
-}
-
-@media (max-width: 1023px) {
-  .docs-shell {
-    min-height: calc(100dvh - 132px);
-  }
 }

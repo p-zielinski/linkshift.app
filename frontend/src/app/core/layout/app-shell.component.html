@@ -24,8 +24,10 @@
               [attr.tabindex]="-1"
               class="cursor-not-allowed opacity-50"
             >
-            <mat-icon class="relative top-[-1px] mr-3 align-middle text-[20px]">{{ item.icon }}</mat-icon>
-            <span>{{ item.label }}</span>
+              <mat-icon class="relative top-[-1px] mr-3 align-middle text-[20px]">{{
+                item.icon
+              }}</mat-icon>
+              <span>{{ item.label }}</span>
             </a>
           } @else {
             <a
@@ -35,7 +37,9 @@
               [routerLinkActiveOptions]="{ exact: !item.matchSubRoutes }"
               (click)="onNavigate()"
             >
-              <mat-icon class="relative top-[-2px] mr-3 align-middle text-[20px]">{{ item.icon }}</mat-icon>
+              <mat-icon class="relative top-[-2px] mr-3 align-middle text-[20px]">{{
+                item.icon
+              }}</mat-icon>
               <span>{{ item.label }}</span>
             </a>
           }
@@ -50,9 +54,7 @@
             <mat-icon class="h-4 w-4 text-[16px]">account_circle</mat-icon>
             <span class="truncate">{{ user.email }}</span>
           </div>
-          <button mat-stroked-button color="primary" (click)="onLogout()">
-            Log out
-          </button>
+          <button mat-stroked-button color="primary" (click)="onLogout()">Log out</button>
         </div>
       }
     </div>
@@ -66,6 +68,6 @@
       <app-logo class="mt-[5px]" />
       <span class="w-10" aria-hidden="true"></span>
     </div>
-    <router-outlet></router-outlet>
+    <router-outlet />
   </mat-sidenav-content>
 </mat-sidenav-container>

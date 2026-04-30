@@ -43,12 +43,12 @@ export const routes: Routes = [
   { path: 'verify-email', component: VerifyEmailPageComponent },
   { path: 'reset-password', component: ResetPasswordPageComponent },
   { path: 'invite', component: InviteAcceptPageComponent },
+  ...DOCUMENTATION_CHILD_ROUTES,
   {
     path: '',
     component: MarketingShellComponent,
     children: [
       { path: 'home', component: HomePageComponent },
-      ...DOCUMENTATION_CHILD_ROUTES,
       { path: 'blog', component: BlogPageComponent },
       {
         path: 'blog/redirect-pizza-vs-linkshift',

@@ -9,10 +9,7 @@
     }
   </mat-form-field>
 
-  <mat-checkbox
-    [checked]="model().neverExpires"
-    (change)="onNeverExpiresChange($event.checked)"
-  >
+  <mat-checkbox [checked]="model().neverExpires" (change)="onNeverExpiresChange($event.checked)">
     Never expires
   </mat-checkbox>
 

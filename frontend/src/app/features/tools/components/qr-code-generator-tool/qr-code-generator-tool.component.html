@@ -25,7 +25,9 @@
     </div>
 
     @if (errorMessage()) {
-      <div class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">
+      <div
+        class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700"
+      >
         {{ errorMessage() }}
       </div>
     }
@@ -39,7 +41,9 @@
     }
 
     @if (resolvedDestinationUrl()) {
-      <div class="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-[13px] text-sky-800">
+      <div
+        class="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-[13px] text-sky-800"
+      >
         Final resolved URL: {{ resolvedDestinationUrl() }}
       </div>
     }

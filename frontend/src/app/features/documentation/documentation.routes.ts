@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { DocumentationSiteShellComponent } from './pages/documentation-site-shell.component';
 import { DocumentationShellComponent } from './pages/documentation-shell.component';
 import { DocumentationOverviewPageComponent } from './pages/documentation-overview-page.component';
 import { DocumentationMarkdownPageComponent } from './pages/documentation-markdown-page.component';
@@ -8,14 +9,20 @@ import { DocumentationEndpointPageComponent } from './pages/documentation-endpoi
 export const DOCUMENTATION_CHILD_ROUTES: Routes = [
   {
     path: 'docs',
-    component: DocumentationShellComponent,
+    component: DocumentationSiteShellComponent,
     children: [
-      { path: '', pathMatch: 'full', component: DocumentationOverviewPageComponent },
-      { path: 'reference', component: DocumentationReferencePageComponent },
-      { path: 'guides/:slug', component: DocumentationMarkdownPageComponent },
-      { path: 'concepts/:slug', component: DocumentationMarkdownPageComponent },
-      { path: 'api/:operationId', component: DocumentationEndpointPageComponent },
-      { path: '**', redirectTo: '' },
+      {
+        path: '',
+        component: DocumentationShellComponent,
+        children: [
+          { path: '', pathMatch: 'full', component: DocumentationOverviewPageComponent },
+          { path: 'reference', component: DocumentationReferencePageComponent },
+          { path: 'guides/:slug', component: DocumentationMarkdownPageComponent },
+          { path: 'concepts/:slug', component: DocumentationMarkdownPageComponent },
+          { path: 'api/:operationId', component: DocumentationEndpointPageComponent },
+          { path: '**', redirectTo: '' },
+        ],
+      },
     ],
   },
 ];

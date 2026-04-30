@@ -66,7 +66,7 @@
   title="Built for SEO-safe migrations and branded shortlink operations"
   subtitle="Keep redirects precise, reusable, and observable across every domain you manage."
 >
-  <app-marketing-feature-grid [features]="features"></app-marketing-feature-grid>
+  <app-marketing-feature-grid [features]="features" />
   <p class="mt-4 text-[13px] text-app-muted">
     Support path prefix routing alongside query match modes (exact, ignore, or subset) to keep
     redirects precise without losing flexibility. Add link maps to resolve short keys into full
@@ -79,7 +79,7 @@
   title="Plans that grow with your traffic"
   subtitle="Start free and scale only when your redirect inventory demands it."
 >
-  <app-pricing-plans [compact]="true"></app-pricing-plans>
+  <app-pricing-plans [compact]="true" />
   <p class="mt-4 text-[13px] text-app-muted">
     SSL is included for every domain, so traffic is always served over HTTPS.
   </p>
@@ -96,7 +96,7 @@
 >
   <div class="examples-grid grid gap-6 lg:grid-cols-3">
     @for (example of examples; track example.title) {
-      <app-marketing-example-card [example]="example"></app-marketing-example-card>
+      <app-marketing-example-card [example]="example" />
     }
   </div>
   <p class="mt-4 text-[13px] text-app-muted">
@@ -135,7 +135,7 @@
   title="Questions teams ask before switching"
   subtitle="Quick answers for architects, developers, and ops teams."
 >
-  <app-marketing-faq [items]="faqItems"></app-marketing-faq>
+  <app-marketing-faq [items]="faqItems" />
 </app-marketing-section>
 
 <app-marketing-section
@@ -151,5 +151,5 @@
     secondaryLabel="Use cases"
     secondaryLink="/use-cases"
     note="30-day satisfaction guarantee. Refunds available with no explanation required."
-  ></app-marketing-cta>
+  />
 </app-marketing-section>

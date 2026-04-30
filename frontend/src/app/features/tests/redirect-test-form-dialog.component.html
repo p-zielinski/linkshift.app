@@ -107,11 +107,7 @@
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Headers</mat-label>
-          <textarea
-            matInput
-            rows="4"
-            [formField]="form.headers"
-          ></textarea>
+          <textarea matInput rows="4" [formField]="form.headers"></textarea>
           <mat-hint>Example: X-Feature: beta | X-Region: EU (one per line)</mat-hint>
         </mat-form-field>
       </div>
@@ -132,15 +128,15 @@
         @if (expectedRequiresTarget()) {
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Expected target</mat-label>
-            <input
-              matInput
-              type="text"
-              [formField]="form.expectedTarget"
-            />
-            <mat-hint>Target required for redirect matches. Example: https://example.com/next</mat-hint>
+            <input matInput type="text" [formField]="form.expectedTarget" />
+            <mat-hint
+              >Target required for redirect matches. Example: https://example.com/next</mat-hint
+            >
           </mat-form-field>
         } @else {
-          <div class="rounded-[14px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+          <div
+            class="rounded-[14px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted"
+          >
             Expected target is not required for 404 expectations.
           </div>
           <input type="hidden" [formField]="form.expectedTarget" />

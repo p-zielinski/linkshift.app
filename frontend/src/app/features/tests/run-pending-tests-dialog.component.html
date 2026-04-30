@@ -8,7 +8,7 @@
   <mat-progress-bar
     [mode]="running() && total() === 0 ? 'indeterminate' : 'determinate'"
     [value]="running() ? progress() : 100"
-  ></mat-progress-bar>
+  />
 
   @if (running()) {
     <div class="flex items-center justify-between text-sm">
@@ -47,9 +47,7 @@
                 <div class="text-[12px] text-app-muted">
                   Expected: {{ formatExpected(failure.test) }}
                 </div>
-                <div class="text-[12px] text-app-muted">
-                  Actual: {{ formatActual(failure) }}
-                </div>
+                <div class="text-[12px] text-app-muted">Actual: {{ formatActual(failure) }}</div>
               </div>
               <button
                 mat-stroked-button
@@ -68,7 +66,5 @@
 </div>
 
 <div mat-dialog-actions align="end">
-  <button mat-flat-button color="primary" (click)="close()" [disabled]="running()">
-    Close
-  </button>
+  <button mat-flat-button color="primary" (click)="close()" [disabled]="running()">Close</button>
 </div>

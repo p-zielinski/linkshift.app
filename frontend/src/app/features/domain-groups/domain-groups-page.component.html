@@ -17,7 +17,7 @@
         [domainsLoaded]="domainsLoaded()"
         (edit)="openEditDialog($event)"
         (delete)="confirmDelete($event)"
-      ></app-domain-groups-table>
+      />
     </div>
     <div table-footer>
       <app-table-paginator
@@ -29,7 +29,7 @@
         [pageLimit]="pageLimit()"
         (currentPageChange)="onPageChange($event)"
         (pageLimitChange)="onPageLimitChange($event)"
-      ></app-table-paginator>
+      />
     </div>
   </app-resource-table-card>
 </app-resource-page-shell>

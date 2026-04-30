@@ -2,8 +2,8 @@
   <div class="flex flex-col w-full">
     <h2 class="dialog-title-text">Change your subscription</h2>
     <p class="dialog-subtitle text-[13px] text-app-muted">
-    Compare plans and choose the tier that matches your routing volume.
-  </p>
+      Compare plans and choose the tier that matches your routing volume.
+    </p>
   </div>
 
   <button
@@ -26,7 +26,7 @@
     [billingIntervalLockReason]="billingIntervalLockReason()"
     [planBlockReasons]="planBlockReasons()"
     (planSelected)="onPlanSelected($event)"
-  ></app-pricing-plans>
+  />
   @if (billingIntervalLocked()) {
     <div class="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[12px] text-amber-800">
       Subscription cycle changes (monthly/yearly) require canceling the current subscription first.

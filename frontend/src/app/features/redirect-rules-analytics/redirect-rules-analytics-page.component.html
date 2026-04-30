@@ -2,7 +2,7 @@
   <app-page-header
     title="Redirect rules analytics"
     subtitle="Traffic distribution for the selected time window."
-  ></app-page-header>
+  />
 
   <div class="mb-4 rounded-[18px] border border-app-border-soft bg-app-surface p-4">
     <div class="mb-4 flex items-center justify-between rounded-[12px] bg-app-accent-soft px-3 py-2">
@@ -22,10 +22,12 @@
       (rangeStartChange)="onRangeStartChange($event)"
       (rangeEndChange)="onRangeEndChange($event)"
       (applyRange)="applyCustomRange()"
-    ></app-redirect-rules-analytics-filters>
+    />
   </div>
 
-  <div class="flex min-h-0 flex-1 flex-col rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+  <div
+    class="flex min-h-0 flex-1 flex-col rounded-[18px] border border-app-border-soft bg-app-surface p-4"
+  >
     <app-redirect-rules-analytics-results
       [entries]="topRules()"
       [loading]="topRulesLoading()"
@@ -34,6 +36,6 @@
       [chartOptions]="chartOptions()"
       [chartHeight]="chartHeight"
       (openDetails)="openRuleDetails($event)"
-    ></app-redirect-rules-analytics-results>
+    />
   </div>
 </div>

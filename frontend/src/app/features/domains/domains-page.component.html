@@ -19,7 +19,7 @@
         [groups]="domainGroups()"
         [formField]="filterForm.domainGroupId"
         [includeAllOption]="true"
-      ></app-domain-group-select>
+      />
     </div>
   </app-resource-card>
 
@@ -30,7 +30,7 @@
         [groupMap]="groupMap()"
         (edit)="openEditDialog($event)"
         (delete)="confirmDelete($event)"
-      ></app-domains-table>
+      />
     </div>
     <div table-footer>
       <app-table-paginator
@@ -42,7 +42,7 @@
         [pageLimit]="pageLimit()"
         (currentPageChange)="onPageChange($event)"
         (pageLimitChange)="onPageLimitChange($event)"
-      ></app-table-paginator>
+      />
     </div>
   </app-resource-table-card>
 </app-resource-page-shell>

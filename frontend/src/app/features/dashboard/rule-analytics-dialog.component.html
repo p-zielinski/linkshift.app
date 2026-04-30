@@ -21,7 +21,9 @@
 
   <div class="field">
     <div class="field-label">Destination</div>
-    <div class="field-value">{{ data.entry.rule.destination || 'Dynamic / link map destination' }}</div>
+    <div class="field-value">
+      {{ data.entry.rule.destination || 'Dynamic / link map destination' }}
+    </div>
   </div>
 
   <div class="field-grid">
@@ -42,7 +44,7 @@
   <div class="field">
     <div class="field-label">Match methods</div>
     <div class="field-value">
-      @if ((data.entry.rule.matchMethod).length === 0) {
+      @if (data.entry.rule.matchMethod.length === 0) {
         All methods
       } @else {
         {{ data.entry.rule.matchMethod.join(', ') }}
@@ -66,7 +68,10 @@
       <div class="field-label">Top link map keys</div>
       <div class="field-value">
         @for (keyEntry of data.entry.topLinkMapKeys; track keyEntry.key; let isLast = $last) {
-          <span>{{ keyEntry.key }} ({{ keyEntry.hits | number }})</span>@if (!isLast) {<span>, </span>}
+          <span>{{ keyEntry.key }} ({{ keyEntry.hits | number }})</span>
+          @if (!isLast) {
+            <span>, </span>
+          }
         }
       </div>
     </div>
@@ -76,7 +81,10 @@
     <div class="field">
       <div class="field-label">Top request variants</div>
       <div class="field-value">
-        @for (variant of data.entry.topRequestVariants; track variant.requestMethod + variant.requestUrl + variant.destination) {
+        @for (
+          variant of data.entry.topRequestVariants;
+          track variant.requestMethod + variant.requestUrl + variant.destination
+        ) {
           <div>
             <strong>{{ variant.requestMethod }} {{ variant.requestUrl }}</strong>
             <span> → {{ variant.destination }} ({{ variant.hits | number }} hits)</span>

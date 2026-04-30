@@ -16,14 +16,14 @@
       <span class="label">Destination</span>
       <code>{{ example().destination }}</code>
     </div>
-  @if (example().condition) {
-    <div class="example-row">
-      <span class="label">Condition</span>
-      <code>{{ example().condition }}</code>
-    </div>
-  }
-  @if (example().note) {
-    <p class="note">{{ example().note }}</p>
-  }
-</div>
+    @if (example().condition) {
+      <div class="example-row">
+        <span class="label">Condition</span>
+        <code>{{ example().condition }}</code>
+      </div>
+    }
+    @if (example().note) {
+      <p class="note">{{ example().note }}</p>
+    }
+  </div>
 </mat-card>

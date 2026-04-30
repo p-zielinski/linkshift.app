@@ -1,8 +1,5 @@
 <div class="flex min-h-[calc(100vh-48px)] flex-col gap-4">
-  <app-page-header
-    title="Profile"
-    subtitle="Manage your account email and verification status."
-  ></app-page-header>
+  <app-page-header title="Profile" subtitle="Manage your account email and verification status." />
 
   <div class="grid gap-4 lg:grid-cols-2">
     <div class="rounded-[18px] border border-app-border-soft bg-app-surface p-4">
@@ -21,7 +18,9 @@
       </div>
 
       @if (isBrowser() && !isVerified()) {
-        <div class="mt-4 rounded-[14px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+        <div
+          class="mt-4 rounded-[14px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted"
+        >
           Verify your email to unlock account changes and security actions.
         </div>
         <div class="mt-3">
@@ -107,7 +106,9 @@
         Version {{ siteConfig.legalVersion }} · Minimum age {{ siteConfig.minAge }}
       </p>
       @if (needsLegalUpdate()) {
-        <div class="mt-3 rounded-[14px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted">
+        <div
+          class="mt-3 rounded-[14px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted"
+        >
           Updated legal terms require your review.
         </div>
         <div class="mt-3">
@@ -116,9 +117,7 @@
           </a>
         </div>
       } @else {
-        <div class="mt-3 text-[12px] text-app-muted">
-          Your latest consent is on file.
-        </div>
+        <div class="mt-3 text-[12px] text-app-muted">Your latest consent is on file.</div>
       }
     </div>
   </div>

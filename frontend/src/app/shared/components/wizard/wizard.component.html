@@ -1,11 +1,13 @@
 <div class="wizard-shell flex h-full flex-col">
-  <div class="flex flex-col gap-3 border-b border-app-border-soft px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+  <div
+    class="flex flex-col gap-3 border-b border-app-border-soft px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+  >
     <div class="flex items-center gap-2">
       <button mat-button type="button" color="primary" (click)="cancel.emit()">
         <mat-icon class="material-icons-outlined">close</mat-icon>
         {{ cancelLabel }}
       </button>
-      <ng-content select="[wizard-leading-actions]"></ng-content>
+      <ng-content select="[wizard-leading-actions]" />
     </div>
 
     <div class="text-center">
@@ -21,13 +23,25 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
-      <ng-content select="[wizard-header-actions]"></ng-content>
+      <ng-content select="[wizard-header-actions]" />
       @if (steps.length > 1) {
-        <button mat-stroked-button type="button" color="primary" [disabled]="!canGoBack" (click)="previous()">
+        <button
+          mat-stroked-button
+          type="button"
+          color="primary"
+          [disabled]="!canGoBack"
+          (click)="previous()"
+        >
           <mat-icon class="material-icons-outlined">arrow_back</mat-icon>
           Back
         </button>
-        <button mat-stroked-button type="button" color="primary" [disabled]="!canGoNext || nextDisabled" (click)="next()">
+        <button
+          mat-stroked-button
+          type="button"
+          color="primary"
+          [disabled]="!canGoNext || nextDisabled"
+          (click)="next()"
+        >
           <mat-icon class="material-icons-outlined">arrow_forward</mat-icon>
           Next
         </button>
@@ -58,13 +72,15 @@
 
   <div class="flex min-h-0 flex-1">
     @if (steps.length > 1) {
-      <aside class="hidden min-h-0 w-[240px] flex-shrink-0 flex-col gap-3 overflow-auto border-r border-app-border-soft px-4 py-5 lg:flex">
+      <aside
+        class="hidden min-h-0 w-[240px] flex-shrink-0 flex-col gap-3 overflow-auto border-r border-app-border-soft px-4 py-5 lg:flex"
+      >
         @for (step of steps; track step.id; let idx = $index) {
           <div
             class="cursor-pointer rounded-[14px] border border-transparent px-3 py-2 transition"
             [ngClass]="{
               'border-app-border-soft bg-app-surface': idx === activeIndex,
-              'hover:border-app-border-soft hover:bg-app-surface': idx !== activeIndex
+              'hover:border-app-border-soft hover:bg-app-surface': idx !== activeIndex,
             }"
             (click)="setActiveStep(idx)"
           >
@@ -73,7 +89,7 @@
                 class="flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold"
                 [ngClass]="{
                   'border-app-border-soft bg-app-muted/10 text-app-text': idx === activeIndex,
-                  'border-app-border-soft text-app-muted': idx !== activeIndex
+                  'border-app-border-soft text-app-muted': idx !== activeIndex,
                 }"
               >
                 {{ idx + 1 }}
@@ -82,11 +98,13 @@
             </div>
             @if (summaryFor(step.id); as summary) {
               <div class="mt-2 text-xs text-app-muted">
-                <ng-container [ngTemplateOutlet]="summary.templateRef"></ng-container>
+                <ng-container [ngTemplateOutlet]="summary.templateRef" />
               </div>
             }
             @if (step.complete === false) {
-              <div class="mt-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-700">
+              <div
+                class="mt-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-700"
+              >
                 Action required
               </div>
             }
@@ -106,10 +124,10 @@
           }
         </div>
         @if (templateFor(activeStep.id); as template) {
-          <ng-container [ngTemplateOutlet]="template.templateRef"></ng-container>
+          <ng-container [ngTemplateOutlet]="template.templateRef" />
         }
       }
-      <ng-content select="[wizard-alert]"></ng-content>
+      <ng-content select="[wizard-alert]" />
     </div>
   </div>
 </div>
