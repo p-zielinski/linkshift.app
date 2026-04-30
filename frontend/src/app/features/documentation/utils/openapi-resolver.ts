@@ -156,13 +156,35 @@ export function groupEndpointsByTag(
     }
   }
 
+  const customOrder = [
+    'Domain Groups',
+    'Domains',
+    'Redirect Rules',
+    'Link Maps',
+    'Link Map Entries',
+    'Redirect Tests',
+    'Organization',
+  ];
+
   return Array.from(grouped.entries())
     .map(([tag, tagEndpoints]) => ({
       tag,
       description: tagDescriptions.get(tag) ?? '',
       endpoints: tagEndpoints,
     }))
-    .sort((left, right) => left.tag.localeCompare(right.tag));
+    .sort((left, right) => {
+      const indexLeft = customOrder.indexOf(left.tag);
+      const indexRight = customOrder.indexOf(right.tag);
+
+      if (indexLeft !== -1 && indexRight !== -1) {
+        return indexLeft - indexRight;
+      }
+
+      if (indexLeft !== -1) return -1;
+      if (indexRight !== -1) return 1;
+
+      return left.tag.localeCompare(right.tag);
+    });
 }
 
 function toEndpoint(input: {
