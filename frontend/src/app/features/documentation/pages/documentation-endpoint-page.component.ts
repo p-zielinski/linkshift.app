@@ -8,12 +8,24 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_CONFIG } from '../../../core/config/site-config';
-import { OpenApiMediaTypeObject, OpenApiParameterObject } from '../models/openapi.types';
+import {
+  OpenApiMediaTypeObject,
+  OpenApiParameterObject,
+  OpenApiSecurityRequirement,
+  OpenApiSecuritySchemeObject,
+} from '../models/openapi.types';
 import { DocumentationOpenApiService } from '../services/documentation-openapi.service';
 import { buildSchemaTree, SchemaTreeNode } from '../utils/openapi-schema-tree';
-import { resolveSchema, resolveSecuritySchemeDescriptions } from '../utils/openapi-resolver';
+import { resolveSchema } from '../utils/openapi-resolver';
 import { SchemaTreeComponent } from '../components/schema-tree.component';
 import { DocumentationTryMeDialogComponent } from '../components/documentation-try-me-dialog.component';
+
+type EndpointSecurityDetail = {
+  id: string;
+  name: string;
+  typeLabel: string;
+  details: string;
+};
 
 @Component({
   selector: 'app-documentation-endpoint-page',
@@ -132,7 +144,7 @@ export class DocumentationEndpointPageComponent implements OnInit {
     );
   });
 
-  readonly securityDetails = computed(() => {
+  readonly securityDetails = computed<EndpointSecurityDetail[]>(() => {
     const document = this.openApi.document();
     const endpoint = this.endpoint();
 
@@ -140,7 +152,10 @@ export class DocumentationEndpointPageComponent implements OnInit {
       return [];
     }
 
-    return resolveSecuritySchemeDescriptions(document, endpoint.security);
+    return resolveEndpointSecurityDetails(
+      endpoint.security,
+      document.components?.securitySchemes ?? {},
+    );
   });
 
   constructor() {
@@ -272,4 +287,140 @@ function pickMediaType(
     contentType,
     schema: mediaType.schema,
   };
+}
+
+function resolveEndpointSecurityDetails(
+  securityRequirements: OpenApiSecurityRequirement[],
+  securitySchemes: Record<string, OpenApiSecuritySchemeObject>,
+): EndpointSecurityDetail[] {
+  const values: EndpointSecurityDetail[] = [];
+
+  for (const requirement of securityRequirements) {
+    const entries = Object.entries(requirement);
+    if (!entries.length) {
+      values.push(
+        createSecurityDetail({
+          name: 'No authentication',
+          typeLabel: 'public',
+          details: 'This operation allows unauthenticated requests.',
+        }),
+      );
+      continue;
+    }
+
+    for (const [schemeName, scopes] of entries) {
+      const scheme = securitySchemes[schemeName];
+      values.push(toSecurityDetail(scheme, scopes));
+    }
+  }
+
+  return deduplicateSecurityDetails(values);
+}
+
+function toSecurityDetail(
+  scheme: OpenApiSecuritySchemeObject | undefined,
+  scopes: string[],
+): EndpointSecurityDetail {
+  const details: string[] = [];
+  if (scheme?.description?.trim()) {
+    details.push(scheme.description.trim());
+  }
+  if (scopes.length) {
+    details.push(`Scopes: ${scopes.join(', ')}`);
+  }
+
+  if (!scheme) {
+    return createSecurityDetail({
+      name: 'Authentication',
+      typeLabel: 'security',
+      details:
+        details.join(' ') || 'Custom authentication scheme configured in OpenAPI requirements.',
+    });
+  }
+
+  if (scheme.type === 'apiKey') {
+    return createSecurityDetail({
+      name: scheme.name?.trim() || 'API key',
+      typeLabel: scheme.in?.trim() || 'apiKey',
+      details: details.join(' ') || 'Provide API key to authorize requests.',
+    });
+  }
+
+  if (scheme.type === 'http') {
+    const normalizedScheme = scheme.scheme?.trim().toLowerCase();
+    const name =
+      normalizedScheme === 'bearer'
+        ? 'Bearer token'
+        : normalizedScheme === 'basic'
+          ? 'Basic auth'
+          : scheme.scheme?.trim()
+            ? `${scheme.scheme.trim()} auth`
+            : 'HTTP auth';
+
+    if (scheme.bearerFormat?.trim()) {
+      details.push(`Token format: ${scheme.bearerFormat.trim()}`);
+    }
+
+    return createSecurityDetail({
+      name,
+      typeLabel: 'http',
+      details: details.join(' ') || 'HTTP authentication is required.',
+    });
+  }
+
+  if (scheme.type === 'oauth2') {
+    return createSecurityDetail({
+      name: 'OAuth 2.0',
+      typeLabel: 'oauth2',
+      details: details.join(' ') || 'OAuth 2.0 authorization is required.',
+    });
+  }
+
+  if (scheme.type === 'openIdConnect') {
+    return createSecurityDetail({
+      name: 'OpenID Connect',
+      typeLabel: 'openIdConnect',
+      details: details.join(' ') || 'OpenID Connect authentication is required.',
+    });
+  }
+
+  return createSecurityDetail({
+    name: 'Authentication',
+    typeLabel: scheme.type,
+    details: details.join(' ') || 'Authentication is required for this operation.',
+  });
+}
+
+function createSecurityDetail(input: {
+  name: string;
+  typeLabel: string;
+  details: string;
+}): EndpointSecurityDetail {
+  const key = [
+    input.name.trim().toLowerCase(),
+    input.typeLabel.trim().toLowerCase(),
+    input.details.trim().toLowerCase(),
+  ].join('::');
+
+  return {
+    id: key,
+    name: input.name,
+    typeLabel: input.typeLabel,
+    details: input.details,
+  };
+}
+
+function deduplicateSecurityDetails(values: EndpointSecurityDetail[]): EndpointSecurityDetail[] {
+  const seen = new Set<string>();
+  const deduplicated: EndpointSecurityDetail[] = [];
+
+  for (const value of values) {
+    if (seen.has(value.id)) {
+      continue;
+    }
+    seen.add(value.id);
+    deduplicated.push(value);
+  }
+
+  return deduplicated;
 }

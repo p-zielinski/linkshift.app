@@ -53,15 +53,23 @@
     <mat-card class="p-5 sm:p-6">
       <h2 class="text-lg font-semibold">Security</h2>
       @if (securityDetails().length) {
-        <ul class="mt-3 grid list-disc gap-2 pl-5 text-sm">
-          @for (security of securityDetails(); track security.name + security.details) {
-            <li>
-              <strong>{{ security.name }}:</strong>&nbsp;<span class="schema-node-detail">{{
-                security.details
-              }}</span>
-            </li>
+        <div class="mt-3 grid gap-2">
+          @for (security of securityDetails(); track security.id) {
+            <mat-card class="rounded-xl border p-3">
+              <div class="schema-node-content">
+                <div class="schema-node-main">
+                  <span class="schema-node-name">{{ security.name }}</span>
+                  <span class="schema-node-type">{{ security.typeLabel }}</span>
+                  <span
+                    class="rounded-full border px-2 py-0.5 text-[11px] schema-badge schema-badge-required"
+                    >required</span
+                  >
+                </div>
+                <div class="schema-node-detail">{{ security.details }}</div>
+              </div>
+            </mat-card>
           }
-        </ul>
+        </div>
       } @else {
         <p class="mt-3 text-sm text-app-muted">
           No explicit security requirement for this operation.
