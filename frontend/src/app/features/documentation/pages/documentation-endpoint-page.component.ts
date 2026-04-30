@@ -25,10 +25,10 @@ import { DocumentationTryMeDialogComponent } from '../components/documentation-t
     MatButtonModule,
     MatButtonToggleModule,
     MatDialogModule,
-    SchemaTreeComponent,
+    SchemaTreeComponent
   ],
   templateUrl: './documentation-endpoint-page.component.html',
-  styleUrl: './documentation-endpoint-page.component.css',
+  styleUrls: ['./documentation-endpoint-page.component.css', '../components/schema-tree.component.css'],
 })
 export class DocumentationEndpointPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
