@@ -33,13 +33,6 @@
         <p class="mt-3 text-sm text-app-muted">{{ endpointData.description }}</p>
       }
 
-      <div class="mt-3 flex flex-wrap gap-3 text-sm">
-        <span
-          ><strong>Operation ID:</strong> <code>{{ endpointData.operationId }}</code></span
-        >
-        <span><strong>Tags:</strong> {{ endpointData.tags.join(', ') }}</span>
-      </div>
-
       <div class="mt-4">
         <div class="flex flex-wrap gap-2">
           <button mat-flat-button color="primary" type="button" (click)="openTryMeDialog()">
