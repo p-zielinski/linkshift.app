@@ -15,9 +15,13 @@ import { AuthStore } from '../../core/store/auth.store';
 import { OrganizationMembersStore } from '../../core/store/organization-members.store';
 import { OrganizationMembersApiService } from '../../core/api/organization-members-api.service';
 import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
-import { OrganizationConfiguration } from '@shared/models/organization-config.model';
+import {
+  OrganizationConfiguration,
+  OrganizationPlan,
+} from '@shared/models/organization-config.model';
 import { extractErrorMessage } from '../../core/store/store-error.utils';
 import { firstValueFrom } from 'rxjs';
+import { UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
 
 @Component({
   selector: 'app-organization-page',
@@ -52,7 +56,11 @@ export class OrganizationPageComponent {
 
   readonly config = computed(() => {
     const org = this.authStore.organization();
-    return OrganizationConfiguration.fromJson(org?.configuration ?? {});
+    const orgConfig =  OrganizationConfiguration.fromJson(org?.configuration ?? {});
+    if (orgConfig.activeSubscription.plan === OrganizationPlan.UNMETERED) {
+      orgConfig.activeSubscription.limits = UNMETERED_PLAN_LIMITS;
+    }
+    return orgConfig;
   });
   readonly maxUsers = computed(() => this.config().activeSubscription.limits.maxUsers);
   readonly maxApiKeys = computed(() => this.config().activeSubscription.limits.maxApiKeys);

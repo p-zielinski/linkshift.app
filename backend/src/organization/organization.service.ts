@@ -19,6 +19,10 @@ import {
 import { Organization } from '@shared/prisma-client';
 import { throwHttpException } from '../utils';
 import { Logger } from 'nestjs-pino';
+import {
+  DEFAULT_PLAN_LIMITS,
+  UNMETERED_PLAN_LIMITS,
+} from '@shared/models/plan-limits.model';
 
 @Injectable()
 export class OrganizationService {
@@ -27,8 +31,7 @@ export class OrganizationService {
     private readonly cacheManagerService: CacheManagerService,
     private readonly cls: ClsService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   /**
    * Retrieves the organization's configuration.
@@ -352,6 +355,10 @@ export class OrganizationService {
         plan: OrganizationPlan.FREE,
         status: OrganizationStatus.ACTIVE,
       });
+    }
+
+    if (subscription.plan === OrganizationPlan.UNMETERED) {
+      subscription.limits = UNMETERED_PLAN_LIMITS;
     }
 
     return subscription;

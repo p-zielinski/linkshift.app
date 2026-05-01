@@ -33,3 +33,22 @@ export const DEFAULT_PLAN_LIMITS: Readonly<PlanLimits> = {
   maxLinkMapEntriesPerMap: 100,
   analyticsRetentionDays: 14,
 };
+
+export const UNMETERED_PLAN_LIMITS: Readonly<PlanLimits> = {
+  maxDomainGroups: Infinity,
+  maxDomainsPerGroup: Infinity,
+  maxTotalDomains: Infinity,
+  maxRulesPerGroup: Infinity,
+  maxTotalRules: Infinity,
+  maxTestsPerGroup: Infinity,
+  maxTotalTests: Infinity,
+  maxUsers: Infinity,
+  redirectionLimitPerMinute: Infinity,
+  maxApiKeys: Infinity,
+  apiKeyCallsPerMinute: Infinity,
+  maxLinkMaps: Infinity,
+  maxLinkMapEntriesTotal: Infinity,
+  maxLinkMapEntriesPerMap: Infinity,
+  analyticsRetentionDays: 180,
+};
+

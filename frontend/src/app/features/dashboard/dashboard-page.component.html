@@ -97,7 +97,11 @@
           <div class="rounded-2xl bg-app-accent-soft p-4">
             <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Active from</div>
             <div class="text-[14px] font-semibold text-app-foreground">
-              {{ subscription.activeFrom | date: 'mediumDate' }}
+              @if (subscription.activeFrom) {
+                {{ subscription.activeFrom | date: 'mediumDate' }}
+              } @else {
+                {{ 'No active from date' }}
+              }
             </div>
           </div>
           <div class="rounded-2xl bg-app-accent-soft p-4">
@@ -112,32 +116,34 @@
           </div>
         </div>
         <div class="mt-5 flex flex-wrap items-center gap-3">
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            [disabled]="billingBusy()"
-            (click)="openUpgradeDialog()"
-          >
-            Upgrade
-          </button>
-          @if (activeSubscription().plan !== 'FREE') {
+          @if (activeSubscription().plan !== OrganizationPlan.UNMETERED) {
             <button
-              mat-stroked-button
+              mat-flat-button
+              color="primary"
               type="button"
               [disabled]="billingBusy()"
-              (click)="openManageSubscription()"
+              (click)="openUpgradeDialog()"
             >
-              Manage subscription
+              Upgrade
             </button>
-            <button
-              mat-button
-              type="button"
-              [disabled]="billingBusy()"
-              (click)="openCancelSubscription()"
-            >
-              Cancel subscription
-            </button>
+            @if (activeSubscription().plan !== OrganizationPlan.FREE) {
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="billingBusy()"
+                (click)="openManageSubscription()"
+              >
+                Manage subscription
+              </button>
+              <button
+                mat-button
+                type="button"
+                [disabled]="billingBusy()"
+                (click)="openCancelSubscription()"
+              >
+                Cancel subscription
+              </button>
+            }
           }
         </div>
       }

@@ -13,7 +13,7 @@ import { DEFAULT_LIST_KEY } from '../../core/store/entity/entity-store.utils';
 import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
 import { AuthStore } from '../../core/store/auth.store';
 import { APP_CONFIG } from '../../core/config/app-runtime-config';
-import { OrganizationConfiguration } from '@shared/models/organization-config.model';
+import { OrganizationConfiguration, OrganizationPlan } from '@shared/models/organization-config.model';
 import type { ApiKey } from '../../core/models/api-key.model';
 import {
   ApiKeyDialogData,
@@ -25,6 +25,8 @@ import {
   ApiKeyCreatedDialogComponent,
   ApiKeyCreatedDialogData,
 } from './api-key-created-dialog.component';
+import { UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-organization-api-keys-page',
@@ -39,6 +41,7 @@ import {
     ResourcePageShellComponent,
     ResourceTableCardComponent,
     OrganizationApiKeysTableComponent,
+    RouterLink,
   ],
   templateUrl: './organization-api-keys-page.component.html',
 })
@@ -54,13 +57,15 @@ export class OrganizationApiKeysPageComponent {
   private readonly shownStoreErrorSequence = signal(0);
 
   readonly keys = this.apiKeyStore.selectList();
-  readonly loading = computed(
-    () => this.apiKeyStore.isLoading()[DEFAULT_LIST_KEY] ?? false,
-  );
+  readonly loading = computed(() => this.apiKeyStore.isLoading()[DEFAULT_LIST_KEY] ?? false);
 
   readonly config = computed(() => {
-    const organization = this.authStore.organization();
-    return OrganizationConfiguration.fromJson(organization?.configuration ?? {});
+    const org = this.authStore.organization();
+    const orgConfig = OrganizationConfiguration.fromJson(org?.configuration ?? {});
+    if (orgConfig.activeSubscription.plan === OrganizationPlan.UNMETERED) {
+      orgConfig.activeSubscription.limits = UNMETERED_PLAN_LIMITS;
+    }
+    return orgConfig;
   });
   readonly limits = computed(() => this.config().activeSubscription.limits);
   readonly usage = computed(() => this.usageStore.usage());
@@ -78,9 +83,7 @@ export class OrganizationApiKeysPageComponent {
     }
     return this.apiKeyCount() >= limit;
   });
-  readonly apiServerUrl = computed(() =>
-    this.appConfig.APP_BASE_URL.replace(/\/+$/, ''),
-  );
+  readonly apiServerUrl = computed(() => this.appConfig.APP_BASE_URL.replace(/\/+$/, ''));
   readonly openApiSpecPath = '/linkshift-api-keys.openapi.yaml';
 
   readonly canCreate = computed(() => {

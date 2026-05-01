@@ -24,6 +24,7 @@ import { RedirectRulesAnalyticsStore } from '../../core/store/redirect-rules-ana
 import { getFilterKey } from '../../core/store/entity/entity-store.utils';
 import { AuthStore } from '../../core/store/auth.store';
 import { OrganizationConfiguration } from '@shared/models/organization-config.model';
+import { UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
 
 const ANALYTICS_CHART_HEIGHT = 400;
 
@@ -65,7 +66,7 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
   readonly analyticsRetentionDays = computed(() => {
     const rawConfig = this.authStore.organization()?.configuration ?? undefined;
     const config = OrganizationConfiguration.fromJson(rawConfig);
-    const days = Number(config.activeSubscription.limits.analyticsRetentionDays);
+    const days = Number((config.activeSubscription.limits ?? UNMETERED_PLAN_LIMITS).analyticsRetentionDays);
     if (!Number.isFinite(days) || days < 1) {
       return 30;
     }

@@ -45,15 +45,15 @@ export const PLAN_LIMITS = {
     maxLinkMapEntriesPerMap: 8000,
     analyticsRetentionDays: 60,
   },
-} satisfies Record<OrganizationPlan, PlanLimits>;
+} satisfies Record<
+  Exclude<OrganizationPlan, OrganizationPlan.UNMETERED>,
+  PlanLimits
+>;
 
-export const CHECKOUT_PLANS: OrganizationPlan[] = [
-  OrganizationPlan.BASIC,
-  OrganizationPlan.PRO,
-];
-
-export function getPlanLimits(plan: OrganizationPlan): PlanLimits {
-  return PLAN_LIMITS[plan] ?? PLAN_LIMITS[OrganizationPlan.FREE];
+export function getPlanLimits(plan: string): PlanLimits {
+  return plan in PLAN_LIMITS
+    ? PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS]
+    : PLAN_LIMITS[OrganizationPlan.FREE];
 }
 
 export type PriceIdMap = {
