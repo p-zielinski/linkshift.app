@@ -4,6 +4,7 @@ export enum OrganizationPlan {
   FREE = 'FREE',
   BASIC = 'BASIC',
   PRO = 'PRO',
+  UNMETERED = 'UNMETERED'
 }
 
 export type BillingInterval = 'MONTHLY' | 'YEARLY';
@@ -42,9 +43,6 @@ export class OrganizationSubscription {
   constructor(partial?: Partial<OrganizationSubscription>) {
     if (partial) {
       Object.assign(this, partial);
-      if (this.plan === ('BASIC' as OrganizationPlan)) {
-        this.plan = OrganizationPlan.BASIC;
-      }
       if (partial.limits) {
         this.limits = {
           ...this.limits,

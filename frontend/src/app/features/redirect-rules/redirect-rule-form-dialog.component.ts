@@ -43,6 +43,7 @@ import {
 import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
 import { AuthStore } from '../../core/store/auth.store';
 import { OrganizationConfiguration } from '@shared/models/organization-config.model';
+import { UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
 
 type RedirectRuleFormModel = {
   domainGroupId: string;
@@ -130,7 +131,7 @@ export class RedirectRuleFormDialogComponent {
     const rawConfig = org?.configuration ?? undefined;
     return OrganizationConfiguration.fromJson(rawConfig);
   });
-  readonly limits = computed(() => this.config().activeSubscription.limits);
+  readonly limits = computed(() => this.config().activeSubscription.limits ?? UNMETERED_PLAN_LIMITS);
   readonly usage = computed(() => this.usageStore.usage());
   readonly usageLoading = computed(() => this.usageStore.isLoading());
   readonly usageError = computed(() => this.usageStore.error());

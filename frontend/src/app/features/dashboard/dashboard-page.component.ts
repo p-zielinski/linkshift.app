@@ -25,6 +25,7 @@ import { AuthStore } from '../../core/store/auth.store';
 import {
   BillingInterval,
   OrganizationConfiguration,
+  OrganizationPlan,
   OrganizationStatus,
 } from '@shared/models/organization-config.model';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
@@ -34,6 +35,7 @@ import { OrganizationUsageStore } from '../../core/store/organization-usage.stor
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { formatPlanLabel } from '../../core/utils/plan-label';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { DEFAULT_PLAN_LIMITS, UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -80,8 +82,9 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     const rawConfig = org?.configuration ?? undefined;
     return OrganizationConfiguration.fromJson(rawConfig);
   });
+  readonly OrganizationPlan = OrganizationPlan;
   readonly activeSubscription = computed(() => this.config().activeSubscription);
-  readonly limits = computed(() => this.activeSubscription().limits);
+  readonly limits = computed(() => this.activeSubscription().limits ?? UNMETERED_PLAN_LIMITS);
   readonly usage = computed(() => this.usageStore.usage());
   readonly usageLoading = computed(() => this.usageStore.isLoading());
   readonly usageError = computed(() => this.usageStore.error());
@@ -172,9 +175,7 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       details.push(`Link maps ${usage.linkMaps}/${limits.maxLinkMaps}`);
     }
     if (usage.linkMapEntries > limits.maxLinkMapEntriesTotal) {
-      details.push(
-        `Link map entries ${usage.linkMapEntries}/${limits.maxLinkMapEntriesTotal}`,
-      );
+      details.push(`Link map entries ${usage.linkMapEntries}/${limits.maxLinkMapEntriesTotal}`);
     }
     return details;
   });
@@ -219,8 +220,7 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     const confirmDialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Cancel subscription',
-        message:
-          'You will be redirected to Paddle to confirm cancellation details. Continue?',
+        message: 'You will be redirected to Paddle to confirm cancellation details. Continue?',
         confirmLabel: 'Continue',
         cancelLabel: 'Back',
         tone: 'warning',
