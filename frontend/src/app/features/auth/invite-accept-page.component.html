@@ -22,7 +22,7 @@
         Complete your account setup for {{ inviteEmail() }}.
       </p>
 
-      <form class="mt-6 grid gap-4" (submit)="registerFromInvite()">
+      <form class="mt-6 grid gap-4" (submit)="$event.preventDefault(); registerFromInvite()">
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Email</mat-label>
           <input matInput type="email" [value]="inviteEmail()" disabled />

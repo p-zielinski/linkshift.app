@@ -56,7 +56,19 @@ export class OrganizationService {
       );
     }
 
-    return OrganizationConfiguration.fromJson(organization?.configuration);
+    const organizationConfiguration = OrganizationConfiguration.fromJson(
+      organization?.configuration,
+    );
+
+    if (
+      organizationConfiguration.activeSubscription.plan ===
+      OrganizationPlan.UNMETERED
+    ) {
+      organizationConfiguration.activeSubscription.limits =
+        UNMETERED_PLAN_LIMITS;
+    }
+
+    return organizationConfiguration;
   }
 
   /**
