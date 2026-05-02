@@ -18,6 +18,7 @@ import { EmailService } from '../email/email.service';
 import { AuthTokenService } from './auth-token.service';
 import { LegalService } from '../legal/legal.service';
 import { Logger } from 'nestjs-pino';
+import { RobotsPolicy } from '@prisma/client';
 
 const DEFAULT_DOMAIN_GROUP_NAME = 'Default';
 
@@ -85,6 +86,7 @@ export class AuthService {
           id: createCustomCuid(AppEntity.DomainGroup),
           name: DEFAULT_DOMAIN_GROUP_NAME,
           organizationId: organization.id,
+          robotsPolicy: RobotsPolicy.DISALLOW_ALL,
         },
       });
 
