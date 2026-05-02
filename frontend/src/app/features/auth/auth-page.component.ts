@@ -52,7 +52,7 @@ import { PaddleCheckoutFlowService } from '../../core/billing/paddle-checkout-fl
     RouterLink
   ],
   templateUrl: './auth-page.component.html',
-  styleUrl: './auth-page.component.css'
+  styleUrls: ['./auth-page.component.css','invite-accept-page.component.css']
 })
 export class AuthPageComponent {
   readonly authStore = inject(AuthStore);
