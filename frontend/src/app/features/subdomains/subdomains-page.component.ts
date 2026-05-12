@@ -75,7 +75,6 @@ export class SubdomainsPageComponent {
       .replace(/^https?:\/\//i, '')
       .replace(/\/+$/, '');
   });
-  readonly exampleSubdomainHost = computed(() => `x.${this.subdomainBaseHost()}`);
 
   constructor() {
     if (this.authStore.isAuthenticated()) {
