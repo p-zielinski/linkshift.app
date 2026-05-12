@@ -26,98 +26,49 @@ const MatchMethodListSchema = z
     }
   });
 
-export const CreateRedirectRuleSchema = z.object({
-  source: z
-    .string()
-    .min(1, 'Source is required')
-    .max(16384, 'Source is too long (max 16384 chars)'),
-  destination: z
-    .string()
-    .min(1, 'Destination is required')
-    .max(16384, 'Destination is too long (max 16384 chars)')
-    .optional()
-    .nullable(),
-  statusCode: z
-    .number()
-    .int()
-    .refine(
-      (code) => ALLOWED_STATUS_CODES.includes(code),
-      `Status code must be one of: ${ALLOWED_STATUS_CODES.join(', ')}`,
-    )
-    .default(302),
-  matchMethod: MatchMethodListSchema.default([]),
-  queryMatch: z.enum(QUERY_MATCH_VALUES).default('exact'),
-  pathMatch: z.enum(PATH_MATCH_VALUES).default('exact'),
-  linkMapId: z
-    .string()
-    .regex(getEntityIdRegex(AppEntity.LinkMap), 'Invalid Link Map ID')
-    .nullable()
-    .optional(),
-  priority: z
-    .number()
-    .int()
-    .min(0, 'Priority cannot be negative')
-    .max(1000, 'Priority cannot be greater than 1000')
-    .default(0),
-  domainGroupId: z
-    .string()
-    .max(100)
-    .regex(getEntityIdRegex(AppEntity.DomainGroup), 'Invalid ID'),
-}).superRefine((data, ctx) => {
-  const hasLinkMap = Boolean(data.linkMapId);
-  if (hasLinkMap) {
-    if (data.destination) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Destination must be empty when linkMapId is provided.',
-        path: ['destination'],
-      });
-    }
-    return;
-  }
-
-  if (!data.destination) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Destination is required when no link map is selected.',
-      path: ['destination'],
-    });
-  }
-});
-
-export const UpdateRedirectRuleSchema = z.object({
-  source: z
-    .string()
-    .min(1, 'Source is required')
-    .max(16384, 'Source is too long')
-    .optional(),
-  destination: z
-    .string()
-    .min(1, 'Destination is required')
-    .max(16384, 'Destination is too long')
-    .optional()
-    .nullable(),
-  statusCode: z
-    .number()
-    .int()
-    .refine(
-      (code) => ALLOWED_STATUS_CODES.includes(code as any),
-      `Status code must be one of: ${ALLOWED_STATUS_CODES.join(', ')}`,
-    )
-    .optional(),
-  matchMethod: MatchMethodListSchema.optional(),
-  queryMatch: z.enum(QUERY_MATCH_VALUES).optional(),
-  pathMatch: z.enum(PATH_MATCH_VALUES).optional(),
-  linkMapId: z
-    .string()
-    .regex(getEntityIdRegex(AppEntity.LinkMap), 'Invalid Link Map ID')
-    .nullable()
-    .optional(),
-  priority: z.number().int().min(0).max(1000).optional(),
-}).superRefine((data, ctx) => {
-  if (data.linkMapId !== undefined) {
-    if (data.linkMapId) {
-      if (data.destination !== undefined && data.destination !== null) {
+export const CreateRedirectRuleSchema = z
+  .object({
+    source: z
+      .string()
+      .min(1, 'Source is required')
+      .max(16384, 'Source is too long (max 16384 chars)'),
+    destination: z
+      .string()
+      .min(1, 'Destination is required')
+      .max(16384, 'Destination is too long (max 16384 chars)')
+      .optional()
+      .nullable(),
+    statusCode: z
+      .number()
+      .int()
+      .refine(
+        (code) => ALLOWED_STATUS_CODES.includes(code),
+        `Status code must be one of: ${ALLOWED_STATUS_CODES.join(', ')}`,
+      )
+      .default(302),
+    matchMethod: MatchMethodListSchema.default([]),
+    queryMatch: z.enum(QUERY_MATCH_VALUES).default('exact'),
+    pathMatch: z.enum(PATH_MATCH_VALUES).default('exact'),
+    linkMapId: z
+      .string()
+      .regex(getEntityIdRegex(AppEntity.LinkMap), 'Invalid Link Map ID')
+      .nullable()
+      .optional(),
+    priority: z
+      .number()
+      .int()
+      .min(0, 'Priority cannot be negative')
+      .max(1000, 'Priority cannot be greater than 1000')
+      .default(0),
+    domainGroupId: z
+      .string()
+      .max(100)
+      .regex(getEntityIdRegex(AppEntity.DomainGroup), 'Invalid ID'),
+  })
+  .superRefine((data, ctx) => {
+    const hasLinkMap = Boolean(data.linkMapId);
+    if (hasLinkMap) {
+      if (data.destination) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Destination must be empty when linkMapId is provided.',
@@ -127,15 +78,68 @@ export const UpdateRedirectRuleSchema = z.object({
       return;
     }
 
-    if (data.destination === undefined || data.destination === null) {
+    if (!data.destination) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Destination is required when linkMapId is removed.',
+        message: 'Destination is required when no link map is selected.',
         path: ['destination'],
       });
     }
-  }
-});
+  });
+
+export const UpdateRedirectRuleSchema = z
+  .object({
+    source: z
+      .string()
+      .min(1, 'Source is required')
+      .max(16384, 'Source is too long')
+      .optional(),
+    destination: z
+      .string()
+      .min(1, 'Destination is required')
+      .max(16384, 'Destination is too long')
+      .optional()
+      .nullable(),
+    statusCode: z
+      .number()
+      .int()
+      .refine(
+        (code) => ALLOWED_STATUS_CODES.includes(code as any),
+        `Status code must be one of: ${ALLOWED_STATUS_CODES.join(', ')}`,
+      )
+      .optional(),
+    matchMethod: MatchMethodListSchema.optional(),
+    queryMatch: z.enum(QUERY_MATCH_VALUES).optional(),
+    pathMatch: z.enum(PATH_MATCH_VALUES).optional(),
+    linkMapId: z
+      .string()
+      .regex(getEntityIdRegex(AppEntity.LinkMap), 'Invalid Link Map ID')
+      .nullable()
+      .optional(),
+    priority: z.number().int().min(0).max(1000).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.linkMapId !== undefined) {
+      if (data.linkMapId) {
+        if (data.destination !== undefined && data.destination !== null) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Destination must be empty when linkMapId is provided.',
+            path: ['destination'],
+          });
+        }
+        return;
+      }
+
+      if (data.destination === undefined || data.destination === null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Destination is required when linkMapId is removed.',
+          path: ['destination'],
+        });
+      }
+    }
+  });
 
 export const ListRedirectRulesQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -150,10 +154,9 @@ export const ListRedirectRulesQuerySchema = z.object({
 });
 
 const RangeEnum = z.enum(['day', 'week', 'month']);
-const CoercedDateSchema = z.coerce.date().refine(
-  (value) => !Number.isNaN(value.getTime()),
-  'Invalid date',
-);
+const CoercedDateSchema = z.coerce
+  .date()
+  .refine((value) => !Number.isNaN(value.getTime()), 'Invalid date');
 
 export const TopRedirectRulesQuerySchema = z
   .object({
@@ -197,12 +200,7 @@ const SimulationEntrySchema = z.object({
   query: z
     .record(
       z.string(),
-      z.union([
-        z.string(),
-        z.array(z.string()),
-        z.number(),
-        z.boolean(),
-      ]),
+      z.union([z.string(), z.array(z.string()), z.number(), z.boolean()]),
     )
     .optional(),
 });

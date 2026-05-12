@@ -71,7 +71,7 @@ describe('DestinationExtractorService', () => {
 
   it('extracts urls when condition uses regex with question marks', () => {
     const destination =
-      "path ~= /foo?bar/ ? https://a.example.com/$1 : https://b.example.com";
+      'path ~= /foo?bar/ ? https://a.example.com/$1 : https://b.example.com';
 
     const result = service.extractUrls(destination).sort();
 

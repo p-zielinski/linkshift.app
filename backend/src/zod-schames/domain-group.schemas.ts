@@ -19,70 +19,80 @@ function hasCustomRobotsContent(value: string | null | undefined): boolean {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-export const CreateDomainGroupSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255, 'Name is too long'),
-  robotsPolicy: RobotsPolicySchema.optional().default(DEFAULT_ROBOTS_POLICY),
-  customRobotsContent: CustomRobotsContentSchema,
-}).superRefine((data, ctx) => {
-  if (
-    data.robotsPolicy === 'CUSTOM' &&
-    !hasCustomRobotsContent(data.customRobotsContent)
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['customRobotsContent'],
-      message: 'customRobotsContent is required when robotsPolicy is CUSTOM',
-    });
-  }
+export const CreateDomainGroupSchema = z
+  .object({
+    name: z.string().min(1, 'Name is required').max(255, 'Name is too long'),
+    robotsPolicy: RobotsPolicySchema.optional().default(DEFAULT_ROBOTS_POLICY),
+    customRobotsContent: CustomRobotsContentSchema,
+  })
+  .superRefine((data, ctx) => {
+    if (
+      data.robotsPolicy === 'CUSTOM' &&
+      !hasCustomRobotsContent(data.customRobotsContent)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['customRobotsContent'],
+        message: 'customRobotsContent is required when robotsPolicy is CUSTOM',
+      });
+    }
 
-  if (
-    data.robotsPolicy !== 'CUSTOM' &&
-    hasCustomRobotsContent(data.customRobotsContent)
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['customRobotsContent'],
-      message: 'customRobotsContent can be set only when robotsPolicy is CUSTOM',
-    });
-  }
-});
+    if (
+      data.robotsPolicy !== 'CUSTOM' &&
+      hasCustomRobotsContent(data.customRobotsContent)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['customRobotsContent'],
+        message:
+          'customRobotsContent can be set only when robotsPolicy is CUSTOM',
+      });
+    }
+  });
 
-export const UpdateDomainGroupSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255, 'Name is too long'),
-  robotsPolicy: RobotsPolicySchema.optional(),
-  customRobotsContent: CustomRobotsContentSchema,
-}).superRefine((data, ctx) => {
-  if (data.customRobotsContent !== undefined && data.robotsPolicy === undefined) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['robotsPolicy'],
-      message: 'robotsPolicy is required when customRobotsContent is provided',
-    });
-  }
+export const UpdateDomainGroupSchema = z
+  .object({
+    name: z.string().min(1, 'Name is required').max(255, 'Name is too long'),
+    robotsPolicy: RobotsPolicySchema.optional(),
+    customRobotsContent: CustomRobotsContentSchema,
+  })
+  .superRefine((data, ctx) => {
+    if (
+      data.customRobotsContent !== undefined &&
+      data.robotsPolicy === undefined
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['robotsPolicy'],
+        message:
+          'robotsPolicy is required when customRobotsContent is provided',
+      });
+    }
 
-  if (
-    data.robotsPolicy === 'CUSTOM' &&
-    !hasCustomRobotsContent(data.customRobotsContent)
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['customRobotsContent'],
-      message: 'customRobotsContent is required when robotsPolicy is CUSTOM',
-    });
-  }
+    if (
+      data.robotsPolicy === 'CUSTOM' &&
+      !hasCustomRobotsContent(data.customRobotsContent)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['customRobotsContent'],
+        message: 'customRobotsContent is required when robotsPolicy is CUSTOM',
+      });
+    }
 
-  if (
-    data.robotsPolicy !== undefined &&
-    data.robotsPolicy !== 'CUSTOM' &&
-    hasCustomRobotsContent(data.customRobotsContent)
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['customRobotsContent'],
-      message: 'customRobotsContent can be set only when robotsPolicy is CUSTOM',
-    });
-  }
-});
+    if (
+      data.robotsPolicy !== undefined &&
+      data.robotsPolicy !== 'CUSTOM' &&
+      hasCustomRobotsContent(data.customRobotsContent)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['customRobotsContent'],
+        message:
+          'customRobotsContent can be set only when robotsPolicy is CUSTOM',
+      });
+    }
+  });
 
 export type CreateDomainGroupDto = z.infer<typeof CreateDomainGroupSchema>;
 export type UpdateDomainGroupDto = z.infer<typeof UpdateDomainGroupSchema>;

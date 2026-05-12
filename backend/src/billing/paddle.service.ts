@@ -196,7 +196,10 @@ export class PaddleService {
     );
   }
 
-  verifySignature(rawBody: Buffer, signatureHeader: string | undefined): boolean {
+  verifySignature(
+    rawBody: Buffer,
+    signatureHeader: string | undefined,
+  ): boolean {
     if (!this.webhookSecret || !signatureHeader) {
       return false;
     }
@@ -285,9 +288,7 @@ export class PaddleService {
         Authorization: `Bearer ${this.apiKey}`,
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        ...(this.apiVersion
-          ? { 'Paddle-Version': this.apiVersion }
-          : {}),
+        ...(this.apiVersion ? { 'Paddle-Version': this.apiVersion } : {}),
         ...(init.headers ?? {}),
       },
     });

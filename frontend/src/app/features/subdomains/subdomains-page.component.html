@@ -1,0 +1,49 @@
+<app-resource-page-shell
+  title="Subdomains"
+  subtitle="LinkShift-hosted subdomains mapped to your domain groups."
+>
+  <div page-actions class="flex items-center gap-2">
+    <button mat-flat-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      <span>Add subdomain</span>
+    </button>
+  </div>
+
+  <app-resource-card>
+    <div class="mb-1 rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+      <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Subdomain base</div>
+      <div class="mt-2 text-[14px] text-app-foreground">
+        New subdomains use:
+        <code class="rounded bg-app-background px-2 py-1">{{ exampleSubdomainHost() }}</code>
+      </div>
+      <div class="mt-1 text-[12px] text-app-muted">
+        Example: subdomain name <code class="rounded bg-app-background px-1 py-0.5">x</code> becomes
+        <code class="rounded bg-app-background px-1 py-0.5">{{ exampleSubdomainHost() }}</code>.
+      </div>
+    </div>
+  </app-resource-card>
+
+  <app-resource-table-card className="flex min-h-0 flex-1 flex-col" [showFooter]="true">
+    <div table-content>
+      <app-subdomains-table
+        [subdomains]="pagedSubdomains()"
+        [groupMap]="groupMap()"
+        [baseHost]="subdomainBaseHost()"
+        (edit)="openEditDialog($event)"
+        (delete)="confirmDelete($event)"
+      />
+    </div>
+    <div table-footer>
+      <app-table-paginator
+        position="center"
+        [showCurrentPage]="true"
+        [currentPage]="page()"
+        [hasNextPage]="hasNextPage()"
+        [pageLimitOptions]="pageLimitOptions"
+        [pageLimit]="pageLimit()"
+        (currentPageChange)="onPageChange($event)"
+        (pageLimitChange)="onPageLimitChange($event)"
+      />
+    </div>
+  </app-resource-table-card>
+</app-resource-page-shell>

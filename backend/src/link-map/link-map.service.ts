@@ -162,7 +162,9 @@ export class LinkMapService {
     }
 
     await this.validateDestinations(
-      [data.fallbackDestination].filter((value): value is string => Boolean(value)),
+      [data.fallbackDestination].filter((value): value is string =>
+        Boolean(value),
+      ),
       {
         organizationId,
         domainGroupId: data.domainGroupId,
@@ -345,7 +347,8 @@ export class LinkMapService {
       return throwHttpException(
         new BadRequestError({
           requestId: this.clsService.getId(),
-          details: 'Link map is assigned to redirect rules and cannot be deleted.',
+          details:
+            'Link map is assigned to redirect rules and cannot be deleted.',
           relatedObjectParameter: 'linkMapId',
         }),
       );
@@ -650,12 +653,16 @@ export class LinkMapService {
     importedEntryIds: string[];
     errors: ImportLinkMapEntryError[];
   }> {
-    const map = await this.ensureLinkMapAccess(organizationId, payload.linkMapId, {
-      id: true,
-      caseSensitive: true,
-      queryMatch: true,
-      domainGroupId: true,
-    });
+    const map = await this.ensureLinkMapAccess(
+      organizationId,
+      payload.linkMapId,
+      {
+        id: true,
+        caseSensitive: true,
+        queryMatch: true,
+        domainGroupId: true,
+      },
+    );
 
     const errors: ImportLinkMapEntryError[] = [];
     const seenInPayload = new Set<string>();
@@ -731,7 +738,9 @@ export class LinkMapService {
       },
       select: { keyNormalized: true },
     });
-    const existingSet = new Set(existingKeys.map((entry) => entry.keyNormalized));
+    const existingSet = new Set(
+      existingKeys.map((entry) => entry.keyNormalized),
+    );
 
     const toCreate = safeCandidates.filter((entry) => {
       if (!existingSet.has(entry.keyNormalized)) {
@@ -770,7 +779,10 @@ export class LinkMapService {
           index: entry.index,
           key: entry.key,
           destination: entry.destination,
-          error: this.extractErrorMessage(error, 'Unable to import this entry.'),
+          error: this.extractErrorMessage(
+            error,
+            'Unable to import this entry.',
+          ),
         });
       }
     }
@@ -1235,7 +1247,8 @@ export class LinkMapService {
         return throwHttpException(
           new BadRequestError({
             requestId: this.clsService.getId(),
-            details: 'Link map entry key must be a path/query value, not a full URL.',
+            details:
+              'Link map entry key must be a path/query value, not a full URL.',
           }),
         );
       }

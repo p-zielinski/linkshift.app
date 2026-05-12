@@ -115,7 +115,9 @@ export class ApiKeyService {
       data: {
         name: payload.name?.trim() ?? existing.name,
         expiresAt:
-          payload.expiresAt !== undefined ? payload.expiresAt : existing.expiresAt,
+          payload.expiresAt !== undefined
+            ? payload.expiresAt
+            : existing.expiresAt,
       },
     });
 
@@ -164,7 +166,9 @@ export class ApiKeyService {
       return this.throwUnauthorized();
     }
 
-    const subscription = await this.getEffectiveSubscription(apiKey.organizationId);
+    const subscription = await this.getEffectiveSubscription(
+      apiKey.organizationId,
+    );
 
     if (!subscription.canUseApiAccess()) {
       return throwHttpException(
@@ -249,7 +253,8 @@ export class ApiKeyService {
   }
 
   private async getEffectiveSubscription(organizationId: string) {
-    const config = await this.organizationService.getConfiguration(organizationId);
+    const config =
+      await this.organizationService.getConfiguration(organizationId);
     return this.organizationService.getEffectiveSubscription(config);
   }
 

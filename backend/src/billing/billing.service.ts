@@ -760,7 +760,8 @@ export class BillingService {
     }
 
     const priceId = this.extractPriceIdFromEventData(data);
-    const fallbackInterval = this.resolveIntervalFromPriceId(priceId) ?? 'MONTHLY';
+    const fallbackInterval =
+      this.resolveIntervalFromPriceId(priceId) ?? 'MONTHLY';
 
     if (subscriptionId) {
       const subscriptionSnapshotResponse =

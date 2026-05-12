@@ -14,10 +14,12 @@ import { throwHttpException } from '../utils';
 import { DestinationExtractorService } from '../security/destination-extractor.service';
 import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
+import { SubdomainBlacklistService } from '../security/subdomain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
 import { Logger } from 'nestjs-pino';
 import { LinkMapService } from '../link-map/link-map.service';
 import { ROBOTS_ALLOW_ALL_CONTENT } from '@shared/models/robots-policy.model';
+import { ConfigService } from '@nestjs/config';
 
 const mockPrismaService = {
   domain: {
@@ -80,6 +82,13 @@ describe('RedirectService', () => {
               delete: jest.fn(),
               count: jest.fn(),
             },
+            linkShiftSubdomain: {
+              findFirst: jest.fn(),
+              findMany: jest.fn(),
+              create: jest.fn(),
+              update: jest.fn(),
+              count: jest.fn(),
+            },
             redirectRule: {
               findMany: jest.fn(),
               findFirst: jest.fn(),
@@ -101,6 +110,17 @@ describe('RedirectService', () => {
               count: jest.fn(),
             },
             $queryRaw: jest.fn(),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              if (key === 'BACKEND_HOST') {
+                return 'linkshift.app';
+              }
+              return undefined;
+            }),
           },
         },
         {
@@ -144,6 +164,12 @@ describe('RedirectService', () => {
           },
         },
         {
+          provide: SubdomainBlacklistService,
+          useValue: {
+            isReserved: jest.fn().mockReturnValue(false),
+          },
+        },
+        {
           provide: RedirectAnalyticsService,
           useValue: {
             trackRuleHit: jest.fn().mockResolvedValue(undefined),
@@ -175,8 +201,9 @@ describe('RedirectService', () => {
     organizationService = module.get<OrganizationService>(OrganizationService);
     cacheManagerService = module.get<CacheManagerService>(CacheManagerService);
     linkMapService = module.get<LinkMapService>(LinkMapService);
-    redirectAnalyticsService =
-      module.get<RedirectAnalyticsService>(RedirectAnalyticsService);
+    redirectAnalyticsService = module.get<RedirectAnalyticsService>(
+      RedirectAnalyticsService,
+    );
 
     (prisma.domain.findMany as jest.Mock).mockResolvedValue([]);
   });
@@ -375,7 +402,8 @@ describe('RedirectService', () => {
       const rules: RedirectRule[] = [
         {
           source: '/articles',
-          destination: 'https://docs.example.com/integrations/articles/{segments.2}',
+          destination:
+            'https://docs.example.com/integrations/articles/{segments.2}',
           pathMatch: 'prefix',
           queryMatch: 'ignore',
         },
@@ -506,7 +534,9 @@ describe('RedirectService', () => {
       ];
 
       const req = createMockRequest('http://test.com/v1/users?333=1');
-      const reqWithExtra = createMockRequest('http://test.com/v1/users?333=1&x=2');
+      const reqWithExtra = createMockRequest(
+        'http://test.com/v1/users?333=1&x=2',
+      );
 
       expect(await service.getRedirect(req, rules)).toBe('/matched');
       expect(await service.getRedirect(reqWithExtra, rules)).toBeNull();
@@ -1089,8 +1119,8 @@ describe('RedirectService', () => {
 
       // Case 2: Unknown IP (defaults to US in stub)
       const reqUS = createMockRequest('http://test.com');
-      (reqUS as any).ip = '8.8.8.8';
-      (reqUS as any).socket.remoteAddress = '8.8.8.8';
+      reqUS.ip = '8.8.8.8';
+      reqUS.socket.remoteAddress = '8.8.8.8';
 
       // We need to re-create the service or mock the private method,
       // but since we can't easily mock private, we rely on the stub logic:
@@ -1712,18 +1742,20 @@ describe('RedirectService', () => {
       (cacheManagerService.getData as jest.Mock).mockResolvedValue({
         configuration: null,
       });
-      (
-        cacheManagerService.checkRateLimit as jest.Mock
-      ).mockResolvedValue(undefined);
+      (cacheManagerService.checkRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
       );
 
       await service.applyRedirect(req, res);
 
-      expect(
-        cacheManagerService.checkRateLimit,
-      ).toHaveBeenCalledWith(RateLimitScope.REDIRECTION, 'org_1', 10);
+      expect(cacheManagerService.checkRateLimit).toHaveBeenCalledWith(
+        RateLimitScope.REDIRECTION,
+        'org_1',
+        10,
+      );
       expect(res.redirect).toHaveBeenCalledWith(301, 'https://example.com/new');
     });
 
@@ -1757,9 +1789,9 @@ describe('RedirectService', () => {
       (cacheManagerService.getData as jest.Mock).mockResolvedValue({
         configuration: null,
       });
-      (
-        cacheManagerService.checkRateLimit as jest.Mock
-      ).mockResolvedValue(undefined);
+      (cacheManagerService.checkRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
       );
@@ -1802,9 +1834,9 @@ describe('RedirectService', () => {
       (cacheManagerService.getData as jest.Mock).mockResolvedValue({
         configuration: null,
       });
-      (
-        cacheManagerService.checkRateLimit as jest.Mock
-      ).mockResolvedValue(undefined);
+      (cacheManagerService.checkRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
       );
@@ -1841,9 +1873,9 @@ describe('RedirectService', () => {
       (cacheManagerService.getData as jest.Mock).mockResolvedValue({
         configuration: null,
       });
-      (
-        cacheManagerService.checkRateLimit as jest.Mock
-      ).mockResolvedValue(undefined);
+      (cacheManagerService.checkRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
       );
@@ -1884,9 +1916,9 @@ describe('RedirectService', () => {
       (cacheManagerService.getData as jest.Mock).mockResolvedValue({
         configuration: null,
       });
-      (
-        cacheManagerService.checkRateLimit as jest.Mock
-      ).mockResolvedValue(undefined);
+      (cacheManagerService.checkRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
       );
@@ -1927,9 +1959,9 @@ describe('RedirectService', () => {
       (cacheManagerService.getData as jest.Mock).mockResolvedValue({
         configuration: null,
       });
-      (
-        cacheManagerService.checkRateLimit as jest.Mock
-      ).mockResolvedValue(undefined);
+      (cacheManagerService.checkRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
       );
@@ -1991,9 +2023,9 @@ describe('RedirectService', () => {
       (cacheManagerService.getData as jest.Mock).mockResolvedValue({
         configuration: null,
       });
-      (
-        cacheManagerService.checkRateLimit as jest.Mock
-      ).mockResolvedValue(undefined);
+      (cacheManagerService.checkRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
       );
@@ -2043,9 +2075,9 @@ describe('RedirectService', () => {
       (cacheManagerService.getData as jest.Mock).mockResolvedValue({
         configuration: null,
       });
-      (
-        cacheManagerService.checkRateLimit as jest.Mock
-      ).mockResolvedValue(undefined);
+      (cacheManagerService.checkRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
       mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
         undefined,
       );
@@ -2152,12 +2184,12 @@ describe('RedirectService', () => {
 
       await service.updateDomainGroup('dg_1', 'org_1', { name: 'new-name' });
 
-      expect(cacheManagerService.invalidateRedirectContext).toHaveBeenCalledWith(
-        'one.com',
-      );
-      expect(cacheManagerService.invalidateRedirectContext).toHaveBeenCalledWith(
-        'two.com',
-      );
+      expect(
+        cacheManagerService.invalidateRedirectContext,
+      ).toHaveBeenCalledWith('one.com');
+      expect(
+        cacheManagerService.invalidateRedirectContext,
+      ).toHaveBeenCalledWith('two.com');
       expect(cacheManagerService.invalidateCustomCache).toHaveBeenCalledWith(
         'CADDY_DOMAIN_ALLOWED:one.com',
       );
@@ -2181,9 +2213,9 @@ describe('RedirectService', () => {
 
       await service.deleteDomainGroup('dg_2', 'org_1');
 
-      expect(cacheManagerService.invalidateRedirectContext).toHaveBeenCalledWith(
-        'deleted-group.com',
-      );
+      expect(
+        cacheManagerService.invalidateRedirectContext,
+      ).toHaveBeenCalledWith('deleted-group.com');
       expect(cacheManagerService.invalidateCustomCache).toHaveBeenCalledWith(
         'CADDY_DOMAIN_ALLOWED:deleted-group.com',
       );

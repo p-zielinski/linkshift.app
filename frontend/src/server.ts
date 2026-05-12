@@ -123,8 +123,10 @@ app.get('/robots.txt', (req, res) => {
 
 app.get('/runtime-config.js', (_req, res) => {
   const appBaseUrl = process.env['APP_BASE_URL'] ?? 'http://localhost:3000';
+  const appSubdomainBaseUrl = process.env['APP_SUBDOMAIN_BASE_URL'] ?? '';
   const config = {
     APP_BASE_URL: appBaseUrl,
+    APP_SUBDOMAIN_BASE_URL: appSubdomainBaseUrl,
     APP_TOOLS_BASE_URL: resolveToolsApiBase(appBaseUrl),
     APP_SITE_NAME: process.env['APP_SITE_NAME'] ?? 'LinkShift.app',
     APP_SITE_TAGLINE: process.env['APP_SITE_TAGLINE'] ?? 'Signal-driven redirect automation',
@@ -177,6 +179,7 @@ const CSR_ROUTES = [
   '/profile',
   '/organization',
   '/domains',
+  '/subdomains',
   '/link-maps',
   '/domain-groups',
   '/redirect-rules',

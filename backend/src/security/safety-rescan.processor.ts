@@ -52,7 +52,9 @@ export class SafetyRescanProcessor {
       return;
     }
 
-    const extractedUrls = this.destinationExtractor.extractUrls(rule.destination);
+    const extractedUrls = this.destinationExtractor.extractUrls(
+      rule.destination,
+    );
     if (extractedUrls.length === 0) {
       this.logger.debug('Safety rescan skipped (no domains)', {
         ruleId: rule.id,

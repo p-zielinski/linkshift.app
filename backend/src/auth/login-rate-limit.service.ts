@@ -24,8 +24,7 @@ export class LoginRateLimitService {
     private readonly redis: RedisService,
     private readonly clsService: ClsService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async assertNotBlocked(ip: string | null): Promise<void> {
     if (!ip) {

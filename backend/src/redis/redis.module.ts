@@ -68,7 +68,6 @@ import { Logger } from 'nestjs-pino';
           });
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return client;
       },
       inject: [ConfigService, Logger],

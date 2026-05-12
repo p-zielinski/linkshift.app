@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { ApiOrUserAuthGuard } from '../auth/api-or-user-auth.guard';
 import { User } from '../auth/user.decorator';
@@ -21,7 +29,16 @@ export class OrganizationController {
     private readonly membersService: OrganizationMembersService,
     private readonly clsService: ClsService,
     private readonly logger: Logger,
-  ) {
+  ) {}
+
+  @Get()
+  @UseGuards(ApiOrUserAuthGuard)
+  async getOrganization(@User('organizationId') organizationId: string) {
+    this.logger.log('Organization details requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+    });
+    return this.organizationService.getOrganizationById(organizationId);
   }
 
   @Get('usage')

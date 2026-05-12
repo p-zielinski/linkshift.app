@@ -66,18 +66,26 @@ describe('RedirectAnalyticsRetentionService', () => {
 
     await service.cleanupExpiredRows(referenceDate);
 
-    expect(prisma.redirectRuleHitBreakdownHourly.deleteMany).toHaveBeenCalledTimes(3);
+    expect(
+      prisma.redirectRuleHitBreakdownHourly.deleteMany,
+    ).toHaveBeenCalledTimes(3);
 
-    expect(prisma.redirectRuleHitBreakdownHourly.deleteMany).toHaveBeenCalledWith(
+    expect(
+      prisma.redirectRuleHitBreakdownHourly.deleteMany,
+    ).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
           organizationId: { in: ['org-free'] },
-          bucketStart: { lt: expectedCutoff(referenceDate, OrganizationPlan.FREE) },
+          bucketStart: {
+            lt: expectedCutoff(referenceDate, OrganizationPlan.FREE),
+          },
         }),
       }),
     );
 
-    expect(prisma.redirectRuleHitBreakdownHourly.deleteMany).toHaveBeenCalledWith(
+    expect(
+      prisma.redirectRuleHitBreakdownHourly.deleteMany,
+    ).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
           organizationId: { in: ['org-basic'] },
@@ -88,11 +96,15 @@ describe('RedirectAnalyticsRetentionService', () => {
       }),
     );
 
-    expect(prisma.redirectRuleHitBreakdownHourly.deleteMany).toHaveBeenCalledWith(
+    expect(
+      prisma.redirectRuleHitBreakdownHourly.deleteMany,
+    ).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
           organizationId: { in: ['org-pro'] },
-          bucketStart: { lt: expectedCutoff(referenceDate, OrganizationPlan.PRO) },
+          bucketStart: {
+            lt: expectedCutoff(referenceDate, OrganizationPlan.PRO),
+          },
         }),
       }),
     );
@@ -129,11 +141,15 @@ describe('RedirectAnalyticsRetentionService', () => {
 
     await service.cleanupExpiredRows(referenceDate);
 
-    expect(prisma.redirectRuleHitBreakdownHourly.deleteMany).toHaveBeenCalledWith(
+    expect(
+      prisma.redirectRuleHitBreakdownHourly.deleteMany,
+    ).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
           organizationId: { in: ['org-legacy'] },
-          bucketStart: { lt: expectedCutoff(referenceDate, OrganizationPlan.FREE) },
+          bucketStart: {
+            lt: expectedCutoff(referenceDate, OrganizationPlan.FREE),
+          },
         }),
       }),
     );

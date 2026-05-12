@@ -13,8 +13,7 @@ export class NgrokDomainAssignerService implements OnApplicationBootstrap {
     private readonly cacheManager: CacheManagerService,
     private readonly configService: ConfigService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async onApplicationBootstrap() {
     await this.assignNgrokDomain();
