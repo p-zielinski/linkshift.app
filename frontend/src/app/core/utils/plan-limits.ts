@@ -9,6 +9,8 @@ export const formatLimitChips = (limits: PlanLimits): string[] => [
   `${limits.maxDomainGroups} ${pluralize(limits.maxDomainGroups, 'domain group', 'domain groups')}`,
   `${limits.maxDomainsPerGroup} ${pluralize(limits.maxDomainsPerGroup, 'domain per group', 'domains per group')}`,
   `${limits.maxTotalDomains} ${pluralize(limits.maxTotalDomains, 'total domain', 'total domains')}`,
+  `${limits.maxSubdomainsPerGroup} ${pluralize(limits.maxSubdomainsPerGroup, 'subdomain per group', 'subdomains per group')}`,
+  `${limits.maxTotalSubdomains} ${pluralize(limits.maxTotalSubdomains, 'total subdomain', 'total subdomains')}`,
 
   `${limits.maxRulesPerGroup} ${pluralize(limits.maxRulesPerGroup, 'rule per group', 'rules per group')}`,
   `${limits.maxTotalRules} ${pluralize(limits.maxTotalRules, 'total rule', 'total rules')}`,
@@ -32,6 +34,7 @@ export const formatLimitSummary = (limits: PlanLimits): string =>
   [
     `${limits.maxDomainGroups} ${pluralize(limits.maxDomainGroups, 'domain group', 'domain groups')}`,
     `${limits.maxTotalDomains} ${pluralize(limits.maxTotalDomains, 'total domain', 'total domains')}`,
+    `${limits.maxTotalSubdomains} ${pluralize(limits.maxTotalSubdomains, 'total subdomain', 'total subdomains')}`,
     `${limits.maxTotalRules} ${pluralize(limits.maxTotalRules, 'total rule', 'total rules')}`,
     formatApiKeyLimit(limits.maxApiKeys),
     `${limits.apiKeyCallsPerMinute} API calls/min per key`,

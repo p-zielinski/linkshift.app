@@ -21,8 +21,7 @@ export class RedirectTestsService {
     private readonly cacheManagerService: CacheManagerService,
     private readonly clsService: ClsService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async listTests(
     organizationId: string,
@@ -192,7 +191,9 @@ export class RedirectTestsService {
     }
 
     if (data.expectedResult !== undefined) {
-      updateData.expectedResult = this.normalizeExpectedResult(data.expectedResult);
+      updateData.expectedResult = this.normalizeExpectedResult(
+        data.expectedResult,
+      );
     }
 
     const test = await this.prisma.redirectTest.update({
@@ -292,7 +293,8 @@ export class RedirectTestsService {
 
   private normalizeExpectedResult(
     input: NonNullable<
-      CreateRedirectTestDto['expectedResult'] | UpdateRedirectTestDto['expectedResult']
+      | CreateRedirectTestDto['expectedResult']
+      | UpdateRedirectTestDto['expectedResult']
     >,
   ): Prisma.InputJsonValue {
     return {

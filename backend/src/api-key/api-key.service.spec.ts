@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ClsService } from 'nestjs-cls';
 import { Logger } from 'nestjs-pino';
-import { OrganizationPlan, OrganizationSubscription } from '@shared/models/organization-config.model';
+import {
+  OrganizationPlan,
+  OrganizationSubscription,
+} from '@shared/models/organization-config.model';
 import { ApiKeyService } from './api-key.service';
 import { PrismaService } from '../prisma.service';
 import {
@@ -115,6 +118,8 @@ describe('ApiKeyService', () => {
         maxDomainGroups: 1,
         maxDomainsPerGroup: 10,
         maxTotalDomains: 10,
+        maxSubdomainsPerGroup: 1,
+        maxTotalSubdomains: 1,
         maxRulesPerGroup: 250,
         maxTotalRules: 250,
         maxTestsPerGroup: 500,
@@ -194,7 +199,9 @@ describe('ApiKeyService', () => {
     });
 
     organizationService.getConfiguration.mockResolvedValue({});
-    organizationService.getEffectiveSubscription.mockReturnValue(freeSubscription);
+    organizationService.getEffectiveSubscription.mockReturnValue(
+      freeSubscription,
+    );
 
     await expect(service.authenticate('lsk_live_token')).rejects.toHaveProperty(
       'status',
@@ -213,6 +220,8 @@ describe('ApiKeyService', () => {
         maxDomainGroups: 1,
         maxDomainsPerGroup: 10,
         maxTotalDomains: 10,
+        maxSubdomainsPerGroup: 1,
+        maxTotalSubdomains: 1,
         maxRulesPerGroup: 250,
         maxTotalRules: 250,
         maxTestsPerGroup: 500,
@@ -229,7 +238,9 @@ describe('ApiKeyService', () => {
     });
 
     organizationService.getConfiguration.mockResolvedValue({});
-    organizationService.getEffectiveSubscription.mockReturnValue(basicSubscription);
+    organizationService.getEffectiveSubscription.mockReturnValue(
+      basicSubscription,
+    );
 
     await expect(service.authenticate('lsk_live_token')).rejects.toMatchObject({
       status: 402,
@@ -252,6 +263,8 @@ describe('ApiKeyService', () => {
         maxDomainGroups: 1,
         maxDomainsPerGroup: 10,
         maxTotalDomains: 10,
+        maxSubdomainsPerGroup: 1,
+        maxTotalSubdomains: 1,
         maxRulesPerGroup: 250,
         maxTotalRules: 250,
         maxTestsPerGroup: 500,
@@ -268,7 +281,9 @@ describe('ApiKeyService', () => {
     });
 
     organizationService.getConfiguration.mockResolvedValue({});
-    organizationService.getEffectiveSubscription.mockReturnValue(basicSubscription);
+    organizationService.getEffectiveSubscription.mockReturnValue(
+      basicSubscription,
+    );
 
     const result = await service.authenticate('lsk_live_token');
 

@@ -199,6 +199,9 @@ export class UpgradeDialogComponent {
     if (usage.domains > limits.maxTotalDomains) {
       details.push(`Domains ${usage.domains}/${limits.maxTotalDomains}`);
     }
+    if (usage.subdomains > limits.maxTotalSubdomains) {
+      details.push(`Subdomains ${usage.subdomains}/${limits.maxTotalSubdomains}`);
+    }
     if (usage.rules > limits.maxTotalRules) {
       details.push(`Rules ${usage.rules}/${limits.maxTotalRules}`);
     }

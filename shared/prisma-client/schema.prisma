@@ -152,11 +152,12 @@ model DomainGroup {
   updatedAt           DateTime     @updatedAt
   deletedAt           DateTime?
 
-  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  domains       Domain[]
-  redirectRules RedirectRule[]
-  linkMaps      LinkMap[]
-  redirectTests RedirectTest[]
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  domains             Domain[]
+  linkShiftSubdomains LinkShiftSubdomain[]
+  redirectRules       RedirectRule[]
+  linkMaps            LinkMap[]
+  redirectTests       RedirectTest[]
 
   @@index([organizationId])
   @@index([deletedAt])
@@ -166,6 +167,22 @@ model DomainGroup {
 model Domain {
   id            String    @id
   name          String // Hostname must be unique among active domains
+  domainGroupId String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  domainGroup DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
+
+  @@index([name]) // Critical for high-speed lookups
+  @@index([domainGroupId])
+  @@index([deletedAt])
+}
+
+// LinkShiftSubdomain entity - subdomain label used with LinkShift base domain (e.g., demo.linkshift.app)
+model LinkShiftSubdomain {
+  id            String    @id
+  name          String // Subdomain label before base host (a-z0-9-), max 30 chars
   domainGroupId String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

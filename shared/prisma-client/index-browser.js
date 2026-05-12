@@ -193,6 +193,15 @@ exports.Prisma.DomainScalarFieldEnum = {
   deletedAt: 'deletedAt'
 };
 
+exports.Prisma.LinkShiftSubdomainScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  domainGroupId: 'domainGroupId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
 exports.Prisma.RedirectRuleScalarFieldEnum = {
   id: 'id',
   source: 'source',
@@ -350,6 +359,7 @@ exports.Prisma.ModelName = {
   ApiKey: 'ApiKey',
   DomainGroup: 'DomainGroup',
   Domain: 'Domain',
+  LinkShiftSubdomain: 'LinkShiftSubdomain',
   RedirectRule: 'RedirectRule',
   LinkMap: 'LinkMap',
   LinkMapEntry: 'LinkMapEntry',

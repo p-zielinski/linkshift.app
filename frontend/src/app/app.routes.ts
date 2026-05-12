@@ -5,6 +5,7 @@ import { AuthPageComponent } from './features/auth/auth-page.component';
 import { DashboardPageComponent } from './features/dashboard/dashboard-page.component';
 import { RedirectRulesAnalyticsPageComponent } from './features/redirect-rules-analytics/redirect-rules-analytics-page.component';
 import { DomainsPageComponent } from './features/domains/domains-page.component';
+import { SubdomainsPageComponent } from './features/subdomains/subdomains-page.component';
 import { DomainGroupsPageComponent } from './features/domain-groups/domain-groups-page.component';
 import { RedirectRulesPageComponent } from './features/redirect-rules/redirect-rules-page.component';
 import { LinkMapsPageComponent } from './features/link-maps/link-maps-page.component';
@@ -180,6 +181,11 @@ export const routes: Routes = [
         component: BlogArticlePageComponent,
         data: { article: 'linkshift-api-documentation-hub' },
       },
+      {
+        path: 'blog/linkshift-subdomains-for-managed-hostnames',
+        component: BlogArticlePageComponent,
+        data: { article: 'linkshift-subdomains-for-managed-hostnames' },
+      },
       { path: 'pricing', component: PricingPageComponent },
       { path: 'use-cases', component: UseCasesPageComponent },
       { path: 'qr-code-generator', component: QrCodeGeneratorPageComponent },
@@ -212,6 +218,11 @@ export const routes: Routes = [
       {
         path: 'domains',
         component: DomainsPageComponent,
+        canActivate: [domainGroupsRequiredGuard],
+      },
+      {
+        path: 'subdomains',
+        component: SubdomainsPageComponent,
         canActivate: [domainGroupsRequiredGuard],
       },
       { path: 'domain-groups', component: DomainGroupsPageComponent },

@@ -22,8 +22,7 @@ export class JwtService {
     private readonly configService: ConfigService,
     private readonly clsService: ClsService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   private getConfig(key: string): string {
     const value = this.configService.get<string>(key);

@@ -7,6 +7,7 @@ import {
   User,
   Organization,
   Domain,
+  LinkShiftSubdomain,
   RedirectRule,
   DomainGroup,
   RedirectTest,
@@ -29,6 +30,7 @@ export enum DataType {
   USERS = 'user',
   ORGANIZATIONS = 'organization',
   DOMAINS = 'domain',
+  SUBDOMAINS = 'linkShiftSubdomain',
   REDIRECT_RULES = 'redirectRule',
   REDIRECT_TESTS = 'redirectTest',
   DOMAIN_GROUPS = 'domainGroup',
@@ -58,6 +60,7 @@ const storeByProperties: Record<
   [DataType.USERS]: [CachedByProperty.ID, CachedByProperty.EMAIL],
   [DataType.ORGANIZATIONS]: [CachedByProperty.ID],
   [DataType.DOMAINS]: [CachedByProperty.ID, CachedByProperty.NAME],
+  [DataType.SUBDOMAINS]: [CachedByProperty.ID, CachedByProperty.NAME],
   [DataType.DOMAIN_GROUPS]: [CachedByProperty.ID],
   [DataType.REDIRECT_RULES]: [CachedByProperty.ID],
   [DataType.REDIRECT_TESTS]: [CachedByProperty.ID],
@@ -69,6 +72,7 @@ const ttlPerResource: Partial<Record<DataType, number>> = {
   [DataType.USERS]: minutesToTtl(30),
   [DataType.ORGANIZATIONS]: minutesToTtl(60),
   [DataType.DOMAINS]: minutesToTtl(10),
+  [DataType.SUBDOMAINS]: minutesToTtl(10),
   [DataType.REDIRECT_RULES]: minutesToTtl(10),
   [DataType.REDIRECT_TESTS]: minutesToTtl(10),
   [DataType.DOMAIN_GROUPS]: minutesToTtl(30),
@@ -140,8 +144,7 @@ export class CacheManagerService {
     private readonly cacheManagerIdsService: CacheManagerIdsService,
     private readonly clsService: ClsService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   /**
    * Checks if a subject has exceeded request limits in the current minute bucket.
@@ -371,6 +374,7 @@ export class CacheManagerService {
       | User
       | Organization
       | Domain
+      | LinkShiftSubdomain
       | DomainGroup
       | RedirectRule
       | RedirectTest
@@ -423,6 +427,7 @@ export class CacheManagerService {
       | User
       | Organization
       | Domain
+      | LinkShiftSubdomain
       | DomainGroup
       | RedirectRule
       | RedirectTest

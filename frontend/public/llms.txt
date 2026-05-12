@@ -43,6 +43,7 @@
 - HTTP redirect trace tool: https://linkshift.app/blog/http-redirect-trace-tool
 - Robots.txt management in LinkShift: https://linkshift.app/blog/robots-txt-management-in-linkshift
 - LinkShift API documentation hub: https://linkshift.app/blog/linkshift-api-documentation-hub
+- LinkShift subdomains for managed hostnames: https://linkshift.app/blog/linkshift-subdomains-for-managed-hostnames
 
 ### Legal
 - Terms: https://linkshift.app/terms
@@ -63,6 +64,7 @@ Do not index or crawl these paths:
 - /profile
 - /organization
 - /domains
+- /subdomains
 - /domain-groups
 - /redirect-rules
 - /redirect-rules-analytics

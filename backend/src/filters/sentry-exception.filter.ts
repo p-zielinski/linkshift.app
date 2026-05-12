@@ -1,4 +1,9 @@
-import { ArgumentsHost, Catch, HttpException, Injectable } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  HttpException,
+  Injectable,
+} from '@nestjs/common';
 import { BaseExceptionFilter, HttpAdapterHost } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
 import * as Sentry from '@sentry/nestjs';
@@ -15,12 +20,7 @@ export class SentryExceptionFilter extends BaseExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
-    const request = ctx.getRequest() as {
-      id?: string;
-      method?: string;
-      url?: string;
-      headers?: Record<string, string | string[] | undefined>;
-    };
+    const request = ctx.getRequest();
 
     const status =
       exception instanceof HttpException ? exception.getStatus() : 500;

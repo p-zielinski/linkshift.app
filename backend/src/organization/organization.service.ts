@@ -40,6 +40,24 @@ export class OrganizationService {
   async getConfiguration(
     organizationId: string,
   ): Promise<OrganizationConfiguration> {
+    const organization = await this.getOrganizationById(organizationId);
+
+    const organizationConfiguration = OrganizationConfiguration.fromJson(
+      organization?.configuration,
+    );
+
+    if (
+      organizationConfiguration.activeSubscription.plan ===
+      OrganizationPlan.UNMETERED
+    ) {
+      organizationConfiguration.activeSubscription.limits =
+        UNMETERED_PLAN_LIMITS;
+    }
+
+    return organizationConfiguration;
+  }
+
+  async getOrganizationById(organizationId: string): Promise<Organization> {
     const organization = await this.cacheManagerService.getData<Organization>({
       dataType: DataType.ORGANIZATIONS,
       properties: {
@@ -56,19 +74,7 @@ export class OrganizationService {
       );
     }
 
-    const organizationConfiguration = OrganizationConfiguration.fromJson(
-      organization?.configuration,
-    );
-
-    if (
-      organizationConfiguration.activeSubscription.plan ===
-      OrganizationPlan.UNMETERED
-    ) {
-      organizationConfiguration.activeSubscription.limits =
-        UNMETERED_PLAN_LIMITS;
-    }
-
-    return organizationConfiguration;
+    return organization;
   }
 
   /**
@@ -125,6 +131,44 @@ export class OrganizationService {
     if (groupCount >= limits.maxDomainsPerGroup) {
       this.throwLimitError(
         `Domain limit for this group reached (${limits.maxDomainsPerGroup} max). Please upgrade your plan.`,
+      );
+    }
+  }
+
+  /**
+   * Checks if the organization can create a new LinkShift subdomain in a specific group.
+   * Verifies both total organization limit and per-group limit.
+   */
+  async checkSubdomainLimit(
+    organizationId: string,
+    domainGroupId: string,
+  ): Promise<void> {
+    const config = await this.getConfiguration(organizationId);
+    const limits = this.getEffectiveSubscription(config).limits;
+
+    const totalCount = await this.prisma.linkShiftSubdomain.count({
+      where: {
+        domainGroup: { organizationId, deletedAt: null },
+        deletedAt: null,
+      },
+    });
+
+    if (totalCount >= limits.maxTotalSubdomains) {
+      this.throwLimitError(
+        `Total subdomain limit reached (${limits.maxTotalSubdomains} max). Please upgrade your plan.`,
+      );
+    }
+
+    const groupCount = await this.prisma.linkShiftSubdomain.count({
+      where: {
+        domainGroupId,
+        deletedAt: null,
+      },
+    });
+
+    if (groupCount >= limits.maxSubdomainsPerGroup) {
+      this.throwLimitError(
+        `Subdomain limit for this group reached (${limits.maxSubdomainsPerGroup} max). Please upgrade your plan.`,
       );
     }
   }
@@ -383,11 +427,13 @@ export class OrganizationService {
     const [
       domainGroupCount,
       totalDomainCount,
+      totalSubdomainCount,
       totalRuleCount,
       totalLinkMapCount,
       totalLinkMapEntryCount,
       activeUserCount,
       domainCounts,
+      subdomainCounts,
       ruleCounts,
       linkMapEntryCounts,
     ] = await Promise.all([
@@ -395,6 +441,12 @@ export class OrganizationService {
         where: { organizationId, deletedAt: null },
       }),
       this.prisma.domain.count({
+        where: {
+          domainGroup: { organizationId, deletedAt: null },
+          deletedAt: null,
+        },
+      }),
+      this.prisma.linkShiftSubdomain.count({
         where: {
           domainGroup: { organizationId, deletedAt: null },
           deletedAt: null,
@@ -436,6 +488,14 @@ export class OrganizationService {
         },
         _count: { _all: true },
       }),
+      this.prisma.linkShiftSubdomain.groupBy({
+        by: ['domainGroupId'],
+        where: {
+          deletedAt: null,
+          domainGroup: { organizationId, deletedAt: null },
+        },
+        _count: { _all: true },
+      }),
       this.prisma.redirectRule.groupBy({
         by: ['domainGroupId'],
         where: {
@@ -465,6 +525,10 @@ export class OrganizationService {
       return `Total domains ${totalDomainCount}/${limits.maxTotalDomains}`;
     }
 
+    if (totalSubdomainCount > limits.maxTotalSubdomains) {
+      return `Total subdomains ${totalSubdomainCount}/${limits.maxTotalSubdomains}`;
+    }
+
     if (totalRuleCount > limits.maxTotalRules) {
       return `Total rules ${totalRuleCount}/${limits.maxTotalRules}`;
     }
@@ -488,6 +552,13 @@ export class OrganizationService {
       return `Domains per group ${domainOverage._count._all}/${limits.maxDomainsPerGroup}`;
     }
 
+    const subdomainOverage = subdomainCounts.find(
+      (entry) => entry._count._all > limits.maxSubdomainsPerGroup,
+    );
+    if (subdomainOverage) {
+      return `Subdomains per group ${subdomainOverage._count._all}/${limits.maxSubdomainsPerGroup}`;
+    }
+
     const ruleOverage = ruleCounts.find(
       (entry) => entry._count._all > limits.maxRulesPerGroup,
     );
@@ -508,6 +579,7 @@ export class OrganizationService {
   async getUsageSummary(organizationId: string): Promise<{
     domainGroups: number;
     domains: number;
+    subdomains: number;
     rules: number;
     tests: number;
     users: number;
@@ -518,6 +590,7 @@ export class OrganizationService {
     const [
       domainGroups,
       domains,
+      subdomains,
       rules,
       tests,
       users,
@@ -529,6 +602,12 @@ export class OrganizationService {
         where: { organizationId, deletedAt: null },
       }),
       this.prisma.domain.count({
+        where: {
+          domainGroup: { organizationId, deletedAt: null },
+          deletedAt: null,
+        },
+      }),
+      this.prisma.linkShiftSubdomain.count({
         where: {
           domainGroup: { organizationId, deletedAt: null },
           deletedAt: null,
@@ -579,6 +658,7 @@ export class OrganizationService {
     return {
       domainGroups,
       domains,
+      subdomains,
       rules,
       tests,
       users,

@@ -2321,6 +2321,107 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       },
     ],
   },
+  {
+    slug: 'linkshift-subdomains-for-managed-hostnames',
+    title: 'LinkShift subdomains: manage branded hostnames without extra DNS sprawl',
+    description:
+      'LinkShift now supports first-class subdomains managed per domain group, with strict naming validation and plan-aware limits.',
+    seoTitle: 'LinkShift subdomains | Managed subdomain routing per domain group',
+    seoDescription:
+      'Create and manage LinkShift-hosted subdomains with validated naming, reserved-name protection, group-level ownership, and plan-aware limits.',
+    competitor: 'Manual subdomain routing setup',
+    category: 'domain-path-redirection',
+    publishedAt: '2026-05-12',
+    updatedAt: '2026-05-12',
+    factCheckedAt: '2026-05-12',
+    readTimeMinutes: 6,
+    tags: [
+      'linkshift subdomains',
+      'managed subdomains',
+      'subdomain redirects',
+      'domain group routing',
+      'redirect automation',
+    ],
+    heroHighlights: [
+      'Create LinkShift subdomains directly in dashboard with API parity',
+      'Subdomains are scoped to domain groups, so routing logic stays organized',
+      'Plan limits include total and per-group subdomain controls',
+    ],
+    comparisonRows: [
+      {
+        area: 'Provisioning model',
+        linkshift: 'Dashboard and API CRUD for subdomain labels',
+        competitor: 'Manual DNS and ad-hoc routing updates',
+      },
+      {
+        area: 'Validation and safety',
+        linkshift: 'Strict name pattern + reserved-name backend protection',
+        competitor: 'Validation depends on custom scripts and team discipline',
+      },
+      {
+        area: 'Operational ownership',
+        linkshift: 'Subdomains attached to domain groups and existing redirect policy',
+        competitor: 'Fragmented ownership across environments',
+      },
+      {
+        area: 'Limits and billing control',
+        linkshift: 'Per-group and total subdomain limits enforced by plan',
+        competitor: 'No centralized limit visibility',
+      },
+      {
+        area: 'Fallback behavior',
+        linkshift: 'Unknown subdomain requests are redirected to base host',
+        competitor: 'Commonly returns inconsistent host-level 404 responses',
+      },
+    ],
+    sections: [
+      {
+        title: 'Why we added managed subdomains',
+        paragraphs: [
+          'Many teams need a fast way to expose campaign or workflow-specific hostnames without creating a separate DNS and routing stack each time.',
+          'The new LinkShift subdomain resource solves this by keeping subdomains in the same operational model as domain groups and redirect rules.',
+        ],
+      },
+      {
+        title: 'What is included in this release',
+        paragraphs: [
+          'Subdomains now have full CRUD support in both dashboard and API, including usage counters and plan-based limits.',
+          'Requests arriving on LinkShift-hosted subdomains follow the same redirect and robots policy logic as domains, so behavior remains predictable.',
+        ],
+        bullets: [
+          'Subdomain name validation: lowercase letters, digits, hyphen, max 30 characters',
+          'Reserved names blocked server-side to protect core service hostnames',
+          'Per-domain-group ownership and authorization checks on every write action',
+        ],
+      },
+      {
+        title: 'How fallback handling improves reliability',
+        paragraphs: [
+          'If a subdomain is not configured, LinkShift now redirects traffic to the base host instead of returning a host-level not-found response.',
+          'This keeps user journeys recoverable and reduces dead-end traffic during rollout or typo scenarios.',
+        ],
+      },
+      {
+        title: 'Who benefits most',
+        paragraphs: [
+          'Marketing, SEO, and platform teams that need repeatable hostname rollout workflows benefit from having subdomains in the same governance layer as redirect rules.',
+          'The result is faster execution with less configuration drift and better visibility into plan usage.',
+        ],
+      },
+    ],
+    honestWhenCompetitorWins: [
+      'When your organization already maintains a mature custom subdomain control plane with strict internal automation.',
+      'When no managed subdomain workflows are needed and all routing stays on fixed hostnames.',
+    ],
+    references: [
+      { label: 'LinkShift - home', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - pricing', href: 'https://linkshift.app/pricing' },
+      {
+        label: 'MDN - Subdomains and hostnames overview',
+        href: 'https://developer.mozilla.org/en-US/docs/Learn/Common_questions/Web_mechanics/What_is_a_domain_name',
+      },
+    ],
+  },
 ];
 
 export const BLOG_ARTICLES: BlogArticle[] = BLOG_ARTICLES_DATA.sort((a, b) =>

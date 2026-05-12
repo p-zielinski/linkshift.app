@@ -15,6 +15,10 @@ import {
   UpdateDomainDto,
 } from '../zod-schames/domain.schemas';
 import {
+  CreateSubdomainDto,
+  UpdateSubdomainDto,
+} from '../zod-schames/subdomain.schemas';
+import {
   CreateDomainGroupDto,
   UpdateDomainGroupDto,
 } from '../zod-schames/domain-group.schemas';
@@ -37,6 +41,7 @@ import {
   type RobotsPolicy,
 } from '@shared/models/robots-policy.model';
 import { Domain, DomainGroup, Organization } from '@shared/prisma-client';
+import { LinkShiftSubdomain } from '@shared/prisma-client';
 import {
   BadRequestError,
   ConflictError,
@@ -48,9 +53,11 @@ import { QueryResult } from '@shared/models/query-result.model';
 import { DestinationExtractorService } from '../security/destination-extractor.service';
 import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
+import { SubdomainBlacklistService } from '../security/subdomain-blacklist.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
 import { Logger } from 'nestjs-pino';
 import { LinkMapService } from '../link-map/link-map.service';
+import { ConfigService } from '@nestjs/config';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -76,6 +83,24 @@ const domainWithRelations = Prisma.validator<Prisma.DomainDefaultArgs>()({
   },
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const linkShiftSubdomainWithRelations =
+  Prisma.validator<Prisma.LinkShiftSubdomainDefaultArgs>()({
+    include: {
+      domainGroup: {
+        include: {
+          redirectRules: {
+            where: {
+              deletedAt: null,
+              isBlocked: false,
+            },
+            orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+          },
+        },
+      },
+    },
+  });
+
 /**
  * Extract the return type of the query.
  */
@@ -83,10 +108,16 @@ export type DomainWithRelationsContext = Prisma.DomainGetPayload<
   typeof domainWithRelations
 >;
 
+export type LinkShiftSubdomainWithRelationsContext =
+  Prisma.LinkShiftSubdomainGetPayload<typeof linkShiftSubdomainWithRelations>;
+
 export enum InvalidationTargetType {
   HOSTNAME = 'hostname',
   DOMAIN_ID = 'domainId',
   DOMAIN_GROUP_ID = 'domainGroupId',
+  SUBDOMAIN_NAME = 'subdomainName',
+  SUBDOMAIN_ID = 'subdomainId',
+  SUBDOMAIN_GROUP_ID = 'subdomainGroupId',
 }
 
 /**
@@ -95,7 +126,10 @@ export enum InvalidationTargetType {
 type CacheInvalidationTarget =
   | { type: InvalidationTargetType.HOSTNAME; value: string }
   | { type: InvalidationTargetType.DOMAIN_ID; value: string }
-  | { type: InvalidationTargetType.DOMAIN_GROUP_ID; value: string };
+  | { type: InvalidationTargetType.DOMAIN_GROUP_ID; value: string }
+  | { type: InvalidationTargetType.SUBDOMAIN_NAME; value: string }
+  | { type: InvalidationTargetType.SUBDOMAIN_ID; value: string }
+  | { type: InvalidationTargetType.SUBDOMAIN_GROUP_ID; value: string };
 
 export interface RedirectRule {
   id?: string;
@@ -174,6 +208,7 @@ const ANALYTICS_REQUEST_VARIANTS_LIMIT = 10;
 @Injectable()
 export class RedirectService {
   constructor(
+    private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
     private readonly ruleValidator: RuleValidatorService,
     private readonly organizationService: OrganizationService,
@@ -182,6 +217,7 @@ export class RedirectService {
     private readonly destinationExtractor: DestinationExtractorService,
     private readonly safetyScannerService: SafetyScannerService,
     private readonly domainBlacklistService: DomainBlacklistService,
+    private readonly subdomainBlacklistService: SubdomainBlacklistService,
     private readonly redirectAnalyticsService: RedirectAnalyticsService,
     private readonly linkMapService: LinkMapService,
     private readonly logger: Logger,
@@ -219,6 +255,50 @@ export class RedirectService {
             select: { name: true },
           });
           hostnamesToInvalidate.push(...domains.map((d) => d.name));
+          const subdomains = await this.prisma.linkShiftSubdomain.findMany({
+            where: { domainGroupId: target.value, deletedAt: null },
+            select: { name: true },
+          });
+          hostnamesToInvalidate.push(
+            ...subdomains
+              .map((subdomain) => this.getSubdomainHostname(subdomain.name))
+              .filter((hostname): hostname is string => Boolean(hostname)),
+          );
+          break;
+        }
+
+        case InvalidationTargetType.SUBDOMAIN_NAME: {
+          const hostname = this.getSubdomainHostname(target.value);
+          if (hostname) {
+            hostnamesToInvalidate.push(hostname);
+          }
+          break;
+        }
+
+        case InvalidationTargetType.SUBDOMAIN_ID: {
+          const subdomain = await this.prisma.linkShiftSubdomain.findUnique({
+            where: { id: target.value },
+            select: { name: true },
+          });
+          if (subdomain) {
+            const hostname = this.getSubdomainHostname(subdomain.name);
+            if (hostname) {
+              hostnamesToInvalidate.push(hostname);
+            }
+          }
+          break;
+        }
+
+        case InvalidationTargetType.SUBDOMAIN_GROUP_ID: {
+          const subdomains = await this.prisma.linkShiftSubdomain.findMany({
+            where: { domainGroupId: target.value, deletedAt: null },
+            select: { name: true },
+          });
+          hostnamesToInvalidate.push(
+            ...subdomains
+              .map((subdomain) => this.getSubdomainHostname(subdomain.name))
+              .filter((hostname): hostname is string => Boolean(hostname)),
+          );
           break;
         }
       }
@@ -260,6 +340,55 @@ export class RedirectService {
     if (!trimmed) return '';
     const withoutPort = trimmed.split(':')[0] ?? '';
     return withoutPort.replace(/\.$/, '');
+  }
+
+  private getBackendHost(): string {
+    const configuredHost =
+      this.configService.get<string>('BACKEND_HOST') ??
+      this.configService.get<string>('API_HOSTNAME') ??
+      '';
+    return this.normalizeHostname(configuredHost);
+  }
+
+  private extractSubdomainName(hostname: string): string | null {
+    const normalizedHost = this.normalizeHostname(hostname);
+    const backendHost = this.getBackendHost();
+
+    if (
+      !normalizedHost ||
+      !backendHost ||
+      normalizedHost === backendHost ||
+      !normalizedHost.endsWith(`.${backendHost}`)
+    ) {
+      return null;
+    }
+
+    const subdomainPart = normalizedHost.slice(
+      0,
+      normalizedHost.length - backendHost.length - 1,
+    );
+    if (!subdomainPart || subdomainPart.includes('.')) {
+      return null;
+    }
+    return subdomainPart;
+  }
+
+  private getSubdomainHostname(subdomainName: string): string | null {
+    const normalizedName = this.normalizeHostname(subdomainName);
+    const backendHost = this.getBackendHost();
+    if (!normalizedName || !backendHost) {
+      return null;
+    }
+    return `${normalizedName}.${backendHost}`;
+  }
+
+  private getBackendHostRedirectTarget(req: Request): string {
+    const backendHost = this.getBackendHost();
+    const protocol = req.protocol || 'https';
+    if (!backendHost) {
+      return `${protocol}://localhost`;
+    }
+    return `${protocol}://${backendHost}`;
   }
 
   private getCaddyDomainCacheKey(hostname: string): string {
@@ -612,6 +741,275 @@ export class RedirectService {
 
     await this.invalidateDomainCache({
       type: InvalidationTargetType.HOSTNAME,
+      value: existing.name,
+    });
+    return;
+  }
+
+  async listSubdomains(
+    organizationId: string,
+  ): Promise<QueryResult<LinkShiftSubdomain>> {
+    const subdomains = await this.prisma.linkShiftSubdomain.findMany({
+      where: {
+        deletedAt: null,
+        domainGroup: {
+          organizationId,
+          deletedAt: null,
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return new QueryResult<LinkShiftSubdomain>({
+      data: subdomains,
+      dataType: DataType.SUBDOMAINS,
+    });
+  }
+
+  async getSubdomainById(id: string, organizationId: string) {
+    const subdomain = await this.prisma.linkShiftSubdomain.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        domainGroup: { organizationId, deletedAt: null },
+      },
+      include: { domainGroup: true },
+    });
+
+    if (!subdomain) {
+      return throwHttpException(
+        new NotFoundError({
+          details: `Subdomain with id ${id} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+    return subdomain;
+  }
+
+  async createSubdomain(organizationId: string, data: CreateSubdomainDto) {
+    await this.organizationService.checkSubdomainLimit(
+      organizationId,
+      data.domainGroupId,
+    );
+
+    const domainGroup = await this.prisma.domainGroup.findFirst({
+      where: {
+        id: data.domainGroupId,
+        organizationId,
+        deletedAt: null,
+      },
+    });
+
+    if (!domainGroup) {
+      return throwHttpException(
+        new NotFoundError({
+          details: `Domain group with id ${data.domainGroupId} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+
+    if (this.subdomainBlacklistService.isReserved(data.name)) {
+      return throwHttpException(
+        new ConflictError({
+          details: `Subdomain name ${data.name} is reserved`,
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+
+    const existing = await this.prisma.linkShiftSubdomain.findFirst({
+      where: {
+        name: data.name,
+        deletedAt: null,
+      },
+    });
+
+    if (existing) {
+      return throwHttpException(
+        new ConflictError({
+          details: `Subdomain name ${data.name} already exists`,
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+
+    let subdomain: LinkShiftSubdomain;
+    try {
+      subdomain = await this.prisma.linkShiftSubdomain.create({
+        data: {
+          id: createCustomCuid(AppEntity.LinkShiftSubdomain),
+          name: data.name,
+          domainGroupId: data.domainGroupId,
+        },
+      });
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        return throwHttpException(
+          new ConflictError({
+            details: `Subdomain name ${data.name} already exists`,
+            requestId: this.clsService.getId(),
+          }),
+        );
+      }
+      throw error;
+    }
+
+    await this.invalidateDomainCache({
+      type: InvalidationTargetType.SUBDOMAIN_NAME,
+      value: subdomain.name,
+    });
+    return subdomain;
+  }
+
+  async updateSubdomain(
+    id: string,
+    organizationId: string,
+    data: UpdateSubdomainDto,
+  ) {
+    const existing = await this.prisma.linkShiftSubdomain.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        domainGroup: { organizationId, deletedAt: null },
+      },
+    });
+
+    if (!existing) {
+      return throwHttpException(
+        new NotFoundError({
+          details: `Subdomain with id ${id} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+
+    const nextName = data.name ?? existing.name;
+    const nextDomainGroupId = data.domainGroupId ?? existing.domainGroupId;
+
+    if (this.subdomainBlacklistService.isReserved(nextName)) {
+      return throwHttpException(
+        new ConflictError({
+          details: `Subdomain name ${nextName} is reserved`,
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+
+    if (nextName !== existing.name) {
+      const duplicate = await this.prisma.linkShiftSubdomain.findFirst({
+        where: {
+          name: nextName,
+          deletedAt: null,
+        },
+      });
+
+      if (duplicate) {
+        return throwHttpException(
+          new ConflictError({
+            details: `Subdomain name ${nextName} already exists`,
+            requestId: this.clsService.getId(),
+          }),
+        );
+      }
+    }
+
+    const newDomainGroup = await this.prisma.domainGroup.findFirst({
+      where: {
+        id: nextDomainGroupId,
+        organizationId,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+    if (!newDomainGroup) {
+      return throwHttpException(
+        new NotFoundError({
+          details: `Domain group with id ${nextDomainGroupId} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+
+    if (nextDomainGroupId !== existing.domainGroupId) {
+      const targetGroupCount = await this.prisma.linkShiftSubdomain.count({
+        where: {
+          domainGroupId: nextDomainGroupId,
+          deletedAt: null,
+        },
+      });
+      const config =
+        await this.organizationService.getConfiguration(organizationId);
+      const limit =
+        this.organizationService.getEffectiveSubscription(config).limits
+          .maxSubdomainsPerGroup;
+      if (targetGroupCount >= limit) {
+        return throwHttpException(
+          new ConflictError({
+            details: `Subdomain limit for this group reached (${limit} max). Please upgrade your plan.`,
+            requestId: this.clsService.getId(),
+          }),
+        );
+      }
+    }
+
+    let subdomain: LinkShiftSubdomain;
+    try {
+      subdomain = await this.prisma.linkShiftSubdomain.update({
+        where: { id },
+        data: { ...data, updatedAt: new Date() },
+      });
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        return throwHttpException(
+          new ConflictError({
+            details: `Subdomain name ${nextName} already exists`,
+            requestId: this.clsService.getId(),
+          }),
+        );
+      }
+      throw error;
+    }
+
+    await this.invalidateDomainCache({
+      type: InvalidationTargetType.SUBDOMAIN_NAME,
+      value: subdomain.name,
+    });
+    if (existing.name !== subdomain.name) {
+      await this.invalidateDomainCache({
+        type: InvalidationTargetType.SUBDOMAIN_NAME,
+        value: existing.name,
+      });
+    }
+    return subdomain;
+  }
+
+  async deleteSubdomain(id: string, organizationId: string): Promise<void> {
+    const existing = await this.prisma.linkShiftSubdomain.findFirst({
+      where: {
+        id,
+        deletedAt: null,
+        domainGroup: { organizationId, deletedAt: null },
+      },
+    });
+
+    if (!existing) {
+      return throwHttpException(
+        new NotFoundError({
+          details: `Subdomain with id ${id} not found`,
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+
+    await this.prisma.linkShiftSubdomain.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+
+    await this.invalidateDomainCache({
+      type: InvalidationTargetType.SUBDOMAIN_NAME,
       value: existing.name,
     });
     return;
@@ -1672,52 +2070,92 @@ export class RedirectService {
     return domain;
   }
 
-  async applyRedirect(req: express.Request, res: express.Response) {
-    const hostname = this.normalizeHostname(req.hostname);
-    const requestPath = this.getRequestPath(req);
-
-    // 1. Get Domain Context (Cached)
-    const domain = await this.getDomainRedirectContext(hostname);
-
-    // If no domain found, return 404
-    if (!domain) {
-      res.status(404).json({
-        message: `Domain ${hostname} not found`,
-        error: 'Not Found',
-        statusCode: 404,
-      });
-      return;
+  private async getSubdomainRedirectContext(hostname: string) {
+    const normalizedHostname = this.normalizeHostname(hostname);
+    const subdomainName = this.extractSubdomainName(normalizedHostname);
+    if (!subdomainName) {
+      return null;
     }
 
-    // 2. Check Organization Status (Subscription status)
-    try {
-      const organization = await this.cacheManagerService.getData<Organization>(
-        {
-          dataType: DataType.ORGANIZATIONS,
-          properties: {
-            [CachedByProperty.ID]: domain.domainGroup.organizationId,
+    const cached =
+      await this.cacheManagerService.getRedirectContext(normalizedHostname);
+    if (cached !== undefined) {
+      return cached as LinkShiftSubdomainWithRelationsContext | null;
+    }
+
+    const subdomain: LinkShiftSubdomainWithRelationsContext | null =
+      await this.prisma.linkShiftSubdomain.findFirst({
+        where: {
+          name: subdomainName,
+          deletedAt: null,
+          domainGroup: {
+            deletedAt: null,
           },
         },
-      );
+        include: {
+          domainGroup: {
+            include: {
+              redirectRules: {
+                where: {
+                  deletedAt: null,
+                  isBlocked: false,
+                },
+                orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+              },
+            },
+          },
+        },
+      });
 
-      // Always derive limits through configuration model.
-      // For null/empty configuration this falls back to FREE defaults (10/min).
-      const config = OrganizationConfiguration.fromJson(
-        organization ? organization?.configuration : {},
-      );
-      const subscription =
-        this.organizationService.getEffectiveSubscription(config);
-      const limit = subscription.limits.redirectionLimitPerMinute;
+    await this.cacheManagerService.setRedirectContext(
+      normalizedHostname,
+      subdomain,
+    );
 
-      await this.cacheManagerService.checkRateLimit(
-        RateLimitScope.REDIRECTION,
-        domain.domainGroup.organizationId,
-        limit,
-      );
+    return subdomain;
+  }
 
-      await this.organizationService.checkRedirectionAccess(
-        domain.domainGroup.organizationId,
-      );
+  private async checkOrganizationAccessForRedirect(organizationId: string) {
+    const organization = await this.cacheManagerService.getData<Organization>({
+      dataType: DataType.ORGANIZATIONS,
+      properties: {
+        [CachedByProperty.ID]: organizationId,
+      },
+    });
+
+    const config = OrganizationConfiguration.fromJson(
+      organization ? organization?.configuration : {},
+    );
+    const subscription =
+      this.organizationService.getEffectiveSubscription(config);
+    const limit = subscription.limits.redirectionLimitPerMinute;
+
+    await this.cacheManagerService.checkRateLimit(
+      RateLimitScope.REDIRECTION,
+      organizationId,
+      limit,
+    );
+
+    await this.organizationService.checkRedirectionAccess(organizationId);
+  }
+
+  private async executeRedirectFromDomainGroup({
+    req,
+    res,
+    hostname,
+    domainGroup,
+    notFoundMessage,
+  }: {
+    req: express.Request;
+    res: express.Response;
+    hostname: string;
+    domainGroup: DomainWithRelationsContext['domainGroup'];
+    notFoundMessage?: string;
+  }) {
+    const requestPath = this.getRequestPath(req);
+
+    try {
+      await this.checkOrganizationAccessForRedirect(domainGroup.organizationId);
     } catch (error) {
       if (error instanceof HttpException) {
         res.status(error.getStatus()).json(error.getResponse());
@@ -1728,25 +2166,24 @@ export class RedirectService {
 
     if (requestPath === '/robots.txt') {
       const robotsTxtContent = this.resolveRobotsTxtContent(
-        domain.domainGroup.robotsPolicy,
-        domain.domainGroup.customRobotsContent,
+        domainGroup.robotsPolicy,
+        domainGroup.customRobotsContent,
       );
 
       if (robotsTxtContent !== null) {
-        res.status(200).type('text/plain; charset=utf-8').send(robotsTxtContent);
+        res
+          .status(200)
+          .type('text/plain; charset=utf-8')
+          .send(robotsTxtContent);
         return;
       }
     }
 
-    // 3. Convert database rules to RedirectRule format
     const rules: RedirectRule[] = this.mapStoredRules(
-      domain.domainGroup.redirectRules,
+      domainGroup.redirectRules,
     );
-
-    // 4. Pass rules to getRedirect to find a match
     const match = await this.getRedirectMatch(req, rules);
 
-    // 5. Action: redirect or return 404
     if (match) {
       const statusCode = match.rule.statusCode ?? 302;
       const targetDomain = this.destinationExtractor.extractUrl(match.target);
@@ -1779,7 +2216,7 @@ export class RedirectService {
 
       if (match.rule.id) {
         this.redirectAnalyticsService
-          .trackRuleHit(match.rule.id, domain.domainGroup.organizationId, {
+          .trackRuleHit(match.rule.id, domainGroup.organizationId, {
             requestMethod: req.method,
             requestPath: match.request.path,
             requestUrl: match.request.originalUrl,
@@ -1799,9 +2236,49 @@ export class RedirectService {
     }
 
     res.status(404).json({
-      message: `Target for ${req.method} ${req.url} does not exist.`,
+      message:
+        notFoundMessage ??
+        `Target for ${req.method} ${req.url} does not exist.`,
       error: 'Not Found',
       statusCode: 404,
+    });
+  }
+
+  async applyRedirect(req: express.Request, res: express.Response) {
+    const hostname = this.normalizeHostname(req.hostname);
+    const domain = await this.getDomainRedirectContext(hostname);
+
+    if (!domain) {
+      res.status(404).json({
+        message: `Domain ${hostname} not found`,
+        error: 'Not Found',
+        statusCode: 404,
+      });
+      return;
+    }
+
+    await this.executeRedirectFromDomainGroup({
+      req,
+      res,
+      hostname,
+      domainGroup: domain.domainGroup,
+    });
+  }
+
+  async applySubDomainRedirect(req: express.Request, res: express.Response) {
+    const hostname = this.normalizeHostname(req.hostname);
+    const subdomain = await this.getSubdomainRedirectContext(hostname);
+
+    if (!subdomain) {
+      res.redirect(302, this.getBackendHostRedirectTarget(req));
+      return;
+    }
+
+    await this.executeRedirectFromDomainGroup({
+      req,
+      res,
+      hostname,
+      domainGroup: subdomain.domainGroup,
     });
   }
 

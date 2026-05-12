@@ -120,7 +120,7 @@ export class DestinationExtractorService {
         } else if (
           char === '/' &&
           lastNonSpaceChar !== '' &&
-          !(/\w/.test(lastNonSpaceChar)) &&
+          !/\w/.test(lastNonSpaceChar) &&
           !(lastNonSpaceChar === '/' && prevNonSpaceChar === ':') &&
           !(lastNonSpaceChar === ':' && nextChar === '/')
         ) {
@@ -168,7 +168,7 @@ export class DestinationExtractorService {
         } else if (
           char === '/' &&
           lastNonSpaceChar !== '' &&
-          !(/\w/.test(lastNonSpaceChar)) &&
+          !/\w/.test(lastNonSpaceChar) &&
           !(lastNonSpaceChar === '/' && prevNonSpaceChar === ':') &&
           !(lastNonSpaceChar === ':' && nextChar === '/')
         ) {

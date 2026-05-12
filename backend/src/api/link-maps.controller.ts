@@ -184,5 +184,4 @@ export class LinkMapsController {
       throw error;
     }
   }
-
 }
