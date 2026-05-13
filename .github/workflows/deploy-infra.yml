@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Create stack env file
         run: |
@@ -26,6 +26,21 @@ jobs:
           ${{ secrets.STACK_ENV }}
           GIT_COMMIT_HASH=${{ github.sha }}
           EOF
+
+      - name: Create Dozzle users config
+        env:
+          DOZZLE_USERS_YML: ${{ secrets.DOZZLE_USERS_YML }}
+        run: |
+          mkdir -p ./config
+          if [ -z "$DOZZLE_USERS_YML" ]; then
+            echo "Missing required GitHub secret: DOZZLE_USERS_YML" >&2
+            exit 1
+          fi
+          printf '%s\n' "$DOZZLE_USERS_YML" > ./config/dozzle.users.yml
+          if [ ! -s ./config/dozzle.users.yml ]; then
+            echo "Generated ./config/dozzle.users.yml is empty" >&2
+            exit 1
+          fi
 
       - name: Deploy infra stack (Attempt 1)
         id: deploy_attempt_1
