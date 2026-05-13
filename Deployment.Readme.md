@@ -441,8 +441,9 @@ docker stack deploy -c docker-stack.app.yml ${APP_STACK_NAME}
 All deployment workflows are manual (`workflow_dispatch`) and run from the branch selected in the GitHub Actions dashboard (`Run workflow`).
 
 Available workflows:
+- `.github/workflows/build-caddy.yml` — builds/pushes `linkshift-caddy-cloudflare`.
 - `.github/workflows/deploy.yml` — builds backend/frontend/db-backup and deploys `docker-stack.app.yml`.
-- `.github/workflows/deploy-infra.yml` — builds/pushes `linkshift-caddy-cloudflare` and deploys `docker-stack.infra.yml`.
+- `.github/workflows/deploy-infra.yml` — deploys `docker-stack.infra.yml` using `CADDY_IMAGE` from the selected tag input.
 - `.github/workflows/deploy-tools-app.yml` — builds/pushes `backend-tools` and deploys `docker-stack.tools.app.yml`.
 - `.github/workflows/deploy-tools-infra.yml` — deploys `docker-stack.tools.infa.yml` (including Redis).
 
@@ -462,6 +463,7 @@ Notes:
   - `deploy-tools-infra.yml`: `linkshift-tools-infra`
 - Build workflows overwrite image tags in `STACK_ENV` at deploy time:
   - `deploy.yml`: `BACKEND_IMAGE`, `FRONTEND_IMAGE`, `GIT_COMMIT_HASH`
+  - `deploy-infra.yml`: `CADDY_IMAGE` (from workflow input `caddy_image_tag`)
   - `deploy-tools-app.yml`: `BACKEND_TOOLS_IMAGE`, `GIT_COMMIT_HASH`
 
 ## Prisma migrations on backend startup
