@@ -11,7 +11,6 @@ const RESERVED_SUBDOMAIN_NAMES = new Set([
   'grafana',
   'mail',
   'monitoring',
-  'status',
   'support',
   'tools',
   'www',

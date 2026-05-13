@@ -442,7 +442,7 @@ All deployment workflows are manual (`workflow_dispatch`) and run from the branc
 
 Available workflows:
 - `.github/workflows/deploy.yml` — builds backend/frontend/db-backup and deploys `docker-stack.app.yml`.
-- `.github/workflows/deploy-infra.yml` — deploys `docker-stack.infra.yml`.
+- `.github/workflows/deploy-infra.yml` — builds/pushes `linkshift-caddy-cloudflare` and deploys `docker-stack.infra.yml`.
 - `.github/workflows/deploy-tools-app.yml` — builds/pushes `backend-tools` and deploys `docker-stack.tools.app.yml`.
 - `.github/workflows/deploy-tools-infra.yml` — deploys `docker-stack.tools.infa.yml` (including Redis).
 
