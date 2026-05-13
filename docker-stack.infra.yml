@@ -2,12 +2,13 @@ version: "3.8"
 
 services:
   caddy:
-    image: caddy:2
+    image: ${CADDY_IMAGE:-linkshift/caddy-cloudflare:2.10.2}
     environment:
       CADDY_ACME_EMAIL: ${CADDY_ACME_EMAIL}
       FRONTEND_HOST: ${FRONTEND_HOST}
       GRAFANA_HOST: ${GRAFANA_HOST}
       DOZZLE_HOST: ${DOZZLE_HOST}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
     ports:
       - mode: host
         protocol: tcp
@@ -21,7 +22,7 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     configs:
-      - source: caddyfile_v23
+      - source: caddyfile_v24
         target: /etc/caddy/Caddyfile
     networks:
       - inter-stack
@@ -186,7 +187,7 @@ configs:
     file: ./config/promtail.yaml
   dozzle_users_v5:
     file: config/dozzle.users.yml
-  caddyfile_v23:
+  caddyfile_v24:
     file: ./config/Caddyfile
 
 secrets:
