@@ -85,6 +85,7 @@ describe('RedirectService', () => {
             linkShiftSubdomain: {
               findFirst: jest.fn(),
               findMany: jest.fn(),
+              findUnique: jest.fn(),
               create: jest.fn(),
               update: jest.fn(),
               count: jest.fn(),
@@ -206,6 +207,8 @@ describe('RedirectService', () => {
     );
 
     (prisma.domain.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.linkShiftSubdomain.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.linkShiftSubdomain.findUnique as jest.Mock).mockResolvedValue(null);
   });
 
   const createMockRequest = (
