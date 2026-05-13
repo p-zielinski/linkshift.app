@@ -30,6 +30,8 @@ tags:
     description: Domain group management, including robots policy defaults for assigned domains.
   - name: Domains
     description: Domain inventory and grouping used by redirect execution.
+  - name: Subdomains
+    description: LinkShift-hosted subdomain labels mapped to domain groups.
   - name: Redirect Rules
     description: Core redirect routing rules, analytics, and simulation endpoints.
   - name: Redirect Tests
@@ -39,6 +41,26 @@ tags:
   - name: Link Map Entries
     description: Entry-level CRUD and bulk import operations for link maps.
 paths:
+  /api/v1/organization:
+    get:
+      tags: [Organization]
+      summary: Get organization
+      description: Returns organization details for the authenticated organization context.
+      operationId: getOrganization
+      responses:
+        '200':
+          description: Organization details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /api/v1/organization/usage:
     get:
       tags: [Organization]
@@ -275,6 +297,122 @@ paths:
       summary: Delete domain
       description: Marks a domain as deleted without hard-removing it from storage.
       operationId: deleteDomain
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/subdomains:
+    get:
+      tags: [Subdomains]
+      summary: List subdomains
+      description: Returns all active LinkShift subdomains for the authenticated organization.
+      operationId: listSubdomains
+      responses:
+        '200':
+          description: Subdomains list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkShiftSubdomainQueryResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      tags: [Subdomains]
+      summary: Create subdomain
+      description: Creates a LinkShift-hosted subdomain label in a target domain group.
+      operationId: createSubdomain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLinkShiftSubdomainRequest'
+      responses:
+        '200':
+          description: Created subdomain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkShiftSubdomain'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/subdomains/{id}:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    get:
+      tags: [Subdomains]
+      summary: Get subdomain
+      description: Returns one LinkShift subdomain by ID when it belongs to the authenticated organization.
+      operationId: getSubdomain
+      responses:
+        '200':
+          description: Subdomain details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkShiftSubdomain'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    put:
+      tags: [Subdomains]
+      summary: Update subdomain
+      description: Updates mutable subdomain fields such as name or assigned domain group.
+      operationId: updateSubdomain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLinkShiftSubdomainRequest'
+      responses:
+        '200':
+          description: Updated subdomain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkShiftSubdomain'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    delete:
+      tags: [Subdomains]
+      summary: Delete subdomain
+      description: Marks a LinkShift subdomain as deleted without hard-removing it from storage.
+      operationId: deleteSubdomain
       responses:
         '200':
           description: Deleted
@@ -1098,6 +1236,26 @@ components:
           description: Optional feature gate identifier when relevant (for example `api_access`).
       required: [code, key, message]
 
+    Organization:
+      description: Organization entity bound to the authenticated API key context.
+      type: object
+      properties:
+        id: { type: string, description: Organization ID. }
+        name: { type: string, description: Organization display name. }
+        configuration:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Subscription and billing configuration payload.
+        createdAt: { type: string, format: date-time, description: Creation timestamp (UTC). }
+        updatedAt: { type: string, format: date-time, description: Last update timestamp (UTC). }
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Soft-delete timestamp in UTC when deleted.
+      required: [id, name, createdAt, updatedAt]
+
     DomainGroup:
       description: Domain-group entity used to scope domains, rules, tests, and link maps.
       type: object
@@ -1127,6 +1285,22 @@ components:
       properties:
         id: { type: string, description: Domain ID. }
         name: { type: string, description: Fully qualified domain name. }
+        domainGroupId: { type: string, description: Parent domain-group ID. }
+        createdAt: { type: string, format: date-time, description: Creation timestamp (UTC). }
+        updatedAt: { type: string, format: date-time, description: Last update timestamp (UTC). }
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Soft-delete timestamp in UTC when deleted.
+      required: [id, name, domainGroupId, createdAt, updatedAt]
+
+    LinkShiftSubdomain:
+      description: LinkShift-hosted subdomain label assigned to a domain group.
+      type: object
+      properties:
+        id: { type: string, description: Subdomain ID. }
+        name: { type: string, description: Subdomain label without base host suffix. }
         domainGroupId: { type: string, description: Parent domain-group ID. }
         createdAt: { type: string, format: date-time, description: Creation timestamp (UTC). }
         updatedAt: { type: string, format: date-time, description: Last update timestamp (UTC). }
@@ -1292,13 +1466,14 @@ components:
       properties:
         domainGroups: { type: integer, description: Number of active domain groups. }
         domains: { type: integer, description: Number of active domains. }
+        subdomains: { type: integer, description: Number of active LinkShift subdomains. }
         rules: { type: integer, description: Number of active redirect rules. }
         tests: { type: integer, description: Number of active redirect tests. }
         users: { type: integer, description: Number of organization members. }
         apiKeys: { type: integer, description: Number of configured organization API keys. }
         linkMaps: { type: integer, description: Number of active link maps. }
         linkMapEntries: { type: integer, description: Number of active link-map entries. }
-      required: [domainGroups, domains, rules, tests, users, apiKeys, linkMaps, linkMapEntries]
+      required: [domainGroups, domains, subdomains, rules, tests, users, apiKeys, linkMaps, linkMapEntries]
 
     QueryResultMeta:
       description: Metadata envelope shared by cursor-paginated query responses.
@@ -1334,6 +1509,19 @@ components:
               description: Domain items in current page.
               items:
                 $ref: '#/components/schemas/Domain'
+          required: [data]
+
+    LinkShiftSubdomainQueryResult:
+      description: Paginated LinkShift-subdomain query response.
+      allOf:
+        - $ref: '#/components/schemas/QueryResultMeta'
+        - type: object
+          properties:
+            data:
+              type: array
+              description: LinkShift-subdomain items in current page.
+              items:
+                $ref: '#/components/schemas/LinkShiftSubdomain'
           required: [data]
 
     RedirectRuleQueryResult:
@@ -1442,6 +1630,29 @@ components:
       type: object
       properties:
         name: { type: string, description: Fully qualified domain name. }
+        domainGroupId: { type: string, description: Target domain-group ID. }
+
+    CreateLinkShiftSubdomainRequest:
+      description: Payload for creating a LinkShift subdomain.
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 30
+          pattern: '^[a-z0-9-]{1,30}$'
+          description: Subdomain label before base host, lowercase letters/numbers/hyphens.
+        domainGroupId: { type: string, description: Target domain-group ID. }
+      required: [name, domainGroupId]
+
+    UpdateLinkShiftSubdomainRequest:
+      description: Payload for updating a LinkShift subdomain.
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 30
+          pattern: '^[a-z0-9-]{1,30}$'
+          description: Subdomain label before base host, lowercase letters/numbers/hyphens.
         domainGroupId: { type: string, description: Target domain-group ID. }
 
     CreateRedirectRuleRequest:

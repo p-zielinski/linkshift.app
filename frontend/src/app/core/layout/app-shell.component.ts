@@ -43,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Organization', route: '/organization', icon: 'groups', matchSubRoutes: true },
   { label: 'Domain Groups', route: '/domain-groups', icon: 'layers' },
   { label: 'Domains', route: '/domains', icon: 'public', requiresDomainGroups: true },
+  { label: 'Subdomains', route: '/subdomains', icon: 'alternate_email', requiresDomainGroups: true },
   {
     label: 'Redirect Rules',
     route: '/redirect-rules',

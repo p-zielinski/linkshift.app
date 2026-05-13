@@ -1,0 +1,42 @@
+<form class="h-full" (submit)="onSubmit($event)" (keydown.enter)="$event.preventDefault()">
+  <app-wizard
+    [title]="dialogTitle"
+    subtitle="Add or update a subdomain used on the LinkShift base host."
+    [steps]="steps()"
+    [saveLabel]="submitLabel"
+    [saveDisabled]="subdomainForm().submitting() || !canSubmit()"
+    (save)="onSubmit()"
+    (cancel)="onCancel()"
+  >
+    <ng-template wizardStepSummary="details">
+      <div class="text-xs text-app-muted">{{ subdomainModel().name || 'No subdomain yet' }}</div>
+      <div class="text-[11px] text-app-muted">
+        {{ subdomainModel().domainGroupId || 'Select group' }}
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="details">
+      <div class="grid gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Subdomain name</mat-label>
+          <input matInput type="text" [formField]="subdomainForm.name" />
+          @if (nameError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Domain group</mat-label>
+          <mat-select [formField]="subdomainForm.domainGroupId">
+            @for (group of domainGroups(); track group.id) {
+              <mat-option [value]="group.id">{{ group.name }}</mat-option>
+            }
+          </mat-select>
+          @if (groupError(); as error) {
+            <mat-error>{{ error }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </ng-template>
+  </app-wizard>
+</form>

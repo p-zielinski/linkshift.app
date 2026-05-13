@@ -44,6 +44,11 @@ export type DomainGroup = $Result.DefaultSelection<Prisma.$DomainGroupPayload>
  */
 export type Domain = $Result.DefaultSelection<Prisma.$DomainPayload>
 /**
+ * Model LinkShiftSubdomain
+ * 
+ */
+export type LinkShiftSubdomain = $Result.DefaultSelection<Prisma.$LinkShiftSubdomainPayload>
+/**
  * Model RedirectRule
  * 
  */
@@ -327,6 +332,16 @@ export class PrismaClient<
     * ```
     */
   get domain(): Prisma.DomainDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.linkShiftSubdomain`: Exposes CRUD operations for the **LinkShiftSubdomain** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more LinkShiftSubdomains
+    * const linkShiftSubdomains = await prisma.linkShiftSubdomain.findMany()
+    * ```
+    */
+  get linkShiftSubdomain(): Prisma.LinkShiftSubdomainDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.redirectRule`: Exposes CRUD operations for the **RedirectRule** model.
@@ -827,6 +842,7 @@ export namespace Prisma {
     ApiKey: 'ApiKey',
     DomainGroup: 'DomainGroup',
     Domain: 'Domain',
+    LinkShiftSubdomain: 'LinkShiftSubdomain',
     RedirectRule: 'RedirectRule',
     LinkMap: 'LinkMap',
     LinkMapEntry: 'LinkMapEntry',
@@ -848,7 +864,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "organization" | "user" | "organizationInvite" | "apiKey" | "domainGroup" | "domain" | "redirectRule" | "linkMap" | "linkMapEntry" | "redirectRuleHitBreakdownHourly" | "redirectTest" | "billingCheckoutSession"
+      modelProps: "organization" | "user" | "organizationInvite" | "apiKey" | "domainGroup" | "domain" | "linkShiftSubdomain" | "redirectRule" | "linkMap" | "linkMapEntry" | "redirectRuleHitBreakdownHourly" | "redirectTest" | "billingCheckoutSession"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1293,6 +1309,80 @@ export namespace Prisma {
           count: {
             args: Prisma.DomainCountArgs<ExtArgs>
             result: $Utils.Optional<DomainCountAggregateOutputType> | number
+          }
+        }
+      }
+      LinkShiftSubdomain: {
+        payload: Prisma.$LinkShiftSubdomainPayload<ExtArgs>
+        fields: Prisma.LinkShiftSubdomainFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.LinkShiftSubdomainFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkShiftSubdomainPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.LinkShiftSubdomainFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkShiftSubdomainPayload>
+          }
+          findFirst: {
+            args: Prisma.LinkShiftSubdomainFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkShiftSubdomainPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.LinkShiftSubdomainFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkShiftSubdomainPayload>
+          }
+          findMany: {
+            args: Prisma.LinkShiftSubdomainFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkShiftSubdomainPayload>[]
+          }
+          create: {
+            args: Prisma.LinkShiftSubdomainCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkShiftSubdomainPayload>
+          }
+          createMany: {
+            args: Prisma.LinkShiftSubdomainCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.LinkShiftSubdomainCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkShiftSubdomainPayload>[]
+          }
+          delete: {
+            args: Prisma.LinkShiftSubdomainDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkShiftSubdomainPayload>
+          }
+          update: {
+            args: Prisma.LinkShiftSubdomainUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkShiftSubdomainPayload>
+          }
+          deleteMany: {
+            args: Prisma.LinkShiftSubdomainDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.LinkShiftSubdomainUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.LinkShiftSubdomainUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkShiftSubdomainPayload>[]
+          }
+          upsert: {
+            args: Prisma.LinkShiftSubdomainUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$LinkShiftSubdomainPayload>
+          }
+          aggregate: {
+            args: Prisma.LinkShiftSubdomainAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateLinkShiftSubdomain>
+          }
+          groupBy: {
+            args: Prisma.LinkShiftSubdomainGroupByArgs<ExtArgs>
+            result: $Utils.Optional<LinkShiftSubdomainGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.LinkShiftSubdomainCountArgs<ExtArgs>
+            result: $Utils.Optional<LinkShiftSubdomainCountAggregateOutputType> | number
           }
         }
       }
@@ -1854,6 +1944,7 @@ export namespace Prisma {
     apiKey?: ApiKeyOmit
     domainGroup?: DomainGroupOmit
     domain?: DomainOmit
+    linkShiftSubdomain?: LinkShiftSubdomainOmit
     redirectRule?: RedirectRuleOmit
     linkMap?: LinkMapOmit
     linkMapEntry?: LinkMapEntryOmit
@@ -2066,6 +2157,7 @@ export namespace Prisma {
 
   export type DomainGroupCountOutputType = {
     domains: number
+    linkShiftSubdomains: number
     redirectRules: number
     linkMaps: number
     redirectTests: number
@@ -2073,6 +2165,7 @@ export namespace Prisma {
 
   export type DomainGroupCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     domains?: boolean | DomainGroupCountOutputTypeCountDomainsArgs
+    linkShiftSubdomains?: boolean | DomainGroupCountOutputTypeCountLinkShiftSubdomainsArgs
     redirectRules?: boolean | DomainGroupCountOutputTypeCountRedirectRulesArgs
     linkMaps?: boolean | DomainGroupCountOutputTypeCountLinkMapsArgs
     redirectTests?: boolean | DomainGroupCountOutputTypeCountRedirectTestsArgs
@@ -2094,6 +2187,13 @@ export namespace Prisma {
    */
   export type DomainGroupCountOutputTypeCountDomainsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: DomainWhereInput
+  }
+
+  /**
+   * DomainGroupCountOutputType without action
+   */
+  export type DomainGroupCountOutputTypeCountLinkShiftSubdomainsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LinkShiftSubdomainWhereInput
   }
 
   /**
@@ -7130,6 +7230,7 @@ export namespace Prisma {
     deletedAt?: boolean
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     domains?: boolean | DomainGroup$domainsArgs<ExtArgs>
+    linkShiftSubdomains?: boolean | DomainGroup$linkShiftSubdomainsArgs<ExtArgs>
     redirectRules?: boolean | DomainGroup$redirectRulesArgs<ExtArgs>
     linkMaps?: boolean | DomainGroup$linkMapsArgs<ExtArgs>
     redirectTests?: boolean | DomainGroup$redirectTestsArgs<ExtArgs>
@@ -7175,6 +7276,7 @@ export namespace Prisma {
   export type DomainGroupInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     domains?: boolean | DomainGroup$domainsArgs<ExtArgs>
+    linkShiftSubdomains?: boolean | DomainGroup$linkShiftSubdomainsArgs<ExtArgs>
     redirectRules?: boolean | DomainGroup$redirectRulesArgs<ExtArgs>
     linkMaps?: boolean | DomainGroup$linkMapsArgs<ExtArgs>
     redirectTests?: boolean | DomainGroup$redirectTestsArgs<ExtArgs>
@@ -7192,6 +7294,7 @@ export namespace Prisma {
     objects: {
       organization: Prisma.$OrganizationPayload<ExtArgs>
       domains: Prisma.$DomainPayload<ExtArgs>[]
+      linkShiftSubdomains: Prisma.$LinkShiftSubdomainPayload<ExtArgs>[]
       redirectRules: Prisma.$RedirectRulePayload<ExtArgs>[]
       linkMaps: Prisma.$LinkMapPayload<ExtArgs>[]
       redirectTests: Prisma.$RedirectTestPayload<ExtArgs>[]
@@ -7601,6 +7704,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     domains<T extends DomainGroup$domainsArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroup$domainsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DomainPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    linkShiftSubdomains<T extends DomainGroup$linkShiftSubdomainsArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroup$linkShiftSubdomainsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkShiftSubdomainPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     redirectRules<T extends DomainGroup$redirectRulesArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroup$redirectRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     linkMaps<T extends DomainGroup$linkMapsArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroup$linkMapsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkMapPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     redirectTests<T extends DomainGroup$redirectTestsArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroup$redirectTestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RedirectTestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -8058,6 +8162,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: DomainScalarFieldEnum | DomainScalarFieldEnum[]
+  }
+
+  /**
+   * DomainGroup.linkShiftSubdomains
+   */
+  export type DomainGroup$linkShiftSubdomainsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainInclude<ExtArgs> | null
+    where?: LinkShiftSubdomainWhereInput
+    orderBy?: LinkShiftSubdomainOrderByWithRelationInput | LinkShiftSubdomainOrderByWithRelationInput[]
+    cursor?: LinkShiftSubdomainWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: LinkShiftSubdomainScalarFieldEnum | LinkShiftSubdomainScalarFieldEnum[]
   }
 
   /**
@@ -9219,6 +9347,1077 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: DomainInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model LinkShiftSubdomain
+   */
+
+  export type AggregateLinkShiftSubdomain = {
+    _count: LinkShiftSubdomainCountAggregateOutputType | null
+    _min: LinkShiftSubdomainMinAggregateOutputType | null
+    _max: LinkShiftSubdomainMaxAggregateOutputType | null
+  }
+
+  export type LinkShiftSubdomainMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    domainGroupId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type LinkShiftSubdomainMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    domainGroupId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    deletedAt: Date | null
+  }
+
+  export type LinkShiftSubdomainCountAggregateOutputType = {
+    id: number
+    name: number
+    domainGroupId: number
+    createdAt: number
+    updatedAt: number
+    deletedAt: number
+    _all: number
+  }
+
+
+  export type LinkShiftSubdomainMinAggregateInputType = {
+    id?: true
+    name?: true
+    domainGroupId?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type LinkShiftSubdomainMaxAggregateInputType = {
+    id?: true
+    name?: true
+    domainGroupId?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+  }
+
+  export type LinkShiftSubdomainCountAggregateInputType = {
+    id?: true
+    name?: true
+    domainGroupId?: true
+    createdAt?: true
+    updatedAt?: true
+    deletedAt?: true
+    _all?: true
+  }
+
+  export type LinkShiftSubdomainAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LinkShiftSubdomain to aggregate.
+     */
+    where?: LinkShiftSubdomainWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LinkShiftSubdomains to fetch.
+     */
+    orderBy?: LinkShiftSubdomainOrderByWithRelationInput | LinkShiftSubdomainOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: LinkShiftSubdomainWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LinkShiftSubdomains from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LinkShiftSubdomains.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned LinkShiftSubdomains
+    **/
+    _count?: true | LinkShiftSubdomainCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: LinkShiftSubdomainMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: LinkShiftSubdomainMaxAggregateInputType
+  }
+
+  export type GetLinkShiftSubdomainAggregateType<T extends LinkShiftSubdomainAggregateArgs> = {
+        [P in keyof T & keyof AggregateLinkShiftSubdomain]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateLinkShiftSubdomain[P]>
+      : GetScalarType<T[P], AggregateLinkShiftSubdomain[P]>
+  }
+
+
+
+
+  export type LinkShiftSubdomainGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: LinkShiftSubdomainWhereInput
+    orderBy?: LinkShiftSubdomainOrderByWithAggregationInput | LinkShiftSubdomainOrderByWithAggregationInput[]
+    by: LinkShiftSubdomainScalarFieldEnum[] | LinkShiftSubdomainScalarFieldEnum
+    having?: LinkShiftSubdomainScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: LinkShiftSubdomainCountAggregateInputType | true
+    _min?: LinkShiftSubdomainMinAggregateInputType
+    _max?: LinkShiftSubdomainMaxAggregateInputType
+  }
+
+  export type LinkShiftSubdomainGroupByOutputType = {
+    id: string
+    name: string
+    domainGroupId: string
+    createdAt: Date
+    updatedAt: Date
+    deletedAt: Date | null
+    _count: LinkShiftSubdomainCountAggregateOutputType | null
+    _min: LinkShiftSubdomainMinAggregateOutputType | null
+    _max: LinkShiftSubdomainMaxAggregateOutputType | null
+  }
+
+  type GetLinkShiftSubdomainGroupByPayload<T extends LinkShiftSubdomainGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<LinkShiftSubdomainGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof LinkShiftSubdomainGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], LinkShiftSubdomainGroupByOutputType[P]>
+            : GetScalarType<T[P], LinkShiftSubdomainGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type LinkShiftSubdomainSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    domainGroupId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["linkShiftSubdomain"]>
+
+  export type LinkShiftSubdomainSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    domainGroupId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["linkShiftSubdomain"]>
+
+  export type LinkShiftSubdomainSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    domainGroupId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["linkShiftSubdomain"]>
+
+  export type LinkShiftSubdomainSelectScalar = {
+    id?: boolean
+    name?: boolean
+    domainGroupId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    deletedAt?: boolean
+  }
+
+  export type LinkShiftSubdomainOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "domainGroupId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["linkShiftSubdomain"]>
+  export type LinkShiftSubdomainInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }
+  export type LinkShiftSubdomainIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }
+  export type LinkShiftSubdomainIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
+  }
+
+  export type $LinkShiftSubdomainPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "LinkShiftSubdomain"
+    objects: {
+      domainGroup: Prisma.$DomainGroupPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      domainGroupId: string
+      createdAt: Date
+      updatedAt: Date
+      deletedAt: Date | null
+    }, ExtArgs["result"]["linkShiftSubdomain"]>
+    composites: {}
+  }
+
+  type LinkShiftSubdomainGetPayload<S extends boolean | null | undefined | LinkShiftSubdomainDefaultArgs> = $Result.GetResult<Prisma.$LinkShiftSubdomainPayload, S>
+
+  type LinkShiftSubdomainCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<LinkShiftSubdomainFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: LinkShiftSubdomainCountAggregateInputType | true
+    }
+
+  export interface LinkShiftSubdomainDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['LinkShiftSubdomain'], meta: { name: 'LinkShiftSubdomain' } }
+    /**
+     * Find zero or one LinkShiftSubdomain that matches the filter.
+     * @param {LinkShiftSubdomainFindUniqueArgs} args - Arguments to find a LinkShiftSubdomain
+     * @example
+     * // Get one LinkShiftSubdomain
+     * const linkShiftSubdomain = await prisma.linkShiftSubdomain.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends LinkShiftSubdomainFindUniqueArgs>(args: SelectSubset<T, LinkShiftSubdomainFindUniqueArgs<ExtArgs>>): Prisma__LinkShiftSubdomainClient<$Result.GetResult<Prisma.$LinkShiftSubdomainPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one LinkShiftSubdomain that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {LinkShiftSubdomainFindUniqueOrThrowArgs} args - Arguments to find a LinkShiftSubdomain
+     * @example
+     * // Get one LinkShiftSubdomain
+     * const linkShiftSubdomain = await prisma.linkShiftSubdomain.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends LinkShiftSubdomainFindUniqueOrThrowArgs>(args: SelectSubset<T, LinkShiftSubdomainFindUniqueOrThrowArgs<ExtArgs>>): Prisma__LinkShiftSubdomainClient<$Result.GetResult<Prisma.$LinkShiftSubdomainPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first LinkShiftSubdomain that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkShiftSubdomainFindFirstArgs} args - Arguments to find a LinkShiftSubdomain
+     * @example
+     * // Get one LinkShiftSubdomain
+     * const linkShiftSubdomain = await prisma.linkShiftSubdomain.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends LinkShiftSubdomainFindFirstArgs>(args?: SelectSubset<T, LinkShiftSubdomainFindFirstArgs<ExtArgs>>): Prisma__LinkShiftSubdomainClient<$Result.GetResult<Prisma.$LinkShiftSubdomainPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first LinkShiftSubdomain that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkShiftSubdomainFindFirstOrThrowArgs} args - Arguments to find a LinkShiftSubdomain
+     * @example
+     * // Get one LinkShiftSubdomain
+     * const linkShiftSubdomain = await prisma.linkShiftSubdomain.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends LinkShiftSubdomainFindFirstOrThrowArgs>(args?: SelectSubset<T, LinkShiftSubdomainFindFirstOrThrowArgs<ExtArgs>>): Prisma__LinkShiftSubdomainClient<$Result.GetResult<Prisma.$LinkShiftSubdomainPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more LinkShiftSubdomains that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkShiftSubdomainFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all LinkShiftSubdomains
+     * const linkShiftSubdomains = await prisma.linkShiftSubdomain.findMany()
+     * 
+     * // Get first 10 LinkShiftSubdomains
+     * const linkShiftSubdomains = await prisma.linkShiftSubdomain.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const linkShiftSubdomainWithIdOnly = await prisma.linkShiftSubdomain.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends LinkShiftSubdomainFindManyArgs>(args?: SelectSubset<T, LinkShiftSubdomainFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkShiftSubdomainPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a LinkShiftSubdomain.
+     * @param {LinkShiftSubdomainCreateArgs} args - Arguments to create a LinkShiftSubdomain.
+     * @example
+     * // Create one LinkShiftSubdomain
+     * const LinkShiftSubdomain = await prisma.linkShiftSubdomain.create({
+     *   data: {
+     *     // ... data to create a LinkShiftSubdomain
+     *   }
+     * })
+     * 
+     */
+    create<T extends LinkShiftSubdomainCreateArgs>(args: SelectSubset<T, LinkShiftSubdomainCreateArgs<ExtArgs>>): Prisma__LinkShiftSubdomainClient<$Result.GetResult<Prisma.$LinkShiftSubdomainPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many LinkShiftSubdomains.
+     * @param {LinkShiftSubdomainCreateManyArgs} args - Arguments to create many LinkShiftSubdomains.
+     * @example
+     * // Create many LinkShiftSubdomains
+     * const linkShiftSubdomain = await prisma.linkShiftSubdomain.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends LinkShiftSubdomainCreateManyArgs>(args?: SelectSubset<T, LinkShiftSubdomainCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many LinkShiftSubdomains and returns the data saved in the database.
+     * @param {LinkShiftSubdomainCreateManyAndReturnArgs} args - Arguments to create many LinkShiftSubdomains.
+     * @example
+     * // Create many LinkShiftSubdomains
+     * const linkShiftSubdomain = await prisma.linkShiftSubdomain.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many LinkShiftSubdomains and only return the `id`
+     * const linkShiftSubdomainWithIdOnly = await prisma.linkShiftSubdomain.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends LinkShiftSubdomainCreateManyAndReturnArgs>(args?: SelectSubset<T, LinkShiftSubdomainCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkShiftSubdomainPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a LinkShiftSubdomain.
+     * @param {LinkShiftSubdomainDeleteArgs} args - Arguments to delete one LinkShiftSubdomain.
+     * @example
+     * // Delete one LinkShiftSubdomain
+     * const LinkShiftSubdomain = await prisma.linkShiftSubdomain.delete({
+     *   where: {
+     *     // ... filter to delete one LinkShiftSubdomain
+     *   }
+     * })
+     * 
+     */
+    delete<T extends LinkShiftSubdomainDeleteArgs>(args: SelectSubset<T, LinkShiftSubdomainDeleteArgs<ExtArgs>>): Prisma__LinkShiftSubdomainClient<$Result.GetResult<Prisma.$LinkShiftSubdomainPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one LinkShiftSubdomain.
+     * @param {LinkShiftSubdomainUpdateArgs} args - Arguments to update one LinkShiftSubdomain.
+     * @example
+     * // Update one LinkShiftSubdomain
+     * const linkShiftSubdomain = await prisma.linkShiftSubdomain.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends LinkShiftSubdomainUpdateArgs>(args: SelectSubset<T, LinkShiftSubdomainUpdateArgs<ExtArgs>>): Prisma__LinkShiftSubdomainClient<$Result.GetResult<Prisma.$LinkShiftSubdomainPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more LinkShiftSubdomains.
+     * @param {LinkShiftSubdomainDeleteManyArgs} args - Arguments to filter LinkShiftSubdomains to delete.
+     * @example
+     * // Delete a few LinkShiftSubdomains
+     * const { count } = await prisma.linkShiftSubdomain.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends LinkShiftSubdomainDeleteManyArgs>(args?: SelectSubset<T, LinkShiftSubdomainDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LinkShiftSubdomains.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkShiftSubdomainUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many LinkShiftSubdomains
+     * const linkShiftSubdomain = await prisma.linkShiftSubdomain.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends LinkShiftSubdomainUpdateManyArgs>(args: SelectSubset<T, LinkShiftSubdomainUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more LinkShiftSubdomains and returns the data updated in the database.
+     * @param {LinkShiftSubdomainUpdateManyAndReturnArgs} args - Arguments to update many LinkShiftSubdomains.
+     * @example
+     * // Update many LinkShiftSubdomains
+     * const linkShiftSubdomain = await prisma.linkShiftSubdomain.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more LinkShiftSubdomains and only return the `id`
+     * const linkShiftSubdomainWithIdOnly = await prisma.linkShiftSubdomain.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends LinkShiftSubdomainUpdateManyAndReturnArgs>(args: SelectSubset<T, LinkShiftSubdomainUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LinkShiftSubdomainPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one LinkShiftSubdomain.
+     * @param {LinkShiftSubdomainUpsertArgs} args - Arguments to update or create a LinkShiftSubdomain.
+     * @example
+     * // Update or create a LinkShiftSubdomain
+     * const linkShiftSubdomain = await prisma.linkShiftSubdomain.upsert({
+     *   create: {
+     *     // ... data to create a LinkShiftSubdomain
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the LinkShiftSubdomain we want to update
+     *   }
+     * })
+     */
+    upsert<T extends LinkShiftSubdomainUpsertArgs>(args: SelectSubset<T, LinkShiftSubdomainUpsertArgs<ExtArgs>>): Prisma__LinkShiftSubdomainClient<$Result.GetResult<Prisma.$LinkShiftSubdomainPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of LinkShiftSubdomains.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkShiftSubdomainCountArgs} args - Arguments to filter LinkShiftSubdomains to count.
+     * @example
+     * // Count the number of LinkShiftSubdomains
+     * const count = await prisma.linkShiftSubdomain.count({
+     *   where: {
+     *     // ... the filter for the LinkShiftSubdomains we want to count
+     *   }
+     * })
+    **/
+    count<T extends LinkShiftSubdomainCountArgs>(
+      args?: Subset<T, LinkShiftSubdomainCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], LinkShiftSubdomainCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a LinkShiftSubdomain.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkShiftSubdomainAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends LinkShiftSubdomainAggregateArgs>(args: Subset<T, LinkShiftSubdomainAggregateArgs>): Prisma.PrismaPromise<GetLinkShiftSubdomainAggregateType<T>>
+
+    /**
+     * Group by LinkShiftSubdomain.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {LinkShiftSubdomainGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends LinkShiftSubdomainGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: LinkShiftSubdomainGroupByArgs['orderBy'] }
+        : { orderBy?: LinkShiftSubdomainGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, LinkShiftSubdomainGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetLinkShiftSubdomainGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the LinkShiftSubdomain model
+   */
+  readonly fields: LinkShiftSubdomainFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for LinkShiftSubdomain.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__LinkShiftSubdomainClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    domainGroup<T extends DomainGroupDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DomainGroupDefaultArgs<ExtArgs>>): Prisma__DomainGroupClient<$Result.GetResult<Prisma.$DomainGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the LinkShiftSubdomain model
+   */
+  interface LinkShiftSubdomainFieldRefs {
+    readonly id: FieldRef<"LinkShiftSubdomain", 'String'>
+    readonly name: FieldRef<"LinkShiftSubdomain", 'String'>
+    readonly domainGroupId: FieldRef<"LinkShiftSubdomain", 'String'>
+    readonly createdAt: FieldRef<"LinkShiftSubdomain", 'DateTime'>
+    readonly updatedAt: FieldRef<"LinkShiftSubdomain", 'DateTime'>
+    readonly deletedAt: FieldRef<"LinkShiftSubdomain", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * LinkShiftSubdomain findUnique
+   */
+  export type LinkShiftSubdomainFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkShiftSubdomain to fetch.
+     */
+    where: LinkShiftSubdomainWhereUniqueInput
+  }
+
+  /**
+   * LinkShiftSubdomain findUniqueOrThrow
+   */
+  export type LinkShiftSubdomainFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkShiftSubdomain to fetch.
+     */
+    where: LinkShiftSubdomainWhereUniqueInput
+  }
+
+  /**
+   * LinkShiftSubdomain findFirst
+   */
+  export type LinkShiftSubdomainFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkShiftSubdomain to fetch.
+     */
+    where?: LinkShiftSubdomainWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LinkShiftSubdomains to fetch.
+     */
+    orderBy?: LinkShiftSubdomainOrderByWithRelationInput | LinkShiftSubdomainOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LinkShiftSubdomains.
+     */
+    cursor?: LinkShiftSubdomainWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LinkShiftSubdomains from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LinkShiftSubdomains.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LinkShiftSubdomains.
+     */
+    distinct?: LinkShiftSubdomainScalarFieldEnum | LinkShiftSubdomainScalarFieldEnum[]
+  }
+
+  /**
+   * LinkShiftSubdomain findFirstOrThrow
+   */
+  export type LinkShiftSubdomainFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkShiftSubdomain to fetch.
+     */
+    where?: LinkShiftSubdomainWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LinkShiftSubdomains to fetch.
+     */
+    orderBy?: LinkShiftSubdomainOrderByWithRelationInput | LinkShiftSubdomainOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for LinkShiftSubdomains.
+     */
+    cursor?: LinkShiftSubdomainWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LinkShiftSubdomains from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LinkShiftSubdomains.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of LinkShiftSubdomains.
+     */
+    distinct?: LinkShiftSubdomainScalarFieldEnum | LinkShiftSubdomainScalarFieldEnum[]
+  }
+
+  /**
+   * LinkShiftSubdomain findMany
+   */
+  export type LinkShiftSubdomainFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainInclude<ExtArgs> | null
+    /**
+     * Filter, which LinkShiftSubdomains to fetch.
+     */
+    where?: LinkShiftSubdomainWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of LinkShiftSubdomains to fetch.
+     */
+    orderBy?: LinkShiftSubdomainOrderByWithRelationInput | LinkShiftSubdomainOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing LinkShiftSubdomains.
+     */
+    cursor?: LinkShiftSubdomainWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` LinkShiftSubdomains from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` LinkShiftSubdomains.
+     */
+    skip?: number
+    distinct?: LinkShiftSubdomainScalarFieldEnum | LinkShiftSubdomainScalarFieldEnum[]
+  }
+
+  /**
+   * LinkShiftSubdomain create
+   */
+  export type LinkShiftSubdomainCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainInclude<ExtArgs> | null
+    /**
+     * The data needed to create a LinkShiftSubdomain.
+     */
+    data: XOR<LinkShiftSubdomainCreateInput, LinkShiftSubdomainUncheckedCreateInput>
+  }
+
+  /**
+   * LinkShiftSubdomain createMany
+   */
+  export type LinkShiftSubdomainCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many LinkShiftSubdomains.
+     */
+    data: LinkShiftSubdomainCreateManyInput | LinkShiftSubdomainCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * LinkShiftSubdomain createManyAndReturn
+   */
+  export type LinkShiftSubdomainCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * The data used to create many LinkShiftSubdomains.
+     */
+    data: LinkShiftSubdomainCreateManyInput | LinkShiftSubdomainCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * LinkShiftSubdomain update
+   */
+  export type LinkShiftSubdomainUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainInclude<ExtArgs> | null
+    /**
+     * The data needed to update a LinkShiftSubdomain.
+     */
+    data: XOR<LinkShiftSubdomainUpdateInput, LinkShiftSubdomainUncheckedUpdateInput>
+    /**
+     * Choose, which LinkShiftSubdomain to update.
+     */
+    where: LinkShiftSubdomainWhereUniqueInput
+  }
+
+  /**
+   * LinkShiftSubdomain updateMany
+   */
+  export type LinkShiftSubdomainUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update LinkShiftSubdomains.
+     */
+    data: XOR<LinkShiftSubdomainUpdateManyMutationInput, LinkShiftSubdomainUncheckedUpdateManyInput>
+    /**
+     * Filter which LinkShiftSubdomains to update
+     */
+    where?: LinkShiftSubdomainWhereInput
+    /**
+     * Limit how many LinkShiftSubdomains to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * LinkShiftSubdomain updateManyAndReturn
+   */
+  export type LinkShiftSubdomainUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * The data used to update LinkShiftSubdomains.
+     */
+    data: XOR<LinkShiftSubdomainUpdateManyMutationInput, LinkShiftSubdomainUncheckedUpdateManyInput>
+    /**
+     * Filter which LinkShiftSubdomains to update
+     */
+    where?: LinkShiftSubdomainWhereInput
+    /**
+     * Limit how many LinkShiftSubdomains to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * LinkShiftSubdomain upsert
+   */
+  export type LinkShiftSubdomainUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainInclude<ExtArgs> | null
+    /**
+     * The filter to search for the LinkShiftSubdomain to update in case it exists.
+     */
+    where: LinkShiftSubdomainWhereUniqueInput
+    /**
+     * In case the LinkShiftSubdomain found by the `where` argument doesn't exist, create a new LinkShiftSubdomain with this data.
+     */
+    create: XOR<LinkShiftSubdomainCreateInput, LinkShiftSubdomainUncheckedCreateInput>
+    /**
+     * In case the LinkShiftSubdomain was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<LinkShiftSubdomainUpdateInput, LinkShiftSubdomainUncheckedUpdateInput>
+  }
+
+  /**
+   * LinkShiftSubdomain delete
+   */
+  export type LinkShiftSubdomainDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainInclude<ExtArgs> | null
+    /**
+     * Filter which LinkShiftSubdomain to delete.
+     */
+    where: LinkShiftSubdomainWhereUniqueInput
+  }
+
+  /**
+   * LinkShiftSubdomain deleteMany
+   */
+  export type LinkShiftSubdomainDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which LinkShiftSubdomains to delete
+     */
+    where?: LinkShiftSubdomainWhereInput
+    /**
+     * Limit how many LinkShiftSubdomains to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * LinkShiftSubdomain without action
+   */
+  export type LinkShiftSubdomainDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the LinkShiftSubdomain
+     */
+    select?: LinkShiftSubdomainSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the LinkShiftSubdomain
+     */
+    omit?: LinkShiftSubdomainOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: LinkShiftSubdomainInclude<ExtArgs> | null
   }
 
 
@@ -16338,6 +17537,18 @@ export namespace Prisma {
   export type DomainScalarFieldEnum = (typeof DomainScalarFieldEnum)[keyof typeof DomainScalarFieldEnum]
 
 
+  export const LinkShiftSubdomainScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    domainGroupId: 'domainGroupId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt'
+  };
+
+  export type LinkShiftSubdomainScalarFieldEnum = (typeof LinkShiftSubdomainScalarFieldEnum)[keyof typeof LinkShiftSubdomainScalarFieldEnum]
+
+
   export const RedirectRuleScalarFieldEnum: {
     id: 'id',
     source: 'source',
@@ -17009,6 +18220,7 @@ export namespace Prisma {
     deletedAt?: DateTimeNullableFilter<"DomainGroup"> | Date | string | null
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     domains?: DomainListRelationFilter
+    linkShiftSubdomains?: LinkShiftSubdomainListRelationFilter
     redirectRules?: RedirectRuleListRelationFilter
     linkMaps?: LinkMapListRelationFilter
     redirectTests?: RedirectTestListRelationFilter
@@ -17025,6 +18237,7 @@ export namespace Prisma {
     deletedAt?: SortOrderInput | SortOrder
     organization?: OrganizationOrderByWithRelationInput
     domains?: DomainOrderByRelationAggregateInput
+    linkShiftSubdomains?: LinkShiftSubdomainOrderByRelationAggregateInput
     redirectRules?: RedirectRuleOrderByRelationAggregateInput
     linkMaps?: LinkMapOrderByRelationAggregateInput
     redirectTests?: RedirectTestOrderByRelationAggregateInput
@@ -17044,6 +18257,7 @@ export namespace Prisma {
     deletedAt?: DateTimeNullableFilter<"DomainGroup"> | Date | string | null
     organization?: XOR<OrganizationScalarRelationFilter, OrganizationWhereInput>
     domains?: DomainListRelationFilter
+    linkShiftSubdomains?: LinkShiftSubdomainListRelationFilter
     redirectRules?: RedirectRuleListRelationFilter
     linkMaps?: LinkMapListRelationFilter
     redirectTests?: RedirectTestListRelationFilter
@@ -17135,6 +18349,66 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"Domain"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Domain"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Domain"> | Date | string | null
+  }
+
+  export type LinkShiftSubdomainWhereInput = {
+    AND?: LinkShiftSubdomainWhereInput | LinkShiftSubdomainWhereInput[]
+    OR?: LinkShiftSubdomainWhereInput[]
+    NOT?: LinkShiftSubdomainWhereInput | LinkShiftSubdomainWhereInput[]
+    id?: StringFilter<"LinkShiftSubdomain"> | string
+    name?: StringFilter<"LinkShiftSubdomain"> | string
+    domainGroupId?: StringFilter<"LinkShiftSubdomain"> | string
+    createdAt?: DateTimeFilter<"LinkShiftSubdomain"> | Date | string
+    updatedAt?: DateTimeFilter<"LinkShiftSubdomain"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"LinkShiftSubdomain"> | Date | string | null
+    domainGroup?: XOR<DomainGroupScalarRelationFilter, DomainGroupWhereInput>
+  }
+
+  export type LinkShiftSubdomainOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    domainGroupId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    domainGroup?: DomainGroupOrderByWithRelationInput
+  }
+
+  export type LinkShiftSubdomainWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: LinkShiftSubdomainWhereInput | LinkShiftSubdomainWhereInput[]
+    OR?: LinkShiftSubdomainWhereInput[]
+    NOT?: LinkShiftSubdomainWhereInput | LinkShiftSubdomainWhereInput[]
+    name?: StringFilter<"LinkShiftSubdomain"> | string
+    domainGroupId?: StringFilter<"LinkShiftSubdomain"> | string
+    createdAt?: DateTimeFilter<"LinkShiftSubdomain"> | Date | string
+    updatedAt?: DateTimeFilter<"LinkShiftSubdomain"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"LinkShiftSubdomain"> | Date | string | null
+    domainGroup?: XOR<DomainGroupScalarRelationFilter, DomainGroupWhereInput>
+  }, "id">
+
+  export type LinkShiftSubdomainOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    domainGroupId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrderInput | SortOrder
+    _count?: LinkShiftSubdomainCountOrderByAggregateInput
+    _max?: LinkShiftSubdomainMaxOrderByAggregateInput
+    _min?: LinkShiftSubdomainMinOrderByAggregateInput
+  }
+
+  export type LinkShiftSubdomainScalarWhereWithAggregatesInput = {
+    AND?: LinkShiftSubdomainScalarWhereWithAggregatesInput | LinkShiftSubdomainScalarWhereWithAggregatesInput[]
+    OR?: LinkShiftSubdomainScalarWhereWithAggregatesInput[]
+    NOT?: LinkShiftSubdomainScalarWhereWithAggregatesInput | LinkShiftSubdomainScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"LinkShiftSubdomain"> | string
+    name?: StringWithAggregatesFilter<"LinkShiftSubdomain"> | string
+    domainGroupId?: StringWithAggregatesFilter<"LinkShiftSubdomain"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"LinkShiftSubdomain"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"LinkShiftSubdomain"> | Date | string
+    deletedAt?: DateTimeNullableWithAggregatesFilter<"LinkShiftSubdomain"> | Date | string | null
   }
 
   export type RedirectRuleWhereInput = {
@@ -18089,6 +19363,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
     domains?: DomainCreateNestedManyWithoutDomainGroupInput
+    linkShiftSubdomains?: LinkShiftSubdomainCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
     linkMaps?: LinkMapCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
@@ -18104,6 +19379,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
+    linkShiftSubdomains?: LinkShiftSubdomainUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
     linkMaps?: LinkMapUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
@@ -18119,6 +19395,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
     domains?: DomainUpdateManyWithoutDomainGroupNestedInput
+    linkShiftSubdomains?: LinkShiftSubdomainUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
     linkMaps?: LinkMapUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
@@ -18134,6 +19411,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
+    linkShiftSubdomains?: LinkShiftSubdomainUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
     linkMaps?: LinkMapUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
@@ -18225,6 +19503,68 @@ export namespace Prisma {
   }
 
   export type DomainUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkShiftSubdomainCreateInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    domainGroup: DomainGroupCreateNestedOneWithoutLinkShiftSubdomainsInput
+  }
+
+  export type LinkShiftSubdomainUncheckedCreateInput = {
+    id: string
+    name: string
+    domainGroupId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type LinkShiftSubdomainUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    domainGroup?: DomainGroupUpdateOneRequiredWithoutLinkShiftSubdomainsNestedInput
+  }
+
+  export type LinkShiftSubdomainUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    domainGroupId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkShiftSubdomainCreateManyInput = {
+    id: string
+    name: string
+    domainGroupId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type LinkShiftSubdomainUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkShiftSubdomainUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     domainGroupId?: StringFieldUpdateOperationsInput | string
@@ -19256,6 +20596,12 @@ export namespace Prisma {
     none?: DomainWhereInput
   }
 
+  export type LinkShiftSubdomainListRelationFilter = {
+    every?: LinkShiftSubdomainWhereInput
+    some?: LinkShiftSubdomainWhereInput
+    none?: LinkShiftSubdomainWhereInput
+  }
+
   export type RedirectRuleListRelationFilter = {
     every?: RedirectRuleWhereInput
     some?: RedirectRuleWhereInput
@@ -19269,6 +20615,10 @@ export namespace Prisma {
   }
 
   export type DomainOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type LinkShiftSubdomainOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -19347,6 +20697,33 @@ export namespace Prisma {
   }
 
   export type DomainMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    domainGroupId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type LinkShiftSubdomainCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    domainGroupId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type LinkShiftSubdomainMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    domainGroupId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    deletedAt?: SortOrder
+  }
+
+  export type LinkShiftSubdomainMinOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     domainGroupId?: SortOrder
@@ -20267,6 +21644,13 @@ export namespace Prisma {
     connect?: DomainWhereUniqueInput | DomainWhereUniqueInput[]
   }
 
+  export type LinkShiftSubdomainCreateNestedManyWithoutDomainGroupInput = {
+    create?: XOR<LinkShiftSubdomainCreateWithoutDomainGroupInput, LinkShiftSubdomainUncheckedCreateWithoutDomainGroupInput> | LinkShiftSubdomainCreateWithoutDomainGroupInput[] | LinkShiftSubdomainUncheckedCreateWithoutDomainGroupInput[]
+    connectOrCreate?: LinkShiftSubdomainCreateOrConnectWithoutDomainGroupInput | LinkShiftSubdomainCreateOrConnectWithoutDomainGroupInput[]
+    createMany?: LinkShiftSubdomainCreateManyDomainGroupInputEnvelope
+    connect?: LinkShiftSubdomainWhereUniqueInput | LinkShiftSubdomainWhereUniqueInput[]
+  }
+
   export type RedirectRuleCreateNestedManyWithoutDomainGroupInput = {
     create?: XOR<RedirectRuleCreateWithoutDomainGroupInput, RedirectRuleUncheckedCreateWithoutDomainGroupInput> | RedirectRuleCreateWithoutDomainGroupInput[] | RedirectRuleUncheckedCreateWithoutDomainGroupInput[]
     connectOrCreate?: RedirectRuleCreateOrConnectWithoutDomainGroupInput | RedirectRuleCreateOrConnectWithoutDomainGroupInput[]
@@ -20293,6 +21677,13 @@ export namespace Prisma {
     connectOrCreate?: DomainCreateOrConnectWithoutDomainGroupInput | DomainCreateOrConnectWithoutDomainGroupInput[]
     createMany?: DomainCreateManyDomainGroupInputEnvelope
     connect?: DomainWhereUniqueInput | DomainWhereUniqueInput[]
+  }
+
+  export type LinkShiftSubdomainUncheckedCreateNestedManyWithoutDomainGroupInput = {
+    create?: XOR<LinkShiftSubdomainCreateWithoutDomainGroupInput, LinkShiftSubdomainUncheckedCreateWithoutDomainGroupInput> | LinkShiftSubdomainCreateWithoutDomainGroupInput[] | LinkShiftSubdomainUncheckedCreateWithoutDomainGroupInput[]
+    connectOrCreate?: LinkShiftSubdomainCreateOrConnectWithoutDomainGroupInput | LinkShiftSubdomainCreateOrConnectWithoutDomainGroupInput[]
+    createMany?: LinkShiftSubdomainCreateManyDomainGroupInputEnvelope
+    connect?: LinkShiftSubdomainWhereUniqueInput | LinkShiftSubdomainWhereUniqueInput[]
   }
 
   export type RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput = {
@@ -20340,6 +21731,20 @@ export namespace Prisma {
     update?: DomainUpdateWithWhereUniqueWithoutDomainGroupInput | DomainUpdateWithWhereUniqueWithoutDomainGroupInput[]
     updateMany?: DomainUpdateManyWithWhereWithoutDomainGroupInput | DomainUpdateManyWithWhereWithoutDomainGroupInput[]
     deleteMany?: DomainScalarWhereInput | DomainScalarWhereInput[]
+  }
+
+  export type LinkShiftSubdomainUpdateManyWithoutDomainGroupNestedInput = {
+    create?: XOR<LinkShiftSubdomainCreateWithoutDomainGroupInput, LinkShiftSubdomainUncheckedCreateWithoutDomainGroupInput> | LinkShiftSubdomainCreateWithoutDomainGroupInput[] | LinkShiftSubdomainUncheckedCreateWithoutDomainGroupInput[]
+    connectOrCreate?: LinkShiftSubdomainCreateOrConnectWithoutDomainGroupInput | LinkShiftSubdomainCreateOrConnectWithoutDomainGroupInput[]
+    upsert?: LinkShiftSubdomainUpsertWithWhereUniqueWithoutDomainGroupInput | LinkShiftSubdomainUpsertWithWhereUniqueWithoutDomainGroupInput[]
+    createMany?: LinkShiftSubdomainCreateManyDomainGroupInputEnvelope
+    set?: LinkShiftSubdomainWhereUniqueInput | LinkShiftSubdomainWhereUniqueInput[]
+    disconnect?: LinkShiftSubdomainWhereUniqueInput | LinkShiftSubdomainWhereUniqueInput[]
+    delete?: LinkShiftSubdomainWhereUniqueInput | LinkShiftSubdomainWhereUniqueInput[]
+    connect?: LinkShiftSubdomainWhereUniqueInput | LinkShiftSubdomainWhereUniqueInput[]
+    update?: LinkShiftSubdomainUpdateWithWhereUniqueWithoutDomainGroupInput | LinkShiftSubdomainUpdateWithWhereUniqueWithoutDomainGroupInput[]
+    updateMany?: LinkShiftSubdomainUpdateManyWithWhereWithoutDomainGroupInput | LinkShiftSubdomainUpdateManyWithWhereWithoutDomainGroupInput[]
+    deleteMany?: LinkShiftSubdomainScalarWhereInput | LinkShiftSubdomainScalarWhereInput[]
   }
 
   export type RedirectRuleUpdateManyWithoutDomainGroupNestedInput = {
@@ -20398,6 +21803,20 @@ export namespace Prisma {
     deleteMany?: DomainScalarWhereInput | DomainScalarWhereInput[]
   }
 
+  export type LinkShiftSubdomainUncheckedUpdateManyWithoutDomainGroupNestedInput = {
+    create?: XOR<LinkShiftSubdomainCreateWithoutDomainGroupInput, LinkShiftSubdomainUncheckedCreateWithoutDomainGroupInput> | LinkShiftSubdomainCreateWithoutDomainGroupInput[] | LinkShiftSubdomainUncheckedCreateWithoutDomainGroupInput[]
+    connectOrCreate?: LinkShiftSubdomainCreateOrConnectWithoutDomainGroupInput | LinkShiftSubdomainCreateOrConnectWithoutDomainGroupInput[]
+    upsert?: LinkShiftSubdomainUpsertWithWhereUniqueWithoutDomainGroupInput | LinkShiftSubdomainUpsertWithWhereUniqueWithoutDomainGroupInput[]
+    createMany?: LinkShiftSubdomainCreateManyDomainGroupInputEnvelope
+    set?: LinkShiftSubdomainWhereUniqueInput | LinkShiftSubdomainWhereUniqueInput[]
+    disconnect?: LinkShiftSubdomainWhereUniqueInput | LinkShiftSubdomainWhereUniqueInput[]
+    delete?: LinkShiftSubdomainWhereUniqueInput | LinkShiftSubdomainWhereUniqueInput[]
+    connect?: LinkShiftSubdomainWhereUniqueInput | LinkShiftSubdomainWhereUniqueInput[]
+    update?: LinkShiftSubdomainUpdateWithWhereUniqueWithoutDomainGroupInput | LinkShiftSubdomainUpdateWithWhereUniqueWithoutDomainGroupInput[]
+    updateMany?: LinkShiftSubdomainUpdateManyWithWhereWithoutDomainGroupInput | LinkShiftSubdomainUpdateManyWithWhereWithoutDomainGroupInput[]
+    deleteMany?: LinkShiftSubdomainScalarWhereInput | LinkShiftSubdomainScalarWhereInput[]
+  }
+
   export type RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput = {
     create?: XOR<RedirectRuleCreateWithoutDomainGroupInput, RedirectRuleUncheckedCreateWithoutDomainGroupInput> | RedirectRuleCreateWithoutDomainGroupInput[] | RedirectRuleUncheckedCreateWithoutDomainGroupInput[]
     connectOrCreate?: RedirectRuleCreateOrConnectWithoutDomainGroupInput | RedirectRuleCreateOrConnectWithoutDomainGroupInput[]
@@ -20452,6 +21871,20 @@ export namespace Prisma {
     upsert?: DomainGroupUpsertWithoutDomainsInput
     connect?: DomainGroupWhereUniqueInput
     update?: XOR<XOR<DomainGroupUpdateToOneWithWhereWithoutDomainsInput, DomainGroupUpdateWithoutDomainsInput>, DomainGroupUncheckedUpdateWithoutDomainsInput>
+  }
+
+  export type DomainGroupCreateNestedOneWithoutLinkShiftSubdomainsInput = {
+    create?: XOR<DomainGroupCreateWithoutLinkShiftSubdomainsInput, DomainGroupUncheckedCreateWithoutLinkShiftSubdomainsInput>
+    connectOrCreate?: DomainGroupCreateOrConnectWithoutLinkShiftSubdomainsInput
+    connect?: DomainGroupWhereUniqueInput
+  }
+
+  export type DomainGroupUpdateOneRequiredWithoutLinkShiftSubdomainsNestedInput = {
+    create?: XOR<DomainGroupCreateWithoutLinkShiftSubdomainsInput, DomainGroupUncheckedCreateWithoutLinkShiftSubdomainsInput>
+    connectOrCreate?: DomainGroupCreateOrConnectWithoutLinkShiftSubdomainsInput
+    upsert?: DomainGroupUpsertWithoutLinkShiftSubdomainsInput
+    connect?: DomainGroupWhereUniqueInput
+    update?: XOR<XOR<DomainGroupUpdateToOneWithWhereWithoutLinkShiftSubdomainsInput, DomainGroupUpdateWithoutLinkShiftSubdomainsInput>, DomainGroupUncheckedUpdateWithoutLinkShiftSubdomainsInput>
   }
 
   export type RedirectRuleCreatematchMethodInput = {
@@ -21096,6 +22529,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     domains?: DomainCreateNestedManyWithoutDomainGroupInput
+    linkShiftSubdomains?: LinkShiftSubdomainCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
     linkMaps?: LinkMapCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
@@ -21110,6 +22544,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
+    linkShiftSubdomains?: LinkShiftSubdomainUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
     linkMaps?: LinkMapUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
@@ -22019,6 +23454,32 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type LinkShiftSubdomainCreateWithoutDomainGroupInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type LinkShiftSubdomainUncheckedCreateWithoutDomainGroupInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
+  export type LinkShiftSubdomainCreateOrConnectWithoutDomainGroupInput = {
+    where: LinkShiftSubdomainWhereUniqueInput
+    create: XOR<LinkShiftSubdomainCreateWithoutDomainGroupInput, LinkShiftSubdomainUncheckedCreateWithoutDomainGroupInput>
+  }
+
+  export type LinkShiftSubdomainCreateManyDomainGroupInputEnvelope = {
+    data: LinkShiftSubdomainCreateManyDomainGroupInput | LinkShiftSubdomainCreateManyDomainGroupInput[]
+    skipDuplicates?: boolean
+  }
+
   export type RedirectRuleCreateWithoutDomainGroupInput = {
     id: string
     source: string
@@ -22202,6 +23663,34 @@ export namespace Prisma {
     deletedAt?: DateTimeNullableFilter<"Domain"> | Date | string | null
   }
 
+  export type LinkShiftSubdomainUpsertWithWhereUniqueWithoutDomainGroupInput = {
+    where: LinkShiftSubdomainWhereUniqueInput
+    update: XOR<LinkShiftSubdomainUpdateWithoutDomainGroupInput, LinkShiftSubdomainUncheckedUpdateWithoutDomainGroupInput>
+    create: XOR<LinkShiftSubdomainCreateWithoutDomainGroupInput, LinkShiftSubdomainUncheckedCreateWithoutDomainGroupInput>
+  }
+
+  export type LinkShiftSubdomainUpdateWithWhereUniqueWithoutDomainGroupInput = {
+    where: LinkShiftSubdomainWhereUniqueInput
+    data: XOR<LinkShiftSubdomainUpdateWithoutDomainGroupInput, LinkShiftSubdomainUncheckedUpdateWithoutDomainGroupInput>
+  }
+
+  export type LinkShiftSubdomainUpdateManyWithWhereWithoutDomainGroupInput = {
+    where: LinkShiftSubdomainScalarWhereInput
+    data: XOR<LinkShiftSubdomainUpdateManyMutationInput, LinkShiftSubdomainUncheckedUpdateManyWithoutDomainGroupInput>
+  }
+
+  export type LinkShiftSubdomainScalarWhereInput = {
+    AND?: LinkShiftSubdomainScalarWhereInput | LinkShiftSubdomainScalarWhereInput[]
+    OR?: LinkShiftSubdomainScalarWhereInput[]
+    NOT?: LinkShiftSubdomainScalarWhereInput | LinkShiftSubdomainScalarWhereInput[]
+    id?: StringFilter<"LinkShiftSubdomain"> | string
+    name?: StringFilter<"LinkShiftSubdomain"> | string
+    domainGroupId?: StringFilter<"LinkShiftSubdomain"> | string
+    createdAt?: DateTimeFilter<"LinkShiftSubdomain"> | Date | string
+    updatedAt?: DateTimeFilter<"LinkShiftSubdomain"> | Date | string
+    deletedAt?: DateTimeNullableFilter<"LinkShiftSubdomain"> | Date | string | null
+  }
+
   export type RedirectRuleUpsertWithWhereUniqueWithoutDomainGroupInput = {
     where: RedirectRuleWhereUniqueInput
     update: XOR<RedirectRuleUpdateWithoutDomainGroupInput, RedirectRuleUncheckedUpdateWithoutDomainGroupInput>
@@ -22295,6 +23784,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
+    linkShiftSubdomains?: LinkShiftSubdomainCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
     linkMaps?: LinkMapCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
@@ -22309,6 +23799,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
+    linkShiftSubdomains?: LinkShiftSubdomainUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
     linkMaps?: LinkMapUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
@@ -22339,6 +23830,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
+    linkShiftSubdomains?: LinkShiftSubdomainUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
     linkMaps?: LinkMapUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
@@ -22353,6 +23845,83 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    linkShiftSubdomains?: LinkShiftSubdomainUncheckedUpdateManyWithoutDomainGroupNestedInput
+    redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
+    linkMaps?: LinkMapUncheckedUpdateManyWithoutDomainGroupNestedInput
+    redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
+  }
+
+  export type DomainGroupCreateWithoutLinkShiftSubdomainsInput = {
+    id: string
+    name: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
+    domains?: DomainCreateNestedManyWithoutDomainGroupInput
+    redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
+    linkMaps?: LinkMapCreateNestedManyWithoutDomainGroupInput
+    redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
+  }
+
+  export type DomainGroupUncheckedCreateWithoutLinkShiftSubdomainsInput = {
+    id: string
+    name: string
+    organizationId: string
+    robotsPolicy?: $Enums.RobotsPolicy
+    customRobotsContent?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+    domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
+    redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
+    linkMaps?: LinkMapUncheckedCreateNestedManyWithoutDomainGroupInput
+    redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
+  }
+
+  export type DomainGroupCreateOrConnectWithoutLinkShiftSubdomainsInput = {
+    where: DomainGroupWhereUniqueInput
+    create: XOR<DomainGroupCreateWithoutLinkShiftSubdomainsInput, DomainGroupUncheckedCreateWithoutLinkShiftSubdomainsInput>
+  }
+
+  export type DomainGroupUpsertWithoutLinkShiftSubdomainsInput = {
+    update: XOR<DomainGroupUpdateWithoutLinkShiftSubdomainsInput, DomainGroupUncheckedUpdateWithoutLinkShiftSubdomainsInput>
+    create: XOR<DomainGroupCreateWithoutLinkShiftSubdomainsInput, DomainGroupUncheckedCreateWithoutLinkShiftSubdomainsInput>
+    where?: DomainGroupWhereInput
+  }
+
+  export type DomainGroupUpdateToOneWithWhereWithoutLinkShiftSubdomainsInput = {
+    where?: DomainGroupWhereInput
+    data: XOR<DomainGroupUpdateWithoutLinkShiftSubdomainsInput, DomainGroupUncheckedUpdateWithoutLinkShiftSubdomainsInput>
+  }
+
+  export type DomainGroupUpdateWithoutLinkShiftSubdomainsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
+    domains?: DomainUpdateManyWithoutDomainGroupNestedInput
+    redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
+    linkMaps?: LinkMapUpdateManyWithoutDomainGroupNestedInput
+    redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
+  }
+
+  export type DomainGroupUncheckedUpdateWithoutLinkShiftSubdomainsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
+    customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
     linkMaps?: LinkMapUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
@@ -22368,6 +23937,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
     domains?: DomainCreateNestedManyWithoutDomainGroupInput
+    linkShiftSubdomains?: LinkShiftSubdomainCreateNestedManyWithoutDomainGroupInput
     linkMaps?: LinkMapCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
   }
@@ -22382,6 +23952,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
+    linkShiftSubdomains?: LinkShiftSubdomainUncheckedCreateNestedManyWithoutDomainGroupInput
     linkMaps?: LinkMapUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
   }
@@ -22483,6 +24054,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
     domains?: DomainUpdateManyWithoutDomainGroupNestedInput
+    linkShiftSubdomains?: LinkShiftSubdomainUpdateManyWithoutDomainGroupNestedInput
     linkMaps?: LinkMapUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
   }
@@ -22497,6 +24069,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
+    linkShiftSubdomains?: LinkShiftSubdomainUncheckedUpdateManyWithoutDomainGroupNestedInput
     linkMaps?: LinkMapUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
@@ -22564,6 +24137,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
     domains?: DomainCreateNestedManyWithoutDomainGroupInput
+    linkShiftSubdomains?: LinkShiftSubdomainCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestCreateNestedManyWithoutDomainGroupInput
   }
@@ -22578,6 +24152,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
+    linkShiftSubdomains?: LinkShiftSubdomainUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectTests?: RedirectTestUncheckedCreateNestedManyWithoutDomainGroupInput
   }
@@ -22684,6 +24259,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
     domains?: DomainUpdateManyWithoutDomainGroupNestedInput
+    linkShiftSubdomains?: LinkShiftSubdomainUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
   }
@@ -22698,6 +24274,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
+    linkShiftSubdomains?: LinkShiftSubdomainUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
@@ -23025,6 +24602,7 @@ export namespace Prisma {
     deletedAt?: Date | string | null
     organization: OrganizationCreateNestedOneWithoutDomainGroupsInput
     domains?: DomainCreateNestedManyWithoutDomainGroupInput
+    linkShiftSubdomains?: LinkShiftSubdomainCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleCreateNestedManyWithoutDomainGroupInput
     linkMaps?: LinkMapCreateNestedManyWithoutDomainGroupInput
   }
@@ -23039,6 +24617,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     deletedAt?: Date | string | null
     domains?: DomainUncheckedCreateNestedManyWithoutDomainGroupInput
+    linkShiftSubdomains?: LinkShiftSubdomainUncheckedCreateNestedManyWithoutDomainGroupInput
     redirectRules?: RedirectRuleUncheckedCreateNestedManyWithoutDomainGroupInput
     linkMaps?: LinkMapUncheckedCreateNestedManyWithoutDomainGroupInput
   }
@@ -23110,6 +24689,7 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     organization?: OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput
     domains?: DomainUpdateManyWithoutDomainGroupNestedInput
+    linkShiftSubdomains?: LinkShiftSubdomainUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
     linkMaps?: LinkMapUpdateManyWithoutDomainGroupNestedInput
   }
@@ -23124,6 +24704,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
+    linkShiftSubdomains?: LinkShiftSubdomainUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
     linkMaps?: LinkMapUncheckedUpdateManyWithoutDomainGroupNestedInput
   }
@@ -23451,6 +25032,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUpdateManyWithoutDomainGroupNestedInput
+    linkShiftSubdomains?: LinkShiftSubdomainUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUpdateManyWithoutDomainGroupNestedInput
     linkMaps?: LinkMapUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUpdateManyWithoutDomainGroupNestedInput
@@ -23465,6 +25047,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     domains?: DomainUncheckedUpdateManyWithoutDomainGroupNestedInput
+    linkShiftSubdomains?: LinkShiftSubdomainUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectRules?: RedirectRuleUncheckedUpdateManyWithoutDomainGroupNestedInput
     linkMaps?: LinkMapUncheckedUpdateManyWithoutDomainGroupNestedInput
     redirectTests?: RedirectTestUncheckedUpdateManyWithoutDomainGroupNestedInput
@@ -23784,6 +25367,14 @@ export namespace Prisma {
     deletedAt?: Date | string | null
   }
 
+  export type LinkShiftSubdomainCreateManyDomainGroupInput = {
+    id: string
+    name: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    deletedAt?: Date | string | null
+  }
+
   export type RedirectRuleCreateManyDomainGroupInput = {
     id: string
     source: string
@@ -23840,6 +25431,30 @@ export namespace Prisma {
   }
 
   export type DomainUncheckedUpdateManyWithoutDomainGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkShiftSubdomainUpdateWithoutDomainGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkShiftSubdomainUncheckedUpdateWithoutDomainGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type LinkShiftSubdomainUncheckedUpdateManyWithoutDomainGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

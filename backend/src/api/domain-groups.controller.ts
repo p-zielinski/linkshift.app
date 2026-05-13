@@ -25,8 +25,7 @@ export class DomainGroupsController {
     private readonly redirectService: RedirectService,
     private readonly clsService: ClsService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   @Get()
   @UseGuards(ApiOrUserAuthGuard)

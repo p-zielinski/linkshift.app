@@ -194,8 +194,12 @@ describe('LinkMapService', () => {
 
     it('returns internal server error when safety scanner fails', async () => {
       prisma.domainGroup.findFirst.mockResolvedValue({ id: 'dmg_1' });
-      destinationExtractor.extractUrls.mockReturnValue(['https://safe.example']);
-      safetyScannerService.checkUrls.mockRejectedValue(new Error('scanner failed'));
+      destinationExtractor.extractUrls.mockReturnValue([
+        'https://safe.example',
+      ]);
+      safetyScannerService.checkUrls.mockRejectedValue(
+        new Error('scanner failed'),
+      );
 
       await expectHttpError(
         service.createMap('org_1', {
@@ -403,7 +407,9 @@ describe('LinkMapService', () => {
         queryMatch: 'exact',
         domainGroupId: 'dmg_1',
       });
-      destinationExtractor.extractUrls.mockImplementation((value: string) => [value]);
+      destinationExtractor.extractUrls.mockImplementation((value: string) => [
+        value,
+      ]);
       safetyScannerService.checkUrls.mockResolvedValue(
         new Map<string, boolean>([
           ['https://safe-1.example', true],
@@ -413,7 +419,9 @@ describe('LinkMapService', () => {
           ['https://safe-4.example', true],
         ]),
       );
-      prisma.linkMapEntry.findMany.mockResolvedValue([{ keyNormalized: 'existing' }]);
+      prisma.linkMapEntry.findMany.mockResolvedValue([
+        { keyNormalized: 'existing' },
+      ]);
       prisma.linkMapEntry.create
         .mockResolvedValueOnce({ id: 'lme_imported_1' })
         .mockRejectedValueOnce(new Error('DB unavailable'));
@@ -434,11 +442,19 @@ describe('LinkMapService', () => {
       expect(result.failedCount).toBe(4);
       expect(result.importedEntryIds).toEqual(['lme_imported_1']);
       expect(result.errors.map((entry) => entry.index)).toEqual([1, 2, 3, 4]);
-      expect(result.errors[0]?.error).toContain('Duplicate key in import payload');
-      expect(result.errors[1]?.error).toContain('Unsafe destination domain detected');
-      expect(result.errors[2]?.error).toContain('Key already exists in this link map');
+      expect(result.errors[0]?.error).toContain(
+        'Duplicate key in import payload',
+      );
+      expect(result.errors[1]?.error).toContain(
+        'Unsafe destination domain detected',
+      );
+      expect(result.errors[2]?.error).toContain(
+        'Key already exists in this link map',
+      );
       expect(result.errors[3]?.error).toContain('DB unavailable');
-      expect(organizationService.checkLinkMapEntryLimit).toHaveBeenCalledTimes(2);
+      expect(organizationService.checkLinkMapEntryLimit).toHaveBeenCalledTimes(
+        2,
+      );
       expect(cacheManager.invalidateCustomCache).toHaveBeenCalledWith(
         'LINK_MAP_CONTEXT:lmap_1',
       );
@@ -719,9 +735,11 @@ describe('LinkMapService', () => {
         ],
       });
 
-      const context = await (service as unknown as {
-        getLinkMapContext: (id: string) => Promise<any>;
-      }).getLinkMapContext('map-ref');
+      const context = await (
+        service as unknown as {
+          getLinkMapContext: (id: string) => Promise<any>;
+        }
+      ).getLinkMapContext('map-ref');
 
       const fromKey = context.entriesByKey.get('promo');
       const fromPath = context.entriesByPath.get('promo')?.[0];

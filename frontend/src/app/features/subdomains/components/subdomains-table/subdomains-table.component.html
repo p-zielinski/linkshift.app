@@ -1,0 +1,103 @@
+<table mat-table [dataSource]="subdomains()" class="min-w-[820px] w-full mat-elevation-z0">
+  <ng-container matColumnDef="name">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      class="font-semibold min-w-[120px] max-w-[220px] truncate"
+    >
+      Name
+    </th>
+    <td mat-cell *matCellDef="let subdomain" class="py-3 min-w-[120px] max-w-[220px] truncate">
+      {{ subdomain.name }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="fullHost">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      class="font-semibold min-w-[180px] max-w-[280px] truncate"
+    >
+      Full host
+    </th>
+    <td mat-cell *matCellDef="let subdomain" class="py-3 min-w-[180px] max-w-[280px] truncate">
+      {{ toFullHost(subdomain.name) }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="id">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      class="font-semibold min-w-[150px] max-w-[250px] truncate"
+    >
+      Id
+    </th>
+    <td mat-cell *matCellDef="let subdomain" class="py-3 min-w-[150px] max-w-[250px] truncate">
+      <app-resource-pill [label]="subdomain.id" [tooltip]="'Subdomain ID: ' + subdomain.id" />
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="group">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      class="font-semibold min-w-[150px] max-w-[250px] truncate"
+    >
+      Domain group
+    </th>
+    <td mat-cell *matCellDef="let subdomain" class="py-3 min-w-[150px] max-w-[250px] truncate">
+      <app-resource-pill
+        [label]="groupLabel(subdomain.domainGroupId)"
+        [tooltip]="groupTooltip(subdomain.domainGroupId)"
+      />
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="createdAt">
+    <th
+      mat-header-cell
+      *matHeaderCellDef
+      class="font-semibold min-w-[150px] max-w-[250px] truncate"
+    >
+      Created at
+    </th>
+    <td
+      mat-cell
+      *matCellDef="let subdomain"
+      class="py-3 min-w-[150px] max-w-[250px] truncate text-[13px] text-app-muted"
+    >
+      {{ subdomain.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef class="min-w-[120px] max-w-[220px] truncate"></th>
+    <td mat-cell *matCellDef="let subdomain" class="py-3 min-w-[120px] max-w-[220px] truncate">
+      <div class="flex items-center gap-1">
+        <button mat-icon-button matTooltip="Edit subdomain" (click)="onEdit(subdomain)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          color="warn"
+          matTooltip="Delete subdomain"
+          (click)="onDelete(subdomain.id)"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="columns"></tr>
+  <tr mat-row *matRowDef="let row; columns: columns"></tr>
+  <tr class="mat-row" *matNoDataRow>
+    <td
+      class="mat-cell px-0 py-6 text-center text-[13px] text-app-muted"
+      [attr.colspan]="columns.length"
+    >
+      No subdomains found
+    </td>
+  </tr>
+</table>

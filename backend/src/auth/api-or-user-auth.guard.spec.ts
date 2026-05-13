@@ -148,9 +148,8 @@ describe('ApiOrUserAuthGuard', () => {
       url: '/api/v1/domains',
     } as any;
 
-    await expect(guard.canActivate(createContext(request))).rejects.toHaveProperty(
-      'status',
-      401,
-    );
+    await expect(
+      guard.canActivate(createContext(request)),
+    ).rejects.toHaveProperty('status', 401);
   });
 });
