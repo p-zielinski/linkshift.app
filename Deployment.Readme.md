@@ -316,6 +316,10 @@ users:
 Update the `password` there before deploying and redeploy the infra stack.
 Update both files if you run both stacks.
 
+When deploying through GitHub Actions, store the same YAML contents in repository secrets:
+- `DOZZLE_USERS_YML` for `config/dozzle.users.yml`
+- `DOZZLE_TOOLS_USERS_YML` for `config/dozzle.tools.users.yml`
+
 If you need direct Loki access for troubleshooting, use a short-lived SSH tunnel:
 
 ```bash
