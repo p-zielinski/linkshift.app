@@ -9,7 +9,6 @@ import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { SubdomainStore } from '../../core/store/subdomain.store';
 import { AuthStore } from '../../core/store/auth.store';
 import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
-import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
 import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
 import type { Subdomain } from '../../core/models/subdomain.model';
 import {
@@ -30,7 +29,6 @@ import { APP_CONFIG } from '../../core/config/app-runtime-config';
     MatSnackBarModule,
     TablePaginatorComponent,
     ResourcePageShellComponent,
-    ResourceCardComponent,
     ResourceTableCardComponent,
     SubdomainsTableComponent
   ],
