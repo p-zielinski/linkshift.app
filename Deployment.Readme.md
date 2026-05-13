@@ -441,7 +441,6 @@ docker stack deploy -c docker-stack.app.yml ${APP_STACK_NAME}
 All deployment workflows are manual (`workflow_dispatch`) and run from the branch selected in the GitHub Actions dashboard (`Run workflow`).
 
 Available workflows:
-- `.github/workflows/build-caddy.yml` — builds/pushes `linkshift-caddy-cloudflare`.
 - `.github/workflows/deploy.yml` — builds backend/frontend/db-backup and deploys `docker-stack.app.yml`.
 - `.github/workflows/deploy-infra.yml` — deploys `docker-stack.infra.yml` using `CADDY_IMAGE` from the selected tag input.
 - `.github/workflows/deploy-tools-app.yml` — builds/pushes `backend-tools` and deploys `docker-stack.tools.app.yml`.
@@ -465,6 +464,16 @@ Notes:
   - `deploy.yml`: `BACKEND_IMAGE`, `FRONTEND_IMAGE`, `GIT_COMMIT_HASH`
   - `deploy-infra.yml`: `CADDY_IMAGE` (from workflow input `caddy_image_tag`)
   - `deploy-tools-app.yml`: `BACKEND_TOOLS_IMAGE`, `GIT_COMMIT_HASH`
+
+Build/push infra Caddy image locally (recommended):
+
+```bash
+gh auth refresh -h github.com -s write:packages -s read:packages && OWNER="$(gh repo view --json owner -q '.owner.login')" && TAG="$(git rev-parse --short=12 HEAD)" && gh auth token | docker login ghcr.io -u "$OWNER" --password-stdin && docker buildx build --platform linux/arm64 -f config/Dockerfile.caddy --label org.opencontainers.image.source=https://github.com/p-zielinski/linkshift.app -t "ghcr.io/$OWNER/linkshift-caddy-cloudflare:latest" -t "ghcr.io/$OWNER/linkshift-caddy-cloudflare:$TAG" --push . && echo "OK: ghcr.io/$OWNER/linkshift-caddy-cloudflare:latest i :$TAG"
+```
+
+Then run `.github/workflows/deploy-infra.yml` and set `caddy_image_tag` to either:
+- `latest`
+- the printed git-based tag (for example `1d5e3cadad57`) to pin an exact image
 
 ## Prisma migrations on backend startup
 The backend entrypoint runs Prisma migrations automatically if `DATABASE_URL` is set:
