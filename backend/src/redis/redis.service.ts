@@ -8,8 +8,7 @@ export class RedisService implements OnModuleDestroy {
     @Inject('REDIS_CLIENT')
     private readonly redis: Redis,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async set(key: string, value: any, ttl?: number): Promise<void> {
     const serializedValue = JSON.stringify(value);
@@ -49,7 +48,11 @@ export class RedisService implements OnModuleDestroy {
     return result === 1;
   }
 
-  async zIncrBy(key: string, increment: number, member: string): Promise<number> {
+  async zIncrBy(
+    key: string,
+    increment: number,
+    member: string,
+  ): Promise<number> {
     const result = await this.redis.zincrby(key, increment, member);
     return Number(result);
   }
@@ -113,12 +116,7 @@ export class RedisService implements OnModuleDestroy {
     cursor: string,
     count = 1000,
   ): Promise<{ cursor: string; entries: { member: string; score: number }[] }> {
-    const response = await this.redis.zscan(
-      key,
-      cursor,
-      'COUNT',
-      count,
-    );
+    const response = await this.redis.zscan(key, cursor, 'COUNT', count);
     const [nextCursor, flatEntries] = response as [string, string[]];
     const entries: { member: string; score: number }[] = [];
     for (let i = 0; i < flatEntries.length; i += 2) {

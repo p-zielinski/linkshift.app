@@ -21,12 +21,29 @@ export class ApiRedirectionMiddleware implements NestMiddleware {
 
   private readonly isProduction: boolean;
 
+  private normalizeHostname(value: string | undefined): string {
+    return String(value ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/\.$/, '');
+  }
+
+  private isSubdomainOfBaseHost(hostname: string, baseHost: string): boolean {
+    if (!hostname || !baseHost || hostname === baseHost) {
+      return false;
+    }
+    return hostname.endsWith(`.${baseHost}`);
+  }
+
   async use(req: Request, res: Response, next: NextFunction) {
-    const apiHostname = this.configService.get<string>('API_HOSTNAME');
+    const apiHostname = this.normalizeHostname(
+      this.configService.get<string>('API_HOSTNAME'),
+    );
+    const requestHostname = this.normalizeHostname(req.hostname);
 
     if (
-      req.hostname === apiHostname ||
-      (req.baseUrl === `/check-domain` && !req.hostname.includes('.'))
+      requestHostname === apiHostname ||
+      (req.baseUrl === `/check-domain` && !requestHostname.includes('.'))
     ) {
       return next();
     }
@@ -45,6 +62,11 @@ export class ApiRedirectionMiddleware implements NestMiddleware {
         },
       );
       return next();
+    }
+
+    if (this.isSubdomainOfBaseHost(requestHostname, apiHostname)) {
+      await this.redirectService.applySubDomainRedirect(req, res);
+      return;
     }
 
     await this.redirectService.applyRedirect(req, res);

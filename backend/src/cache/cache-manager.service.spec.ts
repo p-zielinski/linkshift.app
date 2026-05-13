@@ -214,7 +214,9 @@ describe('CacheManagerService', () => {
 
     it('sets a Redis expiry on the first request in a window', async () => {
       jest.spyOn(redis, 'incr').mockResolvedValue(1);
-      const expireSpy = jest.spyOn(redis, 'expire').mockResolvedValue(undefined);
+      const expireSpy = jest
+        .spyOn(redis, 'expire')
+        .mockResolvedValue(undefined);
 
       await service.checkOrganizationRateLimit('org-1', 5);
 
@@ -226,7 +228,9 @@ describe('CacheManagerService', () => {
 
     it('falls back to safe limit when runtime value is invalid', async () => {
       const incrSpy = jest.spyOn(redis, 'incr').mockResolvedValue(1);
-      const expireSpy = jest.spyOn(redis, 'expire').mockResolvedValue(undefined);
+      const expireSpy = jest
+        .spyOn(redis, 'expire')
+        .mockResolvedValue(undefined);
 
       await service.checkOrganizationRateLimit('org-1', null as any);
 
@@ -241,7 +245,9 @@ describe('CacheManagerService', () => {
   describe('checkRateLimit', () => {
     it('uses API key namespace for rate-limit counters', async () => {
       jest.spyOn(redis, 'incr').mockResolvedValue(1);
-      const expireSpy = jest.spyOn(redis, 'expire').mockResolvedValue(undefined);
+      const expireSpy = jest
+        .spyOn(redis, 'expire')
+        .mockResolvedValue(undefined);
 
       await service.checkRateLimit(RateLimitScope.API_KEY, 'apk_1', 10);
 

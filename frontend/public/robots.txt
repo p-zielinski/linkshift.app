@@ -23,6 +23,7 @@ Disallow: /tools/
 Disallow: /profile
 Disallow: /organization
 Disallow: /domains
+Disallow: /subdomains
 Disallow: /domain-groups
 Disallow: /redirect-rules
 Disallow: /redirect-rules-analytics

@@ -21,8 +21,7 @@ export class AuthGuard implements CanActivate {
     private readonly cacheManagerService: CacheManagerService,
     private readonly legalService: LegalService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();

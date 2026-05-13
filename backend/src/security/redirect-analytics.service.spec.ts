@@ -40,7 +40,7 @@ describe('RedirectAnalyticsService', () => {
     expect(redisService.expire).toHaveBeenCalledTimes(2);
     expect(prisma.$executeRaw).toHaveBeenCalledTimes(1);
 
-    const sql = (prisma.$executeRaw as jest.Mock).mock.calls[0][0] as {
+    const sql = prisma.$executeRaw.mock.calls[0][0] as {
       values: unknown[];
     };
 

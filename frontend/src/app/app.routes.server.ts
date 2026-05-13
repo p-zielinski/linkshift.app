@@ -12,6 +12,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'organization', renderMode: RenderMode.Client },
   { path: 'organization/api-keys', renderMode: RenderMode.Client },
   { path: 'domains', renderMode: RenderMode.Client },
+  { path: 'subdomains', renderMode: RenderMode.Client },
   { path: 'domain-groups', renderMode: RenderMode.Client },
   { path: 'redirect-rules', renderMode: RenderMode.Client },
   { path: 'tests', renderMode: RenderMode.Client },

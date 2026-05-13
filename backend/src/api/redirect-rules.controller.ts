@@ -27,8 +27,7 @@ export class RedirectRulesController {
     private readonly redirectService: RedirectService,
     private readonly clsService: ClsService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   @Get()
   @UseGuards(ApiOrUserAuthGuard)
@@ -149,10 +148,7 @@ export class RedirectRulesController {
       organizationId,
       entryCount: body.entries?.length ?? 0,
     });
-    return this.redirectService.simulateRedirects(
-      organizationId,
-      body.entries,
-    );
+    return this.redirectService.simulateRedirects(organizationId, body.entries);
   }
 
   @Put(':id')

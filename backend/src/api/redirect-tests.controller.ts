@@ -27,8 +27,7 @@ export class RedirectTestsController {
     private readonly redirectTestsService: RedirectTestsService,
     private readonly clsService: ClsService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   @Get()
   @UseGuards(ApiOrUserAuthGuard)

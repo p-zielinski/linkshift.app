@@ -30,20 +30,25 @@ export class OrganizationMembersService {
     private readonly cacheManagerService: CacheManagerService,
     private readonly legalService: LegalService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async createInvite(params: {
     organizationId: string;
     inviterId: string;
     email: string;
   }) {
-    const inviter = await this.assertOwner(params.inviterId, params.organizationId);
+    const inviter = await this.assertOwner(
+      params.inviterId,
+      params.organizationId,
+    );
     await this.organizationService.checkActiveUserLimit(params.organizationId);
 
     const normalizedEmail = params.email.trim().toLowerCase();
     const existingUser = await this.prisma.user.findFirst({
-      where: { email: { equals: normalizedEmail, mode: 'insensitive' }, deletedAt: null },
+      where: {
+        email: { equals: normalizedEmail, mode: 'insensitive' },
+        deletedAt: null,
+      },
     });
     if (existingUser) {
       return throwHttpException(
@@ -152,7 +157,10 @@ export class OrganizationMembersService {
     }
 
     const existingUser = await this.prisma.user.findFirst({
-      where: { email: { equals: normalizedEmail, mode: 'insensitive' }, deletedAt: null },
+      where: {
+        email: { equals: normalizedEmail, mode: 'insensitive' },
+        deletedAt: null,
+      },
     });
     if (existingUser) {
       return throwHttpException(
@@ -266,7 +274,9 @@ export class OrganizationMembersService {
     }
 
     if (!params.blocked) {
-      await this.organizationService.checkActiveUserLimit(params.organizationId);
+      await this.organizationService.checkActiveUserLimit(
+        params.organizationId,
+      );
     }
 
     const updated = await this.prisma.user.update({

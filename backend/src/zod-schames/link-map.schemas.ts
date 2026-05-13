@@ -48,7 +48,11 @@ export const CreateLinkMapSchema = z.object({
 });
 
 export const UpdateLinkMapSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(120, 'Name is too long').optional(),
+  name: z
+    .string()
+    .min(1, 'Name is required')
+    .max(120, 'Name is too long')
+    .optional(),
   caseSensitive: z.boolean().optional(),
   queryMatch: z.enum(QUERY_MATCH_VALUES).optional(),
   fallbackDestination: destinationSchema.nullable().optional(),
@@ -78,7 +82,10 @@ export const ListLinkMapEntriesQuerySchema = z.object({
   search: z.string().trim().max(1024).optional(),
   startAfterId: z
     .string()
-    .regex(getEntityIdRegex(AppEntity.LinkMapEntry), 'Invalid Link map entry ID')
+    .regex(
+      getEntityIdRegex(AppEntity.LinkMapEntry),
+      'Invalid Link map entry ID',
+    )
     .optional(),
 });
 
@@ -95,9 +102,12 @@ export const UpdateLinkMapEntrySchema = z
     key: linkMapEntryKeySchema.optional(),
     destination: destinationSchema.optional(),
   })
-  .refine((value) => value.key !== undefined || value.destination !== undefined, {
-    message: 'At least one field is required',
-  });
+  .refine(
+    (value) => value.key !== undefined || value.destination !== undefined,
+    {
+      message: 'At least one field is required',
+    },
+  );
 
 export const DeleteLinkMapEntriesByIdSchema = z.object({
   linkMapId: z
@@ -107,7 +117,10 @@ export const DeleteLinkMapEntriesByIdSchema = z.object({
     .array(
       z
         .string()
-        .regex(getEntityIdRegex(AppEntity.LinkMapEntry), 'Invalid Link map entry ID'),
+        .regex(
+          getEntityIdRegex(AppEntity.LinkMapEntry),
+          'Invalid Link map entry ID',
+        ),
     )
     .min(1)
     .max(1000),
@@ -123,11 +136,21 @@ export const ImportLinkMapEntriesSchema = z.object({
 export type CreateLinkMapDto = z.infer<typeof CreateLinkMapSchema>;
 export type UpdateLinkMapDto = z.infer<typeof UpdateLinkMapSchema>;
 export type ListLinkMapsQueryDto = z.infer<typeof ListLinkMapsQuerySchema>;
-export type UpsertLinkMapEntriesDto = z.infer<typeof UpsertLinkMapEntriesSchema>;
-export type DeleteLinkMapEntriesDto = z.infer<typeof DeleteLinkMapEntriesSchema>;
+export type UpsertLinkMapEntriesDto = z.infer<
+  typeof UpsertLinkMapEntriesSchema
+>;
+export type DeleteLinkMapEntriesDto = z.infer<
+  typeof DeleteLinkMapEntriesSchema
+>;
 export type LinkMapEntryDto = z.infer<typeof LinkMapEntrySchema>;
-export type ListLinkMapEntriesQueryDto = z.infer<typeof ListLinkMapEntriesQuerySchema>;
+export type ListLinkMapEntriesQueryDto = z.infer<
+  typeof ListLinkMapEntriesQuerySchema
+>;
 export type CreateLinkMapEntryDto = z.infer<typeof CreateLinkMapEntrySchema>;
 export type UpdateLinkMapEntryDto = z.infer<typeof UpdateLinkMapEntrySchema>;
-export type DeleteLinkMapEntriesByIdDto = z.infer<typeof DeleteLinkMapEntriesByIdSchema>;
-export type ImportLinkMapEntriesDto = z.infer<typeof ImportLinkMapEntriesSchema>;
+export type DeleteLinkMapEntriesByIdDto = z.infer<
+  typeof DeleteLinkMapEntriesByIdSchema
+>;
+export type ImportLinkMapEntriesDto = z.infer<
+  typeof ImportLinkMapEntriesSchema
+>;

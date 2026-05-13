@@ -102,6 +102,13 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     }
     return usage.domains >= this.limits().maxTotalDomains;
   });
+  readonly subdomainLimitReached = computed(() => {
+    const usage = this.usage();
+    if (!usage) {
+      return false;
+    }
+    return usage.subdomains >= this.limits().maxTotalSubdomains;
+  });
   readonly ruleLimitReached = computed(() => {
     const usage = this.usage();
     if (!usage) {
@@ -161,6 +168,9 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     }
     if (usage.domains > limits.maxTotalDomains) {
       details.push(`Domains ${usage.domains}/${limits.maxTotalDomains}`);
+    }
+    if (usage.subdomains > limits.maxTotalSubdomains) {
+      details.push(`Subdomains ${usage.subdomains}/${limits.maxTotalSubdomains}`);
     }
     if (usage.rules > limits.maxTotalRules) {
       details.push(`Rules ${usage.rules}/${limits.maxTotalRules}`);

@@ -7,8 +7,7 @@ export class LegalService {
   constructor(
     private readonly configService: ConfigService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   getLegalVersion(): string {
     return this.configService.get<string>('LEGAL_VERSION') ?? 'v1';
@@ -35,7 +34,11 @@ export class LegalService {
     ageConfirmedAt?: Date | string | null;
     legalVersion?: string | null;
   }): boolean {
-    if (!user.termsAcceptedAt || !user.privacyAcceptedAt || !user.ageConfirmedAt) {
+    if (
+      !user.termsAcceptedAt ||
+      !user.privacyAcceptedAt ||
+      !user.ageConfirmedAt
+    ) {
       return false;
     }
     const version = this.getLegalVersion();

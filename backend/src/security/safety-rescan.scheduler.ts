@@ -13,8 +13,7 @@ export class SafetyRescanScheduler {
     @InjectQueue(SAFETY_RESCAN_QUEUE)
     private readonly queue: Queue,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async enqueueTopRules(): Promise<void> {

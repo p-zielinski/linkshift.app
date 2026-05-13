@@ -21,6 +21,8 @@ export const ChangeSubscriptionSchema = z.object({
 
 export type ChangeSubscriptionDto = z.infer<typeof ChangeSubscriptionSchema>;
 
-export const PortalActionSchema = z.enum(['manage', 'cancel']).default('manage');
+export const PortalActionSchema = z
+  .enum(['manage', 'cancel'])
+  .default('manage');
 
 export type PortalAction = z.infer<typeof PortalActionSchema>;

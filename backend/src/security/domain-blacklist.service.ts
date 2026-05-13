@@ -8,8 +8,7 @@ export class DomainBlacklistService {
   constructor(
     private readonly redisService: RedisService,
     private readonly logger: Logger,
-  ) {
-  }
+  ) {}
 
   async isBlacklisted(domain: string): Promise<boolean> {
     const normalized = this.normalize(domain);

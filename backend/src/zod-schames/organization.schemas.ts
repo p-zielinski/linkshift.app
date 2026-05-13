@@ -9,4 +9,6 @@ export const OrganizationMemberStatusSchema = z.object({
 });
 
 export type OrganizationInviteDto = z.infer<typeof OrganizationInviteSchema>;
-export type OrganizationMemberStatusDto = z.infer<typeof OrganizationMemberStatusSchema>;
+export type OrganizationMemberStatusDto = z.infer<
+  typeof OrganizationMemberStatusSchema
+>;

@@ -9,6 +9,7 @@ import { JwtService } from './auth/jwt.service';
 import { AuthGuard } from './auth/auth.guard';
 import { DomainGroupsController } from './api/domain-groups.controller';
 import { DomainsController } from './api/domains.controller';
+import { SubdomainsController } from './api/subdomains.controller';
 import { RedirectRulesController } from './api/redirect-rules.controller';
 import { AuthController } from './api/auth.controller';
 import { BillingController } from './api/billing.controller';
@@ -42,6 +43,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { DestinationExtractorService } from './security/destination-extractor.service';
 import { SafetyScannerService } from './security/safety-scanner.service';
 import { DomainBlacklistService } from './security/domain-blacklist.service';
+import { SubdomainBlacklistService } from './security/subdomain-blacklist.service';
 import { RedirectAnalyticsService } from './security/redirect-analytics.service';
 import { SafetyRescanScheduler } from './security/safety-rescan.scheduler';
 import { SafetyRescanProcessor } from './security/safety-rescan.processor';
@@ -139,6 +141,7 @@ import { ApiKeyService } from './api-key/api-key.service';
     AppController,
     DomainGroupsController,
     DomainsController,
+    SubdomainsController,
     RedirectRulesController,
     LinkMapsController,
     LinkMapEntriesController,
@@ -174,6 +177,7 @@ import { ApiKeyService } from './api-key/api-key.service';
     DestinationExtractorService,
     SafetyScannerService,
     DomainBlacklistService,
+    SubdomainBlacklistService,
     RedirectAnalyticsService,
     RedirectAnalyticsRetentionService,
     LinkMapService,

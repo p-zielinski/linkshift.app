@@ -37,6 +37,13 @@ www.{$FRONTEND_HOST} {
   }
 }
 
+*.{$FRONTEND_HOST} {
+  tls {
+    dns cloudflare {$CLOUDFLARE_API_TOKEN}
+  }
+  reverse_proxy linkshift-app_backend:3000
+}
+
 https:// {
   tls {
     on_demand
