@@ -31,11 +31,16 @@ jobs:
         env:
           DOZZLE_TOOLS_USERS_YML: ${{ secrets.DOZZLE_TOOLS_USERS_YML }}
         run: |
+          mkdir -p ./config
           if [ -z "$DOZZLE_TOOLS_USERS_YML" ]; then
             echo "Missing required GitHub secret: DOZZLE_TOOLS_USERS_YML" >&2
             exit 1
           fi
           printf '%s\n' "$DOZZLE_TOOLS_USERS_YML" > ./config/dozzle.tools.users.yml
+          if [ ! -s ./config/dozzle.tools.users.yml ]; then
+            echo "Generated ./config/dozzle.tools.users.yml is empty" >&2
+            exit 1
+          fi
 
       - name: Deploy tools infra stack (Attempt 1)
         id: deploy_attempt_1
