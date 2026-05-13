@@ -75,7 +75,7 @@ services:
       DOZZLE_LEVEL: info
       DOZZLE_AUTH_PROVIDER: simple
     configs:
-      - source: dozzle_tools_users_v2
+      - source: dozzle_tools_users
         target: /data/users.yml
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -114,7 +114,8 @@ volumes:
 configs:
   caddyfile_tools_v1:
     file: ./config/Caddyfile.tools
-  dozzle_tools_users_v2:
+  dozzle_tools_users:
+    name: ${TOOLS_INFRA_STACK_NAME:-linkshift-tools-infra}_dozzle_tools_users_${CONFIG_VERSION:-local}
     file: ./config/dozzle.tools.users.yml
 
 secrets:

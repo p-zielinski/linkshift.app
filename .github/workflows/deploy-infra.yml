@@ -24,7 +24,8 @@ jobs:
         run: |
           cat <<EOF > ./stack.env
           ${{ secrets.STACK_ENV }}
-          GIT_COMMIT_HASH=${{ github.sha }}
+          GIT_COMMIT_HASH=${GITHUB_SHA}
+          CONFIG_VERSION=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}
           EOF
 
       - name: Create Dozzle users config
