@@ -29,6 +29,7 @@ import { ResourceTableCardComponent } from '../../shared/components/resource-tab
 import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
 import { TestsTableComponent } from './components/tests-table/tests-table.component';
 import { WizardDialogService } from '../../core/services/wizard-dialog.service';
+import { DomainGroupFilterPersistenceService } from '../../core/services/domain-group-filter-persistence.service';
 
 @Component({
   selector: 'app-tests-page',
@@ -60,6 +61,7 @@ export class TestsPageComponent {
   private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly redirectRulesApi = inject(RedirectRulesApiService);
+  private readonly domainGroupFilterPersistence = inject(DomainGroupFilterPersistenceService);
 
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly pageLimitOptions = [100];
@@ -132,6 +134,8 @@ export class TestsPageComponent {
       this.domainGroupStore.searchList();
     }
 
+    this.domainGroupFilterPersistence.bind(this.filterModel, this.domainGroups);
+
     effect(() => {
       this.baseFilter();
       this.page.set(1);
@@ -161,27 +165,6 @@ export class TestsPageComponent {
         }
         return { ...cursors, [nextPage]: nextCursor };
       });
-    });
-
-    effect(() => {
-      const groups = this.domainGroups();
-      const current = this.activeGroupId();
-      const hasCurrent = groups.some((group) => group.id === current);
-
-      if (!current && groups.length === 1) {
-        this.filterModel.update((model) => ({
-          ...model,
-          domainGroupId: groups[0].id,
-        }));
-        return;
-      }
-
-      if (current && !hasCurrent) {
-        this.filterModel.update((model) => ({
-          ...model,
-          domainGroupId: groups.length === 1 ? groups[0].id : '',
-        }));
-      }
     });
 
     effect(() => {

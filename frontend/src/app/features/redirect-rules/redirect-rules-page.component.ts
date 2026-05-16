@@ -51,6 +51,7 @@ import {
   RedirectTestsSummaryCardComponent,
 } from './components/redirect-tests-summary-card/redirect-tests-summary-card.component';
 import { WizardDialogService } from '../../core/services/wizard-dialog.service';
+import { DomainGroupFilterPersistenceService } from '../../core/services/domain-group-filter-persistence.service';
 
 @Component({
   selector: 'app-redirect-rules-page',
@@ -84,6 +85,7 @@ export class RedirectRulesPageComponent {
   private readonly redirectTestStore = inject(RedirectTestStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly envInjector = inject(EnvironmentInjector);
+  private readonly domainGroupFilterPersistence = inject(DomainGroupFilterPersistenceService);
 
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly pageLimitOptions = [20];
@@ -211,6 +213,8 @@ export class RedirectRulesPageComponent {
       this.domainGroupStore.searchList();
     }
 
+    this.domainGroupFilterPersistence.bind(this.filterModel, this.domainGroups);
+
     effect(() => {
       this.baseFilter();
       this.page.set(1);
@@ -256,27 +260,6 @@ export class RedirectRulesPageComponent {
         }
         return { ...cursors, [nextPage]: nextCursor };
       });
-    });
-
-    effect(() => {
-      const groups = this.domainGroups();
-      const current = this.activeGroupId();
-      const hasCurrent = groups.some((group) => group.id === current);
-
-      if (!current && groups.length === 1) {
-        this.filterModel.update((model) => ({
-          ...model,
-          domainGroupId: groups[0].id
-        }));
-        return;
-      }
-
-      if (current && !hasCurrent) {
-        this.filterModel.update((model) => ({
-          ...model,
-          domainGroupId: groups.length === 1 ? groups[0].id : ''
-        }));
-      }
     });
 
     effect(() => {

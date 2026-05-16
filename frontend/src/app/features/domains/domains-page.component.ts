@@ -18,6 +18,7 @@ import { ResourceTableCardComponent } from '../../shared/components/resource-tab
 import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
 import { DomainsTableComponent } from './components/domains-table/domains-table.component';
 import { WizardDialogService } from '../../core/services/wizard-dialog.service';
+import { DomainGroupFilterPersistenceService } from '../../core/services/domain-group-filter-persistence.service';
 
 @Component({
   selector: 'app-domains-page',
@@ -43,6 +44,7 @@ export class DomainsPageComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly domainStore = inject(DomainStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly domainGroupFilterPersistence = inject(DomainGroupFilterPersistenceService);
 
   readonly domains = this.domainStore.selectList();
   readonly domainGroups = this.domainGroupStore.selectList();
@@ -90,6 +92,8 @@ export class DomainsPageComponent {
       this.domainGroupStore.searchList();
     }
 
+    this.domainGroupFilterPersistence.bind(this.filterModel, this.domainGroups);
+
     effect(() => {
       const error = this.domainStore.lastError();
       if (error) {
@@ -110,26 +114,6 @@ export class DomainsPageComponent {
       this.page.set(1);
     });
 
-    effect(() => {
-      const groups = this.domainGroups();
-      const current = this.activeGroupId();
-      const hasCurrent = groups.some((group) => group.id === current);
-
-      if (!current && groups.length === 1) {
-        this.filterModel.update((model) => ({
-          ...model,
-          domainGroupId: groups[0].id
-        }));
-        return;
-      }
-
-      if (current && !hasCurrent) {
-        this.filterModel.update((model) => ({
-          ...model,
-          domainGroupId: groups.length === 1 ? groups[0].id : ''
-        }));
-      }
-    });
   }
 
   openCreateDialog(): void {
