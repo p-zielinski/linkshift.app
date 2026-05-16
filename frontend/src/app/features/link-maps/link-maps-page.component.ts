@@ -16,6 +16,7 @@ import { ResourceTableCardComponent } from '../../shared/components/resource-tab
 import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
 import { LinkMapsTableComponent } from './components/link-maps-table/link-maps-table.component';
 import { WizardDialogService } from '../../core/services/wizard-dialog.service';
+import { DomainGroupFilterPersistenceService } from '../../core/services/domain-group-filter-persistence.service';
 
 @Component({
   selector: 'app-link-maps-page',
@@ -40,6 +41,7 @@ export class LinkMapsPageComponent {
   private readonly wizardDialog = inject(WizardDialogService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
+  private readonly domainGroupFilterPersistence = inject(DomainGroupFilterPersistenceService);
 
   readonly domainGroups = this.domainGroupStore.selectList();
 
@@ -73,6 +75,7 @@ export class LinkMapsPageComponent {
 
   constructor() {
     this.domainGroupStore.searchList();
+    this.domainGroupFilterPersistence.bind(this.filterModel, this.domainGroups);
 
     effect(() => {
       const pendingId = this.pendingDeleteId();
@@ -105,16 +108,6 @@ export class LinkMapsPageComponent {
       }
 
       this.snackBar.open('Link map deleted.', 'Dismiss', { duration: 3000 });
-    });
-
-    effect(() => {
-      const groups = this.domainGroups();
-      if (groups.length === 1 && !this.filterModel().domainGroupId) {
-        this.filterModel.update((model) => ({
-          ...model,
-          domainGroupId: groups[0].id,
-        }));
-      }
     });
 
     effect(() => {
