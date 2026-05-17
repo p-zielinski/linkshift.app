@@ -1,21 +1,33 @@
 import { z } from 'zod';
 
+const EMAIL_MAX_LENGTH = 254;
+const ORGANIZATION_NAME_MAX_LENGTH = 50;
+const emailSchema = z
+  .email('Invalid email address')
+  .max(EMAIL_MAX_LENGTH, `Email must be at most ${EMAIL_MAX_LENGTH} characters`);
+
 const RegisterBaseSchema = z.object({
-  email: z.email('Invalid email address'),
+  email: emailSchema,
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  organizationName: z.string().min(1, 'Organization name is required'),
+  organizationName: z
+    .string()
+    .min(1, 'Organization name is required')
+    .max(
+      ORGANIZATION_NAME_MAX_LENGTH,
+      `Organization name must be at most ${ORGANIZATION_NAME_MAX_LENGTH} characters`,
+    ),
   plan: z.enum(['FREE', 'BASIC', 'PRO']).optional(),
   billingInterval: z.enum(['MONTHLY', 'YEARLY']).optional(),
 });
 
 export const LoginSchema = z.object({
-  email: z.email('Invalid email address'),
+  email: emailSchema,
   password: z.string().min(1, 'Password is required'),
 });
 
 const InviteRegisterBaseSchema = z.object({
   token: z.string().min(1, 'Invite token is required'),
-  email: z.email('Invalid email address'),
+  email: emailSchema,
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
@@ -24,11 +36,11 @@ export const EmailVerificationSchema = z.object({
 });
 
 export const ResendVerificationSchema = z.object({
-  email: z.email('Invalid email address').optional(),
+  email: emailSchema.optional(),
 });
 
 export const PasswordResetRequestSchema = z.object({
-  email: z.email('Invalid email address'),
+  email: emailSchema,
 });
 
 export const PasswordResetConfirmSchema = z.object({
@@ -37,7 +49,7 @@ export const PasswordResetConfirmSchema = z.object({
 });
 
 export const EmailChangeRequestSchema = z.object({
-  newEmail: z.email('Invalid email address'),
+  newEmail: emailSchema,
 });
 
 export const EmailChangeConfirmSchema = z.object({
