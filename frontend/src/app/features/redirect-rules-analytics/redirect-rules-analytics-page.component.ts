@@ -226,15 +226,24 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
 
     effect(() => {
       const activeGroupId = this.activeGroupId();
+      const hasAppliedRange =
+        Boolean(this.toIsoString(this.rangeStart())) &&
+        Boolean(this.toIsoString(this.rangeEnd()));
+
       if (this.previousActiveGroupId === null) {
         this.previousActiveGroupId = activeGroupId;
+        if (hasAppliedRange && !!activeGroupId) {
+          this.fetchAnalytics();
+        }
         return;
       }
       if (activeGroupId === this.previousActiveGroupId) {
         return;
       }
       this.previousActiveGroupId = activeGroupId;
-      this.fetchAnalytics();
+      if (hasAppliedRange) {
+        this.fetchAnalytics();
+      }
     });
   }
 
