@@ -1232,6 +1232,7 @@ export class RedirectService {
       range.start,
       range.end,
       boundedLimit,
+      query.domainGroupId,
     );
 
     const ruleIds = topHits.map((entry) => entry.ruleId);
@@ -1247,6 +1248,9 @@ export class RedirectService {
             deletedAt: null,
             isBlocked: false,
             domainGroup: { organizationId, deletedAt: null },
+            ...(query.domainGroupId
+              ? { domainGroupId: query.domainGroupId }
+              : {}),
           },
         }),
         this.fetchTopLinkMapKeysByRule(
@@ -1296,19 +1300,29 @@ export class RedirectService {
     start: Date,
     end: Date,
     limit: number,
+    domainGroupId?: string,
   ): Promise<Array<{ ruleId: string; hits: number }>> {
     const rows = await this.prisma.$queryRaw<
       Array<{ ruleId: string; hits: bigint | number | string }>
     >(Prisma.sql`
       SELECT
-        "ruleId",
-        SUM("hits")::bigint AS "hits"
-      FROM "RedirectRuleHitBreakdownHourly"
-      WHERE "organizationId" = ${organizationId}
-        AND "bucketStart" >= ${start}
-        AND "bucketStart" <= ${end}
-      GROUP BY "ruleId"
-      ORDER BY SUM("hits") DESC, "ruleId" ASC
+        "breakdown"."ruleId",
+        SUM("breakdown"."hits")::bigint AS "hits"
+      FROM "RedirectRuleHitBreakdownHourly" AS "breakdown"
+      INNER JOIN "RedirectRule" AS "rule"
+        ON "rule"."id" = "breakdown"."ruleId"
+      WHERE "breakdown"."organizationId" = ${organizationId}
+        AND "breakdown"."bucketStart" >= ${start}
+        AND "breakdown"."bucketStart" <= ${end}
+        AND "rule"."deletedAt" IS NULL
+        AND "rule"."isBlocked" = false
+        ${
+          domainGroupId
+            ? Prisma.sql`AND "rule"."domainGroupId" = ${domainGroupId}`
+            : Prisma.empty
+        }
+      GROUP BY "breakdown"."ruleId"
+      ORDER BY SUM("breakdown"."hits") DESC, "breakdown"."ruleId" ASC
       LIMIT ${limit}
     `);
 

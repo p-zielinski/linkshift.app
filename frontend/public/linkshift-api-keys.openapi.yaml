@@ -530,6 +530,12 @@ paths:
           schema:
             type: string
             enum: [day, week, month]
+        - name: domainGroupId
+          in: query
+          required: false
+          description: Limit analytics to a specific domain group.
+          schema:
+            type: string
         - name: start
           in: query
           required: false

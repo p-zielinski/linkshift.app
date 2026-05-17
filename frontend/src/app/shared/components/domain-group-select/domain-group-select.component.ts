@@ -19,5 +19,5 @@ export class DomainGroupSelectComponent {
   readonly allOptionLabel = input('All domain groups');
   readonly allOptionValue = input('');
   readonly groups = input<DomainGroupOption[]>([]);
-  readonly formField = input.required<FieldTree<string, string>>();
+  readonly formField = input<FieldTree<string, string> | null>(null);
 }

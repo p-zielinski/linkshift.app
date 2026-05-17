@@ -347,6 +347,40 @@ describe('RedirectService', () => {
         }),
       ).rejects.toBeInstanceOf(HttpException);
     });
+
+    it('should scope analytics by domainGroupId when provided', async () => {
+      (prisma.$queryRaw as jest.Mock)
+        .mockResolvedValueOnce([{ ruleId: 'rule-1', hits: BigInt(8) }])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      (prisma.redirectRule.findMany as jest.Mock).mockResolvedValue([
+        { id: 'rule-1', domainGroupId: 'dmg_scope_1' },
+      ]);
+
+      const result = await service.getTopRules('org-1', {
+        limit: 10,
+        start: new Date('2026-02-10T00:00:00Z'),
+        end: new Date('2026-02-10T23:00:00Z'),
+        domainGroupId: 'dmg_scope_1',
+      });
+
+      expect(prisma.redirectRule.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            domainGroupId: 'dmg_scope_1',
+          }),
+        }),
+      );
+      expect(result.data).toEqual([
+        {
+          rule: { id: 'rule-1', domainGroupId: 'dmg_scope_1' },
+          hits: 8,
+          topLinkMapKeys: [],
+          topRequestVariants: [],
+        },
+      ]);
+    });
   });
 
   describe('Standard Rules Scenarios', () => {

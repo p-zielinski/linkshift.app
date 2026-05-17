@@ -44,6 +44,7 @@ Rule matching supports:
 1. Create or update rules via API.
 2. Use `/simulate` before rollout for CI/CD safety gates.
 3. Read analytics (`/analytics`) to detect unexpected traffic patterns.
+   - Use `domainGroupId` query parameter to scope analytics to one group.
 
 ## Example: Create rule with explicit method and query behavior
 

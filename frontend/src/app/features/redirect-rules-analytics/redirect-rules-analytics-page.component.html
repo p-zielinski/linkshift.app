@@ -14,6 +14,14 @@
       </span>
     </div>
 
+    <div class="mb-4 grid gap-4">
+      <app-domain-group-select
+        [groups]="domainGroups()"
+        [formField]="filterForm.domainGroupId"
+        [includeAllOption]="true"
+      />
+    </div>
+
     <app-redirect-rules-analytics-filters
       [quickRanges]="quickRanges"
       [rangeStart]="rangeStart()"

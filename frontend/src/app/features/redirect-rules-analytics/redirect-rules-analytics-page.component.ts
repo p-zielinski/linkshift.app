@@ -1,7 +1,16 @@
-import { Component, OnInit, computed, signal, inject, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  computed,
+  signal,
+  inject,
+  PLATFORM_ID,
+  effect,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import type { RedirectRuleAnalyticsQuery, TopRedirectRuleEntry } from '../../core/models/redirect-rule.model';
+import { form } from '@angular/forms/signals';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { RuleAnalyticsDialogComponent } from '../dashboard/rule-analytics-dialog.component';
 import {
@@ -23,8 +32,11 @@ import { RedirectRulesAnalyticsResultsComponent } from './components/redirect-ru
 import { RedirectRulesAnalyticsStore } from '../../core/store/redirect-rules-analytics.store';
 import { getFilterKey } from '../../core/store/entity/entity-store.utils';
 import { AuthStore } from '../../core/store/auth.store';
+import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { OrganizationConfiguration } from '@shared/models/organization-config.model';
 import { UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
+import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
+import { DomainGroupFilterPersistenceService } from '../../core/services/domain-group-filter-persistence.service';
 
 const ANALYTICS_CHART_HEIGHT = 400;
 
@@ -35,6 +47,7 @@ const ANALYTICS_CHART_HEIGHT = 400;
     CommonModule,
     MatDialogModule,
     PageHeaderComponent,
+    DomainGroupSelectComponent,
     RedirectRulesAnalyticsFiltersComponent,
     RedirectRulesAnalyticsResultsComponent,
   ],
@@ -45,10 +58,14 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly analyticsStore = inject(RedirectRulesAnalyticsStore);
   private readonly authStore = inject(AuthStore);
+  private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly domainGroupFilterPersistence = inject(DomainGroupFilterPersistenceService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
+  private previousActiveGroupId: string | null = null;
 
   readonly chartHeight = ANALYTICS_CHART_HEIGHT;
+  readonly domainGroups = this.domainGroupStore.selectList();
   readonly chartTheme = signal({
     base: '#c03762',
     strong: '#8f2045',
@@ -57,6 +74,11 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
   readonly rangeError = signal<string | null>(null);
   readonly rangeStart = signal<string>('');
   readonly rangeEnd = signal<string>('');
+  readonly filterModel = signal({
+    domainGroupId: '',
+  });
+  readonly filterForm = form(this.filterModel, () => {});
+  readonly activeGroupId = computed(() => this.filterModel().domainGroupId);
   readonly quickRanges: AnalyticsQuickRange[] = [
     { label: 'Last 3 days', days: 3 },
     { label: 'Last 7 days', days: 7 },
@@ -76,10 +98,16 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
   readonly analyticsQuery = computed<RedirectRuleAnalyticsQuery | null>(() => {
     const start = this.toIsoString(this.rangeStart());
     const end = this.toIsoString(this.rangeEnd());
+    const domainGroupId = this.activeGroupId();
     if (!start || !end) {
       return null;
     }
-    return { start, end, limit: 50 };
+    return {
+      start,
+      end,
+      limit: 50,
+      ...(domainGroupId ? { domainGroupId } : {}),
+    };
   });
 
   readonly analyticsKey = computed(() => {
@@ -188,6 +216,27 @@ export class RedirectRulesAnalyticsPageComponent implements OnInit {
       },
     },
   }));
+
+  constructor() {
+    if (this.authStore.isAuthenticated()) {
+      this.domainGroupStore.searchList();
+    }
+
+    this.domainGroupFilterPersistence.bind(this.filterModel, this.domainGroups);
+
+    effect(() => {
+      const activeGroupId = this.activeGroupId();
+      if (this.previousActiveGroupId === null) {
+        this.previousActiveGroupId = activeGroupId;
+        return;
+      }
+      if (activeGroupId === this.previousActiveGroupId) {
+        return;
+      }
+      this.previousActiveGroupId = activeGroupId;
+      this.fetchAnalytics();
+    });
+  }
 
   ngOnInit(): void {
     if (this.isBrowser) {
