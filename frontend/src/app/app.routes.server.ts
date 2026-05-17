@@ -15,6 +15,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'subdomains', renderMode: RenderMode.Client },
   { path: 'domain-groups', renderMode: RenderMode.Client },
   { path: 'redirect-rules', renderMode: RenderMode.Client },
+  { path: 'redirect-rules-analytics', renderMode: RenderMode.Client },
   { path: 'tests', renderMode: RenderMode.Client },
   { path: 'link-maps', renderMode: RenderMode.Client },
   { path: 'link-maps/:id', renderMode: RenderMode.Client },

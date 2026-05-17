@@ -59,6 +59,7 @@ export type RedirectRuleAnalyticsQuery = {
   start?: string;
   end?: string;
   limit?: number;
+  domainGroupId?: string;
 };
 
 export type TopRedirectRuleEntry = {

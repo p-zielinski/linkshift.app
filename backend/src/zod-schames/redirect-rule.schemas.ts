@@ -164,6 +164,10 @@ export const TopRedirectRulesQuerySchema = z
     range: RangeEnum.optional(),
     start: CoercedDateSchema.optional(),
     end: CoercedDateSchema.optional(),
+    domainGroupId: z
+      .string()
+      .regex(getEntityIdRegex(AppEntity.DomainGroup), 'Invalid Domain Group ID')
+      .optional(),
   })
   .superRefine((value, ctx) => {
     const hasStart = Boolean(value.start);

@@ -234,6 +234,44 @@ describe('RedirectRulesController', () => {
     });
   });
 
+  describe('topRules', () => {
+    it('should forward analytics query with domainGroupId', async () => {
+      const organizationId = 'org-1';
+      const query: redirectRuleSchemas.TopRedirectRulesQueryDto = {
+        limit: 25,
+        start: new Date('2026-05-10T00:00:00.000Z'),
+        end: new Date('2026-05-11T00:00:00.000Z'),
+        domainGroupId: 'dmg_analytics_123',
+      };
+      const analyticsResponse = { data: [] };
+
+      mockRedirectService.getTopRules.mockResolvedValue(analyticsResponse);
+
+      const result = await controller.topRules(organizationId, query);
+
+      expect(mockRedirectService.getTopRules).toHaveBeenCalledWith(
+        organizationId,
+        query,
+      );
+      expect(result).toEqual(analyticsResponse);
+    });
+
+    it('should use default analytics query when query is missing', async () => {
+      const organizationId = 'org-1';
+      const analyticsResponse = { data: [] };
+
+      mockRedirectService.getTopRules.mockResolvedValue(analyticsResponse);
+
+      const result = await controller.topRules(organizationId, undefined);
+
+      expect(mockRedirectService.getTopRules).toHaveBeenCalledWith(
+        organizationId,
+        { limit: 50 },
+      );
+      expect(result).toEqual(analyticsResponse);
+    });
+  });
+
   describe('delete', () => {
     it('should delete a rule', async () => {
       const organizationId = 'org-1';

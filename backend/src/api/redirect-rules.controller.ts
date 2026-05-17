@@ -63,6 +63,7 @@ export class RedirectRulesController {
       range: query?.range ?? 'day',
       start: query?.start?.toISOString?.(),
       end: query?.end?.toISOString?.(),
+      domainGroupId: query?.domainGroupId,
     });
 
     return this.redirectService.getTopRules(

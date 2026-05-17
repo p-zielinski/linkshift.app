@@ -1,11 +1,13 @@
 <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
   <mat-label>{{ label() }}</mat-label>
-  <mat-select [formField]="formField()">
-    @if (includeAllOption() && groups().length > 1) {
-      <mat-option [value]="allOptionValue()">{{ allOptionLabel() }}</mat-option>
-    }
-    @for (group of groups(); track group.id) {
-      <mat-option [value]="group.id">{{ group.name }}</mat-option>
-    }
-  </mat-select>
+  @if (formField(); as field) {
+    <mat-select [formField]="field">
+      @if (includeAllOption() && groups().length > 1) {
+        <mat-option [value]="allOptionValue()">{{ allOptionLabel() }}</mat-option>
+      }
+      @for (group of groups(); track group.id) {
+        <mat-option [value]="group.id">{{ group.name }}</mat-option>
+      }
+    </mat-select>
+  }
 </mat-form-field>
