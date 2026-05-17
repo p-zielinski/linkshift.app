@@ -12,7 +12,11 @@ import { AuthApiService } from '../../core/api/auth-api.service';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { firstValueFrom } from 'rxjs';
 
-const emailSchema = z.string().email('Invalid email address');
+const EMAIL_MAX_LENGTH = 254;
+const emailSchema = z
+  .string()
+  .email('Invalid email address')
+  .max(EMAIL_MAX_LENGTH, `Email must be at most ${EMAIL_MAX_LENGTH} characters`);
 
 @Component({
   selector: 'app-reset-password-page',
