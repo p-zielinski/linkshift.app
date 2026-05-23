@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { APP_CONFIG } from '../../../../core/config/app-runtime-config';
 import { DomainGroupStore } from '../../../../core/store/domain-group.store';
@@ -23,7 +22,6 @@ export type DashboardOnboardingDialogResult = {
   imports: [
     CommonModule,
     MatIconModule,
-    RouterLink,
     WizardComponent,
     WizardStepDirective,
     WizardStepSummaryDirective,
