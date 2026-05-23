@@ -9,6 +9,10 @@ jest.mock('nanoid', () => ({
 
 type AuthServicePrivate = AuthService & {
   normalizeOrganizationNameForSubdomain(value: string): string;
+  resolveOrganizationName(
+    providedOrganizationName: string | undefined,
+    normalizedEmail: string,
+  ): string;
   resolveInitialSubdomainName(
     tx: {
       linkShiftSubdomain: {
@@ -68,6 +72,27 @@ describe('AuthService - starter subdomain normalization', () => {
   it('falls back to default value when input has no allowed characters', () => {
     const normalized = service.normalizeOrganizationNameForSubdomain('🔥🔥🔥');
     expect(normalized).toBe('org');
+  });
+
+  it('uses provided organization name when available', () => {
+    const resolved = service.resolveOrganizationName(
+      'Acme Team',
+      'owner@example.com',
+    );
+    expect(resolved).toBe('Acme Team');
+  });
+
+  it('derives organization name from email prefix when missing', () => {
+    const resolved = service.resolveOrganizationName(
+      undefined,
+      'john.doe+dev@example.com',
+    );
+    expect(resolved).toBe('john-doe-dev');
+  });
+
+  it('falls back to default organization name when email prefix has no letters', () => {
+    const resolved = service.resolveOrganizationName(undefined, '12345@example.com');
+    expect(resolved).toBe('Organization');
   });
 
   it('uses fallback with random 10-char suffix when base name is unavailable', async () => {

@@ -89,7 +89,6 @@ export class AuthPageComponent {
   });
 
   registerForm = form(this.registerModel, (f) => {
-    required(f.organizationName);
     required(f.email);
     required(f.password);
     required(f.confirmPassword);
@@ -213,7 +212,12 @@ export class AuthPageComponent {
   async onRegister(event?: Event): Promise<void> {
     event?.preventDefault();
     await submit(this.registerForm, async (formValue) => {
-      const { confirmPassword: _confirmPassword, ...payload } = formValue().value();
+      const { confirmPassword: _confirmPassword, ...rawPayload } = formValue().value();
+      const trimmedOrganizationName = rawPayload.organizationName.trim();
+      const payload = {
+        ...rawPayload,
+        organizationName: trimmedOrganizationName || undefined,
+      };
       try {
         await firstValueFrom(this.authStore.register(payload));
       } catch {

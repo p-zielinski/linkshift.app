@@ -1,0 +1,154 @@
+<app-wizard
+  [title]="title()"
+  subtitle="We prepared this short walkthrough to help you get value quickly."
+  [steps]="steps()"
+  saveLabel="Confirm and continue"
+  cancelLabel="Skip for now"
+  (save)="onConfirm()"
+  (cancel)="onSkip()"
+>
+  <ng-template wizardStepSummary="welcome">
+    <div>4 short steps</div>
+  </ng-template>
+
+  <ng-template wizardStepSummary="domains">
+    <div>{{ domainGroups().length }} group(s)</div>
+    <div>{{ subdomains().length }} subdomain(s)</div>
+  </ng-template>
+
+  <ng-template wizardStepSummary="rules">
+    <div>Group -> host -> rule -> link map</div>
+  </ng-template>
+
+  <ng-template wizardStepSummary="next">
+    <div>Recommended setup checklist</div>
+  </ng-template>
+
+  <ng-template wizardStep="welcome">
+    <div class="grid gap-4">
+      <div class="rounded-[16px] border border-app-border-soft bg-app-accent-soft p-4">
+        <div class="flex items-start gap-3">
+          <mat-icon class="mt-0.5 text-app-accent-strong">celebration</mat-icon>
+          <div class="grid gap-1">
+            <div class="text-base font-semibold">Great to have you here.</div>
+            <div class="text-sm text-app-muted">
+              LinkShift routes requests through clearly scoped resources, so your redirects stay
+              predictable and easy to maintain.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-4">
+          <div class="text-sm font-semibold">Core concept</div>
+          <div class="mt-2 text-sm text-app-muted">
+            You define where traffic comes from and where it should go.
+          </div>
+        </div>
+        <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-4">
+          <div class="text-sm font-semibold">Why groups exist</div>
+          <div class="mt-2 text-sm text-app-muted">
+            Domain groups keep related hosts and rules together in one place.
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template wizardStep="domains">
+    <div class="grid gap-4">
+      <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+        <div class="text-sm font-semibold">Current domain groups</div>
+        @if (domainGroupPreview().length > 0) {
+          <div class="mt-3 grid gap-2">
+            @for (group of domainGroupPreview(); track group.id) {
+              <div
+                class="flex items-center justify-between gap-2 rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm"
+              >
+                <span class="font-medium">{{ group.name }}</span>
+                <span class="text-xs text-app-muted">{{ group.id }}</span>
+              </div>
+            }
+            @if (domainGroupOverflow() > 0) {
+              <div class="text-xs text-app-muted">+{{ domainGroupOverflow() }} more group(s)</div>
+            }
+          </div>
+        } @else {
+          <div class="mt-2 text-sm text-app-muted">
+            No groups loaded yet. Your starter group is created during registration and should appear
+            after refresh.
+          </div>
+        }
+      </div>
+
+      <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+        <div class="text-sm font-semibold">Starter subdomains</div>
+        @if (subdomainPreview().length > 0) {
+          <div class="mt-3 grid gap-2">
+            @for (subdomain of subdomainPreview(); track subdomain.id) {
+              <div
+                class="flex items-center justify-between gap-2 rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm"
+              >
+                <span class="font-medium">{{ formatSubdomainHost(subdomain.name) }}</span>
+                <span class="text-xs text-app-muted">{{ subdomain.id }}</span>
+              </div>
+            }
+            @if (subdomainOverflow() > 0) {
+              <div class="text-xs text-app-muted">
+                +{{ subdomainOverflow() }} more subdomain(s)
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="mt-2 text-sm text-app-muted">
+            No subdomains loaded yet. A starter subdomain is generated from organization setup.
+          </div>
+        }
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template wizardStep="rules">
+    <div class="grid gap-4">
+      <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+        <div class="text-sm font-semibold">Hierarchy at a glance</div>
+        <div class="mt-3 grid gap-2 text-sm text-app-muted">
+          <div><span class="font-semibold text-app-text">1.</span> Domain group scopes your setup.</div>
+          <div><span class="font-semibold text-app-text">2.</span> Domains/subdomains receive traffic.</div>
+          <div><span class="font-semibold text-app-text">3.</span> Redirect rules match request paths.</div>
+          <div>
+            <span class="font-semibold text-app-text">4.</span> Link maps (shortlinks) plug into a
+            redirect rule path.
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-[16px] border border-app-border-soft bg-app-accent-soft p-4 text-sm">
+        <div class="font-semibold">Short example</div>
+        <div class="mt-2 text-app-muted">
+          Create a rule for <span class="font-mono">/go</span>, then connect a link map.
+          <span class="font-mono">/go/docs</span> can resolve to a dynamic destination from that map.
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template wizardStep="next">
+    <div class="grid gap-4">
+      <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+        <div class="text-sm font-semibold">Recommended first actions</div>
+        <div class="mt-3 grid gap-2 text-sm text-app-muted">
+          <div>Review domain groups and rename if needed.</div>
+          <div>Confirm your starter subdomain or attach a custom domain.</div>
+          <div>Create your first redirect rule and test it immediately.</div>
+        </div>
+      </div>
+
+      <div class="rounded-[14px] bg-app-muted/10 px-4 py-3 text-sm text-app-muted">
+        You can skip now and return later. Confirming this wizard hides it automatically for this
+        account on future dashboard visits.
+      </div>
+    </div>
+  </ng-template>
+</app-wizard>
