@@ -66,14 +66,6 @@
         <mat-tab label="Register">
           <form class="grid gap-4" (submit)="onRegister($event)">
             <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Organization name</mat-label>
-              <input matInput type="text" [formField]="registerForm.organizationName" />
-              @if (registerOrgError(); as error) {
-                <mat-error>{{ error }}</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="w-full">
               <mat-label>Email</mat-label>
               <input matInput type="email" [formField]="registerForm.email" />
               @if (registerEmailError(); as error) {
@@ -93,6 +85,17 @@
               <mat-label>Confirm password</mat-label>
               <input matInput type="password" [formField]="registerForm.confirmPassword" />
               @if (registerConfirmError(); as error) {
+                <mat-error>{{ error }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Organization name (optional)</mat-label>
+              <input matInput type="text" [formField]="registerForm.organizationName" />
+              <mat-hint>
+                Leave empty to use your email prefix as the initial organization name.
+              </mat-hint>
+              @if (registerOrgError(); as error) {
                 <mat-error>{{ error }}</mat-error>
               }
             </mat-form-field>

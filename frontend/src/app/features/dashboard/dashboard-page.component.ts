@@ -35,7 +35,19 @@ import { OrganizationUsageStore } from '../../core/store/organization-usage.stor
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { formatPlanLabel } from '../../core/utils/plan-label';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { DEFAULT_PLAN_LIMITS, UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
+import { UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
+import { WizardDialogService } from '../../core/services/wizard-dialog.service';
+import { DomainGroupStore } from '../../core/store/domain-group.store';
+import { SubdomainStore } from '../../core/store/subdomain.store';
+import {
+  DashboardOnboardingDialogComponent,
+  type DashboardOnboardingDialogResult,
+} from './components/dashboard-onboarding-dialog/dashboard-onboarding-dialog.component';
+
+const DASHBOARD_ONBOARDING_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const DASHBOARD_ONBOARDING_STORAGE_KEY = 'dashboard-onboarding-confirmed';
+// Flip to `true` while testing to force the onboarding wizard on every dashboard visit.
+const DASHBOARD_ONBOARDING_SHOW_ALWAYS = false;
 
 @Component({
   selector: 'app-dashboard-page',
@@ -61,7 +73,10 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
   private readonly billingApi = inject(BillingApiService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
+  private readonly wizardDialog = inject(WizardDialogService);
   private readonly usageStore = inject(OrganizationUsageStore);
+  private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly subdomainStore = inject(SubdomainStore);
   private readonly clipboard = inject(Clipboard);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
@@ -74,6 +89,7 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
   readonly billingBusy = signal(false);
   readonly userIdOverflow = signal(false);
   readonly orgIdOverflow = signal(false);
+  private readonly onboardingWizardOpened = signal(false);
 
   readonly user = computed(() => this.authStore.user());
   readonly organization = computed(() => this.authStore.organization());
@@ -207,10 +223,25 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       this.organization();
       this.scheduleOverflowCheck();
     });
+
+    effect(() => {
+      const user = this.user();
+      if (!user || this.onboardingWizardOpened()) {
+        return;
+      }
+      if (!this.shouldOpenOnboardingWizard(user.createdAt)) {
+        return;
+      }
+
+      this.onboardingWizardOpened.set(true);
+      this.openOnboardingWizard();
+    });
   }
 
   ngOnInit(): void {
     this.usageStore.loadUsage();
+    this.domainGroupStore.searchList();
+    this.subdomainStore.searchList();
   }
 
   ngAfterViewInit(): void {
@@ -318,5 +349,39 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       return false;
     }
     return element.scrollWidth > element.clientWidth;
+  }
+
+  private shouldOpenOnboardingWizard(createdAtIso: string): boolean {
+    if (!this.isBrowser) {
+      return false;
+    }
+    if (DASHBOARD_ONBOARDING_SHOW_ALWAYS) {
+      return true;
+    }
+    if (localStorage.getItem(DASHBOARD_ONBOARDING_STORAGE_KEY) === 'true') {
+      return false;
+    }
+
+    const createdAt = Date.parse(createdAtIso);
+    if (Number.isNaN(createdAt)) {
+      return false;
+    }
+
+    return Date.now() - createdAt <= DASHBOARD_ONBOARDING_WINDOW_MS;
+  }
+
+  private openOnboardingWizard(): void {
+    const dialogRef = this.wizardDialog.openWizard<
+      DashboardOnboardingDialogComponent,
+      undefined,
+      DashboardOnboardingDialogResult
+    >(DashboardOnboardingDialogComponent);
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!this.isBrowser || !result?.confirmed || DASHBOARD_ONBOARDING_SHOW_ALWAYS) {
+        return;
+      }
+      localStorage.setItem(DASHBOARD_ONBOARDING_STORAGE_KEY, 'true');
+    });
   }
 }

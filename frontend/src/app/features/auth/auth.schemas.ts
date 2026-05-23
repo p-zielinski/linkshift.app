@@ -27,7 +27,7 @@ export const registerSchema = z.object({
     .max(128, 'Password is too long'),
   organizationName: z
     .string()
-    .min(1, 'Organization name is required')
+    .trim()
     .max(
       ORGANIZATION_NAME_MAX_LENGTH,
       `Organization name must be at most ${ORGANIZATION_NAME_MAX_LENGTH} characters`,

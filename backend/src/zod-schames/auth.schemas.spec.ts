@@ -31,6 +31,31 @@ describe('auth.schemas', () => {
     expect(parsed.organizationName).toHaveLength(50);
   });
 
+  it('accepts register payload without organization name', () => {
+    const parsed = RegisterSchema.parse({
+      email: 'owner@example.com',
+      password: 'strong-password',
+      acceptTerms: true,
+      acceptPrivacy: true,
+      confirmAge: true,
+    });
+
+    expect(parsed.organizationName).toBeUndefined();
+  });
+
+  it('treats blank organization name as missing value', () => {
+    const parsed = RegisterSchema.parse({
+      email: 'owner@example.com',
+      password: 'strong-password',
+      organizationName: '   ',
+      acceptTerms: true,
+      acceptPrivacy: true,
+      confirmAge: true,
+    });
+
+    expect(parsed.organizationName).toBeUndefined();
+  });
+
   it('rejects organization names longer than 50 characters', () => {
     expect(() =>
       RegisterSchema.parse({

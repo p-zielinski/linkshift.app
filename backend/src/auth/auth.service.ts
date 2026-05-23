@@ -24,6 +24,7 @@ import { customAlphabet } from 'nanoid';
 
 const DEFAULT_DOMAIN_GROUP_NAME = 'Default';
 const DEFAULT_SUBDOMAIN_BASE = 'org';
+const DEFAULT_ORGANIZATION_NAME = 'Organization';
 const INITIAL_SUBDOMAIN_MAX_LENGTH = 30;
 const INITIAL_SUBDOMAIN_RETRY_SUFFIX_LENGTH = 10;
 const SUBDOMAIN_RETRY_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -57,6 +58,10 @@ export class AuthService {
 
   async register(data: RegisterDto) {
     const normalizedEmail = data.email.trim().toLowerCase();
+    const organizationName = this.resolveOrganizationName(
+      data.organizationName,
+      normalizedEmail,
+    );
     // 1. Check if user already exists
     const existingUser = await this.prisma.user.findFirst({
       where: {
@@ -84,7 +89,7 @@ export class AuthService {
       const organization = await tx.organization.create({
         data: {
           id: createCustomCuid(AppEntity.Organization),
-          name: data.organizationName,
+          name: organizationName,
         },
       });
 
@@ -169,6 +174,29 @@ export class AuthService {
       organization: result.organization,
       ...tokens,
     };
+  }
+
+  private resolveOrganizationName(
+    providedOrganizationName: string | undefined,
+    normalizedEmail: string,
+  ): string {
+    const explicit = providedOrganizationName?.trim();
+    if (explicit) {
+      return explicit;
+    }
+
+    const emailPrefix = normalizedEmail.split('@')[0] ?? '';
+    const normalizedPrefix = emailPrefix
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z-]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 50)
+      .replace(/^-+|-+$/g, '');
+
+    return normalizedPrefix || DEFAULT_ORGANIZATION_NAME;
   }
 
   async login(data: LoginDto, ip: string | null) {

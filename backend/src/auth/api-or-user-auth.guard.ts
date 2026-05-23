@@ -13,6 +13,7 @@ import {
 import { LegalService } from '../legal/legal.service';
 import { AuthenticatedPrincipal } from './auth-context.model';
 import { ApiKeyService } from '../api-key/api-key.service';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class ApiOrUserAuthGuard implements CanActivate {
@@ -38,7 +39,7 @@ export class ApiOrUserAuthGuard implements CanActivate {
           return this.throwUnauthorizedError();
         }
       } else {
-        const user = await this.cacheManagerService.getData({
+        const user = await this.cacheManagerService.getData<User>({
           dataType: DataType.USERS,
           properties: {
             [CachedByProperty.ID]: payload.userId,

@@ -11,7 +11,7 @@ import {
 export type RegisterDto = {
   email: string;
   password: string;
-  organizationName: string;
+  organizationName?: string;
   plan?: OrganizationPlan;
   billingInterval?: BillingInterval;
   acceptTerms: boolean;

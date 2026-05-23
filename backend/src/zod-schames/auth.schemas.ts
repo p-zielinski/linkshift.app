@@ -5,17 +5,27 @@ const ORGANIZATION_NAME_MAX_LENGTH = 50;
 const emailSchema = z
   .email('Invalid email address')
   .max(EMAIL_MAX_LENGTH, `Email must be at most ${EMAIL_MAX_LENGTH} characters`);
+const optionalOrganizationNameSchema = z.preprocess(
+  (value) => {
+    if (typeof value !== 'string') {
+      return value;
+    }
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  },
+  z
+    .string()
+    .max(
+      ORGANIZATION_NAME_MAX_LENGTH,
+      `Organization name must be at most ${ORGANIZATION_NAME_MAX_LENGTH} characters`,
+    )
+    .optional(),
+);
 
 const RegisterBaseSchema = z.object({
   email: emailSchema,
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  organizationName: z
-    .string()
-    .min(1, 'Organization name is required')
-    .max(
-      ORGANIZATION_NAME_MAX_LENGTH,
-      `Organization name must be at most ${ORGANIZATION_NAME_MAX_LENGTH} characters`,
-    ),
+  organizationName: optionalOrganizationNameSchema,
   plan: z.enum(['FREE', 'BASIC', 'PRO']).optional(),
   billingInterval: z.enum(['MONTHLY', 'YEARLY']).optional(),
 });
