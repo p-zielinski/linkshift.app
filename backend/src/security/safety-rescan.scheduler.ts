@@ -5,11 +5,13 @@ import type { Queue } from 'bull';
 import { RedirectAnalyticsService } from './redirect-analytics.service';
 import { SAFETY_RESCAN_QUEUE } from './security.constants';
 import { Logger } from 'nestjs-pino';
+import { WebRiskQuotaService } from './web-risk-quota.service';
 
 @Injectable()
 export class SafetyRescanScheduler {
   constructor(
     private readonly redirectAnalyticsService: RedirectAnalyticsService,
+    private readonly webRiskQuotaService: WebRiskQuotaService,
     @InjectQueue(SAFETY_RESCAN_QUEUE)
     private readonly queue: Queue,
     private readonly logger: Logger,
@@ -18,6 +20,19 @@ export class SafetyRescanScheduler {
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async enqueueTopRules(): Promise<void> {
     try {
+      const quotaDecision = await this.webRiskQuotaService.shouldRunRescan();
+      if (!quotaDecision.allowed) {
+        this.logger.log('Safety rescan skipped due to Web Risk budget usage', {
+          monthKey: quotaDecision.status.monthKey,
+          usageCount: quotaDecision.status.usageCount,
+          usagePercent: quotaDecision.status.usagePercent,
+          limit: quotaDecision.status.limit,
+          thresholdPercent: quotaDecision.thresholdPercent,
+          isBudgetExhausted: quotaDecision.status.isBudgetExhausted,
+        });
+        return;
+      }
+
       const topRules =
         await this.redirectAnalyticsService.getTopRulesGlobal(50);
       if (topRules.length === 0) {

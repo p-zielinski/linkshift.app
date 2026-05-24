@@ -4,10 +4,12 @@ import { SafetyScannerService } from './safety-scanner.service';
 import { RedisService } from '../redis/redis.service';
 import { SAFETY_L2_TTL_SECONDS } from './security.constants';
 import { Logger } from 'nestjs-pino';
+import { WebRiskQuotaService } from './web-risk-quota.service';
 
 describe('SafetyScannerService', () => {
   let service: SafetyScannerService;
   let redisService: { get: jest.Mock; set: jest.Mock };
+  let webRiskQuotaService: { reserveCalls: jest.Mock };
   let fetchMock: jest.Mock;
   let originalFetch: typeof fetch | undefined;
 
@@ -15,6 +17,19 @@ describe('SafetyScannerService', () => {
     redisService = {
       get: jest.fn().mockResolvedValue(undefined),
       set: jest.fn().mockResolvedValue(undefined),
+    };
+    webRiskQuotaService = {
+      reserveCalls: jest.fn(async (requestedCalls: number) => ({
+        monthKey: '2026-05',
+        usageCount: requestedCalls,
+        rawUsageCount: requestedCalls,
+        usagePercent: 1,
+        limit: 95_000,
+        isBudgetExhausted: false,
+        requestedCalls,
+        allowedCalls: requestedCalls,
+        skippedCalls: 0,
+      })),
     };
 
     const module = await Test.createTestingModule({
@@ -32,6 +47,10 @@ describe('SafetyScannerService', () => {
               return undefined;
             }),
           },
+        },
+        {
+          provide: WebRiskQuotaService,
+          useValue: webRiskQuotaService,
         },
         {
           provide: Logger,
@@ -75,6 +94,7 @@ describe('SafetyScannerService', () => {
 
     expect(results.get('bad.example.com')).toBe(false);
     expect(results.get('good.example.com')).toBe(true);
+    expect(webRiskQuotaService.reserveCalls).toHaveBeenCalledWith(4);
     expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(redisService.set).toHaveBeenCalledWith(
       'safety:domain:bad.example.com',
@@ -134,5 +154,45 @@ describe('SafetyScannerService', () => {
     );
 
     expect(uniqueUris.size).toBe(520);
+  });
+
+  it('skips all Web Risk requests when quota is exhausted', async () => {
+    webRiskQuotaService.reserveCalls.mockResolvedValue({
+      monthKey: '2026-05',
+      usageCount: 95_000,
+      rawUsageCount: 95_002,
+      usagePercent: 100,
+      limit: 95_000,
+      isBudgetExhausted: true,
+      requestedCalls: 2,
+      allowedCalls: 0,
+      skippedCalls: 2,
+    });
+
+    const results = await service.checkUrls(['safe.example.com']);
+
+    expect(results.get('safe.example.com')).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(redisService.set).not.toHaveBeenCalled();
+  });
+
+  it('does not cache unverified safe result after partial skip', async () => {
+    webRiskQuotaService.reserveCalls.mockResolvedValue({
+      monthKey: '2026-05',
+      usageCount: 95_000,
+      rawUsageCount: 95_001,
+      usagePercent: 100,
+      limit: 95_000,
+      isBudgetExhausted: true,
+      requestedCalls: 2,
+      allowedCalls: 1,
+      skippedCalls: 1,
+    });
+
+    const results = await service.checkUrls(['safe.example.com']);
+
+    expect(results.get('safe.example.com')).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(redisService.set).not.toHaveBeenCalled();
   });
 });

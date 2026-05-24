@@ -89,6 +89,14 @@ export class RedisService implements OnModuleDestroy {
   }
 
   /**
+   * Atomic increment-by operation.
+   * Increments the number stored at key by a specific value.
+   */
+  async incrBy(key: string, increment: number): Promise<number> {
+    return this.redis.incrby(key, increment);
+  }
+
+  /**
    * Sets a timeout on key. After the timeout has expired, the key will automatically be deleted.
    */
   async expire(key: string, seconds: number): Promise<void> {
