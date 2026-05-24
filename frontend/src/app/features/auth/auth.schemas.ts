@@ -1,7 +1,5 @@
 import { z } from 'zod';
-
-const EMAIL_MAX_LENGTH = 254;
-const ORGANIZATION_NAME_MAX_LENGTH = 50;
+import { EMAIL_MAX_LENGTH, ORGANIZATION_NAME_MAX_LENGTH } from '../../core/forms/validation.constants';
 
 export const loginSchema = z.object({
   email: z
