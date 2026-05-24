@@ -153,7 +153,8 @@ export const AuthStore = signalStore(
         tap((tokens) => setTokens(tokens)),
         catchError((error) => {
           if (error.status === 401) {
-            patchState(store, { accessToken: null, user: null });
+            clearStoredSession();
+            patchState(store, { accessToken: null, user: null, organization: null });
           }
           return throwError(() => error);
         })
@@ -165,6 +166,7 @@ export const AuthStore = signalStore(
         tap((session) => setSessionProfile(session)),
         catchError((error) => {
           if (error.status === 401) {
+            clearStoredSession();
             patchState(store, { accessToken: null, user: null, organization: null });
           }
           return throwError(() => error);

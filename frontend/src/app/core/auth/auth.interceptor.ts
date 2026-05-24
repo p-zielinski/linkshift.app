@@ -1,4 +1,5 @@
 import {
+  HttpContextToken,
   HttpErrorResponse,
   HttpHandlerFn,
   HttpInterceptorFn,
@@ -19,10 +20,17 @@ import {
 } from 'rxjs';
 import type { AuthTokens } from '../models/auth.model';
 
+type RefreshEvent =
+  | { status: 'success'; token: string }
+  | { status: 'error'; error: unknown };
+
+const RETRY_AFTER_REFRESH = new HttpContextToken<boolean>(() => false);
+
 // Flag to indicate if a refresh operation is currently in progress
 let isRefreshing = false;
 // Queue for pending requests while refreshing
-const refreshTokenSubject = new BehaviorSubject<string | null>(null);
+const refreshTokenSubject = new BehaviorSubject<RefreshEvent | null>(null);
+let isHandlingAuthFailure = false;
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const platformId = inject(PLATFORM_ID);
@@ -61,7 +69,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (error instanceof HttpErrorResponse) {
         // Only attempt token refresh logic in the browser
         if (error.status === 401 && !isPlatformServer(platformId)) {
-          return handle401Error(authReq, next, authStore);
+          return handle401Error(authReq, next, authStore, router, error);
         }
 
         if (error.status === 403) {
@@ -84,13 +92,21 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 type AuthStoreLike = {
   accessToken: () => string | null;
   refreshTokens: () => Observable<AuthTokens>;
+  logout: (redirectFnc: () => void) => void;
 };
 
 function handle401Error(
   request: HttpRequest<unknown>,
   next: HttpHandlerFn,
   authStore: AuthStoreLike,
+  router: Router,
+  originalError: HttpErrorResponse,
 ) {
+  if (request.context.get(RETRY_AFTER_REFRESH)) {
+    triggerAuthFailureRedirect(authStore, router);
+    return throwError(() => originalError);
+  }
+
   if (!isRefreshing) {
     isRefreshing = true;
     refreshTokenSubject.next(null);
@@ -99,30 +115,51 @@ function handle401Error(
       switchMap((response: AuthTokens) => {
         isRefreshing = false;
         const newToken = response.accessToken;
-        refreshTokenSubject.next(newToken);
+        refreshTokenSubject.next({ status: 'success', token: newToken });
 
         return next(
           request.clone({
             setHeaders: { Authorization: `Bearer ${newToken}` },
+            context: request.context.set(RETRY_AFTER_REFRESH, true),
           }),
         );
       }),
       catchError((err) => {
         isRefreshing = false;
+        refreshTokenSubject.next({ status: 'error', error: err });
+        triggerAuthFailureRedirect(authStore, router);
         return throwError(() => err);
       }),
     );
   } else {
     return refreshTokenSubject.pipe(
-      filter((token): token is string => token !== null),
+      filter((event): event is RefreshEvent => event !== null),
       take(1),
-      switchMap((token) => {
+      switchMap((event) => {
+        if (event.status === 'error') {
+          return throwError(() => event.error);
+        }
+
         return next(
           request.clone({
-            setHeaders: { Authorization: `Bearer ${token}` },
+            setHeaders: { Authorization: `Bearer ${event.token}` },
+            context: request.context.set(RETRY_AFTER_REFRESH, true),
           }),
         );
       }),
     );
   }
+}
+
+function triggerAuthFailureRedirect(authStore: AuthStoreLike, router: Router): void {
+  if (isHandlingAuthFailure) {
+    return;
+  }
+
+  isHandlingAuthFailure = true;
+  authStore.logout(() => {
+    void router.navigateByUrl('/auth').finally(() => {
+      isHandlingAuthFailure = false;
+    });
+  });
 }
