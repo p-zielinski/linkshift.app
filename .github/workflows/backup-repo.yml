@@ -1,0 +1,68 @@
+name: backup-repo
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '18 3 * * *'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      B2_BUCKET_NAME: ${{ secrets.B2_BUCKET_NAME }}
+      B2_ENDPOINT_URL: ${{ secrets.B2_ENDPOINT_URL }}
+      B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+      B2_APPLICATION_KEY: ${{ secrets.B2_APPLICATION_KEY }}
+      BACKUP_RETENTION_DAYS: ${{ vars.BACKUP_RETENTION_DAYS }}
+      BACKUP_PREFIX: ${{ vars.BACKUP_PREFIX }}
+      B2_REGION: ${{ vars.B2_REGION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Build backup metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT_DATE_TIME="$(date -u +%Y-%m-%dT%H-%M-%SZ)"
+          BACKUP_FILE_NAME="linkshift-app-backup-${CURRENT_DATE_TIME}.bundle"
+          BACKUP_PREFIX_VALUE="${BACKUP_PREFIX:-linkshift.app}"
+          RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-90}"
+          RETENTION_UNTIL="$(date -u -d "+${RETENTION_DAYS} days" +%Y-%m-%dT%H:%M:%SZ)"
+          OBJECT_KEY="${BACKUP_PREFIX_VALUE}/${BACKUP_FILE_NAME}"
+
+          echo "BACKUP_FILE_NAME=${BACKUP_FILE_NAME}" >> "$GITHUB_ENV"
+          echo "RETENTION_UNTIL=${RETENTION_UNTIL}" >> "$GITHUB_ENV"
+          echo "OBJECT_KEY=${OBJECT_KEY}" >> "$GITHUB_ENV"
+
+      - name: Create git bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          git bundle create "${BACKUP_FILE_NAME}" --all
+
+      - name: Upload backup with Object Lock
+        env:
+          AWS_ACCESS_KEY_ID: ${{ env.B2_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.B2_APPLICATION_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws s3api put-object \
+            --bucket "${B2_BUCKET_NAME}" \
+            --key "${OBJECT_KEY}" \
+            --body "${BACKUP_FILE_NAME}" \
+            --endpoint-url "${B2_ENDPOINT_URL}" \
+            --region "${B2_REGION:-us-east-1}" \
+            --object-lock-mode COMPLIANCE \
+            --object-lock-retain-until-date "${RETENTION_UNTIL}"
+
+      - name: Remove local backup artifacts
+        if: always()
+        shell: bash
+        run: rm -f "${BACKUP_FILE_NAME}"
