@@ -1,0 +1,2 @@
+export const EMAIL_MAX_LENGTH = 254;
+export const ORGANIZATION_NAME_MAX_LENGTH = 50;

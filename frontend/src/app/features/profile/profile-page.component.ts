@@ -9,6 +9,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { form, required, validate, FormField } from '@angular/forms/signals';
 import { z } from 'zod';
 import { applyZodField } from '../../core/forms/zod-validators';
+import { EMAIL_MAX_LENGTH } from '../../core/forms/validation.constants';
 import { AuthStore } from '../../core/store/auth.store';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
@@ -16,7 +17,10 @@ import { firstValueFrom } from 'rxjs';
 import { SITE_CONFIG } from '../../core/config/site-config';
 import { needsLegalConsent } from '../../core/legal/legal-consent.utils';
 
-const emailSchema = z.string().email('Invalid email address');
+const emailSchema = z
+  .string()
+  .email('Invalid email address')
+  .max(EMAIL_MAX_LENGTH, `Email must be at most ${EMAIL_MAX_LENGTH} characters`);
 
 @Component({
   selector: 'app-profile-page',

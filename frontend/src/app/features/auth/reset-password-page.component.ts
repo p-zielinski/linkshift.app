@@ -10,9 +10,9 @@ import { form, required, validate, FormField } from '@angular/forms/signals';
 import { z } from 'zod';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { applyZodField } from '../../core/forms/zod-validators';
+import { EMAIL_MAX_LENGTH } from '../../core/forms/validation.constants';
 import { firstValueFrom } from 'rxjs';
 
-const EMAIL_MAX_LENGTH = 254;
 const emailSchema = z
   .string()
   .email('Invalid email address')

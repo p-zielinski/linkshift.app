@@ -10,6 +10,7 @@ import { RouterLink } from '@angular/router';
 import { form, required, FormField } from '@angular/forms/signals';
 import { z } from 'zod';
 import { applyZodField } from '../../core/forms/zod-validators';
+import { EMAIL_MAX_LENGTH } from '../../core/forms/validation.constants';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { AuthStore } from '../../core/store/auth.store';
 import { OrganizationMembersStore } from '../../core/store/organization-members.store';
@@ -86,7 +87,13 @@ export class OrganizationPageComponent {
   readonly inviteFormModel = signal({ email: '' });
   readonly inviteForm = form(this.inviteFormModel, (f) => {
     required(f.email);
-    applyZodField(f.email, z.string().email('Invalid email address'));
+    applyZodField(
+      f.email,
+      z
+        .string()
+        .email('Invalid email address')
+        .max(EMAIL_MAX_LENGTH, `Email must be at most ${EMAIL_MAX_LENGTH} characters`),
+    );
   });
   readonly inviteEmailError = computed(() => this.getFieldError(this.inviteForm.email()));
   readonly inviteEmailValue = computed(() => this.inviteFormModel().email.trim());
