@@ -8,12 +8,21 @@ import {
   SAFETY_L1_TTL_MS,
   SAFETY_L2_TTL_SECONDS,
 } from './security.constants';
+import { WebRiskQuotaService } from './web-risk-quota.service';
 
 type WebRiskSearchResponse = {
   threat?: {
     threatTypes?: string[];
     expireTime?: string;
   };
+};
+
+type FetchUnsafeDomainsResult = {
+  unsafe: Set<string>;
+  skipped: Set<string>;
+  requestedCalls: number;
+  allowedCalls: number;
+  skippedCalls: number;
 };
 
 @Injectable()
@@ -26,6 +35,7 @@ export class SafetyScannerService {
   constructor(
     private readonly configService: ConfigService,
     private readonly redisService: RedisService,
+    private readonly webRiskQuotaService: WebRiskQuotaService,
     private readonly logger: Logger,
   ) {}
 
@@ -72,10 +82,32 @@ export class SafetyScannerService {
       });
 
       if (toScan.length > 0) {
-        const unsafe = await this.fetchUnsafeDomains(toScan);
+        const scanResult = await this.fetchUnsafeDomains(toScan);
+
+        const cacheHits = normalized.length - toScan.length;
+        const cacheHitRate = Number(
+          ((cacheHits / normalized.length) * 100).toFixed(2),
+        );
+        this.logger.debug('Safety scanner cache and quota summary', {
+          normalizedCount: normalized.length,
+          l2CandidatesCount: l2Candidates.length,
+          toScanCount: toScan.length,
+          cacheHits,
+          cacheHitRate,
+          requestedWebRiskCalls: scanResult.requestedCalls,
+          allowedWebRiskCalls: scanResult.allowedCalls,
+          skippedWebRiskCalls: scanResult.skippedCalls,
+        });
+
         const writes = toScan.map(async (url) => {
-          const safe = !unsafe.has(url);
+          const safe = !scanResult.unsafe.has(url);
+          const unverifiedSafe = scanResult.skipped.has(url) && safe;
+
           results.set(url, safe);
+          if (unverifiedSafe) {
+            return;
+          }
+
           this.l1Cache.set(url, safe);
           await this.redisService.set(
             this.cacheKey(url),
@@ -123,10 +155,13 @@ export class SafetyScannerService {
     }
   }
 
-  private async fetchUnsafeDomains(urls: string[]): Promise<Set<string>> {
+  private async fetchUnsafeDomains(
+    urls: string[],
+  ): Promise<FetchUnsafeDomainsResult> {
     const threatUrls = new Map<string, string[]>();
     const threatEntries: Array<{ url: string }> = [];
     const uniqueCandidates = new Set<string>();
+    const skipped = new Set<string>();
 
     for (const cur of urls) {
       const parsed = this.toUrl(cur);
@@ -175,17 +210,54 @@ export class SafetyScannerService {
     }
 
     const endpoint = 'https://webrisk.googleapis.com/v1/uris:search';
+    const quotaReservation = await this.webRiskQuotaService.reserveCalls(
+      threatEntries.length,
+    );
+    const entriesToScan = threatEntries.slice(0, quotaReservation.allowedCalls);
+    if (quotaReservation.skippedCalls > 0) {
+      threatEntries.slice(quotaReservation.allowedCalls).forEach(({ url }) => {
+        threatUrls.get(url)?.forEach((original) => skipped.add(original));
+      });
+      this.logger.warn(
+        'Web Risk scan partially skipped due to monthly budget',
+        {
+          urlsCount: urls.length,
+          candidatesCount: threatEntries.length,
+          requestedCalls: quotaReservation.requestedCalls,
+          allowedCalls: quotaReservation.allowedCalls,
+          skippedCalls: quotaReservation.skippedCalls,
+          skippedUrlsCount: skipped.size,
+          monthKey: quotaReservation.monthKey,
+          usageCount: quotaReservation.usageCount,
+          usagePercent: quotaReservation.usagePercent,
+          limit: quotaReservation.limit,
+        },
+      );
+    }
+
+    if (entriesToScan.length === 0) {
+      return {
+        unsafe: new Set<string>(),
+        skipped,
+        requestedCalls: quotaReservation.requestedCalls,
+        allowedCalls: quotaReservation.allowedCalls,
+        skippedCalls: quotaReservation.skippedCalls,
+      };
+    }
 
     this.logger.debug('Sending Web Risk scan requests', {
       urlsCount: urls.length,
       candidatesCount: threatEntries.length,
+      requestedCalls: quotaReservation.requestedCalls,
+      allowedCalls: quotaReservation.allowedCalls,
+      skippedCalls: quotaReservation.skippedCalls,
     });
 
     const unsafe = new Set<string>();
 
     const chunkSize = 200;
-    for (let i = 0; i < threatEntries.length; i += chunkSize) {
-      const chunk = threatEntries.slice(i, i + chunkSize);
+    for (let i = 0; i < entriesToScan.length; i += chunkSize) {
+      const chunk = entriesToScan.slice(i, i + chunkSize);
       const requests = chunk.map(async ({ url }) => {
         const requestUrl = new URL(endpoint);
         requestUrl.searchParams.set('uri', url);
@@ -235,6 +307,12 @@ export class SafetyScannerService {
       await Promise.all(requests);
     }
 
-    return unsafe;
+    return {
+      unsafe,
+      skipped,
+      requestedCalls: quotaReservation.requestedCalls,
+      allowedCalls: quotaReservation.allowedCalls,
+      skippedCalls: quotaReservation.skippedCalls,
+    };
   }
 }

@@ -54,6 +54,7 @@ import { SentryExceptionFilter } from './filters/sentry-exception.filter';
 import { LinkMapService } from './link-map/link-map.service';
 import { RedirectAnalyticsRetentionService } from './security/redirect-analytics-retention.service';
 import { ApiKeyService } from './api-key/api-key.service';
+import { WebRiskQuotaService } from './security/web-risk-quota.service';
 
 @Module({
   imports: [
@@ -180,6 +181,7 @@ import { ApiKeyService } from './api-key/api-key.service';
     SubdomainBlacklistService,
     RedirectAnalyticsService,
     RedirectAnalyticsRetentionService,
+    WebRiskQuotaService,
     LinkMapService,
     SafetyRescanScheduler,
     SafetyRescanProcessor,
