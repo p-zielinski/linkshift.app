@@ -11,7 +11,6 @@ const RedirectTestResultSchema = z.object({
 const RequestDataSchema = z
   .object({
     method: z.nativeEnum(HttpMethod).optional(),
-    protocol: z.enum(['http', 'https']).optional(),
     hostname: z.string().max(253).optional(),
     ip: z.string().optional(),
     userAgent: z.string().max(512).optional(),

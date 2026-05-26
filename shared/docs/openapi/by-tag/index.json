@@ -1,0 +1,79 @@
+{
+  "source": "shared/docs/openapi/linkshift-api-keys.openapi.yaml",
+  "generatedAt": "2026-05-26T21:06:00.415Z",
+  "format": "json",
+  "tags": [
+    {
+      "name": "Organization",
+      "slug": "organization",
+      "description": "Organization-scoped operational data available for the current API key.",
+      "operationCount": 2,
+      "files": [
+        "shared/docs/openapi/by-tag/organization.openapi.json"
+      ]
+    },
+    {
+      "name": "Domain Groups",
+      "slug": "domain-groups",
+      "description": "Domain group management, including robots policy defaults for assigned domains.",
+      "operationCount": 5,
+      "files": [
+        "shared/docs/openapi/by-tag/domain-groups.openapi.json"
+      ]
+    },
+    {
+      "name": "Domains",
+      "slug": "domains",
+      "description": "Domain inventory and grouping used by redirect execution.",
+      "operationCount": 5,
+      "files": [
+        "shared/docs/openapi/by-tag/domains.openapi.json"
+      ]
+    },
+    {
+      "name": "Subdomains",
+      "slug": "subdomains",
+      "description": "LinkShift-hosted subdomain labels mapped to domain groups.",
+      "operationCount": 5,
+      "files": [
+        "shared/docs/openapi/by-tag/subdomains.openapi.json"
+      ]
+    },
+    {
+      "name": "Redirect Rules",
+      "slug": "redirect-rules",
+      "description": "Core redirect routing rules, analytics, and simulation endpoints.",
+      "operationCount": 7,
+      "files": [
+        "shared/docs/openapi/by-tag/redirect-rules.openapi.json"
+      ]
+    },
+    {
+      "name": "Redirect Tests",
+      "slug": "redirect-tests",
+      "description": "Stored redirect test fixtures for regression and CI validation.",
+      "operationCount": 5,
+      "files": [
+        "shared/docs/openapi/by-tag/redirect-tests.openapi.json"
+      ]
+    },
+    {
+      "name": "Link Maps",
+      "slug": "link-maps",
+      "description": "Key-value routing maps referenced by redirect rules.",
+      "operationCount": 5,
+      "files": [
+        "shared/docs/openapi/by-tag/link-maps.openapi.json"
+      ]
+    },
+    {
+      "name": "Link Map Entries",
+      "slug": "link-map-entries",
+      "description": "Entry-level CRUD and bulk import operations for link maps.",
+      "operationCount": 7,
+      "files": [
+        "shared/docs/openapi/by-tag/link-map-entries.openapi.json"
+      ]
+    }
+  ]
+}

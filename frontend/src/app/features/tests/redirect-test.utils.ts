@@ -126,7 +126,6 @@ export const buildSimulationEntry = (
     hostname: test.requestData?.hostname,
     path,
     method: test.requestData?.method,
-    protocol: test.requestData?.protocol,
     ip: test.requestData?.ip,
     userAgent: test.requestData?.userAgent,
     headers: test.requestData?.headers,
@@ -137,7 +136,6 @@ export const buildSimulationEntry = (
 export const buildRequestData = (
   input: {
     method?: string;
-    protocol?: string;
     hostname?: string;
     ip?: string;
     userAgent?: string;
@@ -152,10 +150,6 @@ export const buildRequestData = (
 
   if (input.method) {
     requestData.method = input.method as RedirectTestRequestData['method'];
-  }
-
-  if (input.protocol === 'http' || input.protocol === 'https') {
-    requestData.protocol = input.protocol;
   }
 
   if (input.hostname && input.hostname.trim()) {

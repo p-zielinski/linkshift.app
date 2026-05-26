@@ -1,0 +1,81 @@
+pages:
+  - slug: what-is-linkshift
+    category: intro
+    source: pages/intro/what-is-linkshift.md
+    route: /docs/intro/what-is-linkshift
+    description: >-
+      What LinkShift.app is — programmable redirects, link maps, rules engine,
+      and where to start in the docs.
+
+  - slug: overview
+    category: meta
+    source: pages/overview.md
+    route: /docs
+    description: >-
+      LinkShift docs home — first redirect in 5 minutes, documentation map,
+      and common routing questions.
+
+  - slug: reference
+    category: meta
+    source: pages/reference.md
+    route: /docs/reference
+    description: >-
+      Endpoint index, guides vs OpenAPI reference, and key routing operations.
+
+  - slug: getting-started
+    category: guide
+    source: pages/guides/getting-started.md
+    route: /docs/guides/getting-started
+    description: >-
+      Authentication, scope, quotas, routing doc index, and API surface overview.
+
+  - slug: domains-and-groups
+    category: guide
+    source: pages/guides/domains-and-groups.md
+    route: /docs/guides/domains-and-groups
+    description: >-
+      Domain topology, robots policy, multi-domain patterns, and routing setup checklist.
+
+  - slug: redirect-rules
+    category: guide
+    source: pages/guides/redirect-rules.md
+    route: /docs/guides/redirect-rules
+    description: >-
+      Complete redirect routing guide — matching, placeholders, conditionals,
+      link map integration, simulation, analytics, and recipe book.
+
+  - slug: link-maps
+    category: guide
+    source: pages/guides/link-maps.md
+    route: /docs/guides/link-maps
+    description: >-
+      Link map workflow, query modes, key extraction, fallback behavior,
+      and end-to-end short-link examples.
+
+  - slug: link-map-entries
+    category: guide
+    source: pages/guides/link-map-entries.md
+    route: /docs/guides/link-map-entries
+    description: >-
+      Entry CRUD, key format rules, bulk import/delete, and operational patterns.
+
+  - slug: redirect-tests
+    category: guide
+    source: pages/guides/redirect-tests.md
+    route: /docs/guides/redirect-tests
+    description: >-
+      Redirect test fixtures, CI workflow, and simulate comparison patterns.
+
+  - slug: link-map-concepts
+    category: concept
+    source: pages/concepts/link-map-concepts.md
+    route: /docs/concepts/link-map-concepts
+    description: >-
+      Link map normalization, query resolution, cache model, and redirect rule integration.
+
+  - slug: redirect-engine-concepts
+    category: concept
+    source: pages/concepts/redirect-engine-concepts.md
+    route: /docs/concepts/redirect-engine-concepts
+    description: >-
+      Placeholders, modifiers, conditional routing, regex capture groups, and engine limits.

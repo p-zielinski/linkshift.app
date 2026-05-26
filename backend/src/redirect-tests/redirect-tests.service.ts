@@ -269,9 +269,6 @@ export class RedirectTestsService {
     if (input.method) {
       data.method = input.method;
     }
-    if (input.protocol) {
-      data.protocol = input.protocol;
-    }
     if (input.hostname) {
       data.hostname = input.hostname;
     }

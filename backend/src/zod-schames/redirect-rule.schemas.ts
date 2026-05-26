@@ -33,9 +33,13 @@ export const CreateRedirectRuleSchema = z
       .min(1, 'Source is required')
       .max(16384, 'Source is too long (max 16384 chars)'),
     destination: z
-      .string()
-      .min(1, 'Destination is required')
-      .max(16384, 'Destination is too long (max 16384 chars)')
+      .union([
+        z
+          .string()
+          .min(1, 'Destination is required')
+          .max(16384, 'Destination is too long (max 16384 chars)'),
+        z.literal(''),
+      ])
       .optional()
       .nullable(),
     statusCode: z
@@ -68,7 +72,7 @@ export const CreateRedirectRuleSchema = z
   .superRefine((data, ctx) => {
     const hasLinkMap = Boolean(data.linkMapId);
     if (hasLinkMap) {
-      if (data.destination) {
+      if (data.destination !== undefined && data.destination !== null) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Destination must be empty when linkMapId is provided.',
@@ -197,7 +201,6 @@ const SimulationEntrySchema = z.object({
   hostname: z.string().max(253).optional(),
   path: z.string().min(1, 'Path is required'),
   method: z.nativeEnum(HttpMethod).optional(),
-  protocol: z.enum(['http', 'https']).optional(),
   ip: z.string().optional(),
   userAgent: z.string().max(512).optional(),
   headers: z.record(z.string(), z.string()).optional(),
@@ -211,6 +214,7 @@ const SimulationEntrySchema = z.object({
 
 export const SimulateRedirectsSchema = z.object({
   entries: z.array(SimulationEntrySchema).min(1).max(100),
+  checkDestinationBlacklist: z.boolean().optional().default(false),
 });
 
 export type CreateRedirectRuleDto = z.infer<typeof CreateRedirectRuleSchema>;

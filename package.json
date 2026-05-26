@@ -1,6 +1,12 @@
 {
   "name": "project-4",
   "scripts": {
+    "docs:sync": "node scripts/docs-sync.mjs",
+    "docs:summaries": "node scripts/docs-summaries.mjs",
+    "docs:summaries:all": "node scripts/docs-summaries.mjs --all",
+    "docs:summaries:dry-run": "node scripts/docs-summaries.mjs --dry-run",
+    "docs:openapi:split": "node scripts/openapi-split-by-tag.mjs",
+    "docs:openapi:split:yaml": "node scripts/openapi-split-by-tag.mjs --format yaml",
     "dev": "concurrently \"cd backend;bun run start:dev\" \"cd backend-tools;bun run start:dev\" \"cd frontend;npm run dev\"",
     "build": "cd backend && bun run build && cd ../backend-tools && bun run build && cd ../frontend && npm run build",
     "prepare": "husky",

@@ -16,7 +16,7 @@ describe('DestinationExtractorService', () => {
 
   it('extracts domains from nested conditionals', () => {
     const destination =
-      "(geo.country == 'US' ? https://us.example.com/one : (path == '/fr' ? https://fr.example.com/two : https://global.example.com))";
+      "(path == '/us' ? https://us.example.com/one : (path == '/fr' ? https://fr.example.com/two : https://global.example.com))";
 
     const result = service.extractUrls(destination).sort();
 

@@ -93,11 +93,15 @@ export type RedirectSimulationEntry = {
   hostname?: string;
   path: string;
   method?: HttpMethod;
-  protocol?: 'http' | 'https';
   ip?: string;
   userAgent?: string;
   headers?: Record<string, string>;
   query?: Record<string, string | string[] | number | boolean>;
+};
+
+export type RedirectSimulationRequest = {
+  entries: RedirectSimulationEntry[];
+  checkDestinationBlacklist?: boolean;
 };
 
 export type RedirectSimulationResult = {
@@ -109,6 +113,9 @@ export type RedirectSimulationResult = {
   matched: boolean;
   statusCode: number;
   target: string | null;
+  linkMapKey?: string | null;
+  blacklistBlocked?: boolean;
+  blacklistCheckFailed?: boolean;
 };
 
 export type RedirectSimulationResponse = {

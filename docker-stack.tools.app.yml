@@ -15,6 +15,7 @@ services:
       REDIS_USERNAME: default
       QR_RATE_LIMIT_PER_MINUTE: "600"
       TRACE_RATE_LIMIT_PER_MINUTE: "240"
+      DOCS_ASSISTANT_RATE_LIMIT_PER_MINUTE: "5"
     secrets:
       - tools_redis_password
     networks:
@@ -49,7 +50,7 @@ services:
       resources:
         limits:
           cpus: "1.00"
-          memory: 384M
+          memory: 640M
 
 networks:
   inter-stack:

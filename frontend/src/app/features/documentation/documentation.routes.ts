@@ -17,6 +17,7 @@ export const DOCUMENTATION_CHILD_ROUTES: Routes = [
         children: [
           { path: '', pathMatch: 'full', component: DocumentationOverviewPageComponent },
           { path: 'reference', component: DocumentationReferencePageComponent },
+          { path: 'intro/:slug', component: DocumentationMarkdownPageComponent },
           { path: 'guides/:slug', component: DocumentationMarkdownPageComponent },
           { path: 'concepts/:slug', component: DocumentationMarkdownPageComponent },
           { path: 'api/:operationId', component: DocumentationEndpointPageComponent },

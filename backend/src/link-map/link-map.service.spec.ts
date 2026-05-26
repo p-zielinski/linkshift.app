@@ -397,6 +397,32 @@ describe('LinkMapService', () => {
         'LINK_MAP_CONTEXT:lmap_1',
       );
     });
+
+    it('strips query from keys on ignore maps before create', async () => {
+      prisma.linkMap.findFirst.mockResolvedValue({
+        id: 'lmap_1',
+        caseSensitive: false,
+        queryMatch: 'ignore',
+        domainGroupId: 'dmg_1',
+      });
+      prisma.linkMapEntry.findFirst.mockResolvedValue(null);
+      prisma.linkMapEntry.create.mockResolvedValue({ id: 'lme_1' });
+
+      await service.createEntry('org_1', {
+        linkMapId: 'lmap_1',
+        key: 'promo?utm=email',
+        destination: 'https://promo.example',
+      } as any);
+
+      expect(prisma.linkMapEntry.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            key: 'promo',
+            keyNormalized: 'promo',
+          }),
+        }),
+      );
+    });
   });
 
   describe('importEntries', () => {
@@ -746,6 +772,33 @@ describe('LinkMapService', () => {
 
       expect(fromKey).toBeDefined();
       expect(fromKey).toBe(fromPath);
+    });
+
+    it('matches ignore maps by path when legacy keyNormalized still includes query', async () => {
+      cacheManager.getCustomCache.mockResolvedValueOnce(undefined);
+      prisma.linkMap.findFirst.mockResolvedValueOnce({
+        id: 'map-legacy-ignore',
+        domainGroupId: 'dg-1',
+        caseSensitive: false,
+        queryMatch: 'ignore',
+        fallbackDestination: null,
+        entries: [
+          {
+            id: 'entry-legacy',
+            key: 'promo?utm=email',
+            keyNormalized: 'promo?utm=email',
+            destination: 'https://legacy-promo.example',
+          },
+        ],
+      });
+
+      const result = await service.resolveLinkMapDestination(
+        'map-legacy-ignore',
+        'promo',
+        new URLSearchParams('utm=email'),
+      );
+
+      expect(result).toBe('https://legacy-promo.example');
     });
 
     it('returns null when entry is missing and fallback destination is not set', async () => {

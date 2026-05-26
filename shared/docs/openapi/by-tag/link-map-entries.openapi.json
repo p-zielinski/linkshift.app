@@ -1,0 +1,763 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LinkShift Management API (API Key Accessible Endpoints) — Link Map Entries",
+    "version": "1.0.0",
+    "summary": "Organization-scoped redirect management API",
+    "description": "This specification describes the LinkShift endpoints that can be accessed with organization API keys.\n\nAuthentication:\n- Preferred: `X-API-Key: <your_key>`\n- Alternative: `Authorization: ApiKey <your_key>` (supported by backend, not modeled as a separate OpenAPI scheme)\n\nImportant billing behavior:\n- API keys are organization-scoped.\n- API key management endpoints (`/api/v1/api-keys`) are intentionally excluded and require dashboard user auth.\n\nRate limiting:\n- Management API requests are rate-limited per API key according to your organization's plan (not per organization aggregate).\n- Use GET /api/v1/organization/usage for current limits. When exceeded, the API returns 429 — use backoff; do not hard-code thresholds in integrations.\nThis document contains only operations tagged \"Link Map Entries\".\nTag scope: Entry-level CRUD and bulk import operations for link maps."
+  },
+  "servers": [
+    {
+      "url": "https://linkshift.app",
+      "description": "Production API host"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Link Map Entries",
+      "description": "Entry-level CRUD and bulk import operations for link maps."
+    }
+  ],
+  "paths": {
+    "/api/v1/link-map-entries": {
+      "get": {
+        "tags": [
+          "Link Map Entries"
+        ],
+        "summary": "List link map entries",
+        "description": "Lists entries of one link map using cursor pagination and optional search.",
+        "operationId": "listLinkMapEntries",
+        "parameters": [
+          {
+            "name": "linkMapId",
+            "in": "query",
+            "required": true,
+            "description": "Parent link-map ID used to scope entry listing.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of entries returned in one page.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Optional search string matched against entry keys.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startAfterId",
+            "in": "query",
+            "required": false,
+            "description": "Cursor token using the last item ID from previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Link map entries list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkMapEntryQueryResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Link Map Entries"
+        ],
+        "summary": "Create link map entry",
+        "description": "Creates one key-to-destination mapping in a link map.",
+        "operationId": "createLinkMapEntry",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLinkMapEntryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created link map entry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkMapEntry"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Link Map Entries"
+        ],
+        "summary": "Delete multiple link map entries by IDs",
+        "description": "Bulk-deletes selected entries in a single request.",
+        "operationId": "deleteManyLinkMapEntries",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteLinkMapEntriesByIdRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Delete summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deletedCount": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "deletedCount"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/link-map-entries/import": {
+      "post": {
+        "tags": [
+          "Link Map Entries"
+        ],
+        "summary": "Import link map entries",
+        "description": "Bulk upserts entries for a link map and returns import totals plus row-level failures.",
+        "operationId": "importLinkMapEntries",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportLinkMapEntriesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Import summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportLinkMapEntriesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/link-map-entries/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/EntityId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Link Map Entries"
+        ],
+        "summary": "Get link map entry",
+        "description": "Returns one link-map entry by ID.",
+        "operationId": "getLinkMapEntry",
+        "responses": {
+          "200": {
+            "description": "Link map entry details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkMapEntry"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Link Map Entries"
+        ],
+        "summary": "Update link map entry",
+        "description": "Updates key or destination for a link-map entry.",
+        "operationId": "updateLinkMapEntry",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLinkMapEntryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated link map entry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkMapEntry"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Link Map Entries"
+        ],
+        "summary": "Delete link map entry",
+        "description": "Soft-deletes one link-map entry by ID.",
+        "operationId": "deleteLinkMapEntry",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LinkMapEntryQueryResult": {
+        "description": "Paginated link-map-entry query response.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/QueryResultMeta"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "description": "Link-map-entry items in current page.",
+                "items": {
+                  "$ref": "#/components/schemas/LinkMapEntry"
+                }
+              }
+            },
+            "required": [
+              "data"
+            ]
+          }
+        ]
+      },
+      "CreateLinkMapEntryRequest": {
+        "description": "Payload for creating one link-map entry.",
+        "type": "object",
+        "properties": {
+          "linkMapId": {
+            "type": "string",
+            "description": "Parent link-map ID."
+          },
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Lookup key."
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16384,
+            "description": "Destination URL resolved for the key."
+          }
+        },
+        "required": [
+          "linkMapId",
+          "key",
+          "destination"
+        ]
+      },
+      "LinkMapEntry": {
+        "description": "One key-to-destination mapping inside a link map.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Link-map entry ID."
+          },
+          "linkMapId": {
+            "type": "string",
+            "description": "Parent link-map ID."
+          },
+          "key": {
+            "type": "string",
+            "description": "User-provided lookup key."
+          },
+          "keyNormalized": {
+            "type": "string",
+            "description": "Backend-normalized key used in matching."
+          },
+          "destination": {
+            "type": "string",
+            "description": "Destination URL for the key."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp (UTC)."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp (UTC)."
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Soft-delete timestamp in UTC when deleted."
+          }
+        },
+        "required": [
+          "id",
+          "linkMapId",
+          "key",
+          "keyNormalized",
+          "destination",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "DeleteLinkMapEntriesByIdRequest": {
+        "description": "Payload for bulk deletion of link-map entries.",
+        "type": "object",
+        "properties": {
+          "linkMapId": {
+            "type": "string",
+            "description": "Parent link-map ID."
+          },
+          "entryIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1000,
+            "description": "Entry IDs that should be deleted.",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "linkMapId",
+          "entryIds"
+        ]
+      },
+      "ImportLinkMapEntriesRequest": {
+        "description": "Payload for bulk import/upsert of link-map entries.",
+        "type": "object",
+        "properties": {
+          "linkMapId": {
+            "type": "string",
+            "description": "Parent link-map ID."
+          },
+          "entries": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 500,
+            "description": "Entries to create or update.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1024,
+                  "description": "Lookup key."
+                },
+                "destination": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16384,
+                  "description": "Destination URL resolved for the key."
+                }
+              },
+              "required": [
+                "key",
+                "destination"
+              ]
+            }
+          }
+        },
+        "required": [
+          "linkMapId",
+          "entries"
+        ]
+      },
+      "ImportLinkMapEntriesResponse": {
+        "description": "Import summary including totals and row-level failures.",
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "description": "Number of processed rows."
+          },
+          "created": {
+            "type": "integer",
+            "description": "Number of newly created entries."
+          },
+          "updated": {
+            "type": "integer",
+            "description": "Number of updated entries."
+          },
+          "failed": {
+            "type": "integer",
+            "description": "Number of rows rejected during import."
+          },
+          "failures": {
+            "type": "array",
+            "description": "Row-level failures with index, key, and reason.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "description": "Index of failed row in import payload."
+                },
+                "key": {
+                  "type": "string",
+                  "description": "Entry key from failed row."
+                },
+                "reason": {
+                  "type": "string",
+                  "description": "Validation or processing failure reason."
+                }
+              },
+              "required": [
+                "index",
+                "key",
+                "reason"
+              ]
+            }
+          }
+        },
+        "required": [
+          "total",
+          "created",
+          "updated",
+          "failed",
+          "failures"
+        ]
+      },
+      "UpdateLinkMapEntryRequest": {
+        "description": "Payload for updating one link-map entry.",
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "description": "Lookup key."
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16384,
+            "description": "Destination URL resolved for the key."
+          }
+        }
+      },
+      "QueryResultMeta": {
+        "description": "Metadata envelope shared by cursor-paginated query responses.",
+        "type": "object",
+        "properties": {
+          "dataType": {
+            "type": "string",
+            "description": "Logical item type in the `data` array."
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether there are additional results after this page."
+          },
+          "moreStartingAfterId": {
+            "type": "string",
+            "description": "Cursor token to request the next page."
+          }
+        },
+        "required": [
+          "dataType",
+          "hasMore"
+        ]
+      },
+      "ErrorResponse": {
+        "description": "Standardized error payload returned by API endpoints.",
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "HTTP-like numeric status code."
+          },
+          "key": {
+            "type": "string",
+            "description": "Stable machine-readable error key."
+          },
+          "message": {
+            "type": "string",
+            "description": "Short error summary."
+          },
+          "details": {
+            "type": "string",
+            "description": "Human-readable details explaining the error."
+          },
+          "requestId": {
+            "type": "string",
+            "description": "Correlation ID useful for support and troubleshooting."
+          },
+          "feature": {
+            "type": "string",
+            "description": "Optional feature gate identifier when relevant (for example `api_access`)."
+          }
+        },
+        "required": [
+          "code",
+          "key",
+          "message"
+        ]
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Missing or invalid API key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "unauthorized": {
+                "value": {
+                  "code": 401,
+                  "key": "unauthorized",
+                  "message": "Unauthorized",
+                  "details": "Missing or invalid API key.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PaymentRequired": {
+        "description": "API usage requires paid plan",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "paymentRequired": {
+                "value": {
+                  "code": 402,
+                  "key": "payment_required",
+                  "message": "Payment required",
+                  "feature": "api_access",
+                  "details": "API key usage is available on paid plans only. Upgrade your subscription to use API access.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Per-key rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "tooManyRequests": {
+                "value": {
+                  "code": 429,
+                  "key": "too_many_requests",
+                  "message": "Too many requests",
+                  "details": "API key rate limit exceeded",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "EntityId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Resource identifier.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key generated in LinkShift dashboard (`Organization -> Manage API keys`)."
+      }
+    }
+  },
+  "x-linkshift": {
+    "sourceTag": "Link Map Entries",
+    "operationCount": 7,
+    "generatedBy": "scripts/openapi-split-by-tag.mjs"
+  }
+}

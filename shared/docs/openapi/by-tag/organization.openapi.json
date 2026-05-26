@@ -1,0 +1,303 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LinkShift Management API (API Key Accessible Endpoints) — Organization",
+    "version": "1.0.0",
+    "summary": "Organization-scoped redirect management API",
+    "description": "This specification describes the LinkShift endpoints that can be accessed with organization API keys.\n\nAuthentication:\n- Preferred: `X-API-Key: <your_key>`\n- Alternative: `Authorization: ApiKey <your_key>` (supported by backend, not modeled as a separate OpenAPI scheme)\n\nImportant billing behavior:\n- API keys are organization-scoped.\n- API key management endpoints (`/api/v1/api-keys`) are intentionally excluded and require dashboard user auth.\n\nRate limiting:\n- Management API requests are rate-limited per API key according to your organization's plan (not per organization aggregate).\n- Use GET /api/v1/organization/usage for current limits. When exceeded, the API returns 429 — use backoff; do not hard-code thresholds in integrations.\nThis document contains only operations tagged \"Organization\".\nTag scope: Organization-scoped operational data available for the current API key."
+  },
+  "servers": [
+    {
+      "url": "https://linkshift.app",
+      "description": "Production API host"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Organization",
+      "description": "Organization-scoped operational data available for the current API key."
+    }
+  ],
+  "paths": {
+    "/api/v1/organization": {
+      "get": {
+        "tags": [
+          "Organization"
+        ],
+        "summary": "Get organization",
+        "description": "Returns organization details for the authenticated organization context.",
+        "operationId": "getOrganization",
+        "responses": {
+          "200": {
+            "description": "Organization details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/organization/usage": {
+      "get": {
+        "tags": [
+          "Organization"
+        ],
+        "summary": "Get organization usage summary",
+        "description": "Returns current resource usage for the authenticated organization.",
+        "operationId": "getOrganizationUsage",
+        "responses": {
+          "200": {
+            "description": "Usage summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationUsage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Organization": {
+        "description": "Organization entity bound to the authenticated API key context.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Organization ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Organization display name."
+          },
+          "configuration": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "Subscription and billing configuration payload."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp (UTC)."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp (UTC)."
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Soft-delete timestamp in UTC when deleted."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "OrganizationUsage": {
+        "description": "Snapshot of current organization resource usage counters.",
+        "type": "object",
+        "properties": {
+          "domainGroups": {
+            "type": "integer",
+            "description": "Number of active domain groups."
+          },
+          "domains": {
+            "type": "integer",
+            "description": "Number of active domains."
+          },
+          "subdomains": {
+            "type": "integer",
+            "description": "Number of active LinkShift subdomains."
+          },
+          "rules": {
+            "type": "integer",
+            "description": "Number of active redirect rules."
+          },
+          "tests": {
+            "type": "integer",
+            "description": "Number of active redirect tests."
+          },
+          "users": {
+            "type": "integer",
+            "description": "Number of organization members."
+          },
+          "apiKeys": {
+            "type": "integer",
+            "description": "Number of configured organization API keys."
+          },
+          "linkMaps": {
+            "type": "integer",
+            "description": "Number of active link maps."
+          },
+          "linkMapEntries": {
+            "type": "integer",
+            "description": "Number of active link-map entries."
+          }
+        },
+        "required": [
+          "domainGroups",
+          "domains",
+          "subdomains",
+          "rules",
+          "tests",
+          "users",
+          "apiKeys",
+          "linkMaps",
+          "linkMapEntries"
+        ]
+      },
+      "ErrorResponse": {
+        "description": "Standardized error payload returned by API endpoints.",
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "HTTP-like numeric status code."
+          },
+          "key": {
+            "type": "string",
+            "description": "Stable machine-readable error key."
+          },
+          "message": {
+            "type": "string",
+            "description": "Short error summary."
+          },
+          "details": {
+            "type": "string",
+            "description": "Human-readable details explaining the error."
+          },
+          "requestId": {
+            "type": "string",
+            "description": "Correlation ID useful for support and troubleshooting."
+          },
+          "feature": {
+            "type": "string",
+            "description": "Optional feature gate identifier when relevant (for example `api_access`)."
+          }
+        },
+        "required": [
+          "code",
+          "key",
+          "message"
+        ]
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Missing or invalid API key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "unauthorized": {
+                "value": {
+                  "code": 401,
+                  "key": "unauthorized",
+                  "message": "Unauthorized",
+                  "details": "Missing or invalid API key.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PaymentRequired": {
+        "description": "API usage requires paid plan",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "paymentRequired": {
+                "value": {
+                  "code": 402,
+                  "key": "payment_required",
+                  "message": "Payment required",
+                  "feature": "api_access",
+                  "details": "API key usage is available on paid plans only. Upgrade your subscription to use API access.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Per-key rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "tooManyRequests": {
+                "value": {
+                  "code": 429,
+                  "key": "too_many_requests",
+                  "message": "Too many requests",
+                  "details": "API key rate limit exceeded",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API key generated in LinkShift dashboard (`Organization -> Manage API keys`)."
+      }
+    }
+  },
+  "x-linkshift": {
+    "sourceTag": "Organization",
+    "operationCount": 2,
+    "generatedBy": "scripts/openapi-split-by-tag.mjs"
+  }
+}
