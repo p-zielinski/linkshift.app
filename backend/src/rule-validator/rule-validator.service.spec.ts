@@ -53,6 +53,14 @@ describe('RuleValidatorService', () => {
       expect(result.isValid).toBe(false);
       expect(result.errors[0]).toContain('Invalid Regex');
     });
+
+    it('should pass multi-segment plain path sources', () => {
+      const result = service.validate(
+        '/v2/go',
+        'https://linkmap.local',
+      );
+      expect(result.isValid).toBe(true);
+    });
   });
 
   describe('Destination Validation (Standard)', () => {
@@ -61,19 +69,17 @@ describe('RuleValidatorService', () => {
       expect(result.isValid).toBe(true);
     });
 
-    it('should reject relative paths', () => {
+    it('should accept root-relative paths as destinations', () => {
       const result = service.validate('*', '/local/path');
-      expect(result.isValid).toBe(false);
-      expect(result.errors[0]).toContain(
-        "Destination must start with 'http://' or 'https://'",
-      );
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
     });
 
-    it('should fail if destination does not start with http/https', () => {
+    it('should fail if destination does not start with http/https or /', () => {
       const result = service.validate('*', 'google.com');
       expect(result.isValid).toBe(false);
       expect(result.errors[0]).toContain(
-        "Destination must start with 'http://' or 'https://'",
+        "Destination must start with 'http://', 'https://', or '/'",
       );
     });
 
@@ -93,6 +99,57 @@ describe('RuleValidatorService', () => {
       expect(result.errors[0]).toContain(
         'source only has 1 capturing group(s)',
       );
+    });
+
+    it('should reject $0 in destination when source is a plain path', () => {
+      const result = service.validate(
+        '/go',
+        'https://example.com/dest?ref=$0',
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors[0]).toContain('Destination uses $0');
+      expect(result.errors[0]).toContain('/pattern/flags');
+    });
+
+    it('should reject $1+ in destination when source is a plain path', () => {
+      const result = service.validate(
+        '/go',
+        'https://example.com/$1',
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors[0]).toContain('Destination uses $1');
+      expect(result.errors[0]).toContain('/pattern/flags');
+    });
+
+    it('should reject $N in ternary branches when source is a plain path', () => {
+      const result = service.validate(
+        '/go',
+        "'{method}' == 'GET' ? https://example.com/$1 : /fallback/$2",
+      );
+      expect(result.isValid).toBe(false);
+      expect(
+        result.errors.some((e) => e.includes('/pattern/flags')),
+      ).toBe(true);
+      expect(result.errors.some((e) => e.includes('$1'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('$2'))).toBe(true);
+    });
+
+    it('should reject $N in destination when source is wildcard', () => {
+      const result = service.validate(
+        '*',
+        'https://example.com/catch/$1',
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors[0]).toContain('Destination uses $1');
+      expect(result.errors[0]).toContain('/pattern/flags');
+    });
+
+    it('should allow $1 in destination when source is regex with a capture group', () => {
+      const result = service.validate(
+        '/^\\/blog\\/(.+)$/',
+        'https://example.com/new-blog/$1',
+      );
+      expect(result.isValid).toBe(true);
     });
 
     it('should allow $2 and $3 when source has multiple capture groups', () => {
@@ -221,13 +278,53 @@ describe('RuleValidatorService', () => {
       expect(result.errors[0]).toContain('Destination must start with');
     });
 
-    it('should reject non-http(s) branches in conditionals', () => {
+    it('should accept root-relative branches in conditionals', () => {
       const result = service.validate(
         '*',
         'random(0,100) < 30 ? https://example.com/ok : /fallback',
       );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept mobile User-Agent routing from public docs examples', () => {
+      const result = service.validate(
+        '*',
+        "'{user-agent}' ~= 'iPhone' ? /mobile-site : /desktop-site",
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept Accept-Language routing placeholders', () => {
+      const result = service.validate(
+        '*',
+        "'{accept-language.primary:to_lower_case}' includes 'pl' ? /pl : /en",
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept raw accept-language in destinations', () => {
+      const result = service.validate(
+        '/lang',
+        'https://example.com/?al={accept-language}',
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should accept nested if-else-if routing with relative branches', () => {
+      const result = service.validate(
+        '*',
+        "'{method}' == 'GET' ? /get : ('{method}' == 'POST' ? /post : /other)",
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should reject geo.country placeholder until GeoIP addon ships', () => {
+      const result = service.validate(
+        '*',
+        'https://example.com/{geo.country}/landing',
+      );
       expect(result.isValid).toBe(false);
-      expect(result.errors[0]).toContain('Destination must start with');
+      expect(result.errors[0]).toContain('Unknown variable: "geo.country"');
     });
 
     it('should fail if conditional has no operator', () => {

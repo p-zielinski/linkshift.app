@@ -41,7 +41,7 @@
 - Keep logs structured and machine-parsable; avoid free-form debug dumps in production paths.
 
 ## API Contract and Documentation
-- Any API behavior or contract change must be reflected in `frontend/public/linkshift-api-keys.openapi.yaml`.
-- After API-related changes, regenerate frontend docs from the `frontend` folder using:
-  - `npm run docs:sync` (script: `node scripts/sync-documentation.mjs`)
+- Any API behavior or contract change must be reflected in `shared/docs/openapi/linkshift-api-keys.openapi.yaml`.
+- After API-related changes, regenerate docs from the repository root using:
+  - `npm run docs:sync` (script: `scripts/docs-sync.mjs`)
 - Treat OpenAPI sync as part of done criteria for backend API work.

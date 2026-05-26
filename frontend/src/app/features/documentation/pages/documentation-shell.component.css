@@ -2,6 +2,15 @@
   display: block;
   height: 100%;
   min-height: 0;
+  /* Sticky docs toolbar (mobile) + ~30px gap above anchored headings */
+  --docs-anchor-scroll-offset: calc(4.75rem + 30px);
+}
+
+@media (min-width: 768px) {
+  :host {
+    /* Desktop: no in-drawer toolbar; keep small gap below viewport top */
+    --docs-anchor-scroll-offset: calc(1.5rem + 30px);
+  }
 }
 
 .docs-shell {
@@ -17,8 +26,10 @@
 }
 
 :host ::ng-deep .docs-shell .mat-drawer-content {
+  overflow-y: auto;
   scrollbar-gutter: stable;
   scroll-behavior: smooth;
+  scroll-padding-top: var(--docs-anchor-scroll-offset);
 }
 
 :host ::ng-deep .docs-sidebar .mat-drawer-inner-container {

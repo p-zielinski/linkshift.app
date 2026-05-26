@@ -50,6 +50,17 @@
             {{ item.label }}
           </a>
         }
+        @for (page of docsContent.introPages; track page.slug) {
+          <a
+            mat-list-item
+            class="rounded-lg"
+            [routerLink]="page.route"
+            routerLinkActive="active"
+            (click)="closeDrawerOnMobile()"
+          >
+            {{ page.title }}
+          </a>
+        }
       </mat-nav-list>
 
       <div

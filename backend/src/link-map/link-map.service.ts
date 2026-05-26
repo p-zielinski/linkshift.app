@@ -1185,7 +1185,11 @@ export class LinkMapService {
         query: new URLSearchParams(entry.queryString),
       };
 
-      entriesByKey.set(entry.keyNormalized, entryContext);
+      const lookupKey =
+        rawData.queryMatch === 'ignore'
+          ? entry.pathNormalized
+          : entry.keyNormalized;
+      entriesByKey.set(lookupKey, entryContext);
 
       const list = entriesByPath.get(entry.pathNormalized);
       if (list) {

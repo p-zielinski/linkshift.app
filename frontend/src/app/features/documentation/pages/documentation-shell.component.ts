@@ -1,5 +1,6 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
+  AfterViewInit,
   Component,
   DestroyRef,
   PLATFORM_ID,
@@ -29,6 +30,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { filter } from 'rxjs/operators';
 import { DocumentationOpenApiService } from '../services/documentation-openapi.service';
 import { DocumentationContentService } from '../services/documentation-content.service';
+import { DocumentationScrollService } from '../services/documentation-scroll.service';
 import { OpenApiTagGroup } from '../models/openapi.types';
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
 
@@ -55,9 +57,10 @@ const SMALL_SCREEN_BREAKPOINT = '(max-width: 767px)';
   templateUrl: './documentation-shell.component.html',
   styleUrl: './documentation-shell.component.css',
 })
-export class DocumentationShellComponent {
+export class DocumentationShellComponent implements AfterViewInit {
   readonly openApi = inject(DocumentationOpenApiService);
   readonly docsContent = inject(DocumentationContentService);
+  private readonly docsScroll = inject(DocumentationScrollService);
 
   readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -97,8 +100,18 @@ export class DocumentationShellComponent {
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       )
       .subscribe(() => {
+        if (this.docsScroll.currentFragment()) {
+          return;
+        }
         this.scrollDocsContentToTop();
       });
+  }
+
+  ngAfterViewInit(): void {
+    const element = this.docsContentRef?.getElementRef().nativeElement;
+    if (element instanceof HTMLElement) {
+      this.docsScroll.registerScrollContainer(element);
+    }
   }
 
   readonly introLinks = [
