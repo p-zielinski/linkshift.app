@@ -1,4 +1,4 @@
-<mat-sidenav-container class="docs-shell page-background">
+<mat-sidenav-container class="docs-shell page-background h-full min-h-0">
   <mat-sidenav
     class="docs-sidebar"
     [mode]="isMobile() ? 'over' : 'side'"
@@ -7,14 +7,15 @@
     [fixedTopGap]="0"
     (openedChange)="mobileDrawerOpen.set($event)"
   >
-    <div class="p-4">
-      <a routerLink="/docs" class="block rounded-xl borderbg-white p-3 no-underline">
-        <div class="text-base font-semibold text-app-text">LinkShift docs</div>
-        <div class="mt-1 text-xs text-app-muted">OpenAPI-driven API documentation</div>
-      </a>
-    </div>
+    <div class="docs-sidebar-layout flex min-h-0 flex-col">
+      <div class="shrink-0 p-4">
+        <a routerLink="/docs" class="block rounded-xl borderbg-white p-3 no-underline">
+          <div class="text-base font-semibold text-app-text">LinkShift docs</div>
+          <div class="mt-1 text-xs text-app-muted">OpenAPI-driven API documentation</div>
+        </a>
+      </div>
 
-    <div class="px-3 pb-4">
+      <div class="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
       @if (isSmallScreen()) {
         <div class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted">
           Site
@@ -143,11 +144,12 @@
           }
         </mat-accordion>
       }
+      </div>
     </div>
   </mat-sidenav>
 
-  <mat-sidenav-content class="block h-full">
-    <div class="flex min-h-full flex-col">
+  <mat-sidenav-content class="flex h-full min-h-0 flex-col">
+    <div class="flex min-h-0 flex-1 flex-col">
       <mat-toolbar
         class="sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fff3f6_0%,#fff_55%,#f7edf2_100%)] text-[#241c21] md:hidden"
       >

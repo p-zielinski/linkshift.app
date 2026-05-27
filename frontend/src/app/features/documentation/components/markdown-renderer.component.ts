@@ -3,6 +3,7 @@ import {
   afterNextRender,
   Component,
   ElementRef,
+  HostListener,
   PLATFORM_ID,
   computed,
   effect,
@@ -12,10 +13,13 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import mermaid from 'mermaid';
 import { DocumentationScrollService } from '../services/documentation-scroll.service';
 import { buildDocsMarkdownHtml } from '../utils/docs-markdown-html.util';
 import { ensureDocsHeadingIds } from '../utils/docs-heading-ids.util';
+import { shouldRewriteDocsMarkdownDom } from '../utils/docs-markdown-paint.util';
+import { extractDocsFragmentFromHref } from '../utils/docs-route-fragment.util';
 
 mermaid.initialize({
   startOnLoad: false,
@@ -27,6 +31,9 @@ mermaid.initialize({
   selector: 'app-markdown-renderer',
   standalone: true,
   imports: [CommonModule],
+  host: {
+    ngSkipHydration: 'true',
+  },
   template: `<article
     #article
     class="docs-markdown markdown-body"
@@ -36,6 +43,7 @@ mermaid.initialize({
 })
 export class MarkdownRendererComponent {
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly router = inject(Router);
   private readonly docsScroll = inject(DocumentationScrollService);
   private readonly injector = inject(Injector);
   private readonly articleRef = viewChild<ElementRef<HTMLElement>>('article');
@@ -51,42 +59,115 @@ export class MarkdownRendererComponent {
 
   constructor() {
     effect(() => {
-      const html = this.htmlString();
+      this.htmlString();
       this.articleRef();
-
-      if (!html || !isPlatformBrowser(this.platformId)) {
-        return;
-      }
 
       untracked(() => {
         queueMicrotask(() => this.paintMarkdown());
       });
     });
 
-    if (isPlatformBrowser(this.platformId)) {
-      afterNextRender(
-        () => {
-          this.paintMarkdown();
-        },
-        { injector: this.injector },
-      );
+    afterNextRender(
+      () => {
+        this.paintMarkdown();
+      },
+      { injector: this.injector },
+    );
+  }
+
+  @HostListener('click', ['$event'])
+  onContentClick(event: MouseEvent): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
     }
+
+    const anchor = (event.target as Element | null)?.closest('a');
+    if (!(anchor instanceof HTMLAnchorElement)) {
+      return;
+    }
+
+    const href = anchor.getAttribute('href');
+    if (!href || /^(https?:|mailto:|tel:)/i.test(href)) {
+      return;
+    }
+
+    if (href.startsWith('#')) {
+      event.preventDefault();
+      const fragment = extractDocsFragmentFromHref(href);
+      if (fragment) {
+        this.scrollSamePageFragment(fragment);
+      }
+      return;
+    }
+
+    if (!href.startsWith('/docs')) {
+      return;
+    }
+
+    event.preventDefault();
+    void this.navigateDocsUrl(href);
+  }
+
+  /**
+   * Same-page `#anchor` — avoid router (NavigationEnd scroll-to-top race); scroll mat-drawer-content.
+   */
+  private scrollSamePageFragment(fragment: string): void {
+    this.docsScroll.setPendingFragment(fragment);
+
+    const path = this.router.url.split('?')[0].split('#')[0];
+    const nextHash = `#${fragment}`;
+    if (window.location.hash !== nextHash) {
+      history.pushState(null, '', `${path}${nextHash}`);
+    }
+
+    const article = this.articleRef()?.nativeElement;
+    this.docsScroll.scrollToFragment(fragment, article ?? undefined);
+  }
+
+  private async navigateDocsUrl(href: string): Promise<void> {
+    const tree = this.router.parseUrl(href);
+    const fragment = tree.fragment;
+    const targetPath = href.split('#')[0].split('?')[0];
+    const currentPath = this.router.url.split('?')[0].split('#')[0];
+
+    if (fragment && targetPath === currentPath) {
+      this.scrollSamePageFragment(fragment);
+      return;
+    }
+
+    if (fragment) {
+      this.docsScroll.setPendingFragment(fragment);
+    }
+
+    await this.router.navigateByUrl(tree);
   }
 
   private paintMarkdown(): void {
     const host = this.articleRef()?.nativeElement;
     const html = this.htmlString();
-    if (!host || !html) {
+    if (!host) {
       return;
     }
 
-    if (html !== this.lastPaintedHtml) {
-      host.innerHTML = html;
-      this.lastPaintedHtml = html;
+    if (!html) {
+      host.innerHTML = '';
+      this.lastPaintedHtml = '';
+      return;
     }
+
+    if (shouldRewriteDocsMarkdownDom(html, this.lastPaintedHtml, host.innerHTML)) {
+      host.innerHTML = html;
+    }
+
+    this.lastPaintedHtml = html;
 
     ensureDocsHeadingIds(host);
     this.docsScroll.onMarkdownContentReady(host);
+
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     void this.renderMermaidCharts(host);
   }
 

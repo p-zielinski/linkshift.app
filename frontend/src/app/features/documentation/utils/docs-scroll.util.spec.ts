@@ -1,9 +1,13 @@
 import {
   findDocsAnchorElement,
+  isDocsSiteMobileViewport,
+  measureDocsAnchorScrollMarginTop,
   measureDocsAnchorScrollOffset,
+  measureDocsStickyChromeBottom,
   parseDocsFragment,
   scrollDocsAnchorElement,
 } from './docs-scroll.util';
+import { buildDocsMarkdownHtml } from './docs-markdown-html.util';
 
 describe('docs-scroll.util', () => {
   it('parses hash fragments', () => {
@@ -21,6 +25,16 @@ describe('docs-scroll.util', () => {
     expect(target?.textContent).toContain('Conditional routing syntax');
   });
 
+  it('finds anchors with double-hyphen github ids via getElementById', () => {
+    const root = document.createElement('article');
+    const html = buildDocsMarkdownHtml('## Link maps + redirect rules');
+    root.innerHTML = html;
+
+    const target = findDocsAnchorElement('link-maps--redirect-rules', root);
+
+    expect(target?.id).toBe('link-maps--redirect-rules');
+  });
+
   it('returns null until anchor exists in content root', () => {
     const root = document.createElement('article');
     root.innerHTML = '<p>Loading…</p>';
@@ -30,6 +44,75 @@ describe('docs-scroll.util', () => {
     root.innerHTML = '<h2 id="late-anchor">Late anchor</h2>';
 
     expect(findDocsAnchorElement('late-anchor', root)?.id).toBe('late-anchor');
+  });
+
+  it('accounts for site toolbar when scroll container starts below it', () => {
+    const siteToolbar = document.createElement('mat-toolbar');
+    siteToolbar.getBoundingClientRect = () =>
+      ({
+        top: 0,
+        left: 0,
+        width: 100,
+        height: 64,
+        bottom: 64,
+        right: 100,
+      }) as DOMRect;
+
+    const host = document.createElement('app-documentation-site-shell');
+    host.append(siteToolbar);
+    document.body.append(host);
+
+    const container = document.createElement('div');
+    container.getBoundingClientRect = () =>
+      ({
+        top: 64,
+        left: 0,
+        width: 100,
+        height: 500,
+        bottom: 564,
+        right: 100,
+      }) as DOMRect;
+
+    const heading = document.createElement('h2');
+
+    expect(measureDocsStickyChromeBottom()).toBe(64);
+    expect(measureDocsAnchorScrollOffset(heading, container)).toBe(30);
+
+    host.remove();
+  });
+
+  it('accounts for site toolbar overlaying scroll container top', () => {
+    const siteToolbar = document.createElement('mat-toolbar');
+    siteToolbar.getBoundingClientRect = () =>
+      ({
+        top: 0,
+        left: 0,
+        width: 100,
+        height: 64,
+        bottom: 64,
+        right: 100,
+      }) as DOMRect;
+
+    const host = document.createElement('app-documentation-site-shell');
+    host.append(siteToolbar);
+    document.body.append(host);
+
+    const container = document.createElement('div');
+    container.getBoundingClientRect = () =>
+      ({
+        top: 0,
+        left: 0,
+        width: 100,
+        height: 500,
+        bottom: 500,
+        right: 100,
+      }) as DOMRect;
+
+    const heading = document.createElement('h2');
+
+    expect(measureDocsAnchorScrollOffset(heading, container)).toBe(94);
+
+    host.remove();
   });
 
   it('includes gap when measuring scroll offset from scroll-margin', () => {
@@ -42,20 +125,64 @@ describe('docs-scroll.util', () => {
     heading.remove();
   });
 
-  it('scrolls with offset inside a scroll container', () => {
+  it('computes scroll-margin from toolbar overlapping the scrollport', () => {
+    const siteToolbar = document.createElement('mat-toolbar');
+    siteToolbar.getBoundingClientRect = () =>
+      ({
+        top: 0,
+        left: 0,
+        width: 100,
+        height: 72,
+        bottom: 72,
+        right: 100,
+      }) as DOMRect;
+
+    const host = document.createElement('app-documentation-site-shell');
+    host.append(siteToolbar);
+    document.body.append(host);
+
     const container = document.createElement('div');
-    const scrollTo = vi.fn();
-    container.scrollTo = scrollTo as unknown as typeof container.scrollTo;
     container.getBoundingClientRect = () =>
       ({
         top: 0,
         left: 0,
         width: 100,
-        height: 100,
-        bottom: 100,
+        height: 500,
+        bottom: 500,
         right: 100,
       }) as DOMRect;
 
+    const marginTop = measureDocsAnchorScrollMarginTop(container);
+
+    expect(measureDocsStickyChromeBottom()).toBe(72);
+    expect(marginTop).toBe(72 + (isDocsSiteMobileViewport() ? 10 : 16));
+
+    host.remove();
+  });
+
+  it('scrolls via scrollIntoView with temporary scroll-margin on the heading', () => {
+    const container = document.createElement('div');
+    container.getBoundingClientRect = () =>
+      ({
+        top: 0,
+        left: 0,
+        width: 100,
+        height: 500,
+        bottom: 500,
+        right: 100,
+      }) as DOMRect;
+
+    const target = document.createElement('h2');
+    const scrollIntoView = vi.fn();
+    target.scrollIntoView = scrollIntoView;
+
+    scrollDocsAnchorElement(target, container);
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start', behavior: 'auto' });
+    expect(target.style.scrollMarginTop).toBe('');
+  });
+
+  it('falls back to window scroll when no scroll container is provided', () => {
     const target = document.createElement('h2');
     target.getBoundingClientRect = () =>
       ({
@@ -66,15 +193,11 @@ describe('docs-scroll.util', () => {
         bottom: 224,
         right: 100,
       }) as DOMRect;
-    target.style.scrollMarginTop = '50px';
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
 
-    scrollDocsAnchorElement(target, container);
+    scrollDocsAnchorElement(target, null);
 
-    expect(scrollTo).toHaveBeenCalledWith(
-      expect.objectContaining({
-        top: 150,
-        behavior: 'auto',
-      }),
-    );
+    expect(scrollTo).toHaveBeenCalled();
+    scrollTo.mockRestore();
   });
 });
