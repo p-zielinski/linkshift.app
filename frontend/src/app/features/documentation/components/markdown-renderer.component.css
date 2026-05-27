@@ -13,7 +13,7 @@
 }
 
 .docs-markdown.markdown-body :is(h1, h2, h3, h4, h5, h6) {
-  scroll-margin-top: var(--docs-anchor-scroll-offset, calc(4.75rem + 30px));
+  scroll-margin-top: var(--docs-anchor-scroll-offset, calc(4.75rem + 10px));
 }
 
 .docs-markdown.markdown-body pre {

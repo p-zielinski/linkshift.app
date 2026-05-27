@@ -9,13 +9,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  Router,
-  RouterLink,
-  RouterLinkActive,
-  RouterOutlet,
-  NavigationEnd,
-} from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import {
   MatSidenavContent,
@@ -27,7 +21,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { filter } from 'rxjs/operators';
 import { DocumentationOpenApiService } from '../services/documentation-openapi.service';
 import { DocumentationContentService } from '../services/documentation-content.service';
 import { DocumentationScrollService } from '../services/documentation-scroll.service';
@@ -94,18 +87,6 @@ export class DocumentationShellComponent implements AfterViewInit {
         }
       });
 
-    this.router.events
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      )
-      .subscribe(() => {
-        if (this.docsScroll.currentFragment()) {
-          return;
-        }
-        this.scrollDocsContentToTop();
-      });
-  }
 
   ngAfterViewInit(): void {
     const element = this.docsContentRef?.getElementRef().nativeElement;
@@ -169,14 +150,4 @@ export class DocumentationShellComponent implements AfterViewInit {
     return this.router.url.split('?')[0] ?? this.router.url;
   }
 
-  private scrollDocsContentToTop(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    this.docsContentRef?.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
-  }
 }

@@ -2,14 +2,6 @@ export function parseDocsFragment(fragment: string): string {
   return decodeURIComponent(fragment.replace(/^#/, '').trim());
 }
 
-function escapeCssIdent(value: string): string {
-  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
-    return CSS.escape(value);
-  }
-
-  return value.replace(/[^a-zA-Z0-9_-]/g, '\\$&');
-}
-
 export function findDocsAnchorElement(
   fragment: string,
   contentRoot?: HTMLElement | null,
@@ -19,55 +11,109 @@ export function findDocsAnchorElement(
     return null;
   }
 
-  const selector = `#${escapeCssIdent(id)}`;
-  if (contentRoot) {
-    return contentRoot.querySelector<HTMLElement>(selector);
+  const byId = document.getElementById(id);
+  if (byId) {
+    if (!contentRoot || contentRoot.contains(byId)) {
+      return byId;
+    }
   }
 
-  return document.getElementById(id);
+  if (!contentRoot) {
+    return null;
+  }
+
+  return contentRoot.querySelector<HTMLElement>(`[id="${escapeAttrValue(id)}"]`);
 }
 
-const STICKY_HEADER_SELECTORS = [
+function escapeAttrValue(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+const DOCS_TOOLBAR_SELECTORS = [
   'app-documentation-site-shell mat-toolbar',
   'app-documentation-shell .mat-drawer-content mat-toolbar',
 ];
 
+/** Matches `MOBILE_BREAKPOINT` in documentation-site-shell (Tailwind `md` = 768px). */
+export const DOCS_SITE_MOBILE_MAX_WIDTH_PX = 767;
+
+const DOCS_ANCHOR_GAP_PX = 30;
+const DOCS_ANCHOR_OFFSET_FALLBACK_PX = 106;
+const DOCS_ANCHOR_MOBILE_EXTRA_GAP_PX = 10;
+const DOCS_ANCHOR_DESKTOP_EXTRA_GAP_PX = 16;
+
+export function isDocsSiteMobileViewport(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+
+  return window.matchMedia(`(max-width: ${DOCS_SITE_MOBILE_MAX_WIDTH_PX}px)`).matches;
+}
+
+export function measureDocsAnchorExtraGapPx(): number {
+  return isDocsSiteMobileViewport()
+    ? DOCS_ANCHOR_MOBILE_EXTRA_GAP_PX
+    : DOCS_ANCHOR_DESKTOP_EXTRA_GAP_PX;
+}
+
 /**
- * Measures visible sticky header overlap above the scroll container + gap (default 30px).
+ * scroll-margin-top so scrollIntoView clears sticky chrome overlapping the drawer scrollport.
+ * Site toolbar (desktop) sits outside mat-drawer-content; overlap = chrome bottom − container top.
+ */
+export function measureDocsAnchorScrollMarginTop(scrollContainer: HTMLElement): number {
+  const gapPx = measureDocsAnchorExtraGapPx();
+  const chromeBottom = measureDocsStickyChromeBottom();
+  const containerTop = scrollContainer.getBoundingClientRect().top;
+  const overlapPx = chromeBottom - containerTop + gapPx;
+
+  return Math.max(gapPx, overlapPx);
+}
+
+/**
+ * Bottom edge (viewport coords) of visible docs chrome: site toolbar + in-drawer mobile toolbar.
+ */
+export function measureDocsStickyChromeBottom(): number {
+  let chromeBottom = 0;
+
+  for (const selector of DOCS_TOOLBAR_SELECTORS) {
+    for (const element of document.querySelectorAll<HTMLElement>(selector)) {
+      const rect = element.getBoundingClientRect();
+      if (rect.height <= 0 || rect.bottom <= 0) {
+        continue;
+      }
+
+      chromeBottom = Math.max(chromeBottom, rect.bottom);
+    }
+  }
+
+  return chromeBottom;
+}
+
+/**
+ * Scroll offset inside the docs scroll container so the heading clears sticky toolbars + gap.
  */
 export function measureDocsAnchorScrollOffset(
   target: HTMLElement,
   scrollContainer?: HTMLElement | null,
 ): number {
-  const gapPx = 30;
+  const scrollMarginTop = parseFloat(getComputedStyle(target).scrollMarginTop);
+  if (Number.isFinite(scrollMarginTop) && scrollMarginTop > 0) {
+    return scrollMarginTop;
+  }
+
+  const chromeBottom = measureDocsStickyChromeBottom();
   const containerTop = scrollContainer?.getBoundingClientRect().top ?? 0;
-  let stickyBottom = containerTop;
+  const fromChrome = chromeBottom + DOCS_ANCHOR_GAP_PX - containerTop;
 
-  for (const selector of STICKY_HEADER_SELECTORS) {
-    for (const element of document.querySelectorAll<HTMLElement>(selector)) {
-      const style = getComputedStyle(element);
-      if (style.position !== 'sticky' && style.position !== 'fixed') {
-        continue;
-      }
-
-      const rect = element.getBoundingClientRect();
-      if (rect.height > 0 && rect.bottom > stickyBottom) {
-        stickyBottom = rect.bottom;
-      }
-    }
+  if (chromeBottom > 0) {
+    return Math.max(DOCS_ANCHOR_GAP_PX, fromChrome);
   }
 
-  const measured = stickyBottom - containerTop + gapPx;
-  if (measured > gapPx) {
-    return measured;
+  if (fromChrome > DOCS_ANCHOR_GAP_PX) {
+    return fromChrome;
   }
 
-  const marginTop = parseFloat(getComputedStyle(target).scrollMarginTop);
-  if (Number.isFinite(marginTop) && marginTop > 0) {
-    return marginTop;
-  }
-
-  return 106;
+  return DOCS_ANCHOR_OFFSET_FALLBACK_PX;
 }
 
 export function resolveDocsAnchorScrollOffset(
@@ -77,25 +123,40 @@ export function resolveDocsAnchorScrollOffset(
   return measureDocsAnchorScrollOffset(target, scrollContainer);
 }
 
+function withTemporaryScrollMarginTop(
+  target: HTMLElement,
+  marginTopPx: number,
+  scroll: () => void,
+): void {
+  const previous = target.style.scrollMarginTop;
+  target.style.scrollMarginTop = `${marginTopPx}px`;
+
+  try {
+    scroll();
+  } finally {
+    if (previous) {
+      target.style.scrollMarginTop = previous;
+    } else {
+      target.style.removeProperty('scroll-margin-top');
+    }
+  }
+}
+
 export function scrollDocsAnchorElement(
   target: HTMLElement,
   scrollContainer?: HTMLElement | null,
 ): void {
-  const topOffset = measureDocsAnchorScrollOffset(target, scrollContainer);
-
   if (scrollContainer) {
-    const targetTop = target.getBoundingClientRect().top;
-    const containerTop = scrollContainer.getBoundingClientRect().top;
-    const nextTop = scrollContainer.scrollTop + (targetTop - containerTop) - topOffset;
-
-    scrollContainer.scrollTo({
-      top: Math.max(0, nextTop),
-      behavior: 'auto',
+    const marginTopPx = measureDocsAnchorScrollMarginTop(scrollContainer);
+    withTemporaryScrollMarginTop(target, marginTopPx, () => {
+      target.scrollIntoView({ block: 'start', behavior: 'auto' });
     });
     return;
   }
 
-  target.scrollIntoView({ behavior: 'auto', block: 'start' });
+  const topOffset = measureDocsAnchorScrollOffset(target, null);
+  const viewportTop = window.scrollY + target.getBoundingClientRect().top - topOffset;
+  window.scrollTo({ top: Math.max(0, viewportTop), behavior: 'auto' });
 }
 
 export function waitForNextPaint(): Promise<void> {
