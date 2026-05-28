@@ -38,8 +38,19 @@ export class DocumentationSiteShellComponent {
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.isMobile.set(this.breakpointObserver.isMatched(MOBILE_BREAKPOINT));
+      this.lockDocumentScrollWhileInDocs();
     }
     this.observeViewport();
+  }
+
+  /** Keep scroll inside mat-sidenav-content instead of the document. */
+  private lockDocumentScrollWhileInDocs(): void {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    this.destroyRef.onDestroy(() => {
+      document.body.style.overflow = previousOverflow;
+    });
   }
 
   private observeViewport(): void {

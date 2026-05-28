@@ -42,27 +42,26 @@ export class DocumentationMarkdownPageComponent implements OnInit, AfterViewInit
   private readonly platformId = inject(PLATFORM_ID);
 
   readonly pageSlug = signal(this.readSlugFromRoute());
-  private lastRouteSlug = this.readSlugFromRoute();
 
   readonly page = computed(() => this.docsContent.getPageBySlug(this.pageSlug()));
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const slug = params.get('slug') ?? '';
-      const slugChanged = slug !== this.lastRouteSlug;
-      this.lastRouteSlug = slug;
       this.pageSlug.set(slug);
       this.updateSeoForSlug(slug);
 
-      if (isPlatformBrowser(this.platformId) && slugChanged) {
-        queueMicrotask(() => {
-          if (this.docsScroll.currentFragment()) {
-            this.schedulePageAnchorRetry();
-          } else {
-            this.docsScroll.scrollContentToTop();
-          }
-        });
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
       }
+
+      queueMicrotask(() => {
+        if (this.docsScroll.currentFragment()) {
+          this.schedulePageAnchorRetry();
+        } else {
+          this.docsScroll.requestScrollToTop();
+        }
+      });
     });
   }
 
@@ -81,8 +80,7 @@ export class DocumentationMarkdownPageComponent implements OnInit, AfterViewInit
   }
 
   private schedulePageAnchorRetry(): void {
-    this.docsScroll.retryAnchorScrollFromPage();
-    setTimeout(() => this.docsScroll.retryAnchorScrollFromPage(), 300);
+    queueMicrotask(() => this.docsScroll.retryAnchorScrollFromPage());
   }
 
   private updateSeoForSlug(slug: string): void {

@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
+import { MatSidenavContent } from '@angular/material/sidenav';
 import { filter } from 'rxjs/operators';
 import {
   getDocsNavigationFragment,
@@ -8,9 +9,17 @@ import {
 import { docsScrollDebug } from '../utils/docs-scroll-debug.util';
 import {
   findDocsAnchorElement,
+  findDocsScrollContainer,
+  findDocsShellRoot,
+  isDocsScrollAtTop,
   scrollDocsAnchorElement,
+  scrollDocsPageToTop,
   waitForNextPaint,
 } from '../utils/docs-scroll.util';
+
+const MAX_ANCHOR_SCROLL_ATTEMPTS = 5;
+const ANCHOR_SCROLL_RETRY_MS = 50;
+const SCROLL_TO_TOP_LATE_RETRY_MS = 120;
 
 @Injectable({
   providedIn: 'root',
@@ -19,9 +28,16 @@ export class DocumentationScrollService {
   private readonly router = inject(Router);
 
   private scrollContainer: HTMLElement | null = null;
+  private sidenavContent: MatSidenavContent | null = null;
   private pendingFragment: string | null = null;
   private coalesceTimer: ReturnType<typeof setTimeout> | null = null;
   private coalesceContentRoot: HTMLElement | null = null;
+  private anchorScrollRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private anchorScrollAttempts = 0;
+  private anchorScrollGeneration = 0;
+  private pendingScrollToTop = false;
+  private scrollToTopFollowUpGeneration = 0;
+  private useSmoothScrollToTop = false;
 
   constructor() {
     if (typeof history !== 'undefined' && 'scrollRestoration' in history) {
@@ -36,6 +52,9 @@ export class DocumentationScrollService {
   }
 
   private handleNavigationEnd(navigationUrl: string): void {
+    this.cancelAnchorScrollWork();
+    this.cancelScrollToTopFollowUp();
+
     const fragment =
       this.pendingFragment ?? getDocsNavigationFragment(this.router, navigationUrl);
 
@@ -46,12 +65,29 @@ export class DocumentationScrollService {
     });
 
     if (!fragment) {
-      this.clearPendingFragment();
-      this.scrollContentToTop();
+      this.requestScrollToTop();
       return;
     }
 
+    this.pendingScrollToTop = false;
+    this.anchorScrollAttempts = 0;
     this.requestAnchorScroll('NavigationEnd');
+  }
+
+  private cancelAnchorScrollWork(): void {
+    this.anchorScrollGeneration += 1;
+
+    if (this.coalesceTimer !== null) {
+      clearTimeout(this.coalesceTimer);
+      this.coalesceTimer = null;
+    }
+
+    if (this.anchorScrollRetryTimer !== null) {
+      clearTimeout(this.anchorScrollRetryTimer);
+      this.anchorScrollRetryTimer = null;
+    }
+
+    this.coalesceContentRoot = null;
   }
 
   setPendingFragment(fragment: string | null): void {
@@ -72,27 +108,99 @@ export class DocumentationScrollService {
     docsScrollDebug('registerScrollContainer', { registered: element instanceof HTMLElement });
   }
 
-  /** Scroll markdown column to top (navigation without `#fragment`). */
-  scrollContentToTop(): void {
+  registerSidenavContent(content: MatSidenavContent | null | undefined): void {
+    this.sidenavContent = content ?? null;
+    const element = content?.getElementRef().nativeElement;
+    if (element instanceof HTMLElement) {
+      this.registerScrollContainer(element);
+    }
+  }
+
+  /** Route change without `#fragment` — scroll runs after content paint (not immediately). */
+  requestScrollToTop(options?: { smooth?: boolean }): void {
+    this.pendingScrollToTop = true;
+    this.useSmoothScrollToTop = options?.smooth ?? true;
+    this.clearPendingFragment();
+    this.cancelScrollToTopFollowUp();
+    this.scheduleScrollToTopFollowUp();
+  }
+
+  /** Scroll docs column (and document) to top. Returns false when already at top (no-op). */
+  scrollContentToTop(): boolean {
+    const behavior: ScrollBehavior = this.useSmoothScrollToTop ? 'smooth' : 'auto';
     const container = this.resolveScrollContainer();
-    if (!container) {
+
+    if (isDocsScrollAtTop(container)) {
+      docsScrollDebug('scrollContentToTop:skipped-already-at-top', {
+        behavior,
+        sidenavScrollTop: container?.scrollTop ?? null,
+      });
+      return false;
+    }
+
+    if (container && container.scrollTop > 0) {
+      this.sidenavContent?.scrollTo({ top: 0, behavior });
+    }
+
+    const result = scrollDocsPageToTop(container, { behavior });
+
+    if (!container && result.targets.length === 0 && !result.skipped) {
+      docsScrollDebug('scrollContentToTop:missing-container', result);
+      return false;
+    }
+
+    docsScrollDebug('scrollContentToTop', {
+      behavior,
+      sidenavScrollTop: container?.scrollTop ?? null,
+      ...result,
+    });
+    return !result.skipped;
+  }
+
+  private cancelScrollToTopFollowUp(): void {
+    this.scrollToTopFollowUpGeneration += 1;
+  }
+
+  private scheduleScrollToTopFollowUp(): void {
+    const generation = this.scrollToTopFollowUpGeneration;
+
+    setTimeout(() => {
+      if (generation !== this.scrollToTopFollowUpGeneration || !this.pendingScrollToTop) {
+        return;
+      }
+
+      this.scrollContentToTop();
+      this.finishScrollToTopIfDone();
+    }, SCROLL_TO_TOP_LATE_RETRY_MS);
+  }
+
+  private applyScrollToTopAfterContentReady(): void {
+    if (!this.pendingScrollToTop) {
       return;
     }
 
-    container.scrollTo({ top: 0, behavior: 'auto' });
-    docsScrollDebug('scrollContentToTop', { after: container.scrollTop });
+    void waitForNextPaint().then(() => {
+      if (!this.pendingScrollToTop) {
+        return;
+      }
+
+      this.scrollContentToTop();
+      this.finishScrollToTopIfDone();
+    });
   }
 
-  /** @deprecated No-op — kept so callers do not need churn; scroll is coalesced instead. */
-  cancelPendingScroll(): void {
-    docsScrollDebug('cancelPendingScroll (no-op)');
+  private finishScrollToTopIfDone(): void {
+    const container = this.resolveScrollContainer();
+    if (!this.pendingScrollToTop || isDocsScrollAtTop(container)) {
+      this.pendingScrollToTop = false;
+      this.useSmoothScrollToTop = false;
+    }
   }
 
-  /**
-   * Immediate scroll when the anchor is already in the DOM (same-page links).
-   */
   scrollToFragment(fragment: string, contentRoot?: HTMLElement | null): void {
+    this.pendingScrollToTop = false;
     this.setPendingFragment(fragment);
+    this.anchorScrollAttempts = 0;
     void this.applyAnchorScroll(fragment, contentRoot ?? undefined, 'scrollToFragment');
   }
 
@@ -101,16 +209,21 @@ export class DocumentationScrollService {
   }
 
   onMarkdownContentReady(contentRoot: HTMLElement): void {
-    if (!this.currentFragment()) {
-      return;
+    const fragment = this.currentFragment();
+    if (fragment) {
+      const anchor = findDocsAnchorElement(fragment, contentRoot);
+      if (anchor) {
+        this.pendingScrollToTop = false;
+        this.requestAnchorScroll('markdown-ready', contentRoot);
+        return;
+      }
+
+      this.clearPendingFragment();
     }
 
-    this.requestAnchorScroll('markdown-ready', contentRoot);
+    this.applyScrollToTopAfterContentReady();
   }
 
-  /**
-   * Coalesce burst calls (NavigationEnd + markdown paint + retries) into one scroll pass.
-   */
   requestAnchorScroll(source: string, contentRoot?: HTMLElement): void {
     const fragment = this.currentFragment();
     if (!fragment) {
@@ -138,6 +251,7 @@ export class DocumentationScrollService {
     contentRoot: HTMLElement | undefined,
     source: string,
   ): Promise<void> {
+    const generation = this.anchorScrollGeneration;
     const root = contentRoot ?? this.findMarkdownContentRoot(fragment);
 
     if (!root) {
@@ -148,6 +262,9 @@ export class DocumentationScrollService {
     let target = findDocsAnchorElement(fragment, root);
     if (!target) {
       await waitForNextPaint();
+      if (generation !== this.anchorScrollGeneration) {
+        return;
+      }
       target = findDocsAnchorElement(fragment, root);
     }
 
@@ -156,30 +273,86 @@ export class DocumentationScrollService {
       return;
     }
 
-    const container = this.resolveScrollContainer();
-    const before = container?.scrollTop ?? null;
+    if (generation !== this.anchorScrollGeneration) {
+      return;
+    }
 
-    scrollDocsAnchorElement(target, container);
+    const registered = this.resolveScrollContainer();
+    const container = findDocsScrollContainer(target, registered);
+    const result = scrollDocsAnchorElement(target, container);
 
     docsScrollDebug('applyAnchorScroll', {
       source,
       fragment,
       targetId: target.id,
-      before,
-      after: container?.scrollTop ?? null,
+      attempt: this.anchorScrollAttempts,
+      ...result,
+      delta: result.scrollTopAfter - result.scrollTopBefore,
       container: container?.className ?? null,
     });
 
-    this.clearPendingFragment();
+    if (generation !== this.anchorScrollGeneration) {
+      return;
+    }
 
-    // Layout may shift after mermaid/fonts — one follow-up scroll, no generation/cancel storm.
+    if (result.scrolled) {
+      this.anchorScrollAttempts = 0;
+      this.clearPendingFragment();
+      this.scheduleFollowUpScroll(target, container, root, fragment, generation);
+      return;
+    }
+
+    if (this.anchorScrollAttempts < MAX_ANCHOR_SCROLL_ATTEMPTS) {
+      this.anchorScrollAttempts += 1;
+      this.scheduleAnchorScrollRetry(fragment, root, source, generation);
+      return;
+    }
+
+    docsScrollDebug('applyAnchorScroll:give-up', { source, fragment, attempt: this.anchorScrollAttempts });
+    this.clearPendingFragment();
+  }
+
+  private scheduleAnchorScrollRetry(
+    fragment: string,
+    root: HTMLElement,
+    source: string,
+    generation: number,
+  ): void {
+    if (this.anchorScrollRetryTimer !== null) {
+      clearTimeout(this.anchorScrollRetryTimer);
+    }
+
+    this.anchorScrollRetryTimer = setTimeout(() => {
+      this.anchorScrollRetryTimer = null;
+      if (generation !== this.anchorScrollGeneration) {
+        return;
+      }
+      const activeFragment = this.currentFragment();
+      if (activeFragment && activeFragment !== fragment) {
+        return;
+      }
+      void this.applyAnchorScroll(fragment, root, `${source}-retry`);
+    }, ANCHOR_SCROLL_RETRY_MS);
+  }
+
+  private scheduleFollowUpScroll(
+    target: HTMLElement,
+    container: HTMLElement | null,
+    root: HTMLElement,
+    fragment: string,
+    generation: number,
+  ): void {
     requestAnimationFrame(() => {
+      if (generation !== this.anchorScrollGeneration) {
+        return;
+      }
       if (findDocsAnchorElement(fragment, root) !== target) {
         return;
       }
-      scrollDocsAnchorElement(target, container);
+      const result = scrollDocsAnchorElement(target, container);
       docsScrollDebug('applyAnchorScroll:raf', {
-        after: container?.scrollTop ?? null,
+        after: result.scrollTopAfter,
+        scrolled: result.scrolled,
       });
     });
   }
@@ -205,7 +378,7 @@ export class DocumentationScrollService {
     }
 
     return (
-      document.querySelector<HTMLElement>('.docs-shell mat-sidenav-content') ??
+      findDocsShellRoot()?.querySelector<HTMLElement>('mat-sidenav-content.mat-sidenav-content') ??
       document.querySelector<HTMLElement>('.docs-shell .mat-drawer-content')
     );
   }
