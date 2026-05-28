@@ -5,23 +5,22 @@
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  /* <768px: in-drawer toolbar + small gap (site shell hides top toolbar) */
-  --docs-anchor-scroll-offset: calc(4.75rem + 10px);
-}
-
-@media (min-width: 768px) {
-  :host {
-    /* ≥768px: sticky site toolbar above drawer (fallback when JS has not run yet) */
-    --docs-anchor-scroll-offset: calc(5.5rem + 1rem);
-  }
 }
 
 .docs-shell {
   flex: 1 1 auto;
   height: 100%;
   min-height: 0;
+  max-height: 100%;
   width: 100%;
   overflow: hidden;
+}
+
+:host ::ng-deep .docs-shell.mat-sidenav-container,
+:host ::ng-deep .docs-shell.mat-drawer-container {
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
 }
 
 .docs-sidebar {
@@ -47,13 +46,36 @@
 /* Markdown column scroll (anchor targets use this element). */
 :host ::ng-deep .docs-shell .mat-drawer-content,
 :host ::ng-deep .docs-shell mat-sidenav-content.mat-sidenav-content {
+  flex: 1 1 auto;
   height: 100%;
   min-height: 0;
+  max-height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-gutter: stable;
-  scroll-behavior: smooth;
-  scroll-padding-top: var(--docs-anchor-scroll-offset);
+  scroll-behavior: auto;
+  scroll-padding-top: 70px;
+}
+
+.docs-page-top-anchor {
+  display: block;
+  height: 0;
+  width: 0;
+  overflow: hidden;
+  scroll-margin-top: 70px;
+}
+
+@media (min-width: 768px) {
+  .docs-page-top-anchor {
+    scroll-margin-top: 15px;
+  }
+}
+
+@media (min-width: 768px) {
+  :host ::ng-deep .docs-shell .mat-drawer-content,
+  :host ::ng-deep .docs-shell mat-sidenav-content.mat-sidenav-content {
+    scroll-padding-top: 15px;
+  }
 }
 
 :host ::ng-deep .docs-sidebar .mat-mdc-list-item.active {

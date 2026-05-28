@@ -1,11 +1,13 @@
 import {
+  DOCS_ANCHOR_SCROLL_OFFSET_NARROW_PX,
+  DOCS_ANCHOR_SCROLL_OFFSET_WIDE_PX,
   findDocsAnchorElement,
-  isDocsSiteMobileViewport,
-  measureDocsAnchorScrollMarginTop,
-  measureDocsAnchorScrollOffset,
-  measureDocsStickyChromeBottom,
+  findDocsScrollContainer,
   parseDocsFragment,
+  readDocsAnchorScrollOffsetPx,
+  isDocsScrollAtTop,
   scrollDocsAnchorElement,
+  scrollDocsPageToTop,
 } from './docs-scroll.util';
 import { buildDocsMarkdownHtml } from './docs-markdown-html.util';
 
@@ -35,6 +37,19 @@ describe('docs-scroll.util', () => {
     expect(target?.id).toBe('link-maps--redirect-rules');
   });
 
+  it('does not resolve a global id outside the provided content root', () => {
+    const other = document.createElement('h2');
+    other.id = 'shared-id';
+    document.body.append(other);
+
+    const root = document.createElement('article');
+    root.innerHTML = '<p>No anchor here</p>';
+
+    expect(findDocsAnchorElement('shared-id', root)).toBeNull();
+
+    other.remove();
+  });
+
   it('returns null until anchor exists in content root', () => {
     const root = document.createElement('article');
     root.innerHTML = '<p>Loading…</p>';
@@ -46,140 +61,153 @@ describe('docs-scroll.util', () => {
     expect(findDocsAnchorElement('late-anchor', root)?.id).toBe('late-anchor');
   });
 
-  it('accounts for site toolbar when scroll container starts below it', () => {
-    const siteToolbar = document.createElement('mat-toolbar');
-    siteToolbar.getBoundingClientRect = () =>
-      ({
-        top: 0,
-        left: 0,
-        width: 100,
-        height: 64,
-        bottom: 64,
-        right: 100,
-      }) as DOMRect;
+  it('uses fixed px offsets per viewport', () => {
+    expect(DOCS_ANCHOR_SCROLL_OFFSET_WIDE_PX).toBe(15);
+    expect(DOCS_ANCHOR_SCROLL_OFFSET_NARROW_PX).toBe(70);
+    expect(readDocsAnchorScrollOffsetPx()).toBe(15);
+  });
 
-    const host = document.createElement('app-documentation-site-shell');
-    host.append(siteToolbar);
-    document.body.append(host);
+  it('prefers registered scroll container when it contains the target', () => {
+    const registered = document.createElement('div');
+    const inner = document.createElement('div');
+    const target = document.createElement('h2');
+    registered.append(inner, target);
+    document.body.append(registered);
 
+    expect(findDocsScrollContainer(target, registered)).toBe(registered);
+
+    registered.remove();
+  });
+
+  it('scrolls scrollport via explicit scrollTop math', () => {
     const container = document.createElement('div');
+    Object.defineProperty(container, 'scrollTop', {
+      writable: true,
+      value: 0,
+    });
+    Object.defineProperty(container, 'scrollHeight', { value: 2000 });
+    Object.defineProperty(container, 'clientHeight', { value: 500 });
     container.getBoundingClientRect = () =>
       ({
-        top: 64,
+        top: 80,
         left: 0,
         width: 100,
         height: 500,
-        bottom: 564,
+        bottom: 580,
         right: 100,
       }) as DOMRect;
-
-    const heading = document.createElement('h2');
-
-    expect(measureDocsStickyChromeBottom()).toBe(64);
-    expect(measureDocsAnchorScrollOffset(heading, container)).toBe(30);
-
-    host.remove();
-  });
-
-  it('accounts for site toolbar overlaying scroll container top', () => {
-    const siteToolbar = document.createElement('mat-toolbar');
-    siteToolbar.getBoundingClientRect = () =>
-      ({
-        top: 0,
-        left: 0,
-        width: 100,
-        height: 64,
-        bottom: 64,
-        right: 100,
-      }) as DOMRect;
-
-    const host = document.createElement('app-documentation-site-shell');
-    host.append(siteToolbar);
-    document.body.append(host);
-
-    const container = document.createElement('div');
-    container.getBoundingClientRect = () =>
-      ({
-        top: 0,
-        left: 0,
-        width: 100,
-        height: 500,
-        bottom: 500,
-        right: 100,
-      }) as DOMRect;
-
-    const heading = document.createElement('h2');
-
-    expect(measureDocsAnchorScrollOffset(heading, container)).toBe(94);
-
-    host.remove();
-  });
-
-  it('includes gap when measuring scroll offset from scroll-margin', () => {
-    const heading = document.createElement('h2');
-    heading.style.scrollMarginTop = '90px';
-    document.body.append(heading);
-
-    expect(measureDocsAnchorScrollOffset(heading)).toBe(90);
-
-    heading.remove();
-  });
-
-  it('computes scroll-margin from toolbar overlapping the scrollport', () => {
-    const siteToolbar = document.createElement('mat-toolbar');
-    siteToolbar.getBoundingClientRect = () =>
-      ({
-        top: 0,
-        left: 0,
-        width: 100,
-        height: 72,
-        bottom: 72,
-        right: 100,
-      }) as DOMRect;
-
-    const host = document.createElement('app-documentation-site-shell');
-    host.append(siteToolbar);
-    document.body.append(host);
-
-    const container = document.createElement('div');
-    container.getBoundingClientRect = () =>
-      ({
-        top: 0,
-        left: 0,
-        width: 100,
-        height: 500,
-        bottom: 500,
-        right: 100,
-      }) as DOMRect;
-
-    const marginTop = measureDocsAnchorScrollMarginTop(container);
-
-    expect(measureDocsStickyChromeBottom()).toBe(72);
-    expect(marginTop).toBe(72 + (isDocsSiteMobileViewport() ? 10 : 16));
-
-    host.remove();
-  });
-
-  it('scrolls via scrollIntoView with temporary scroll-margin on the heading', () => {
-    const container = document.createElement('div');
-    container.getBoundingClientRect = () =>
-      ({
-        top: 0,
-        left: 0,
-        width: 100,
-        height: 500,
-        bottom: 500,
-        right: 100,
-      }) as DOMRect;
+    container.scrollTo = ((options?: ScrollToOptions) => {
+      container.scrollTop = options?.top ?? 0;
+    }) as typeof container.scrollTo;
 
     const target = document.createElement('h2');
+    target.getBoundingClientRect = () =>
+      ({
+        top: 480,
+        left: 0,
+        width: 100,
+        height: 24,
+        bottom: 504,
+        right: 100,
+      }) as DOMRect;
+
+    container.append(target);
+    document.body.append(container);
+
+    const result = scrollDocsAnchorElement(target, container);
+
+    expect(container.scrollTop).toBe(385);
+    expect(result.scrollTopAfter).toBe(385);
+    expect(result.scrolled).toBe(true);
+    expect(result.offsetPx).toBe(15);
+
+    container.remove();
+  });
+
+  it('does not call scrollIntoView on the heading', () => {
+    const container = document.createElement('div');
+    Object.defineProperty(container, 'scrollTop', { writable: true, value: 0 });
+    Object.defineProperty(container, 'scrollHeight', { value: 2000 });
+    Object.defineProperty(container, 'clientHeight', { value: 500 });
+    container.getBoundingClientRect = () =>
+      ({
+        top: 0,
+        left: 0,
+        width: 100,
+        height: 500,
+        bottom: 500,
+        right: 100,
+      }) as DOMRect;
+    container.scrollTo = ((options?: ScrollToOptions) => {
+      container.scrollTop = options?.top ?? 0;
+    }) as typeof container.scrollTo;
+
+    const target = document.createElement('h2');
+    target.getBoundingClientRect = () =>
+      ({
+        top: 400,
+        left: 0,
+        width: 100,
+        height: 24,
+        bottom: 424,
+        right: 100,
+      }) as DOMRect;
     const scrollIntoView = vi.fn();
     target.scrollIntoView = scrollIntoView;
+    container.append(target);
 
     scrollDocsAnchorElement(target, container);
 
-    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start', behavior: 'auto' });
-    expect(target.style.scrollMarginTop).toBe('');
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it('skips scroll when docs are already at the top', () => {
+    const shell = document.createElement('div');
+    shell.className = 'docs-shell';
+    const sidenavContent = document.createElement('mat-sidenav-content');
+    sidenavContent.className = 'mat-sidenav-content mat-drawer-content';
+    Object.defineProperty(sidenavContent, 'scrollTop', { writable: true, value: 0 });
+    shell.append(sidenavContent);
+    document.body.append(shell);
+
+    expect(isDocsScrollAtTop(sidenavContent)).toBe(true);
+
+    const result = scrollDocsPageToTop(sidenavContent);
+    expect(result.skipped).toBe(true);
+    expect(result.targets).toHaveLength(0);
+
+    shell.remove();
+  });
+
+  it('resets window scroll and nested docs scrollports', () => {
+    const shell = document.createElement('div');
+    shell.className = 'docs-shell';
+
+    const sidenavContent = document.createElement('mat-sidenav-content');
+    sidenavContent.className = 'mat-sidenav-content mat-drawer-content';
+    Object.defineProperty(sidenavContent, 'scrollTop', { writable: true, value: 420 });
+    Object.defineProperty(sidenavContent, 'scrollHeight', { value: 2000 });
+    Object.defineProperty(sidenavContent, 'clientHeight', { value: 500 });
+    sidenavContent.scrollTo = ((options?: ScrollToOptions) => {
+      sidenavContent.scrollTop = options?.top ?? 0;
+    }) as typeof sidenavContent.scrollTo;
+
+    shell.append(sidenavContent);
+    document.body.append(shell);
+
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    Object.defineProperty(window, 'scrollY', { writable: true, configurable: true, value: 180 });
+
+    const result = scrollDocsPageToTop(sidenavContent);
+
+    expect(result.skipped).toBe(false);
+    expect(result.windowBefore).toBe(180);
+    expect(sidenavContent.scrollTop).toBe(0);
+    expect(result.targets.some((entry) => entry.before === 420 && entry.after === 0)).toBe(true);
+    expect(scrollTo).toHaveBeenCalled();
+
+    scrollTo.mockRestore();
+    shell.remove();
   });
 
   it('falls back to window scroll when no scroll container is provided', () => {

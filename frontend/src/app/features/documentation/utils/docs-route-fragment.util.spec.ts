@@ -52,7 +52,7 @@ describe('getDocsRouteFragment', () => {
     expect(findFragmentInRouteTree(parent)).toBe('link-maps--redirect-rules');
   });
 
-  it('reads fragment from window.location.hash when router.url omits it', () => {
+  it('does not read stale window hash when router has no fragment', () => {
     const router = {
       routerState: {
         snapshot: {
@@ -65,6 +65,6 @@ describe('getDocsRouteFragment', () => {
 
     window.location.hash = '#conditional-routing-syntax';
 
-    expect(getDocsRouteFragment(router)).toBe('conditional-routing-syntax');
+    expect(getDocsRouteFragment(router)).toBeNull();
   });
 });

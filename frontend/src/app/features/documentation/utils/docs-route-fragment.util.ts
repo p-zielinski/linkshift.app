@@ -30,21 +30,7 @@ export function getDocsRouteFragment(router: Router): string | null {
     return fromRoute;
   }
 
-  const fromRouterUrl = router.parseUrl(router.url).fragment;
-  if (fromRouterUrl) {
-    return fromRouterUrl;
-  }
-
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  const hash = window.location.hash;
-  if (hash.length <= 1) {
-    return null;
-  }
-
-  return decodeURIComponent(hash.slice(1));
+  return router.parseUrl(router.url).fragment ?? null;
 }
 
 /** Prefer NavigationEnd url — avoids stale `location.hash` during transitions. */

@@ -86,13 +86,10 @@ export class DocumentationShellComponent implements AfterViewInit {
           this.mobileDrawerOpen.set(false);
         }
       });
-
+  }
 
   ngAfterViewInit(): void {
-    const element = this.docsContentRef?.getElementRef().nativeElement;
-    if (element instanceof HTMLElement) {
-      this.docsScroll.registerScrollContainer(element);
-    }
+    this.docsScroll.registerSidenavContent(this.docsContentRef);
   }
 
   readonly introLinks = [

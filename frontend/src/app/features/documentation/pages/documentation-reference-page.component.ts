@@ -47,11 +47,9 @@ export class DocumentationReferencePageComponent implements OnInit, AfterViewIni
       return;
     }
 
-    const retry = () => this.docsScroll.retryAnchorScrollFromPage();
-    queueMicrotask(retry);
-    setTimeout(retry, 200);
-    setTimeout(retry, 600);
-    setTimeout(retry, 1200);
+    if (this.docsScroll.currentFragment()) {
+      queueMicrotask(() => this.docsScroll.retryAnchorScrollFromPage());
+    }
   }
 
   ngOnInit(): void {
