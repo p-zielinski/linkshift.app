@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const RouterResultSchema = z.object({
-  intent: z.enum(['CONVERSATION', 'DOCUMENTATION_SEARCH']),
+  intent: z.enum(['CONVERSATION', 'OUT_OF_SCOPE', 'DOCUMENTATION_SEARCH']),
   directReply: z.string().nullable(),
   suggestedCatalogIds: z.array(z.string()),
 });

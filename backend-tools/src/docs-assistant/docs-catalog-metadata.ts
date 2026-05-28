@@ -2,6 +2,9 @@ import type { DocsCatalogEntry, DocsCatalogKind, DocsContentSource } from './doc
 
 export const CANONICAL_OPENAPI_YAML = 'openapi/linkshift-api-keys.openapi.yaml';
 
+/** Hard cap on catalog entries passed to the generator (router + keyword fallback). */
+export const DOCS_ASSISTANT_MAX_CATALOG_PICKS = 8;
+
 export interface SummaryFrontmatter {
   source?: string;
   canonicalOpenApi?: string;
@@ -163,7 +166,7 @@ export function sectionTitleForSource(source: DocsContentSource, entry: DocsCata
 export function rankCatalogIdsByQuestion(
   question: string,
   entries: Array<{ catalogId: string; summary: string }>,
-  limit = 3,
+  limit = DOCS_ASSISTANT_MAX_CATALOG_PICKS,
 ): string[] {
   const tokens = question
     .toLowerCase()
