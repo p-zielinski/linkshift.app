@@ -1,6 +1,6 @@
 # Redirect tests — CI and regression guide
 
-Redirect tests store **expected routing outcomes** for specific requests. Combine them with [simulate](./redirect-rules.md#simulate-before-rollout) to catch routing regressions in CI/CD.
+Redirect tests store **expected routing outcomes** for specific requests. Combine them with [simulate](./redirect-rules-operations.md#simulate-before-rollout) to catch routing regressions in CI/CD.
 
 Base path: `/api/v1/redirect-tests`
 
@@ -267,7 +267,7 @@ if (test.pathWithQuery.startsWith('/go/')) {
 
 Or keep a separate mapping in your CI script (`pathWithQuery` → expected `linkMapKey`). Do not put `linkMapKey` inside `expectedResult` — the redirect-tests API will reject unknown fields.
 
-**`linkMapKey` vs analytics:** Simulate returns `linkMapKey` for link map wins, including **fallback** hits (for example `unknown-code` → fallback URL). Analytics `topLinkMapKeys` also counts non-empty keys on fallback hits but **excludes** empty keys (`/go` only). See [Redirect rules — analytics](../guides/redirect-rules.md#analytics).
+**`linkMapKey` vs analytics:** Simulate returns `linkMapKey` for link map wins, including **fallback** hits (for example `unknown-code` → fallback URL). Analytics `topLinkMapKeys` also counts non-empty keys on fallback hits but **excludes** empty keys (`/go` only). See [Redirect rules — analytics](../guides/redirect-rules-operations.md#analytics).
 
 Fail the pipeline on any mismatch.
 
@@ -329,7 +329,7 @@ node compare-redirect-tests.js "$TESTS" "$RESULTS"
 | Request scheme in simulate | Always **HTTPS** — do not send `protocol` on simulate entries |
 | `isBlocked` rules | Excluded from both |
 
-See [Redirect rules — simulate vs live](./redirect-rules.md#simulate-vs-live-redirect) and [Hostname and defaults](./redirect-rules.md#hostname-and-defaults).
+See [Redirect rules — simulate vs live](./redirect-rules-operations.md#simulate-vs-live-redirect) and [Hostname and defaults](./redirect-rules-operations.md#hostname-and-defaults).
 
 ---
 
@@ -406,7 +406,7 @@ Update tests when:
 | List `search` | Optional case-insensitive substring on `pathWithQuery` |
 | List `startAfterId` | Cursor pagination |
 
-Simulate batch size when mapping fixtures: max **100** entries per `POST /api/v1/redirect-rules/simulate` — see [Redirect rules — simulate](./redirect-rules.md#simulate-before-rollout).
+Simulate batch size when mapping fixtures: max **100** entries per `POST /api/v1/redirect-rules/simulate` — see [Redirect rules — simulate](./redirect-rules-operations.md#simulate-before-rollout).
 
 ---
 
@@ -424,6 +424,6 @@ Simulate batch size when mapping fixtures: max **100** entries per `POST /api/v1
 
 ## Related guides
 
-- [Redirect rules — simulate](./redirect-rules.md#simulate-before-rollout)
-- [Redirect rules — analytics](./redirect-rules.md#analytics)
+- [Redirect rules — simulate](./redirect-rules-operations.md#simulate-before-rollout)
+- [Redirect rules — analytics](./redirect-rules-operations.md#analytics)
 - [Link maps](./link-maps.md)

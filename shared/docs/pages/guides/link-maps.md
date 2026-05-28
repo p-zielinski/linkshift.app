@@ -2,7 +2,7 @@
 
 Link maps are keyed lookup tables: **short key → destination URL**. One redirect rule with a prefix source can resolve thousands of keys without thousands of rules.
 
-For how rules extract keys from paths, see [Redirect rules — link maps section](./redirect-rules.md#link-maps--redirect-rules).  
+For how rules extract keys from paths, see [Redirect rules — link maps section](./redirect-rules-link-maps.md#link-maps--redirect-rules).  
 For normalization and resolution internals, see [Link map concepts](../concepts/link-map-concepts.md).
 
 Base path: `/api/v1/link-maps`
@@ -102,7 +102,7 @@ GET https://links.example.com/go/summer?utm=email
 → https://shop.example.com/summer-sale
 ```
 
-Use [simulate](./redirect-rules.md#simulate-before-rollout) to verify before traffic hits.
+Use [simulate](./redirect-rules-operations.md#simulate-before-rollout) to verify before traffic hits.
 
 ---
 

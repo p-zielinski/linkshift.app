@@ -26,7 +26,7 @@ LinkShift is **multi-tenant**: API keys and redirect traffic belong to an **orga
 
 Incoming request → rate limit and access check → rules sorted by **priority** (highest first), then **newest** `createdAt`, then **`id`** → first rule that **returns a redirect target** wins; link map miss without fallback skips to the next rule.
 
-Detail: [Redirect rules — how routing works](../guides/redirect-rules.md#how-routing-works) and [Redirect engine concepts — pipeline](../concepts/redirect-engine-concepts.md#live-redirect-pipeline-end-to-end).
+Detail: [Redirect rules — how routing works](../guides/redirect-rules-core.md#how-routing-works) and [Redirect engine concepts — pipeline](../concepts/redirect-engine-conditionals.md#live-redirect-pipeline-end-to-end).
 
 ---
 

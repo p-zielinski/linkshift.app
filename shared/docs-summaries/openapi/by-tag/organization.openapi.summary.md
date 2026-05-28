@@ -1,7 +1,7 @@
 ---
 llmSlice: shared/docs/openapi/by-tag/organization.openapi.json
 source: shared/docs/openapi/by-tag/organization.openapi.json
-generatedAt: 2026-05-26T21:07:46.548Z
+generatedAt: 2026-05-28T15:47:23.897Z
 model: gpt-4o-mini
 sliceType: openapi-by-tag
 canonicalOpenApi: shared/docs/openapi/linkshift-api-keys.openapi.yaml
@@ -9,7 +9,7 @@ openApiTag: Organization
 ---
 
 ## Purpose
-This OpenAPI tag covers the LinkShift endpoints that can be accessed with organization API keys.
+This OpenAPI tag covers the LinkShift endpoints accessible with organization API keys.
 
 ## Endpoints
 - **`GET /api/v1/organization`** (`getOrganization`)

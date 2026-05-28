@@ -5,7 +5,7 @@ Link maps are keyed routing tables used by redirect rules. They map an incoming 
 Start with the practical guides:
 
 - [Link maps guide](../guides/link-maps.md) — workflow and examples
-- [Redirect rules — link maps section](../guides/redirect-rules.md#link-maps--redirect-rules)
+- [Redirect rules — link maps section](../guides/redirect-rules-link-maps.md#link-maps--redirect-rules)
 
 ---
 
@@ -230,7 +230,7 @@ Link map context is cached per `linkMapId` on the edge (entries, `queryMatch`, `
 
 Typical propagation: immediate after successful API response under normal load.
 
-Redirect rules on the edge use a separate per-hostname cache (also **up to 5 minutes** if invalidation fails). See [Redirect rules — propagation and caching](../guides/redirect-rules.md#propagation-and-caching).
+Redirect rules on the edge use a separate per-hostname cache (also **up to 5 minutes** if invalidation fails). See [Redirect rules — propagation and caching](../guides/redirect-rules-core.md#propagation-and-caching).
 
 Internal cache keys and invalidation hooks: [`shared/not-public/cache-and-data-layer.md`](../../../not-public/cache-and-data-layer.md).
 

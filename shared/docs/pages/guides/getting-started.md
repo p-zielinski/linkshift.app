@@ -54,7 +54,7 @@ Applied to **live redirect requests** (visitors hitting your domains or LinkShif
 | Not counted | `POST /api/v1/redirect-rules/simulate`, redirect test fixtures, API key CRUD |
 | Simulate vs live | Simulate skips this limit but still runs `checkRedirectionAccess` (can return **`402`**) |
 
-See [Redirect rules — organization redirect rate limits](./redirect-rules.md#organization-redirect-rate-limits-edge-traffic) and [propagation and caching](./redirect-rules.md#propagation-and-caching).
+See [Redirect rules — organization redirect rate limits](./redirect-rules-core.md#organization-redirect-rate-limits-edge-traffic) and [propagation and caching](./redirect-rules-core.md#propagation-and-caching).
 
 ---
 
@@ -83,7 +83,7 @@ Limits cheat sheet (simulate batch size, analytics window, nesting depth): **[AP
 
 Routing decision index (plain path vs regex vs link map vs wildcard): **[API reference — routing decision index](../reference.md#routing-decision-index)**.
 
-When redirects fail in production (404, 403, 429, blocked rules): **[Overview — troubleshooting matrix](../overview.md#troubleshooting-matrix-live-redirects)** and [Redirect rules — blocked rules](./redirect-rules.md#blocked-rules-isblocked) (`isBlocked`, ongoing safety monitoring).
+When redirects fail in production (404, 403, 429, blocked rules): **[Overview — troubleshooting matrix](../overview-faq.md#troubleshooting-matrix-live-redirects)** and [Redirect rules — blocked rules](./redirect-rules-core.md#blocked-rules-isblocked) (`isBlocked`, ongoing safety monitoring).
 
 ---
 
