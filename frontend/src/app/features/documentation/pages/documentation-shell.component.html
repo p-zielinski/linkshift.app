@@ -9,9 +9,22 @@
   >
     <div class="docs-sidebar-layout flex min-h-0 flex-col">
       <div class="shrink-0 p-4">
-        <a routerLink="/docs" class="block rounded-xl borderbg-white p-3 no-underline">
-          <div class="text-base font-semibold text-app-text">LinkShift docs</div>
-          <div class="mt-1 text-xs text-app-muted">OpenAPI-driven API documentation</div>
+        <a
+          href="/docs/assistant"
+          class="docs-sidebar-ask"
+          [class.docs-sidebar-ask--active]="currentRoutePath() === '/docs/assistant'"
+          (click)="navigateToAskDocs($event)"
+        >
+          <span class="docs-sidebar-ask__icon-badge" aria-hidden="true">
+            <mat-icon class="docs-sidebar-ask__icon">auto_awesome</mat-icon>
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="docs-sidebar-ask__title-row">
+              <span class="docs-sidebar-ask__title">Ask docs</span>
+              <span class="docs-sidebar-ask__ai-tag">AI</span>
+            </span>
+            <span class="docs-sidebar-ask__hint">Answers from documentation</span>
+          </span>
         </a>
       </div>
 
@@ -185,6 +198,7 @@
           <router-outlet />
         </div>
       </div>
+
     </div>
   </mat-sidenav-content>
 </mat-sidenav-container>

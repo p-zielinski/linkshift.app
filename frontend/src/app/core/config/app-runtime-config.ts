@@ -16,6 +16,7 @@ export type AppRuntimeConfig = {
   APP_AUTH_GATE_ENABLED: string;
   APP_PADDLE_CLIENT_TOKEN: string;
   APP_PADDLE_ENV: string;
+  APP_TURNSTILE_SITE_KEY: string;
 };
 
 export const DEFAULT_APP_RUNTIME_CONFIG: AppRuntimeConfig = {
@@ -34,6 +35,7 @@ export const DEFAULT_APP_RUNTIME_CONFIG: AppRuntimeConfig = {
   APP_AUTH_GATE_ENABLED: 'false',
   APP_PADDLE_CLIENT_TOKEN: '',
   APP_PADDLE_ENV: 'sandbox',
+  APP_TURNSTILE_SITE_KEY: '',
 };
 
 export const resolveAppRuntimeConfig = (

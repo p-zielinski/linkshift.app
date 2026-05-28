@@ -1,0 +1,138 @@
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import {
+  Component,
+  ElementRef,
+  PLATFORM_ID,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DocsAssistantSessionService } from '../../services/docs-assistant-session.service';
+import { parseDocsAssistantSource } from '../../utils/docs-assistant-source.util';
+import type { DocsAssistantMessage } from '../../services/docs-assistant-history.storage';
+
+@Component({
+  selector: 'app-docs-assistant',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+  ],
+  templateUrl: './docs-assistant.component.html',
+  styleUrl: './docs-assistant.component.css',
+})
+export class DocsAssistantComponent {
+  readonly pageContext = input<string | null>(null);
+
+  readonly session = inject(DocsAssistantSessionService);
+  private readonly platformId = inject(PLATFORM_ID);
+
+  readonly questionControl = new FormControl('', {
+    nonNullable: true,
+    validators: [Validators.required, Validators.maxLength(4_000)],
+  });
+
+  readonly showHistory = signal(false);
+  readonly isBrowser = isPlatformBrowser(this.platformId);
+
+  readonly activeMessages = computed(() => this.session.activeThread()?.messages ?? []);
+  readonly hasMessages = computed(() => this.activeMessages().length > 0);
+
+  @ViewChild('messagesEnd') private messagesEndRef?: ElementRef<HTMLDivElement>;
+
+  constructor() {
+    effect(() => {
+      this.activeMessages();
+      this.session.isSearching();
+      this.queueScrollToBottom();
+    });
+  }
+
+  parseSource(source: string) {
+    return parseDocsAssistantSource(source);
+  }
+
+  onToggleHistory(): void {
+    this.showHistory.update((value) => !value);
+  }
+
+  onNewChat(): void {
+    this.session.startNewThread(this.pageContext());
+    this.showHistory.set(false);
+    this.questionControl.reset('');
+  }
+
+  onSelectThread(threadId: string): void {
+    this.session.selectThread(threadId);
+    this.showHistory.set(false);
+  }
+
+  onDeleteThread(threadId: string, event: Event): void {
+    event.stopPropagation();
+    this.session.deleteThread(threadId);
+  }
+
+  onClearHistory(): void {
+    this.session.clearAllHistory();
+    this.showHistory.set(false);
+  }
+
+  async onSubmit(): Promise<void> {
+    if (this.questionControl.invalid || this.session.isSearching()) {
+      return;
+    }
+
+    const question = this.questionControl.value;
+    this.questionControl.reset('');
+    await this.session.submitQuestion(question, this.pageContext());
+  }
+
+  onUsePageContext(): void {
+    const context = this.pageContext()?.trim();
+    if (!context) {
+      return;
+    }
+
+    const prefix = `About ${context}: `;
+    const current = this.questionControl.value.trim();
+    if (current.startsWith(prefix)) {
+      return;
+    }
+
+    this.questionControl.setValue(current ? `${prefix}${current}` : `${prefix}`);
+  }
+
+  async onRate(message: DocsAssistantMessage, rating: 1 | -1): Promise<void> {
+    if (!message.logId || message.rating === rating) {
+      return;
+    }
+
+    await this.session.rateMessage(message.logId, rating);
+  }
+
+  private queueScrollToBottom(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    queueMicrotask(() => {
+      this.messagesEndRef?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
+  }
+}
