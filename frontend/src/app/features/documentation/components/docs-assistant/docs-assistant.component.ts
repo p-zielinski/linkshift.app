@@ -8,6 +8,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -17,9 +18,20 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { DocsAssistantSessionService } from '../../services/docs-assistant-session.service';
+import { DocsAssistantDrawerService } from '../../services/docs-assistant-drawer.service';
 import { parseDocsAssistantSource } from '../../utils/docs-assistant-source.util';
 import type { DocsAssistantMessage } from '../../services/docs-assistant-history.storage';
+
+export type DocsAssistantLayout = 'standalone' | 'embedded';
+
+const STARTER_PROMPTS = [
+  'How do I create a redirect rule for one path?',
+  'What is a link map and when should I use it?',
+  'How do I create and use an API key?',
+  'How do domain groups relate to domains?',
+] as const;
 
 @Component({
   selector: 'app-docs-assistant',
@@ -33,15 +45,22 @@ import type { DocsAssistantMessage } from '../../services/docs-assistant-history
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
   ],
   templateUrl: './docs-assistant.component.html',
   styleUrl: './docs-assistant.component.css',
 })
 export class DocsAssistantComponent {
   readonly pageContext = input<string | null>(null);
+  readonly layout = input<DocsAssistantLayout>('standalone');
+
+  readonly closeRequested = output<void>();
 
   readonly session = inject(DocsAssistantSessionService);
+  private readonly drawer = inject(DocsAssistantDrawerService);
   private readonly platformId = inject(PLATFORM_ID);
+
+  readonly starterPrompts = STARTER_PROMPTS;
 
   readonly questionControl = new FormControl('', {
     nonNullable: true,
@@ -55,6 +74,7 @@ export class DocsAssistantComponent {
   readonly hasMessages = computed(() => this.activeMessages().length > 0);
 
   @ViewChild('messagesEnd') private messagesEndRef?: ElementRef<HTMLDivElement>;
+  @ViewChild('questionInput') private questionInputRef?: ElementRef<HTMLTextAreaElement>;
 
   constructor() {
     effect(() => {
@@ -62,10 +82,26 @@ export class DocsAssistantComponent {
       this.session.isSearching();
       this.queueScrollToBottom();
     });
+
+    effect(() => {
+      if (this.layout() !== 'embedded' || !this.drawer.open() || !this.isBrowser) {
+        return;
+      }
+
+      this.focusComposer();
+    });
   }
 
   parseSource(source: string) {
     return parseDocsAssistantSource(source);
+  }
+
+  onClose(): void {
+    this.closeRequested.emit();
+  }
+
+  onOpenFullPage(): void {
+    this.drawer.closeDrawer();
   }
 
   onToggleHistory(): void {
@@ -103,6 +139,12 @@ export class DocsAssistantComponent {
     await this.session.submitQuestion(question, this.pageContext());
   }
 
+  onStarterPrompt(prompt: string): void {
+    this.showHistory.set(false);
+    this.questionControl.setValue(prompt);
+    this.focusComposer();
+  }
+
   onUsePageContext(): void {
     const context = this.pageContext()?.trim();
     if (!context) {
@@ -124,6 +166,19 @@ export class DocsAssistantComponent {
     }
 
     await this.session.rateMessage(message.logId, rating);
+  }
+
+  private focusComposer(): void {
+    queueMicrotask(() => {
+      const element = this.questionInputRef?.nativeElement;
+      if (!element) {
+        return;
+      }
+
+      element.focus();
+      const length = element.value.length;
+      element.setSelectionRange(length, length);
+    });
   }
 
   private queueScrollToBottom(): void {

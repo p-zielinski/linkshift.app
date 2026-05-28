@@ -17,7 +17,7 @@ Progress and improvement ideas for the documentation AI chat (frontend + related
 - **UI** — `app-docs-assistant`, sources parsed to `/docs/...` links, thumbs up/down, history drawer, page context chip.
 - **Shell** — sidebar CTA „Ask docs” (see Iteration 1b; panel/FAB removed).
 - **Route** — `/docs/assistant` (prerender), chat in main content column.
-- **Privacy** — section on documentation assistant, processors (OpenAI, Cloudflare Turnstile), local history note.
+- **Privacy** — section on documentation assistant (generic wording: no UI label or placement lock-in), processors (OpenAI, Cloudflare Turnstile), local history note.
 
 ### Improvement ideas (next iterations)
 
@@ -65,6 +65,49 @@ Progress and improvement ideas for the documentation AI chat (frontend + related
 
 ---
 
-## Iteration 2 — (planned)
+## Iteration 2 — Dashboard Ask docs drawer (2026-05-28)
 
-- TBD based on feedback from Iteration 1.
+### Done
+
+- **`DocsAssistantDrawerService`** — root signal for drawer open/close; survives close/reopen without clearing chat state.
+- **App shell right drawer** — `mat-sidenav` `position="end"`, `mode="over"`, `min(100vw, 1280px)` width; `app-docs-assistant` with `layout="embedded"`.
+- **Left sidebar CTA** — „Ask docs” card (same visual language as docs sidebar) opens the drawer; active state when drawer is open.
+- **Mobile** — `auto_awesome` icon button in the top bar (with menu); drawer is full width; opening Ask docs closes the left nav overlay first.
+- **Embedded layout** — `docs-assistant--embedded` fills drawer height; close + „Full page” link to `/docs/assistant`.
+- **Shared history** — same `DocsAssistantSessionService` + `linkshift_docs_assistant_history_v1` localStorage; chats started on `/docs/assistant` continue in the dashboard drawer and vice versa.
+- **Copy** — history panel notes that chats sync between docs page and app drawer.
+
+### Iteration 2b — Wide drawer UX polish (2026-05-28)
+
+- Drawer width **`min(100vw, 1280px)`** (full width up to cap).
+- **History sidebar** in embedded mode (does not hide the chat column).
+- **Starter prompt chips** in empty state; click fills the question field.
+- **Composer layout** — Ask button beside the field on `sm+`; auto-focus when drawer opens.
+- **Escape** closes the dashboard drawer.
+
+### Iteration 2c — Dialog-like drawer shell (2026-05-28)
+
+- **`app-assistant-drawer-layout`** on embedded `app-docs-assistant`: **`__header`** (fixed) · **`__main`** / **`__body`** (scrollable, `flex: 1`, `min-height: 0`) · **`__actions`** (fixed composer).
+- Optional **`__aside`** for history; only **`__body`** scrolls (messages + context), not the input area.
+- Mat drawer inner container + host height chain (`100%` / `min-height: 0`) so the panel always fills the viewport.
+- Removed sticky header/composer in favor of true footer pinning (same pattern as Material dialogs).
+
+### Iteration 2d — Drawer header polish (2026-05-28)
+
+- **Tooltips** on header icon buttons (history, new chat, close), full page link, thread delete, and ratings.
+- **Close** separated to the far right of the embedded header.
+- **Full page** closes the dashboard drawer before navigation so it stays closed on return.
+- **Ask** + disclaimer: shared `docs-assistant__footer-row` / `docs-assistant__submit` in drawer and `/docs/assistant` (same width, `flex-wrap` row).
+
+### Improvement ideas
+
+- Open drawer from deep link (e.g. `?ask=1`) or keyboard shortcut in dashboard.
+- Optional dashboard page context chip (current route label) like docs `pageContext`.
+- Markdown answers (shared with Iteration 1 backlog).
+- When drawer is open on desktop, remember preference in `sessionStorage` across sessions.
+
+---
+
+## Iteration 3 — (planned)
+
+- TBD based on feedback from Iteration 2.

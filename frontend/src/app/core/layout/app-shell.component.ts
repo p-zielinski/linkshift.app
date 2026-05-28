@@ -1,6 +1,7 @@
 import {
   Component,
   DestroyRef,
+  HostListener,
   PLATFORM_ID,
   computed,
   effect,
@@ -27,6 +28,8 @@ import { DomainStore } from '../store/domain.store';
 import { DomainGroupStore } from '../store/domain-group.store';
 import { DEFAULT_LIST_KEY } from '../store/entity/entity-store.utils';
 import { LogoComponent } from '../../shared/components/logo/logo.component';
+import { DocsAssistantComponent } from '../../features/documentation/components/docs-assistant/docs-assistant.component';
+import { DocsAssistantDrawerService } from '../../features/documentation/services/docs-assistant-drawer.service';
 
 type NavItem = {
   label: string;
@@ -84,8 +87,10 @@ const MOBILE_BREAKPOINT = '(max-width: 1023px)';
     LayoutModule,
     MatDialogModule,
     LogoComponent,
+    DocsAssistantComponent,
   ],
   templateUrl: './app-shell.component.html',
+  styleUrl: './app-shell.component.css',
 })
 export class AppShellComponent {
   readonly authStore = inject(AuthStore);
@@ -95,6 +100,7 @@ export class AppShellComponent {
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly assistantDrawer = inject(DocsAssistantDrawerService);
 
   readonly navItems = NAV_ITEMS;
   readonly domainGroups = this.domainGroupStore.selectList();
@@ -108,6 +114,7 @@ export class AppShellComponent {
   readonly hasDomainGroups = computed(() => this.domainGroups().length > 0);
   readonly isMobile = signal(false);
   readonly mobileNavOpen = signal(false);
+  readonly assistantDrawerOpen = this.assistantDrawer.open;
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -152,6 +159,35 @@ export class AppShellComponent {
   onNavigate(): void {
     if (this.isMobile()) {
       this.closeMobileNav();
+    }
+  }
+
+  openAssistantDrawer(): void {
+    if (this.isMobile()) {
+      this.closeMobileNav();
+    }
+    this.assistantDrawer.openDrawer();
+  }
+
+  closeAssistantDrawer(): void {
+    this.assistantDrawer.closeDrawer();
+  }
+
+  toggleAssistantDrawer(): void {
+    if (!this.assistantDrawerOpen()) {
+      this.closeMobileNav();
+    }
+    this.assistantDrawer.toggleDrawer();
+  }
+
+  onAssistantDrawerOpenedChange(opened: boolean): void {
+    this.assistantDrawer.setOpen(opened);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.assistantDrawerOpen()) {
+      this.closeAssistantDrawer();
     }
   }
 

@@ -14,6 +14,28 @@
         <div class="text-[13px] text-app-muted">Environment-ready routing</div>
       </div>
 
+      <div class="mb-4 shrink-0">
+        <button
+          type="button"
+          class="app-sidebar-ask"
+          [class.app-sidebar-ask--active]="assistantDrawerOpen()"
+          aria-label="Open Ask docs"
+          [attr.aria-expanded]="assistantDrawerOpen()"
+          (click)="openAssistantDrawer()"
+        >
+          <span class="app-sidebar-ask__icon-badge" aria-hidden="true">
+            <mat-icon class="app-sidebar-ask__icon">auto_awesome</mat-icon>
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="app-sidebar-ask__title-row">
+              <span class="app-sidebar-ask__title">Ask docs</span>
+              <span class="app-sidebar-ask__ai-tag">AI</span>
+            </span>
+            <span class="app-sidebar-ask__hint">Answers from documentation</span>
+          </span>
+        </button>
+      </div>
+
       <div class="min-h-0 flex-1 overflow-y-auto">
         <mat-nav-list>
           @for (item of navItems; track item.route) {
@@ -62,13 +84,34 @@
     </div>
   </mat-sidenav>
 
+  <mat-sidenav
+    class="app-assistant-drawer"
+    position="end"
+    mode="over"
+    [opened]="assistantDrawerOpen()"
+    [fixedInViewport]="true"
+    [autoFocus]="false"
+    (openedChange)="onAssistantDrawerOpenedChange($event)"
+  >
+    <app-docs-assistant layout="embedded" (closeRequested)="closeAssistantDrawer()" />
+  </mat-sidenav>
+
   <mat-sidenav-content class="p-4 sm:p-6">
     <div class="mb-4 flex items-center justify-between gap-3 lg:hidden">
-      <button mat-icon-button type="button" (click)="toggleMobileNav()">
+      <button mat-icon-button type="button" aria-label="Open menu" (click)="toggleMobileNav()">
         <mat-icon>menu</mat-icon>
       </button>
       <app-logo class="mt-[5px]" />
-      <span class="w-10" aria-hidden="true"></span>
+      <button
+        mat-icon-button
+        type="button"
+        class="!text-[var(--app-accent-strong,#8f2045)]"
+        aria-label="Open Ask docs"
+        [attr.aria-expanded]="assistantDrawerOpen()"
+        (click)="toggleAssistantDrawer()"
+      >
+        <mat-icon>auto_awesome</mat-icon>
+      </button>
     </div>
     <router-outlet />
   </mat-sidenav-content>
