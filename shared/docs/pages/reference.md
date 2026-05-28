@@ -34,7 +34,7 @@ Guides explain **behavior**. OpenAPI pages define **contracts**.
 | Quick reference (syntax card) | [Engine quick reference](./concepts/redirect-engine-edge-cases.md#quick-reference-card) |
 | Routing flow (Mermaid) | [Routing decision flow](./concepts/redirect-engine-conditionals.md#routing-decision-flow-diagram) |
 | Link maps and entries | [Link maps](./guides/link-maps.md), [Link map concepts](./concepts/link-map-concepts.md) |
-| Troubleshooting (404, 403, 429, link map miss) | [Overview — troubleshooting matrix](./overview-faq.md#troubleshooting-matrix-live-redirects) |
+| FAQ hub, troubleshooting (404, 403, 429) | [FAQ index](./guides/faq.md) · [Troubleshooting matrix](./overview-faq.md#troubleshooting-matrix-live-redirects) |
 
 ### Routing decision index
 

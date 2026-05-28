@@ -30,6 +30,14 @@ pages:
     description: >-
       Endpoint index, guides vs OpenAPI reference, and key routing operations.
 
+  - slug: faq
+    category: guide
+    source: pages/guides/faq.md
+    route: /docs/guides/faq
+    description: >-
+      FAQ index — links to overview FAQ, How-To cookbook, advanced engine FAQ,
+      and troubleshooting matrix.
+
   - slug: getting-started
     category: guide
     source: pages/guides/getting-started.md

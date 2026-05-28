@@ -83,7 +83,7 @@ Limits cheat sheet (simulate batch size, analytics window, nesting depth): **[AP
 
 Routing decision index (plain path vs regex vs link map vs wildcard): **[API reference — routing decision index](../reference.md#routing-decision-index)**.
 
-When redirects fail in production (404, 403, 429, blocked rules): **[Overview — troubleshooting matrix](../overview-faq.md#troubleshooting-matrix-live-redirects)** and [Redirect rules — blocked rules](./redirect-rules-core.md#blocked-rules-isblocked) (`isBlocked`, ongoing safety monitoring).
+When redirects fail in production (404, 403, 429, blocked rules): **[FAQ and troubleshooting](./faq.md)** → [troubleshooting matrix](../overview-faq.md#troubleshooting-matrix-live-redirects) and [Redirect rules — blocked rules](./redirect-rules-core.md#blocked-rules-isblocked) (`isBlocked`, ongoing safety monitoring).
 
 ---
 

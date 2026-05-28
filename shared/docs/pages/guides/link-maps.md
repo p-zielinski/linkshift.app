@@ -57,7 +57,7 @@ POST /api/v1/link-map-entries
 }
 ```
 
-Or bulk import — up to **500** entries per `POST /api/v1/link-map-entries/import` (see [Link map entries guide](./link-map-entries.md#import)).
+Or bulk import — up to **500** entries per `POST /api/v1/link-map-entries/import` (see [Link map entries guide](./link-map-entries.md#bulk-import)).
 
 ### Step 3 — Create redirect rule
 
