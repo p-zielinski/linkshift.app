@@ -79,6 +79,7 @@ Expected: `matched: true`, `target: https://example.com/new-page`.
 | [What is LinkShift.app?](./intro/what-is-linkshift.md) | Platform purpose, engine capabilities, who each doc is for |
 | [Getting started](./guides/getting-started.md) | API keys, auth, plans, errors |
 | [Redirect rules](./guides/redirect-rules.md) | **Main routing guide** — index to matching, link maps, simulate, recipes |
+| [FAQ and troubleshooting](./guides/faq.md) | Index to overview FAQ, recipes, and engine edge-case FAQ |
 | [Overview FAQ](./overview-faq.md) | Common questions and troubleshooting matrix |
 | [Domains and domain groups](./guides/domains-and-groups.md) | Domain topology |
 
@@ -114,7 +115,7 @@ One-page limits and syntax: [Redirect engine concepts — quick reference](./con
 
 ## Common questions and troubleshooting
 
-Quick answers and a live-redirect symptom matrix: [Overview FAQ](./overview-faq.md).
+Quick answers and a live-redirect symptom matrix: [FAQ index](./guides/faq.md) · [Overview FAQ](./overview-faq.md).
 
 ## How this docs section is built
 

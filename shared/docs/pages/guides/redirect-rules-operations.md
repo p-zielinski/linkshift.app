@@ -18,7 +18,7 @@ Checks include:
 4. **Recursion depth** — conditional nesting ≤ 32 levels.
 5. **Link map rules** — constraints in table above; stored `destination` is `null`; no draft `destination` in the same payload.
 6. **Destination safety** — URLs scanned for unsafe targets on rules **with** a non-null `destination`. Link map rules skip rule-level safety scan; link map entries and `fallbackDestination` are validated on entry/map write.
-7. **Plain path vs regex** — accidental `/path/i` forms may compile as regex; see [Plain path or regex?](#plain-path-or-regex).
+7. **Plain path vs regex** — accidental `/path/i` forms may compile as regex; see [Plain path or regex?](./redirect-rules-core.md#plain-path-or-regex).
 8. **Multiline `destination`** — newlines inside the JSON string are allowed; the validator parses the full value as one program. Example:
 
 ```json

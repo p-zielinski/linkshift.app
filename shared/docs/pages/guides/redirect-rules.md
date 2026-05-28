@@ -16,5 +16,6 @@ Base path: `/api/v1/redirect-rules`
 | [Link maps and redirect rules](./redirect-rules-link-maps.md) | `linkMapId`, two-layer query matching, lookup misses, validation |
 | [Validation, simulate, and analytics](./redirect-rules-operations.md) | Create/update validation, `POST …/simulate`, analytics |
 | [Recipes and anti-patterns](./redirect-rules-recipes.md) | How-To cookbook, recipe book, anti-patterns, API endpoints |
+| [FAQ and troubleshooting](./faq.md) | Index to overview FAQ, recipes, engine edge-case FAQ |
 
 Related: [Redirect engine concepts](../concepts/redirect-engine-concepts.md) · [Link maps](./link-maps.md) · [Redirect tests](./redirect-tests.md) · [Getting started](./getting-started.md)

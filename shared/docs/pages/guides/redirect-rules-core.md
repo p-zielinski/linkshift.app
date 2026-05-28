@@ -83,7 +83,7 @@ LinkShift caches routing data on the edge to keep redirects fast. Under normal o
 2. **Link map entry change** — successful writes normally clear map cache immediately; stale entry data can persist up to **5 minutes** only if invalidation does not run.
 3. **Deleted link map still referenced by a rule** — lookups miss (same as key miss); a brief negative cache can repeat that miss even if you recreate a map with the same ID. Update the rule or wait for the cache window to expire.
 
-Simulate and redirect tests **read current database state** for rules and maps (they do not use edge redirect/link-map caches), but they still run `checkRedirectionAccess` — see [Simulate vs live redirect](#simulate-vs-live-redirect).
+Simulate and redirect tests **read current database state** for rules and maps (they do not use edge redirect/link-map caches), but they still run `checkRedirectionAccess` — see [Simulate vs live redirect](./redirect-rules-operations.md#simulate-vs-live-redirect).
 
 Operator runbooks (cache key names, Redis/L1 layout): [`shared/not-public/cache-and-data-layer.md`](../../../not-public/cache-and-data-layer.md).
 
@@ -355,7 +355,7 @@ Request `https://support.example.com/articles/integrations/slack-guide?utm=legac
 
 **Duplicate params:** Matching compares all values per key (sorted). Placeholders `{query.x}` use the **last** value for that key in the query string (see [Redirect engine concepts — query variables](../concepts/redirect-engine-variables.md#query-variables)).
 
-**Percent-encoding:** Paths and query values are compared after URL parsing (decoded form). Prefer testing non-ASCII or encoded segments with [simulate](#simulate-before-rollout).
+**Percent-encoding:** Paths and query values are compared after URL parsing (decoded form). Prefer testing non-ASCII or encoded segments with [simulate](./redirect-rules-operations.md#simulate-before-rollout).
 
 **Duplicate params (`exact` mode):**
 

@@ -1,6 +1,6 @@
 # LinkShift docs — common questions and troubleshooting
 
-Quick routing answers and a live-redirect troubleshooting matrix. For step-by-step guides, see the [documentation map](./overview.md#documentation-map).
+Quick routing answers and a live-redirect troubleshooting matrix. Hub: [FAQ and troubleshooting index](./guides/faq.md). For step-by-step guides, see the [documentation map](./overview.md#documentation-map).
 
 
 ---
@@ -79,7 +79,7 @@ Not yet — planned GeoIP addon only. There is no placeholder or test stub today
 No. Wildcard rules ignore both `pathMatch` and `queryMatch` at runtime — only `matchMethod` limits them. Use a plain path `source` or conditionals in `destination` instead. See [Redirect rules — wildcard](./guides/redirect-rules-core.md#4-wildcard-catch-all).
 
 **How do I run an A/B test on a landing page?**  
-Use `random(0,100) < N ? … : …` in `destination` (bounds are **inclusive**). See [Redirect rules — recipe book](./guides/redirect-rules-recipes.md#a-b-test-landing-page). For CI, see [Redirect tests — non-deterministic rules](./guides/redirect-tests.md#testing-dynamic-destinations).
+Use `random(0,100) < N ? … : …` in `destination` (bounds are **inclusive**). See [Redirect rules — recipe book](./guides/redirect-rules-recipes.md#ab-test-landing-page). For CI, see [Redirect tests — non-deterministic rules](./guides/redirect-tests.md#testing-dynamic-destinations).
 
 **How do I migrate `/blog/old-slug` paths in bulk?**  
 Use a regex `source` and `$1` in `destination`. See [Redirect rules — migrate blog posts](./guides/redirect-rules-recipes.md#migrate-blog-posts-with-regex).

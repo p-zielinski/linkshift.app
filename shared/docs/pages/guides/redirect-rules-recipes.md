@@ -16,7 +16,7 @@ Quick answers to common routing questions. Each item links to full detail below.
 
 1. Create a [link map](./link-maps.md) with entries (`key` → `https://…` URL).
 2. Create a redirect rule: `source: "/go"` (or your prefix), `pathMatch: "prefix"`, `queryMatch: "ignore"`, `linkMapId`, `destination: null`.
-3. Verify with [simulate](#simulate-before-rollout): path `/go/your-key`.
+3. Verify with [simulate](./redirect-rules-operations.md#simulate-before-rollout): path `/go/your-key`.
 
 Request `/go/summer` → key `summer` → entry destination. See [Link maps — end-to-end](./link-maps.md#end-to-end-workflow).
 
@@ -31,11 +31,11 @@ With `pathMatch: prefix`, a trailing slash on the rule source is **asymmetric**:
 | `/long` | `/long` | Yes → key `""` (empty) |
 | `/long` | `/long/abc` | Yes → key `abc` |
 
-Prefer `/go` or `/long` **without** a trailing slash unless you only want `/long/…` paths. See [Path matching — trailing slash](#prefix).
+Prefer `/go` or `/long` **without** a trailing slash unless you only want `/long/…` paths. See [Path matching — `prefix`](./redirect-rules-core.md#prefix).
 
 ### How do I redirect only GET?
 
-Set `matchMethod: ["GET"]` on the rule. Empty `[]` allows all seven methods (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`, `HEAD`). Example in [HTTP method matching](#http-method-matching-matchmethod).
+Set `matchMethod: ["GET"]` on the rule. Empty `[]` allows all seven methods (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`, `HEAD`). Example in [HTTP method matching](./redirect-rules-core.md#http-method-matching-matchmethod).
 
 ### How do I run an A/B test?
 
@@ -49,7 +49,7 @@ Put a ternary with `random()` in `destination` (bounds are **inclusive**):
 }
 ```
 
-Values `0`–`49` take the first branch. Use [redirect tests](./redirect-tests.md#testing-dynamic-destinations) carefully in CI (non-deterministic). See [Recipe — A/B test](#a-b-test-landing-page).
+Values `0`–`49` take the first branch. Use [redirect tests](./redirect-tests.md#testing-dynamic-destinations) carefully in CI (non-deterministic). See [Recipe — A/B test](#ab-test-landing-page).
 
 ### How do I route by User-Agent?
 
@@ -79,7 +79,7 @@ Use `{accept-language.primary}` with modifiers in a ternary (`includes` is case-
 }
 ```
 
-Request with `Accept-Language: pl-PL,pl;q=0.9,en;q=0.8` → `/pl`. The engine uses the **first listed** language range (before `;`), not q-value ranking. Pass `headers.accept-language` in [simulate](#simulate-before-rollout) and [redirect tests](./redirect-tests.md).
+Request with `Accept-Language: pl-PL,pl;q=0.9,en;q=0.8` → `/pl`. The engine uses the **first listed** language range (before `;`), not q-value ranking. Pass `headers.accept-language` in [simulate](./redirect-rules-operations.md#simulate-before-rollout) and [redirect tests](./redirect-tests.md).
 
 ### How do I route by date or time?
 
@@ -102,7 +102,7 @@ The link map rule **does not redirect**. The engine tries the **next** rule by `
 - Set map `fallbackDestination`
 - Add a lower-priority rule on the same prefix (e.g. “not found” URL)
 
-Simulate miss: `matched: false`, `404`, `linkMapKey: null`. See [When lookup fails](#when-lookup-fails).
+Simulate miss: `matched: false`, `404`, `linkMapKey: null`. See [When lookup fails](./redirect-rules-link-maps.md#when-lookup-fails).
 
 ### How do I migrate a blog with regex?
 

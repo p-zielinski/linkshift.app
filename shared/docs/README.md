@@ -19,6 +19,8 @@ From the repository root:
 npm run docs:sync
 ```
 
+`docs:sync` runs `docs:links:check` first (internal markdown links and `#anchors` using the same slug rules as the docs UI).
+
 This updates:
 
 - `frontend/src/app/features/documentation/generated/documentation.generated.ts`

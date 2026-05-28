@@ -6,6 +6,30 @@ Every request is evaluated by a **rules engine** on the edge: match path, query,
 
 ---
 
+## Request flow (live redirect)
+
+```mermaid
+flowchart TD
+  REQ[Incoming HTTP request] --> RL[Org redirect rate limit]
+  RL --> ACC[Organization access check]
+  ACC --> ROB{robots.txt path?}
+  ROB -->|Yes| RT[Serve robots policy]
+  ROB -->|No| SORT["Rules sorted: priority ↓, createdAt ↓, id ↓"]
+  SORT --> LOOP{Next rule}
+  LOOP -->|matchMethod or source mismatch| LOOP
+  LOOP -->|link map miss, no fallback| LOOP
+  LOOP -->|target resolved| DEST["Placeholders, modifiers, ternaries"]
+  DEST --> BL{Absolute https URL?}
+  BL -->|Yes| SAFE[Destination blacklist]
+  BL -->|No| REDIR["Redirect 301 / 302 / 307 / 308"]
+  SAFE --> REDIR
+  LOOP -->|no rule returns target| N404[404 — no redirect]
+```
+
+Step-by-step narrative and simulate differences: [Redirect engine — live pipeline](../concepts/redirect-engine-conditionals.md#live-redirect-pipeline-end-to-end).
+
+---
+
 ## What you get
 
 | Capability | What it means for you |
@@ -24,7 +48,7 @@ LinkShift is **multi-tenant**: API keys and redirect traffic belong to an **orga
 
 ## How a redirect is decided (one sentence)
 
-Incoming request → rate limit and access check → rules sorted by **priority** (highest first), then **newest** `createdAt`, then **`id`** → first rule that **returns a redirect target** wins; link map miss without fallback skips to the next rule.
+Incoming request → rate limit and access check → rules sorted by **`priority` desc**, then **`createdAt` desc** (newer wins ties), then **`id` desc** → first rule that **returns a redirect target** wins; link map miss without `fallbackDestination` skips to the next rule.
 
 Detail: [Redirect rules — how routing works](../guides/redirect-rules-core.md#how-routing-works) and [Redirect engine concepts — pipeline](../concepts/redirect-engine-conditionals.md#live-redirect-pipeline-end-to-end).
 
@@ -93,7 +117,8 @@ Request `/go/summer` → key `summer` → entry URL from the map.
 ## Next steps
 
 1. [Overview](../overview.md) — five-minute first redirect and documentation map  
-2. [Redirect rules guide](../guides/redirect-rules.md) — matching, priorities, link maps, How-To cookbook  
-3. [Redirect engine concepts](../concepts/redirect-engine-concepts.md) — placeholders, modifiers, limits, advanced FAQ  
+2. [FAQ and troubleshooting](../guides/faq.md) — common questions, recipes index, live-redirect matrix  
+3. [Redirect rules guide](../guides/redirect-rules.md) — matching, priorities, link maps, How-To cookbook  
+4. [Redirect engine concepts](../concepts/redirect-engine-concepts.md) — placeholders, modifiers, limits, advanced FAQ  
 
 Management API contract: OpenAPI at `/docs/reference` and `linkshift-api-keys.openapi.yaml` in the repository.
