@@ -51,13 +51,13 @@ Summaries mirror `shared/docs/` paths. OpenAPI slices are internal LLM context; 
 
 ## Pipeline
 
-1. **Router** (`DOCS_ASSISTANT_ROUTER_MODEL`, default `gpt-5.4-nano`) — intent + `catalogId` picks from summaries.
+1. **Router** (`DOCS_ASSISTANT_ROUTER_MODEL`, default `gpt-5.4-nano`) — intent (`CONVERSATION`, `OUT_OF_SCOPE`, or `DOCUMENTATION_SEARCH`) + `catalogId` picks from summaries (hard cap 8; prefer fewer when summaries clearly point to focused sources). Off-topic and empty catalog matches skip the generator.
 2. **Generator** (`DOCS_ASSISTANT_GENERATOR_MODEL`, default `gpt-5.4-mini`) — answer from full docs + OpenAPI outlines.
 3. **Critic** (`DOCS_ASSISTANT_CRITIC_MODEL`, default `gpt-5.4-nano`) — JSON validity check.
 
 ## Configuration
 
-See `backend-tools/.env.example`. Required for search: `OPENAI_API_KEY`. Optional: `SUPABASE_*` (logging/ratings), `CLOUDFLARE_TURNSTILE_SECRET_KEY`.
+See `backend-tools/.env.example`. Required for search: `OPENAI_API_KEY`. Optional: `SUPABASE_*` (logging/ratings), `CLOUDFLARE_TURNSTILE_SECRET_KEY`, `DOCS_ASSISTANT_EXTRA_INSTRUCTIONS` (extra generator system prompt text; honesty rules still apply).
 
 Supabase table DDL: `backend-tools/supabase/agent_search_logs.sql`.
 

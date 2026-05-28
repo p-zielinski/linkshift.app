@@ -13,12 +13,19 @@ import {
   RouterResultSchema,
   type RouterResult,
 } from './docs-assistant-json.util';
+import { buildUnknownInDocsAnswer } from './docs-assistant-messages';
 import {
   CRITIC_SYSTEM_PROMPT,
   GENERATOR_SYSTEM_PROMPT,
   ROUTER_SYSTEM_PROMPT,
 } from './docs-assistant-prompts';
-import { rankCatalogIdsByQuestion } from './docs-catalog-metadata';
+import {
+  buildNoCatalogMatchResult,
+  buildRouterEarlyExitResult,
+  isRouterEarlyExitIntent,
+  resolveCatalogIdsForDocumentationSearch,
+} from './docs-assistant-routing.util';
+import { DOCS_ASSISTANT_MAX_CATALOG_PICKS } from './docs-catalog-metadata';
 import { DocsCatalogService } from './docs-catalog.service';
 import { DocsContentLoaderService } from './docs-content-loader.service';
 
@@ -73,35 +80,47 @@ export class DocsAssistantService implements OnModuleInit {
 
     const routerData = await this.runRouter(trimmedQuestion, catalog);
 
-    if (routerData.intent === 'CONVERSATION') {
-      return {
-        answer: routerData.directReply?.trim() || 'Hi — ask me anything about LinkShift documentation.',
-        sources: [],
-        logId: null,
-      };
+    if (isRouterEarlyExitIntent(routerData.intent)) {
+      return buildRouterEarlyExitResult(routerData);
     }
 
-    let catalogIds = routerData.suggestedCatalogIds;
+    const routerSuggestedIds = routerData.suggestedCatalogIds;
+    const catalogIds = resolveCatalogIdsForDocumentationSearch(
+      trimmedQuestion,
+      routerSuggestedIds,
+      catalog,
+      (ids) => this.trimCatalogPicks(ids),
+    );
+
     if (catalogIds.length === 0) {
-      catalogIds = rankCatalogIdsByQuestion(trimmedQuestion, catalog);
-      if (catalogIds.length > 0) {
-        this.logger.warn('Docs assistant router returned no catalog ids; used keyword fallback', {
-          requestId: this.clsService.getId(),
-          catalogIds,
-        });
-      }
+      this.logger.info('Docs assistant: no catalog match; skipping generator', {
+        requestId: this.clsService.getId(),
+        routerSuggestedIds,
+      });
+      return buildNoCatalogMatchResult(routerData);
+    }
+
+    if (routerSuggestedIds.length === 0) {
+      this.logger.warn('Docs assistant router returned no catalog ids; used keyword fallback', {
+        requestId: this.clsService.getId(),
+        catalogIds,
+      });
     }
 
     const selectedEntries = this.catalogService.getByIds(catalogIds);
     const sources = selectedEntries.map((entry) => entry.userFacingRef);
     const context = this.contentLoader.loadContext(selectedEntries);
 
-    let finalAnswer = await this.runGenerator(trimmedQuestion, context);
-    const criticData = await this.runCritic(trimmedQuestion, finalAnswer);
+    let finalAnswer = await this.runGenerator(trimmedQuestion, context, sources);
+    const criticData = await this.runCritic(trimmedQuestion, finalAnswer, sources);
     const criticNotes = criticData.criticNotes;
 
     if (!criticData.isValid) {
-      finalAnswer = `${finalAnswer}\n\n*This answer may be incomplete — the team will review it.*`;
+      this.logger.warn('Docs assistant critic rejected answer; returning unknown-in-docs response', {
+        requestId: this.clsService.getId(),
+        criticNotes,
+      });
+      finalAnswer = buildUnknownInDocsAnswer(sources);
     }
 
     const logId = await this.persistSearchLog({
@@ -145,6 +164,10 @@ export class DocsAssistantService implements OnModuleInit {
     return { success: true };
   }
 
+  private trimCatalogPicks(catalogIds: string[]): string[] {
+    return catalogIds.slice(0, DOCS_ASSISTANT_MAX_CATALOG_PICKS);
+  }
+
   private ensureOpenAiConfigured(): void {
     if (this.openai) {
       return;
@@ -183,26 +206,56 @@ export class DocsAssistantService implements OnModuleInit {
     });
   }
 
-  private async runGenerator(question: string, context: string): Promise<string> {
+  private async runGenerator(
+    question: string,
+    context: string,
+    sourcesChecked: string[],
+  ): Promise<string> {
     if (!context.trim()) {
-      return "I couldn't find that in the official LinkShift documentation.";
+      return buildUnknownInDocsAnswer(sourcesChecked);
     }
 
     const response = await this.openai!.chat.completions.create({
       model: this.generatorModel(),
       messages: [
-        { role: 'system', content: GENERATOR_SYSTEM_PROMPT },
+        { role: 'system', content: this.generatorSystemPrompt() },
         {
           role: 'user',
-          content: `Documentation context:\n${context}\n\nUser question: ${question}`,
+          content: this.buildGeneratorUserMessage(question, context, sourcesChecked),
         },
       ],
     });
 
-    return response.choices[0]?.message?.content?.trim() || '';
+    return response.choices[0]?.message?.content?.trim() || buildUnknownInDocsAnswer(sourcesChecked);
   }
 
-  private async runCritic(question: string, answer: string): Promise<CriticResult> {
+  private generatorSystemPrompt(): string {
+    const extra = this.configService.get<string>('DOCS_ASSISTANT_EXTRA_INSTRUCTIONS')?.trim();
+    if (!extra) {
+      return GENERATOR_SYSTEM_PROMPT;
+    }
+
+    return `${GENERATOR_SYSTEM_PROMPT}\n\nAdditional instructions:\n${extra}`;
+  }
+
+  private buildGeneratorUserMessage(
+    question: string,
+    context: string,
+    sourcesChecked: string[],
+  ): string {
+    const sourcesBlock =
+      sourcesChecked.length > 0
+        ? `Sources checked for this answer:\n${sourcesChecked.map((source) => `- ${source}`).join('\n')}\n\n`
+        : '';
+
+    return `${sourcesBlock}Documentation context:\n${context}\n\nUser question: ${question}`;
+  }
+
+  private async runCritic(
+    question: string,
+    answer: string,
+    sourcesChecked: string[],
+  ): Promise<CriticResult> {
     const fallback: CriticResult = {
       isValid: false,
       criticNotes: 'Critic response could not be parsed.',
@@ -211,7 +264,7 @@ export class DocsAssistantService implements OnModuleInit {
     return this.createValidatedJsonCompletion({
       model: this.criticModel(),
       systemPrompt: CRITIC_SYSTEM_PROMPT,
-      userPayload: { question, answer },
+      userPayload: { question, answer, sourcesChecked },
       schema: CriticResultSchema,
       fallback,
       stage: 'critic',

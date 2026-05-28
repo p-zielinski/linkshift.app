@@ -3,6 +3,7 @@ import {
   buildOpenApiCatalogEntry,
   buildOpenApiContextPreamble,
   buildPageCatalogEntry,
+  DOCS_ASSISTANT_MAX_CATALOG_PICKS,
   parseSummaryFrontmatter,
   rankCatalogIdsByQuestion,
   toOpenApiSlicePath,
@@ -81,6 +82,17 @@ sliceType: openapi-by-tag
     ]);
 
     expect(ranked[0]).toBe('openapi:domain-groups');
+  });
+
+  it('caps keyword fallback ranking at DOCS_ASSISTANT_MAX_CATALOG_PICKS', () => {
+    const entries = Array.from({ length: 12 }, (_, index) => ({
+      catalogId: `page:guides/topic-${index}`,
+      summary: 'redirect rules configuration matching',
+    }));
+
+    const ranked = rankCatalogIdsByQuestion('redirect rules configuration', entries);
+
+    expect(ranked).toHaveLength(DOCS_ASSISTANT_MAX_CATALOG_PICKS);
   });
 
   it('maps openapi summary source to tag-based outlines', () => {
