@@ -1,6 +1,6 @@
 ---
 source: shared/docs/pages/guides/domains-and-groups.md
-generatedAt: 2026-05-26T21:09:51.005Z
+generatedAt: 2026-05-28T15:49:05.495Z
 model: gpt-4o-mini
 ---
 
@@ -8,17 +8,18 @@ model: gpt-4o-mini
 This document is for developers and administrators using LinkShift, explaining how to manage domains and domain groups for redirect logic.
 
 ## What this doc covers
-- **Architecture**: Overview of domain groups and their components.
+- **Architecture**: Overview of organization structure and redirect logic.
 - **Domain groups**: API endpoints for managing domain groups.
 - **Domains**: API endpoints for managing custom domains.
 - **LinkShift subdomains**: API endpoints for managing hosted subdomains.
 - **Organization**: API endpoints for retrieving organization metadata and usage.
-- **Routing setup checklist**: Steps to configure routing effectively.
+- **Routing setup checklist**: Steps for setting up routing.
 - **Multi-domain patterns**: Strategies for applying rules across multiple domains.
 
 ## Key workflows and rules
 1. **Create Domain Group**:
-   - Use `POST /api/v1/domain-groups` with JSON body:
+   - Endpoint: `POST /api/v1/domain-groups`
+   - Payload: 
      ```json
      {
        "name": "Production",
@@ -28,7 +29,8 @@ This document is for developers and administrators using LinkShift, explaining h
      ```
 
 2. **Create Domain**:
-   - Use `POST /api/v1/domains` with JSON body:
+   - Endpoint: `POST /api/v1/domains`
+   - Payload:
      ```json
      {
        "name": "links.example.com",
@@ -37,7 +39,8 @@ This document is for developers and administrators using LinkShift, explaining h
      ```
 
 3. **Create Subdomain**:
-   - Use `POST /api/v1/subdomains` with JSON body:
+   - Endpoint: `POST /api/v1/subdomains`
+   - Payload:
      ```json
      {
        "name": "campaign-2025",
@@ -46,26 +49,20 @@ This document is for developers and administrators using LinkShift, explaining h
      ```
 
 4. **Redirect Logic**:
-   - The first redirect rule that returns a target URL wins.
-   - Requests for `robots.txt` may bypass redirect rules but still count towards the rate limit.
-   - If no rules produce a target, a `404` is returned.
+   - First redirect rule that returns a target URL wins.
+   - Requests to `robots.txt` may bypass redirect rules but count towards rate limits.
 
-5. **Simulate Routing**: Verify routing behavior before DNS cutover.
+5. **Domain Placeholders**: Use placeholders like `{domain.fqdn}`, `{domain.extension}`, and `{domain.root}` in redirect rules.
 
 ## Limits and constraints
 - **Domain Names**: Must be unique among active records.
-- **Robots Policy**: 
-  - `customRobotsContent` max length is 4,096 characters.
-- **Subdomain Names**: Must consist of `[a-z0-9-]`, max 30 characters, and cannot use reserved names (e.g., `support`, `docs`).
+- **Subdomain Names**: Limited to `[a-z0-9-]`, max 30 characters; reserved names are blocked.
+- **Robots Policy**: Options include `NONE`, `ALLOW_ALL`, `DISALLOW_ALL`, `DISALLOW_BAD_BOTS`, and `CUSTOM` (max 4,096 characters).
 - **Rate Limits**: Redirect requests are subject to a rate limit per minute.
-- **Plan Limits**: Domain and rule counts are validated upon creation.
 
 ## Related docs and API areas
 - [Redirect rules](./redirect-rules.md)
 - [Link maps](./link-maps.md)
-- [Overview](../overview.md)
-- `GET /api/v1/domain-groups`
-- `GET /api/v1/domains`
-- `GET /api/v1/subdomains`
-- `GET /api/v1/organization`
-- `GET /api/v1/organization/usage`
+- [Redirect rules — how routing works](./redirect-rules-core.md#how-routing-works)
+- [Redirect engine concepts — domain variables](../concepts/redirect-engine-variables.md#domain-variables)
+- [Overview — traffic to linkshift.app but rules never run](../overview.md)

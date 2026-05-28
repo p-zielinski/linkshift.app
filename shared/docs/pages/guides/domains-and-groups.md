@@ -22,7 +22,7 @@ A visitor hitting `links.example.com/go/summer` triggers rules on the domain gro
 
 **Before redirect rules:** After the organization redirect rate limit check, `GET /robots.txt` may be served from the domain group `robotsPolicy` (not from redirect rules). All other paths go through the rule list. `robots.txt` requests still count toward `redirectionLimitPerMinute`.
 
-**First redirect wins:** The first rule that **returns a target URL** wins (not merely the first matching `source`). Link map miss with no fallback skips to the next rule; no rule producing a target → `404`. See [Redirect rules — how routing works](./redirect-rules.md#how-routing-works) and the [routing decision flow diagram](../concepts/redirect-engine-concepts.md#routing-decision-flow-diagram).
+**First redirect wins:** The first rule that **returns a target URL** wins (not merely the first matching `source`). Link map miss with no fallback skips to the next rule; no rule producing a target → `404`. See [Redirect rules — how routing works](./redirect-rules-core.md#how-routing-works) and the [routing decision flow diagram](../concepts/redirect-engine-conditionals.md#routing-decision-flow-diagram).
 
 ---
 
@@ -111,7 +111,7 @@ Redirect destinations can use hostname-derived placeholders. Values depend on ho
 {domain.root}       → example (for links.example.com; see concepts table)
 ```
 
-See [Redirect engine concepts — domain variables](../concepts/redirect-engine-concepts.md#domain-variables) (full tables for `localhost`, two-label hosts, and multi-part TLDs).
+See [Redirect engine concepts — domain variables](../concepts/redirect-engine-variables.md#domain-variables) (full tables for `localhost`, two-label hosts, and multi-part TLDs).
 
 **Two-label hosts:** On `example.com`, `{domain.label}` is `example`, `{domain.root}` is `example`, and `{domain.extension}` is `com` — not the registrable apex pair. Use `{domain.fqdn}` or simulate with your real hostname before going live.
 
@@ -124,9 +124,9 @@ Example — redirect www to apex (works well for typical `www.example.com` → `
 }
 ```
 
-Use default `queryMatch` (`exact`) so regex runs on `originalUrl` and query params are preserved in `$1`. See [Redirect rules — strip www to apex](./redirect-rules.md#strip-www-to-apex).
+Use default `queryMatch` (`exact`) so regex runs on `originalUrl` and query params are preserved in `$1`. See [Redirect rules — strip www to apex](./redirect-rules-recipes.md#strip-www-to-apex).
 
-**Multi-part TLD caveat:** On hostnames like `links.brand.co.uk`, `{domain.root}` is `co` and `{domain.extension}` is `brand.co.uk` — neither is a full registrable-apex helper. Inspect placeholders with [simulate](../guides/redirect-rules.md#simulate-before-rollout) for your real hostnames — see [Redirect engine concepts — domain variables](../concepts/redirect-engine-concepts.md#domain-variables).
+**Multi-part TLD caveat:** On hostnames like `links.brand.co.uk`, `{domain.root}` is `co` and `{domain.extension}` is `brand.co.uk` — neither is a full registrable-apex helper. Inspect placeholders with [simulate](../guides/redirect-rules-operations.md#simulate-before-rollout) for your real hostnames — see [Redirect engine concepts — domain variables](../concepts/redirect-engine-variables.md#domain-variables).
 
 ---
 

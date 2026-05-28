@@ -12,8 +12,16 @@ pages:
     source: pages/overview.md
     route: /docs
     description: >-
-      LinkShift docs home — first redirect in 5 minutes, documentation map,
-      and common routing questions.
+      LinkShift docs home — platform overview, first redirect in 5 minutes,
+      and documentation map.
+
+  - slug: overview-faq
+    category: meta
+    source: pages/overview-faq.md
+    route: /docs/overview-faq
+    description: >-
+      Common routing questions and a live-redirect troubleshooting matrix —
+      quick answers with links to detailed guides.
 
   - slug: reference
     category: meta
@@ -41,8 +49,40 @@ pages:
     source: pages/guides/redirect-rules.md
     route: /docs/guides/redirect-rules
     description: >-
-      Complete redirect routing guide — matching, placeholders, conditionals,
-      link map integration, simulation, analytics, and recipe book.
+      Start here for redirect rules — index to matching, link maps, simulate,
+      analytics, and recipe guides.
+
+  - slug: redirect-rules-core
+    category: guide
+    source: pages/guides/redirect-rules-core.md
+    route: /docs/guides/redirect-rules-core
+    description: >-
+      How redirect rules match requests — fields, source types, pathMatch,
+      queryMatch, method, priority, and static or dynamic destinations.
+
+  - slug: redirect-rules-link-maps
+    category: guide
+    source: pages/guides/redirect-rules-link-maps.md
+    route: /docs/guides/redirect-rules-link-maps
+    description: >-
+      Connect redirect rules to link maps — API constraints, two-layer query
+      matching, lookup misses, and testing dynamic logic.
+
+  - slug: redirect-rules-operations
+    category: guide
+    source: pages/guides/redirect-rules-operations.md
+    route: /docs/guides/redirect-rules-operations
+    description: >-
+      Validate redirect rules, run simulate before rollout, and interpret
+      redirect rule analytics.
+
+  - slug: redirect-rules-recipes
+    category: guide
+    source: pages/guides/redirect-rules-recipes.md
+    route: /docs/guides/redirect-rules-recipes
+    description: >-
+      Redirect rule recipes and anti-patterns — short links, A/B tests,
+      User-Agent routing, migrations, and common mistakes.
 
   - slug: link-maps
     category: guide
@@ -78,4 +118,29 @@ pages:
     source: pages/concepts/redirect-engine-concepts.md
     route: /docs/concepts/redirect-engine-concepts
     description: >-
-      Placeholders, modifiers, conditional routing, regex capture groups, and engine limits.
+      Redirect engine concepts — index to variables, conditionals, regex behavior,
+      and edge-case limits.
+
+  - slug: redirect-engine-variables
+    category: concept
+    source: pages/concepts/redirect-engine-variables.md
+    route: /docs/concepts/redirect-engine-variables
+    description: >-
+      Request variables, modifiers, function placeholders, escaping, and missing
+      placeholder behavior in redirect destinations.
+
+  - slug: redirect-engine-conditionals
+    category: concept
+    source: pages/concepts/redirect-engine-conditionals.md
+    route: /docs/concepts/redirect-engine-conditionals
+    description: >-
+      Conditional routing syntax, live pipeline order, routing decision diagram,
+      and queryMatch choice for rules vs link maps.
+
+  - slug: redirect-engine-edge-cases
+    category: concept
+    source: pages/concepts/redirect-engine-edge-cases.md
+    route: /docs/concepts/redirect-engine-edge-cases
+    description: >-
+      Regex and wildcard sources, link map key extraction, runtime edge cases,
+      validation summary, quick reference, and advanced FAQ.

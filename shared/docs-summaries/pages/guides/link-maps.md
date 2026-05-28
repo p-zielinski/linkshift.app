@@ -1,70 +1,61 @@
 ---
 source: shared/docs/pages/guides/link-maps.md
-generatedAt: 2026-05-26T21:10:38.955Z
+generatedAt: 2026-05-28T15:49:30.665Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for developers and administrators who need to understand how to implement and manage link maps for URL redirection.
+This document is for developers and system administrators who need to understand how to implement and manage link maps for URL redirection in their applications.
 
 ## What this doc covers
-- Overview of link maps and their use cases
-- End-to-end workflow for creating link maps and entries
-- Key extraction rules for link maps
+- Overview of link maps and their benefits
+- When to use link maps
+- End-to-end workflow for creating and managing link maps
+- How keys are extracted from requests
 - Query matching strategies for link maps
-- Case sensitivity options for link keys
+- Case sensitivity options
 - Fallback destination behavior
-- API endpoints for managing link maps
-- Constraints and limits related to link maps
+- Examples of use cases for link maps
+- API endpoints related to link maps
+- Constraints and limits on link maps
 
 ## Key workflows and rules
 1. **Create Link Map**: 
    - Endpoint: `POST /api/v1/link-maps`
-   - Fields: 
-     - `name`: Name of the link map
-     - `domainGroupId`: ID of the domain group
-     - `queryMatch`: Matching strategy for query parameters (default: `ignore`)
-     - `caseSensitive`: Boolean for case sensitivity (default: `false`)
-     - `fallbackDestination`: URL to redirect to if no entry matches (optional)
-   - Important: Changing `caseSensitive` from `true` to `false` is blocked.
+   - Required fields: `name`, `domainGroupId`, `queryMatch`, `caseSensitive`, `fallbackDestination`.
+   - Important: `caseSensitive` cannot be changed from `true` to `false` after creation.
 
-2. **Add Entries**: 
+2. **Add Entries**:
    - Endpoint: `POST /api/v1/link-map-entries`
-   - Fields:
-     - `linkMapId`: ID of the link map
-     - `key`: Lookup key for the entry
-     - `destination`: Static URL for redirection
-   - Bulk import allowed via `POST /api/v1/link-map-entries/import` (up to 500 entries).
+   - Bulk import: `POST /api/v1/link-map-entries/import` (up to 500 entries).
 
-3. **Create Redirect Rule**: 
+3. **Create Redirect Rule**:
    - Endpoint: `POST /api/v1/redirect-rules`
-   - Fields:
-     - `domainGroupId`: ID of the domain group
-     - `source`: Path prefix for the rule
-     - `pathMatch`: Must be `prefix`
-     - `queryMatch`: Must be `ignore`
-     - `linkMapId`: ID of the associated link map
-     - `statusCode`: HTTP status code for redirection
-     - `priority`: Priority of the rule
+   - Required fields: `domainGroupId`, `source`, `pathMatch`, `queryMatch`, `linkMapId`, `statusCode`, `priority`.
 
-4. **Testing**: 
-   - Use `GET` requests to test the redirection behavior.
+4. **Testing**:
+   - Use `GET` requests to verify link map functionality and simulate redirects.
+
+5. **Key Extraction**:
+   - The key is extracted from the request path after the defined `source` prefix.
+
+6. **Fallback Behavior**:
+   - If no entry matches, the `fallbackDestination` is used if set; otherwise, the next rule is evaluated.
 
 ## Limits and constraints
-- **Entry Limits**: Up to 500 entries can be added in a single bulk import.
-- **Map Limits**: Organization-scoped with limits on the number of maps and total entries based on the plan.
-- **Deletion Restrictions**: Cannot delete a map that is referenced by active redirect rules.
-- **URL Safety**: Destinations must be valid URLs (http or https); unsafe URLs return a `400 Bad Request`.
-- **Cache Behavior**: Link map data is cached for up to 5 minutes; negative cache entries can last up to 60 seconds.
+- Organization-scoped ownership of link maps via domain groups.
+- Plan limits apply to the number of maps and total entries.
+- Cannot delete a map referenced by active redirect rules.
+- Destinations must be valid URLs (`http://` or `https://`).
+- Cache behavior: successful loads are cached for up to 5 minutes; negative cache lasts 60 seconds for deleted or unknown `linkMapId`.
 
 ## Related docs and API areas
 - [Redirect rules](./redirect-rules.md)
 - [Link map entries](./link-map-entries.md)
 - [Link map concepts](../concepts/link-map-concepts.md)
 - [Redirect engine concepts](../concepts/redirect-engine-concepts.md)
-- API Endpoints:
+- API endpoints:
   - `GET /api/v1/link-maps?domainGroupId=...`
   - `GET /api/v1/link-maps/:id`
-  - `POST /api/v1/link-maps`
   - `PUT /api/v1/link-maps/:id`
   - `DELETE /api/v1/link-maps/:id`

@@ -1,49 +1,47 @@
 ---
 source: shared/docs/pages/guides/getting-started.md
-generatedAt: 2026-05-26T21:10:02.343Z
+generatedAt: 2026-05-28T15:49:13.398Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for developers looking to use the LinkShift Public API programmatically with organization API keys.
+This document is for developers looking to use the LinkShift API programmatically with organization API keys.
 
 ## What this doc covers
-- **Authentication**: How to authenticate using API keys.
-- **API key scope and plan behavior**: Details on what API keys can and cannot access.
-- **Free plan paywall**: Restrictions for free organizations.
-- **Per-key rate limits**: Rate limits based on the organization’s plan.
-- **Redirect rate limits (edge traffic)**: Limits applied to live redirect requests.
-- **Routing documentation**: Overview of routing concepts and guides.
-- **API surface**: List of API endpoints and their corresponding guides.
-- **Error model**: Structure of error payloads and common status codes.
+- **Authentication**: How to send API keys using the `X-API-Key` header.
+- **API key scope and plan behavior**: Details on API key permissions and limitations.
+- **Free plan paywall**: Information on restrictions for free organizations.
+- **Per-key rate limits**: Rate limits based on the organization's plan.
+- **Redirect rate limits (edge traffic)**: Limits on live redirect requests.
+- **Routing documentation**: A structured guide to understanding LinkShift routing.
+- **API surface**: Overview of available API endpoints and their base paths.
+- **Error model**: Description of error payloads and common status codes.
 - **Quick API example**: Sample API calls for listing redirect rules and simulating requests.
 
 ## Key workflows and rules
-1. **Authentication**: Include the API key in the header as `X-API-Key: <your_api_key>`.
-2. **API Key Management**: API keys are scoped to organizations and cannot access user-centric or billing endpoints.
-3. **Rate Limiting**:
-   - For free plans, any API call returns `402 Payment Required`.
-   - Paid plans have per-key limits; handle `429 Too Many Requests` with backoff.
-4. **Redirect Rate Limits**:
-   - Limits are based on `redirectionLimitPerMinute` per organization.
-   - Exceeding limits results in `429 Too Many Requests`.
-5. **Simulate Requests**: Use `POST /api/v1/redirect-rules/simulate` to test redirects without consuming rate limits.
+1. **Authentication**: Include your API key in the header for all requests.
+2. **Rate Limiting**:
+   - Management API calls are rate-limited per API key.
+   - Handle `429 Too Many Requests` with backoff strategies.
+3. **Redirect Simulation**: Use `POST /api/v1/redirect-rules/simulate` to test redirects without consuming live traffic limits.
+4. **Redirect Rules**: Follow the routing documentation to understand how to set up and manage redirect rules effectively.
 
 ## Limits and constraints
-- **API Key Scope**: API keys can manage domains, domain groups, redirect rules, link maps, and tests but cannot access `/api/v1/api-keys`.
-- **Free Plan Restrictions**: Free organizations can create API keys but are limited by a paywall.
+- **API Key Scope**: API keys are scoped to an organization and cannot access user-centric auth or billing endpoints.
+- **Free Plan Restrictions**: Free plan API calls return `402 Payment Required` if they exceed limits.
 - **Rate Limits**:
-  - Management API calls are limited per API key based on the organization’s plan.
-  - Redirect traffic is limited by `redirectionLimitPerMinute`.
+  - Management API calls are limited based on the organization's plan.
+  - Live redirect requests are limited by `redirectionLimitPerMinute` and return `429 Too Many Requests` when exceeded.
 - **Error Codes**:
   - `401`: Invalid or missing API key.
   - `402`: Free plan or subscription restriction.
+  - `404`: Resource not found.
   - `429`: Rate limit exceeded.
 
 ## Related docs and API areas
-- **Authentication**: [Authentication Guide](#)
-- **Redirect Rules**: [Redirect rules](./redirect-rules.md)
-- **Link Maps**: [Link maps](./link-maps.md)
-- **Redirect Tests**: [Redirect tests](./redirect-tests.md)
-- **API Reference**: [API reference](../reference.md)
-- **Error Handling**: [Error model](#)
+- **Authentication**: [API Key Authentication](#authentication)
+- **Redirect Rules**: [Redirect Rules Guide](./redirect-rules.md)
+- **Link Maps**: [Link Maps Guide](./link-maps.md)
+- **Redirect Tests**: [Redirect Tests Guide](./redirect-tests.md)
+- **Domains and Domain Groups**: [Domains and Groups Guide](./domains-and-groups.md)
+- **API Reference**: [API Reference](../reference.md) for interactive documentation.

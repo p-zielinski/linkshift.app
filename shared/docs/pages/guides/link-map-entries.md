@@ -259,8 +259,8 @@ Works with rule source `/help` → keys `docs/…`.
 1. Create map with `fallbackDestination`.
 2. Import entries CSV-equivalent via `/import` (max **500** per request; check plan via `GET /api/v1/organization/usage`).
 3. Attach redirect rule with prefix `/c`.
-4. Run [simulate](./redirect-rules.md#simulate-before-rollout) on sample URLs.
-5. Monitor [analytics](./redirect-rules.md#analytics) `topLinkMapKeys`.
+4. Run [simulate](./redirect-rules-operations.md#simulate-before-rollout) on sample URLs.
+5. Monitor [analytics](./redirect-rules-operations.md#analytics) `topLinkMapKeys`.
 
 ### Update destinations mid-campaign
 

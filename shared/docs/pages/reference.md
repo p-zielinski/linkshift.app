@@ -28,12 +28,13 @@ Guides explain **behavior**. OpenAPI pages define **contracts**.
 
 | Topic | Guide |
 |-------|-------|
-| Matching, recipes, simulate, analytics | [Redirect rules](./guides/redirect-rules.md) |
+| Matching | [Redirect rules — core](./guides/redirect-rules-core.md) |
+| Recipes, simulate, analytics | [Redirect rules](./guides/redirect-rules.md) (index) |
 | Placeholders, modifiers, conditionals, limits | [Redirect engine concepts](./concepts/redirect-engine-concepts.md) |
-| Quick reference (syntax card) | [Engine quick reference](./concepts/redirect-engine-concepts.md#quick-reference-card) |
-| Routing flow (Mermaid) | [Routing decision flow](./concepts/redirect-engine-concepts.md#routing-decision-flow-diagram) |
+| Quick reference (syntax card) | [Engine quick reference](./concepts/redirect-engine-edge-cases.md#quick-reference-card) |
+| Routing flow (Mermaid) | [Routing decision flow](./concepts/redirect-engine-conditionals.md#routing-decision-flow-diagram) |
 | Link maps and entries | [Link maps](./guides/link-maps.md), [Link map concepts](./concepts/link-map-concepts.md) |
-| Troubleshooting (404, 403, 429, link map miss) | [Overview — troubleshooting matrix](./overview.md#troubleshooting-matrix-live-redirects) |
+| Troubleshooting (404, 403, 429, link map miss) | [Overview — troubleshooting matrix](./overview-faq.md#troubleshooting-matrix-live-redirects) |
 
 ### Routing decision index
 
@@ -43,9 +44,9 @@ Quick “which feature do I need?” — full detail in linked guides.
 |------|----------|-----------------------------------|---------------|------|
 | Fixed URL redirect | Plain `/path` | `exact` or `prefix` + `exact`/`ignore`/`subset` | Static or dynamic URL | [Redirect rules](./guides/redirect-rules.md) |
 | Short links at scale | Plain `/go` prefix | `prefix` + `ignore` | `null` + `linkMapId` | [Link maps](./guides/link-maps.md) |
-| Blog / path migration | `/^\\/blog\\/(.*)$/` regex | Regex: `pathMatch` ignored; tune `queryMatch` | `$1` + placeholders | [Recipes](./guides/redirect-rules.md#migrate-blog-posts-with-regex) |
+| Blog / path migration | `/^\\/blog\\/(.*)$/` regex | Regex: `pathMatch` ignored; tune `queryMatch` | `$1` + placeholders | [Recipes](./guides/redirect-rules-recipes.md#migrate-blog-posts-with-regex) |
 | Catch-all fallback | `*` | Ignored at runtime | Any | Low `priority` |
-| A/B or scheduled | Any | Often `ignore` on `*` or path | Ternary / `random()` / `datetime()` | [Engine concepts](./concepts/redirect-engine-concepts.md#conditional-routing-syntax) |
+| A/B or scheduled | Any | Often `ignore` on `*` or path | Ternary / `random()` / `datetime()` | [Engine concepts](./concepts/redirect-engine-conditionals.md#conditional-routing-syntax) |
 | GET-only short links | Prefix + `linkMapId` | + `matchMethod: ["GET"]` | `null` | [Link maps — matchMethod](./guides/link-maps.md#step-3--create-redirect-rule) |
 
 ```mermaid
@@ -99,7 +100,7 @@ flowchart TD
 | Simulate batch | `POST /api/v1/redirect-rules/simulate` | 1–**100** entries per request | — |
 | Link map import | `POST /api/v1/link-map-entries/import` | 1–**500** entries per request | — |
 
-Propagation detail: [Redirect rules — propagation and caching](./guides/redirect-rules.md#propagation-and-caching).
+Propagation detail: [Redirect rules — propagation and caching](./guides/redirect-rules-core.md#propagation-and-caching).
 
 ---
 
