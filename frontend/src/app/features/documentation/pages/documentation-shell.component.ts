@@ -4,12 +4,15 @@ import {
   Component,
   DestroyRef,
   PLATFORM_ID,
+  computed,
   inject,
   signal,
   ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter, map, startWith } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import {
   MatSidenavContent,
@@ -26,6 +29,7 @@ import { DocumentationContentService } from '../services/documentation-content.s
 import { DocumentationScrollService } from '../services/documentation-scroll.service';
 import { OpenApiTagGroup } from '../models/openapi.types';
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
+import { resolveDocsAssistantPageContext } from '../utils/docs-assistant-page-context.util';
 
 const MOBILE_BREAKPOINT = '(max-width: 1023px)';
 const SMALL_SCREEN_BREAKPOINT = '(max-width: 767px)';
@@ -97,6 +101,24 @@ export class DocumentationShellComponent implements AfterViewInit {
     { label: 'API reference', route: '/docs/reference' },
   ];
 
+  readonly currentRoutePath = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => this.router.url.split('?')[0] ?? this.router.url),
+      startWith(this.router.url.split('?')[0] ?? this.router.url),
+    ),
+    { initialValue: this.router.url.split('?')[0] ?? this.router.url },
+  );
+
+  readonly askDocsPageContext = computed(() => {
+    const path = this.currentRoutePath();
+    if (path === '/docs/assistant') {
+      return null;
+    }
+
+    return resolveDocsAssistantPageContext(path, this.docsContent);
+  });
+
   readonly siteLinks = [
     { label: 'Home', route: '/home' },
     { label: 'Use Cases', route: '/use-cases' },
@@ -143,8 +165,13 @@ export class DocumentationShellComponent implements AfterViewInit {
     this.closeDrawerOnMobile();
   }
 
-  private currentRoutePath(): string {
-    return this.router.url.split('?')[0] ?? this.router.url;
-  }
+  navigateToAskDocs(event: Event): void {
+    event.preventDefault();
+    this.closeDrawerOnMobile();
 
+    const pageContext = this.askDocsPageContext();
+    void this.router.navigate(['/docs/assistant'], {
+      state: pageContext ? { pageContext } : undefined,
+    });
+  }
 }

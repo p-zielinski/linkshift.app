@@ -22,6 +22,11 @@
       <li>Configuration data: domains, redirect rules, tests, and settings you create.</li>
       <li>Usage data: service events and timestamps for security and reliability.</li>
       <li>Billing data: subscription status and identifiers (handled by Paddle).</li>
+      <li>
+        Documentation assistant: questions you submit, generated answers, optional feedback ratings,
+        and a temporary IP address for abuse prevention when you use Ask docs on
+        <a href="/docs">our documentation</a>.
+      </li>
     </ul>
     <p>
       We do not host your websites, applications, or content; we only store configuration data and
@@ -58,12 +63,31 @@
       <li>Legal obligations: tax, accounting, and regulatory requirements.</li>
     </ul>
 
+    <h2>Documentation assistant</h2>
+    <p>
+      When you use Ask docs, your question is sent to our tools API to generate an answer from
+      official documentation. We may store the question, answer, sources cited, response time, and
+      an optional helpful/not helpful rating in our logging database to improve quality and prevent
+      abuse.
+    </p>
+    <p>
+      Recent chats can be saved in your browser’s local storage on your device so you can return to
+      them later. You can clear that history in the assistant UI; clearing it does not delete server
+      logs already recorded for earlier questions.
+    </p>
+    <p>
+      Bot protection for Ask docs may use Cloudflare Turnstile. Documentation answers are generated
+      with OpenAI using retrieved documentation context only for that request.
+    </p>
+
     <h2>Sharing and processors</h2>
     <ul>
       <li>Paddle for payments and subscription management.</li>
       <li>Zoho ZeptoMail for transactional emails.</li>
       <li>Security scanning providers for anti-abuse screening.</li>
       <li>Infrastructure providers that host and process Service data.</li>
+      <li>OpenAI for documentation assistant answer generation.</li>
+      <li>Cloudflare Turnstile for documentation assistant bot protection.</li>
     </ul>
     <p>We do not sell or share personal data for advertising purposes.</p>
 

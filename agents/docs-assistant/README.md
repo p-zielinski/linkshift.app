@@ -61,6 +61,13 @@ See `backend-tools/.env.example`. Required for search: `OPENAI_API_KEY`. Optiona
 
 Supabase table DDL: `backend-tools/supabase/agent_search_logs.sql`.
 
-## Frontend (not included)
+## Frontend
 
-Wire Cloudflare Turnstile on the docs UI, then call tools API with header `x-turnstile-token` on `POST .../docs/search`.
+Implemented in `frontend/src/app/features/documentation/`:
+
+- Sidebar CTA: **Ask docs** in `app-documentation-shell` (left nav, under header).
+- Chat page: `/docs/assistant` in the main content column (no right overlay / FAB).
+- API client: `DocsAssistantApiService`; Turnstile: `TurnstileService` + `APP_TURNSTILE_SITE_KEY`.
+- Local history: `linkshift_docs_assistant_history_v1` in localStorage (max 20 threads).
+
+See `agents/docs-assistant/FRONTEND_IMPLEMENTATION_LOG.md` for rollout notes and backlog.

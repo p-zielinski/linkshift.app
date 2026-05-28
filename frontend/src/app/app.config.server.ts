@@ -31,6 +31,7 @@ const serverConfig: ApplicationConfig = {
           APP_PADDLE_CLIENT_TOKEN:
             process.env['' + 'APP_PADDLE_CLIENT_TOKEN'],
           APP_PADDLE_ENV: process.env['' + 'APP_PADDLE_ENV'],
+          APP_TURNSTILE_SITE_KEY: process.env['' + 'APP_TURNSTILE_SITE_KEY'],
         });
         inject(TransferState).set(APP_CONFIG_KEY, config);
         return config;
