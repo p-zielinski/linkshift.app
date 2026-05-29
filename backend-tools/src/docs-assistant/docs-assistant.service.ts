@@ -7,18 +7,18 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { InternalServerError } from '@shared/models/error.model';
 import { throwHttpException } from '../utils';
 import {
-  CriticResultSchema,
-  type CriticResult,
+  resolveConversationSummary,
+  trimConversationSummary,
+} from './docs-assistant-conversation.util';
+import {
+  GeneratorResultSchema,
   parseValidatedJson,
   RouterResultSchema,
+  type GeneratorResult,
   type RouterResult,
 } from './docs-assistant-json.util';
 import { buildUnknownInDocsAnswer } from './docs-assistant-messages';
-import {
-  CRITIC_SYSTEM_PROMPT,
-  GENERATOR_SYSTEM_PROMPT,
-  ROUTER_SYSTEM_PROMPT,
-} from './docs-assistant-prompts';
+import { GENERATOR_SYSTEM_PROMPT, ROUTER_SYSTEM_PROMPT } from './docs-assistant-prompts';
 import {
   buildNoCatalogMatchResult,
   buildRouterEarlyExitResult,
@@ -28,11 +28,18 @@ import {
 import { DOCS_ASSISTANT_MAX_CATALOG_PICKS } from './docs-catalog-metadata';
 import { DocsCatalogService } from './docs-catalog.service';
 import { DocsContentLoaderService } from './docs-content-loader.service';
+import type { DocsSearchResultEvent, DocsSearchStreamEvent } from './docs-assistant-stream.model';
+import { DocsAssistantPipelineTrace } from './docs-assistant-pipeline-trace.util';
 
-export interface DocsSearchResult {
-  answer: string;
-  sources: string[];
-  logId: string | null;
+function toSearchResultEvent(
+  event: Omit<DocsSearchResultEvent, 'conversationSummary'> & {
+    conversationSummary?: string | null;
+  },
+): DocsSearchResultEvent {
+  return {
+    ...event,
+    conversationSummary: trimConversationSummary(event.conversationSummary) ?? null,
+  };
 }
 
 @Injectable()
@@ -61,10 +68,24 @@ export class DocsAssistantService implements OnModuleInit {
     }
   }
 
-  async processAgentSearch(question: string): Promise<DocsSearchResult> {
+  async *processAgentSearchStream(
+    question: string,
+    conversationSummary: string | null = null,
+  ): AsyncGenerator<DocsSearchStreamEvent> {
     const trimmedQuestion = question.trim();
+    const priorSummary = trimConversationSummary(conversationSummary);
+    const trace = new DocsAssistantPipelineTrace(this.logger, this.clsService.getId());
+
     if (!trimmedQuestion) {
-      return { answer: '', sources: [], logId: null };
+      trace.completePipeline('empty_question');
+      yield toSearchResultEvent({
+        type: 'result',
+        answer: '',
+        sources: [],
+        logId: null,
+        conversationSummary: priorSummary,
+      });
+      return;
     }
 
     this.ensureOpenAiConfigured();
@@ -78,10 +99,31 @@ export class DocsAssistantService implements OnModuleInit {
       summary: entry.summary,
     }));
 
-    const routerData = await this.runRouter(trimmedQuestion, catalog);
+    yield { type: 'status', stage: 'routing' };
+    trace.startStage('routing');
+
+    const routerData = await this.runRouter(trimmedQuestion, priorSummary, catalog);
+
+    trace.completeStage('routing', {
+      model: this.routerModel(),
+      intent: routerData.intent,
+      suggestedCatalogIds: routerData.suggestedCatalogIds,
+      suggestedCatalogIdsCount: routerData.suggestedCatalogIds.length,
+    });
 
     if (isRouterEarlyExitIntent(routerData.intent)) {
-      return buildRouterEarlyExitResult(routerData);
+      trace.completePipeline('early_exit', {
+        intent: routerData.intent,
+      });
+      const earlyExit = buildRouterEarlyExitResult(routerData);
+      yield toSearchResultEvent({
+        type: 'result',
+        answer: earlyExit.answer,
+        sources: [],
+        logId: null,
+        conversationSummary: resolveConversationSummary(priorSummary, routerData.conversationSummary),
+      });
+      return;
     }
 
     const routerSuggestedIds = routerData.suggestedCatalogIds;
@@ -91,51 +133,79 @@ export class DocsAssistantService implements OnModuleInit {
       catalog,
       (ids) => this.trimCatalogPicks(ids),
     );
+    const usedKeywordFallback = routerSuggestedIds.length === 0 && catalogIds.length > 0;
 
-    if (catalogIds.length === 0) {
-      this.logger.info('Docs assistant: no catalog match; skipping generator', {
-        requestId: this.clsService.getId(),
-        routerSuggestedIds,
-      });
-      return buildNoCatalogMatchResult(routerData);
-    }
-
-    if (routerSuggestedIds.length === 0) {
+    if (usedKeywordFallback) {
       this.logger.warn('Docs assistant router returned no catalog ids; used keyword fallback', {
         requestId: this.clsService.getId(),
         catalogIds,
       });
     }
 
+    if (catalogIds.length === 0) {
+      trace.completePipeline('no_catalog_match', {
+        intent: routerData.intent,
+        routerSuggestedIds,
+      });
+      const noMatch = buildNoCatalogMatchResult(routerData);
+      yield toSearchResultEvent({
+        type: 'result',
+        answer: noMatch.answer,
+        sources: [],
+        logId: null,
+        conversationSummary: resolveConversationSummary(priorSummary, routerData.conversationSummary),
+      });
+      return;
+    }
+
+    yield { type: 'status', stage: 'reading' };
+    trace.startStage('reading');
+
     const selectedEntries = this.catalogService.getByIds(catalogIds);
     const sources = selectedEntries.map((entry) => entry.userFacingRef);
     const context = this.contentLoader.loadContext(selectedEntries);
 
-    let finalAnswer = await this.runGenerator(trimmedQuestion, context, sources);
-    const criticData = await this.runCritic(trimmedQuestion, finalAnswer, sources);
-    const criticNotes = criticData.criticNotes;
+    trace.completeStage('reading', {
+      catalogIds,
+      sourceCount: sources.length,
+      sources,
+      contextChars: context.length,
+      usedKeywordFallback,
+    });
 
-    if (!criticData.isValid) {
-      this.logger.warn('Docs assistant critic rejected answer; returning unknown-in-docs response', {
-        requestId: this.clsService.getId(),
-        criticNotes,
-      });
-      finalAnswer = buildUnknownInDocsAnswer(sources);
-    }
+    yield { type: 'status', stage: 'drafting' };
+    trace.startStage('drafting');
+
+    const generatorResult = await this.runGenerator(trimmedQuestion, context, sources, priorSummary);
+
+    trace.completeStage('drafting', {
+      model: this.generatorModel(),
+      answerLengthChars: generatorResult.answer.length,
+      skippedLlm: !context.trim(),
+    });
 
     const logId = await this.persistSearchLog({
       question: trimmedQuestion,
-      answer: finalAnswer,
+      answer: generatorResult.answer,
       sourcesUsed: sources,
-      criticNotes,
       executionTimeMs: Date.now() - startTime,
     });
 
-    return {
-      answer: finalAnswer,
+    trace.completePipeline('completed', {
+      intent: routerData.intent,
+      catalogIds,
+      sourceCount: sources.length,
+      usedKeywordFallback,
+      logId,
+    });
+
+    yield toSearchResultEvent({
+      type: 'result',
+      answer: generatorResult.answer,
       sources,
       logId,
-    };
+      conversationSummary: generatorResult.conversationSummary,
+    });
   }
 
   async saveRating(logId: string, rating: number): Promise<{ success: boolean }> {
@@ -183,6 +253,7 @@ export class DocsAssistantService implements OnModuleInit {
 
   private async runRouter(
     question: string,
+    conversationSummary: string | null,
     catalog: Array<{
       catalogId: string;
       kind: string;
@@ -194,12 +265,13 @@ export class DocsAssistantService implements OnModuleInit {
       intent: 'DOCUMENTATION_SEARCH',
       directReply: null,
       suggestedCatalogIds: [],
+      conversationSummary: null,
     };
 
     return this.createValidatedJsonCompletion({
       model: this.routerModel(),
       systemPrompt: ROUTER_SYSTEM_PROMPT,
-      userPayload: { question, catalog },
+      userPayload: { question, conversationSummary, catalog },
       schema: RouterResultSchema,
       fallback,
       stage: 'router',
@@ -210,23 +282,41 @@ export class DocsAssistantService implements OnModuleInit {
     question: string,
     context: string,
     sourcesChecked: string[],
-  ): Promise<string> {
+    conversationSummary: string | null,
+  ): Promise<{ answer: string; conversationSummary: string | null }> {
+    const previousSummary = trimConversationSummary(conversationSummary);
+    const fallbackAnswer = buildUnknownInDocsAnswer(sourcesChecked);
+
     if (!context.trim()) {
-      return buildUnknownInDocsAnswer(sourcesChecked);
+      return {
+        answer: fallbackAnswer,
+        conversationSummary: previousSummary,
+      };
     }
 
-    const response = await this.openai!.chat.completions.create({
+    const fallback: GeneratorResult = {
+      answer: fallbackAnswer,
+      conversationSummary: previousSummary ?? '',
+    };
+
+    const result = await this.createValidatedJsonCompletion({
       model: this.generatorModel(),
-      messages: [
-        { role: 'system', content: this.generatorSystemPrompt() },
-        {
-          role: 'user',
-          content: this.buildGeneratorUserMessage(question, context, sourcesChecked),
-        },
-      ],
+      systemPrompt: this.generatorSystemPrompt(),
+      userPayload: this.buildGeneratorUserPayload(
+        question,
+        context,
+        sourcesChecked,
+        previousSummary,
+      ),
+      schema: GeneratorResultSchema,
+      fallback,
+      stage: 'generator',
     });
 
-    return response.choices[0]?.message?.content?.trim() || buildUnknownInDocsAnswer(sourcesChecked);
+    return {
+      answer: result.answer.trim() || fallbackAnswer,
+      conversationSummary: resolveConversationSummary(previousSummary, result.conversationSummary),
+    };
   }
 
   private generatorSystemPrompt(): string {
@@ -238,37 +328,18 @@ export class DocsAssistantService implements OnModuleInit {
     return `${GENERATOR_SYSTEM_PROMPT}\n\nAdditional instructions:\n${extra}`;
   }
 
-  private buildGeneratorUserMessage(
+  private buildGeneratorUserPayload(
     question: string,
     context: string,
     sourcesChecked: string[],
-  ): string {
-    const sourcesBlock =
-      sourcesChecked.length > 0
-        ? `Sources checked for this answer:\n${sourcesChecked.map((source) => `- ${source}`).join('\n')}\n\n`
-        : '';
-
-    return `${sourcesBlock}Documentation context:\n${context}\n\nUser question: ${question}`;
-  }
-
-  private async runCritic(
-    question: string,
-    answer: string,
-    sourcesChecked: string[],
-  ): Promise<CriticResult> {
-    const fallback: CriticResult = {
-      isValid: false,
-      criticNotes: 'Critic response could not be parsed.',
+    conversationSummary: string | null,
+  ): Record<string, unknown> {
+    return {
+      conversationSummary,
+      sourcesChecked,
+      documentationContext: context,
+      question,
     };
-
-    return this.createValidatedJsonCompletion({
-      model: this.criticModel(),
-      systemPrompt: CRITIC_SYSTEM_PROMPT,
-      userPayload: { question, answer, sourcesChecked },
-      schema: CriticResultSchema,
-      fallback,
-      stage: 'critic',
-    });
   }
 
   private async createValidatedJsonCompletion<T>({
@@ -284,7 +355,7 @@ export class DocsAssistantService implements OnModuleInit {
     userPayload: unknown;
     schema: import('zod').ZodType<T>;
     fallback: T;
-    stage: 'router' | 'critic';
+    stage: 'router' | 'generator';
   }): Promise<T> {
     const maxAttempts = 2;
 
@@ -337,7 +408,6 @@ export class DocsAssistantService implements OnModuleInit {
     question: string;
     answer: string;
     sourcesUsed: string[];
-    criticNotes: string | null;
     executionTimeMs: number;
   }): Promise<string | null> {
     if (!this.supabase) {
@@ -353,7 +423,7 @@ export class DocsAssistantService implements OnModuleInit {
         question: payload.question,
         answer: payload.answer,
         sources_used: payload.sourcesUsed,
-        critic_notes: payload.criticNotes,
+        critic_notes: null,
         execution_time_ms: payload.executionTimeMs,
       })
       .select('id')
@@ -378,7 +448,4 @@ export class DocsAssistantService implements OnModuleInit {
     return this.configService.get<string>('DOCS_ASSISTANT_GENERATOR_MODEL')?.trim() || 'gpt-5.4-mini';
   }
 
-  private criticModel(): string {
-    return this.configService.get<string>('DOCS_ASSISTANT_CRITIC_MODEL')?.trim() || 'gpt-5.4-nano';
-  }
 }

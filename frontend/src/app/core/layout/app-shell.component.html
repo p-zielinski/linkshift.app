@@ -92,8 +92,9 @@
     [fixedInViewport]="true"
     [autoFocus]="false"
     (openedChange)="onAssistantDrawerOpenedChange($event)"
+    (closed)="onAssistantDrawerAnimationClosed()"
   >
-    @if (assistantDrawerOpen()) {
+    @if (assistantDrawerContentMounted()) {
       <app-docs-assistant (closeRequested)="closeAssistantDrawer()" />
     }
   </mat-sidenav>

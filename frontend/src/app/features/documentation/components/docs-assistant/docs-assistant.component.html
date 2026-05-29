@@ -78,7 +78,13 @@
           [class.docs-assistant__message--assistant]="message.role === 'assistant'"
         >
           <div class="docs-assistant__bubble">
-            <p class="docs-assistant__text">{{ message.text }}</p>
+            @if (message.role === 'assistant') {
+              <div class="docs-assistant__markdown">
+                <app-markdown-renderer [markdown]="message.text" />
+              </div>
+            } @else {
+              <p class="docs-assistant__text">{{ message.text }}</p>
+            }
 
             @if (message.role === 'assistant' && message.sources?.length) {
               <div class="docs-assistant__sources">
@@ -88,7 +94,9 @@
                     @let parsed = parseSource(source);
                     <li>
                       @if (parsed.route) {
-                        <a [routerLink]="parsed.route">{{ parsed.label }}</a>
+                        <a [routerLink]="parsed.route" (click)="onSourceLinkClick($event)">{{
+                          parsed.label
+                        }}</a>
                       } @else {
                         <span>{{ parsed.label }}</span>
                       }
@@ -130,7 +138,14 @@
       @if (session.isSearching()) {
         <div class="docs-assistant__loading">
           <mat-spinner diameter="22" />
-          <span>Searching docs…</span>
+          <div class="docs-assistant__loading-text">
+            <span>{{ session.searchStatusLabel() }}</span>
+            @if (session.showLongSearchHint()) {
+              <span class="docs-assistant__loading-hint">
+                Still working… {{ session.searchElapsedSeconds() }}s
+              </span>
+            }
+          </div>
         </div>
       }
 
@@ -143,7 +158,11 @@
       <p class="docs-assistant__error" role="alert">{{ error }}</p>
     }
 
-    <form class="docs-assistant__form docs-assistant__form--embedded" (ngSubmit)="onSubmit()">
+    <div
+      class="docs-assistant__form docs-assistant__form--embedded"
+      role="search"
+      aria-label="Ask docs"
+    >
       <mat-form-field class="docs-assistant__question-field w-full" appearance="outline" subscriptSizing="dynamic">
         <mat-label>Question</mat-label>
         <textarea
@@ -151,8 +170,7 @@
           matInput
           rows="3"
           [formControl]="questionControl"
-          (keydown.control.enter)="onSubmit(); $event.preventDefault()"
-          (keydown.meta.enter)="onSubmit(); $event.preventDefault()"
+          (keydown.enter)="onComposerEnter($event)"
         ></textarea>
       </mat-form-field>
 
@@ -163,14 +181,15 @@
         <button
           mat-flat-button
           color="primary"
-          type="submit"
+          type="button"
           class="docs-assistant__submit"
           [disabled]="questionControl.invalid || session.isSearching()"
+          (click)="onAskClick($event)"
         >
           Ask
         </button>
       </div>
-    </form>
+    </div>
   </ng-template>
 
   <section

@@ -5,6 +5,12 @@ import { firstValueFrom } from 'rxjs';
 import { DocsAssistantApiService } from '../../../core/api/docs-assistant-api.service';
 import { TurnstileService } from '../../../core/security/turnstile.service';
 import {
+  DOCS_ASSISTANT_SEARCH_INITIAL_LABEL,
+  DOCS_ASSISTANT_SEARCH_LONG_WAIT_SECONDS,
+  DOCS_ASSISTANT_SEARCH_STAGE_LABELS,
+  type DocsAssistantSearchStage,
+} from '../../../core/api/docs-assistant-search-stages';
+import {
   buildThreadTitle,
   clearDocsAssistantHistory,
   readDocsAssistantHistory,
@@ -24,6 +30,8 @@ export class DocsAssistantSessionService {
   private readonly platformId = inject(PLATFORM_ID);
 
   readonly isSearching = signal(false);
+  readonly searchStage = signal<DocsAssistantSearchStage | null>(null);
+  readonly searchElapsedSeconds = signal(0);
   readonly errorMessage = signal<string | null>(null);
   readonly history = signal<DocsAssistantHistorySnapshot>({
     version: 1,
@@ -41,6 +49,22 @@ export class DocsAssistantSessionService {
   });
 
   readonly threads = computed(() => this.history().threads);
+
+  readonly searchStatusLabel = computed(() => {
+    const stage = this.searchStage();
+    if (stage) {
+      return DOCS_ASSISTANT_SEARCH_STAGE_LABELS[stage];
+    }
+
+    return DOCS_ASSISTANT_SEARCH_INITIAL_LABEL;
+  });
+
+  readonly showLongSearchHint = computed(
+    () => this.isSearching() && this.searchElapsedSeconds() >= DOCS_ASSISTANT_SEARCH_LONG_WAIT_SECONDS,
+  );
+
+  private searchElapsedTimer: ReturnType<typeof setInterval> | null = null;
+  private searchStartedAtMs: number | null = null;
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -95,6 +119,8 @@ export class DocsAssistantSessionService {
 
     this.errorMessage.set(null);
     this.isSearching.set(true);
+    this.searchStage.set(null);
+    this.startSearchElapsedTimer();
 
     let thread = this.activeThread();
     if (!thread) {
@@ -115,19 +141,26 @@ export class DocsAssistantSessionService {
 
     try {
       const turnstileToken = await this.turnstile.requestToken();
-      const result = await firstValueFrom(this.api.search(trimmed, turnstileToken));
+      const priorSummary = thread.conversationSummary?.trim() || null;
+      const result = await this.api.searchStream(trimmed, priorSummary, turnstileToken, (stage) => {
+        this.searchStage.set(stage);
+      });
       this.turnstile.reset();
 
       const assistantMessage = this.createMessage('assistant', result.answer, {
         sources: result.sources,
         logId: result.logId,
       });
-      this.appendMessage(thread.id, assistantMessage);
+      this.appendMessage(thread.id, assistantMessage, {
+        conversationSummary: result.conversationSummary,
+      });
     } catch (error) {
       this.turnstile.reset();
       this.errorMessage.set(await this.resolveErrorMessage(error));
     } finally {
+      this.stopSearchElapsedTimer();
       this.isSearching.set(false);
+      this.searchStage.set(null);
     }
   }
 
@@ -172,7 +205,11 @@ export class DocsAssistantSessionService {
   private appendMessage(
     threadId: string,
     message: DocsAssistantMessage,
-    options?: { title?: string; pageContext?: string | null },
+    options?: {
+      title?: string;
+      pageContext?: string | null;
+      conversationSummary?: string | null;
+    },
   ): void {
     const now = new Date().toISOString();
     this.patchHistory((snapshot) => ({
@@ -183,10 +220,16 @@ export class DocsAssistantSessionService {
           return thread;
         }
 
+        const conversationSummary =
+          options && 'conversationSummary' in options
+            ? (options.conversationSummary ?? null)
+            : thread.conversationSummary;
+
         return {
           ...thread,
           title: options?.title ?? thread.title,
           pageContext: options?.pageContext ?? thread.pageContext,
+          conversationSummary,
           messages: [...thread.messages, message],
           updatedAt: now,
         };
@@ -200,6 +243,7 @@ export class DocsAssistantSessionService {
       id: crypto.randomUUID(),
       title: 'New chat',
       pageContext,
+      conversationSummary: null,
       messages: [],
       createdAt: now,
       updatedAt: now,
@@ -223,6 +267,10 @@ export class DocsAssistantSessionService {
   }
 
   private async resolveErrorMessage(error: unknown): Promise<string> {
+    if (error instanceof Error && error.message.trim()) {
+      return error.message.trim();
+    }
+
     if (!(error instanceof HttpErrorResponse)) {
       return "Couldn't get an answer. Try again in a moment";
     }
@@ -267,5 +315,28 @@ export class DocsAssistantSessionService {
     }
 
     return null;
+  }
+
+  private startSearchElapsedTimer(): void {
+    this.stopSearchElapsedTimer();
+    this.searchStartedAtMs = Date.now();
+    this.searchElapsedSeconds.set(0);
+    this.searchElapsedTimer = setInterval(() => {
+      if (this.searchStartedAtMs === null) {
+        return;
+      }
+
+      this.searchElapsedSeconds.set(Math.floor((Date.now() - this.searchStartedAtMs) / 1000));
+    }, 1_000);
+  }
+
+  private stopSearchElapsedTimer(): void {
+    if (this.searchElapsedTimer) {
+      clearInterval(this.searchElapsedTimer);
+      this.searchElapsedTimer = null;
+    }
+
+    this.searchStartedAtMs = null;
+    this.searchElapsedSeconds.set(0);
   }
 }

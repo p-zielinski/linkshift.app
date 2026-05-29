@@ -1,6 +1,6 @@
 # Docs assistant
 
-Three-phase documentation search for LinkShift, served by **backend-tools**.
+Two-stage documentation search for LinkShift, served by **backend-tools** (router + generator).
 
 ## Data sources
 
@@ -23,21 +23,40 @@ Summaries mirror `shared/docs/` paths. OpenAPI slices are internal LLM context; 
 ### Search body
 
 ```json
-{ "question": "How do I list domain groups?" }
+{
+  "question": "How do I list domain groups?",
+  "conversationSummary": "optional; hidden thread context from prior turns (max 2000 chars)"
+}
 ```
+
+`conversationSummary` is stored per thread in the browser (localStorage) and resent on follow-up questions. It is **not** shown in the UI and is **not** written to Supabase logs.
 
 ### Search response
 
+Newline-delimited JSON stream (`Content-Type: application/x-ndjson`):
+
 ```json
-{
-  "answer": "...",
-  "sources": [
-    "API reference: Domain Groups (/docs/reference) — LinkShift API keys OpenAPI",
-    "Guide: Domains and groups (/docs/guides/domains-and-groups)"
-  ],
-  "logId": "uuid-or-null"
-}
+{"type":"status","stage":"routing"}
+{"type":"status","stage":"reading"}
+{"type":"status","stage":"drafting"}
+{"type":"result","answer":"...","sources":["..."],"logId":"uuid-or-null","conversationSummary":"..."}
 ```
+
+Stages: `routing` → `reading` → `drafting` (early exits emit only `routing`, then `result`).
+
+### Observability
+
+Structured logs (pino) per request — filter by `requestId` from the controller entry log:
+
+| Message | When |
+|---------|------|
+| `Docs assistant stage started` | Each pipeline stage begins (`stage`) |
+| `Docs assistant stage completed` | Stage finished (`stage`, `durationMs`, stage-specific fields) |
+| `Docs assistant pipeline completed` | Request finished (`outcome`, `totalDurationMs`, `stageDurationMs`) |
+
+`outcome`: `empty_question`, `early_exit`, `no_catalog_match`, `completed`.
+
+Question/answer text is not logged — only lengths, ids, sources, and routing metadata.
 
 `sources` are **user-facing citations** (docs routes and API reference tags), not internal `openapi/by-tag` slice paths. Slices are LLM context only; the canonical contract is `linkshift-api-keys.openapi.yaml` at `/docs/reference`.
 
@@ -51,15 +70,14 @@ Summaries mirror `shared/docs/` paths. OpenAPI slices are internal LLM context; 
 
 ## Pipeline
 
-1. **Router** (`DOCS_ASSISTANT_ROUTER_MODEL`, default `gpt-5.4-nano`) — intent (`CONVERSATION`, `OUT_OF_SCOPE`, or `DOCUMENTATION_SEARCH`) + `catalogId` picks from summaries (hard cap 8; prefer fewer when summaries clearly point to focused sources). Off-topic and empty catalog matches skip the generator.
-2. **Generator** (`DOCS_ASSISTANT_GENERATOR_MODEL`, default `gpt-5.4-mini`) — answer from full docs + OpenAPI outlines.
-3. **Critic** (`DOCS_ASSISTANT_CRITIC_MODEL`, default `gpt-5.4-nano`) — JSON validity check.
+1. **Router** (`DOCS_ASSISTANT_ROUTER_MODEL`, default `gpt-5.4-nano`) — intent (`CONVERSATION`, `OUT_OF_SCOPE`, or `DOCUMENTATION_SEARCH`) + `catalogId` picks from summaries (hard cap 8; prefers a broader set when multiple summaries plausibly help). Uses optional `conversationSummary` for follow-up routing. Off-topic and empty catalog matches skip the generator; on those paths the router also returns an updated `conversationSummary`.
+2. **Generator** (`DOCS_ASSISTANT_GENERATOR_MODEL`, default `gpt-5.4-mini`) — JSON with Markdown `answer` and updated `conversationSummary` from full docs + OpenAPI outlines (anti-hallucination rules in the system prompt).
 
 ## Configuration
 
 See `backend-tools/.env.example`. Required for search: `OPENAI_API_KEY`. Optional: `SUPABASE_*` (logging/ratings), `CLOUDFLARE_TURNSTILE_SECRET_KEY`, `DOCS_ASSISTANT_EXTRA_INSTRUCTIONS` (extra generator system prompt text; honesty rules still apply).
 
-Supabase table DDL: `backend-tools/supabase/agent_search_logs.sql`.
+Supabase: two projects (dev/prod), SQL + env — `backend-tools/supabase/README.md`. DDL: `backend-tools/supabase/agent_search_logs.sql`.
 
 ## Frontend
 

@@ -2,6 +2,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   Component,
   ElementRef,
+  HostListener,
   PLATFORM_ID,
   ViewChild,
   computed,
@@ -19,6 +20,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MarkdownRendererComponent } from '../markdown-renderer.component';
 import { DocsAssistantSessionService } from '../../services/docs-assistant-session.service';
 import { DocsAssistantDrawerService } from '../../services/docs-assistant-drawer.service';
 import { parseDocsAssistantSource } from '../../utils/docs-assistant-source.util';
@@ -34,10 +36,14 @@ const STARTER_PROMPTS = [
 @Component({
   selector: 'app-docs-assistant',
   standalone: true,
+  host: {
+    ngSkipHydration: 'true',
+  },
   imports: [
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
+    MarkdownRendererComponent,
     MatButtonModule,
     MatFormFieldModule,
     MatIconModule,
@@ -77,6 +83,8 @@ export class DocsAssistantComponent {
     effect(() => {
       this.activeMessages();
       this.session.isSearching();
+      this.session.searchStage();
+      this.session.searchElapsedSeconds();
       this.queueScrollToBottom();
     });
 
@@ -95,6 +103,15 @@ export class DocsAssistantComponent {
 
   onClose(): void {
     this.closeRequested.emit();
+  }
+
+  /** Close the drawer for any source navigation, including the current docs page. */
+  onSourceLinkClick(event: MouseEvent): void {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+      return;
+    }
+
+    this.drawer.closeDrawer();
   }
 
   onToggleHistory(): void {
@@ -120,6 +137,27 @@ export class DocsAssistantComponent {
   onClearHistory(): void {
     this.session.clearAllHistory();
     this.showHistory.set(false);
+  }
+
+  /** Blocks native form submit if the composer is ever inside a <form> (e.g. invalid HTML nesting). */
+  @HostListener('submit', ['$event'])
+  onHostSubmit(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  onComposerEnter(event: Event): void {
+    if (!(event instanceof KeyboardEvent) || (!event.ctrlKey && !event.metaKey)) {
+      return;
+    }
+
+    this.onAskClick(event);
+  }
+
+  onAskClick(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    void this.onSubmit();
   }
 
   async onSubmit(): Promise<void> {
@@ -180,7 +218,10 @@ export class DocsAssistantComponent {
     }
 
     queueMicrotask(() => {
-      this.messagesEndRef?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      this.messagesEndRef?.nativeElement.scrollIntoView?.({
+        behavior: 'smooth',
+        block: 'end',
+      });
     });
   }
 }
