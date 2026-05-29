@@ -32,7 +32,7 @@ export function resolveDocsAssistantPageContext(
     return 'API reference';
   }
 
-  if (normalized === '/docs' || normalized === '/docs/assistant') {
+  if (normalized === '/docs') {
     return null;
   }
 

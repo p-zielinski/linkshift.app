@@ -5,8 +5,6 @@ import { DocumentationOverviewPageComponent } from './pages/documentation-overvi
 import { DocumentationMarkdownPageComponent } from './pages/documentation-markdown-page.component';
 import { DocumentationReferencePageComponent } from './pages/documentation-reference-page.component';
 import { DocumentationEndpointPageComponent } from './pages/documentation-endpoint-page.component';
-import { DocumentationAssistantPageComponent } from './pages/documentation-assistant-page.component';
-
 export const DOCUMENTATION_CHILD_ROUTES: Routes = [
   {
     path: 'docs',
@@ -18,7 +16,7 @@ export const DOCUMENTATION_CHILD_ROUTES: Routes = [
         children: [
           { path: '', pathMatch: 'full', component: DocumentationOverviewPageComponent },
           { path: 'reference', component: DocumentationReferencePageComponent },
-          { path: 'assistant', component: DocumentationAssistantPageComponent },
+          { path: 'assistant', redirectTo: '', pathMatch: 'full' },
           { path: 'intro/:slug', component: DocumentationMarkdownPageComponent },
           { path: 'guides/:slug', component: DocumentationMarkdownPageComponent },
           { path: 'concepts/:slug', component: DocumentationMarkdownPageComponent },
