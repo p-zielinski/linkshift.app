@@ -13,6 +13,7 @@ describe('docs-assistant-routing.util', () => {
       intent: 'OUT_OF_SCOPE',
       directReply: 'I only cover LinkShift docs.',
       suggestedCatalogIds: [],
+      conversationSummary: 'User asked off-topic; assistant declined.',
     });
 
     expect(parsed.intent).toBe('OUT_OF_SCOPE');
@@ -29,6 +30,7 @@ describe('docs-assistant-routing.util', () => {
       intent: 'OUT_OF_SCOPE',
       directReply: null,
       suggestedCatalogIds: [],
+      conversationSummary: null,
     });
 
     expect(result.answer).toBe(DOCS_ASSISTANT_OUT_OF_SCOPE_DEFAULT_REPLY);
@@ -57,6 +59,7 @@ describe('docs-assistant-routing.util', () => {
       intent: 'DOCUMENTATION_SEARCH',
       directReply: null,
       suggestedCatalogIds: [],
+      conversationSummary: null,
     });
 
     expect(result.answer).toBe(DOCS_ASSISTANT_OUT_OF_SCOPE_DEFAULT_REPLY);
@@ -68,6 +71,7 @@ describe('docs-assistant-routing.util', () => {
       intent: 'DOCUMENTATION_SEARCH',
       directReply: 'That topic is outside LinkShift documentation.',
       suggestedCatalogIds: [],
+      conversationSummary: null,
     });
 
     expect(result.answer).toBe('That topic is outside LinkShift documentation.');

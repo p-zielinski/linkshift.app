@@ -8,7 +8,7 @@ Progress and improvement ideas for the documentation AI chat (frontend + related
 
 ### Done
 
-- **`DocsAssistantApiService`** — `POST /api/v1/public/docs/search` (optional `X-Turnstile-Token`) and `POST .../rate`.
+- **`DocsAssistantApiService`** — `POST /api/v1/public/docs/search` (NDJSON stream; optional `X-Turnstile-Token`) and `POST .../rate`.
 - **`TurnstileService`** — loads Cloudflare Turnstile (invisible widget), exposes `requestToken()` when `APP_TURNSTILE_SITE_KEY` is set; dev works without key when backend-tools allows non-prod requests.
 - **`APP_TURNSTILE_SITE_KEY`** — runtime config (`app-runtime-config`, `server.ts` `/runtime-config.js`, `app.config.server.ts`, `frontend/.env.example`).
 - **CSP** — `challenges.cloudflare.com` in `script-src` and `frame-src` on the SSR server.

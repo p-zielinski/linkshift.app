@@ -56,6 +56,22 @@
   box-shadow: -12px 0 40px rgba(31, 24, 28, 0.14);
 }
 
+/* Material only animates when the container has `.mat-drawer-transition`. */
+:host ::ng-deep .mat-drawer-transition .app-assistant-drawer.mat-drawer {
+  transition: transform 500ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+/* Keep panel content visible while the drawer slides out (Material hides inner-container otherwise). */
+:host ::ng-deep .mat-drawer-transition .app-assistant-drawer.mat-drawer-animating .mat-drawer-inner-container {
+  display: flex !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host ::ng-deep .mat-drawer-transition .app-assistant-drawer.mat-drawer {
+    transition-duration: 1ms !important;
+  }
+}
+
 :host ::ng-deep .app-assistant-drawer .mat-drawer-inner-container {
   display: flex;
   flex-direction: column;

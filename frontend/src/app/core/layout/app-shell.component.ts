@@ -115,10 +115,11 @@ export class AppShellComponent {
   readonly isMobile = signal(false);
   readonly mobileNavOpen = signal(false);
   readonly assistantDrawerOpen = this.assistantDrawer.open;
+  readonly assistantDrawerContentMounted = this.assistantDrawer.contentMounted;
 
   constructor() {
     this.destroyRef.onDestroy(() => {
-      this.assistantDrawer.closeDrawer();
+      this.assistantDrawer.forceClose();
     });
 
     if (isPlatformBrowser(this.platformId)) {
@@ -186,6 +187,10 @@ export class AppShellComponent {
 
   onAssistantDrawerOpenedChange(opened: boolean): void {
     this.assistantDrawer.setOpen(opened);
+  }
+
+  onAssistantDrawerAnimationClosed(): void {
+    this.assistantDrawer.onDrawerAnimationClosed();
   }
 
   @HostListener('document:keydown.escape')

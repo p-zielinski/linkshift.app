@@ -15,7 +15,7 @@ Mirror paths from `shared/docs/` (markdown and internal OpenAPI slices only):
 
 The monolithic contract `shared/docs/openapi/linkshift-api-keys.openapi.yaml` is **not** summarized here. Summaries are generated per tag from `shared/docs/openapi/by-tag/*.openapi.json` after `npm run docs:openapi:split`.
 
-Each summary file includes YAML frontmatter (`source` / `llmSlice`, `generatedAt`, `model`, and for OpenAPI slices: `canonicalOpenApi`, `sliceType`, `openApiTag`) plus a markdown body (up to ~500 words, endpoint- and field-specific). For OpenAPI slices, `source` points at the internal per-tag JSON slice used for summarization; `canonicalOpenApi` points at the public YAML contract.
+Each summary file includes YAML frontmatter (`source` / `llmSlice`, `generatedAt`, `model`, and for OpenAPI slices: `canonicalOpenApi`, `sliceType`, `openApiTag`) plus a markdown body (up to ~800 words, endpoint- and field-specific). For OpenAPI slices, `source` points at the internal per-tag JSON slice used for summarization; `canonicalOpenApi` points at the public YAML contract.
 
 When the docs assistant talks about API behavior, it should treat **`linkshift-api-keys.openapi.yaml`** as the canonical contract, not the internal by-tag slice paths.
 

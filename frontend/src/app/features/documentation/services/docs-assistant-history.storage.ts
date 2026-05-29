@@ -18,6 +18,8 @@ export type DocsAssistantThread = {
   id: string;
   title: string;
   pageContext: string | null;
+  /** Hidden thread context resent on the next search; not shown in the UI. */
+  conversationSummary?: string | null;
   messages: DocsAssistantMessage[];
   createdAt: string;
   updatedAt: string;

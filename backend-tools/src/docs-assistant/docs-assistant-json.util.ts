@@ -4,16 +4,17 @@ export const RouterResultSchema = z.object({
   intent: z.enum(['CONVERSATION', 'OUT_OF_SCOPE', 'DOCUMENTATION_SEARCH']),
   directReply: z.string().nullable(),
   suggestedCatalogIds: z.array(z.string()),
+  conversationSummary: z.string().nullable(),
 });
 
 export type RouterResult = z.infer<typeof RouterResultSchema>;
 
-export const CriticResultSchema = z.object({
-  isValid: z.boolean(),
-  criticNotes: z.string().nullable(),
+export const GeneratorResultSchema = z.object({
+  answer: z.string(),
+  conversationSummary: z.string(),
 });
 
-export type CriticResult = z.infer<typeof CriticResultSchema>;
+export type GeneratorResult = z.infer<typeof GeneratorResultSchema>;
 
 export function parseValidatedJson<T>(
   raw: string,

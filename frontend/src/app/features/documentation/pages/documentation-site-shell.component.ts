@@ -10,7 +10,6 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import {
   NavigationEnd,
-  NavigationStart,
   Router,
   RouterLink,
   RouterLinkActive,
@@ -56,6 +55,7 @@ export class DocumentationSiteShellComponent {
   private readonly docsContent = inject(DocumentationContentService);
 
   readonly assistantDrawerOpen = this.assistantDrawer.open;
+  readonly assistantDrawerContentMounted = this.assistantDrawer.contentMounted;
 
   readonly currentRoutePath = toSignal(
     this.router.events.pipe(
@@ -77,20 +77,8 @@ export class DocumentationSiteShellComponent {
     }
 
     this.destroyRef.onDestroy(() => {
-      this.assistantDrawer.closeDrawer();
+      this.assistantDrawer.forceClose();
     });
-
-    this.router.events
-      .pipe(
-        filter((event) => event instanceof NavigationStart),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((event) => {
-        const url = (event as NavigationStart).url.split('?')[0] ?? '';
-        if (!url.startsWith('/docs')) {
-          this.assistantDrawer.closeDrawer();
-        }
-      });
 
     this.observeViewport();
   }
@@ -111,6 +99,10 @@ export class DocumentationSiteShellComponent {
 
   onAssistantDrawerOpenedChange(opened: boolean): void {
     this.assistantDrawer.setOpen(opened);
+  }
+
+  onAssistantDrawerAnimationClosed(): void {
+    this.assistantDrawer.onDrawerAnimationClosed();
   }
 
   @HostListener('document:keydown.escape')
