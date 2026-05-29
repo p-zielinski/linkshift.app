@@ -13,7 +13,6 @@ function markdownPrerenderParams(category: 'intro' | 'guide' | 'concept') {
 export const serverRoutes: ServerRoute[] = [
   { path: 'docs', renderMode: RenderMode.Prerender },
   { path: 'docs/reference', renderMode: RenderMode.Prerender },
-  { path: 'docs/assistant', renderMode: RenderMode.Prerender },
   {
     path: 'docs/intro/:slug',
     renderMode: RenderMode.Prerender,

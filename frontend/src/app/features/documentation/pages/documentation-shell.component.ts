@@ -4,7 +4,6 @@ import {
   Component,
   DestroyRef,
   PLATFORM_ID,
-  computed,
   inject,
   signal,
   ViewChild,
@@ -29,7 +28,7 @@ import { DocumentationContentService } from '../services/documentation-content.s
 import { DocumentationScrollService } from '../services/documentation-scroll.service';
 import { OpenApiTagGroup } from '../models/openapi.types';
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
-import { resolveDocsAssistantPageContext } from '../utils/docs-assistant-page-context.util';
+import { DocsAssistantDrawerService } from '../services/docs-assistant-drawer.service';
 
 const MOBILE_BREAKPOINT = '(max-width: 1023px)';
 const SMALL_SCREEN_BREAKPOINT = '(max-width: 767px)';
@@ -63,11 +62,13 @@ export class DocumentationShellComponent implements AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly assistantDrawer = inject(DocsAssistantDrawerService);
 
   readonly isMobile = signal(false);
   readonly isSmallScreen = signal(false);
   readonly mobileDrawerOpen = signal(false);
   readonly manuallyExpandedGroups = signal<string[]>([]);
+  readonly assistantDrawerOpen = this.assistantDrawer.open;
 
   @ViewChild(MatSidenavContent) private docsContentRef?: MatSidenavContent;
 
@@ -109,15 +110,6 @@ export class DocumentationShellComponent implements AfterViewInit {
     ),
     { initialValue: this.router.url.split('?')[0] ?? this.router.url },
   );
-
-  readonly askDocsPageContext = computed(() => {
-    const path = this.currentRoutePath();
-    if (path === '/docs/assistant') {
-      return null;
-    }
-
-    return resolveDocsAssistantPageContext(path, this.docsContent);
-  });
 
   readonly siteLinks = [
     { label: 'Home', route: '/home' },
@@ -165,13 +157,20 @@ export class DocumentationShellComponent implements AfterViewInit {
     this.closeDrawerOnMobile();
   }
 
-  navigateToAskDocs(event: Event): void {
-    event.preventDefault();
+  openAssistantDrawer(): void {
     this.closeDrawerOnMobile();
-
-    const pageContext = this.askDocsPageContext();
-    void this.router.navigate(['/docs/assistant'], {
-      state: pageContext ? { pageContext } : undefined,
-    });
+    this.assistantDrawer.openDrawer();
   }
+
+  closeAssistantDrawer(): void {
+    this.assistantDrawer.closeDrawer();
+  }
+
+  toggleAssistantDrawer(): void {
+    if (!this.assistantDrawerOpen()) {
+      this.closeDrawerOnMobile();
+    }
+    this.assistantDrawer.toggleDrawer();
+  }
+
 }

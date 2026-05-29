@@ -153,11 +153,6 @@
   padding-inline: 28px;
 }
 
-.docs-assistant__full-page {
-  flex-shrink: 0;
-  min-width: 0;
-}
-
 .docs-assistant__header {
   display: flex;
   align-items: flex-start;

@@ -117,6 +117,10 @@ export class AppShellComponent {
   readonly assistantDrawerOpen = this.assistantDrawer.open;
 
   constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.assistantDrawer.closeDrawer();
+    });
+
     if (isPlatformBrowser(this.platformId)) {
       this.isMobile.set(this.breakpointObserver.isMatched(MOBILE_BREAKPOINT));
     }

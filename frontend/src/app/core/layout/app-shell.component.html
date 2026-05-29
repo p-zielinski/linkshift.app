@@ -93,7 +93,9 @@
     [autoFocus]="false"
     (openedChange)="onAssistantDrawerOpenedChange($event)"
   >
-    <app-docs-assistant layout="embedded" (closeRequested)="closeAssistantDrawer()" />
+    @if (assistantDrawerOpen()) {
+      <app-docs-assistant (closeRequested)="closeAssistantDrawer()" />
+    }
   </mat-sidenav>
 
   <mat-sidenav-content class="p-4 sm:p-6">

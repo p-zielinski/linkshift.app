@@ -1,17 +1,32 @@
 import {
   Component,
   DestroyRef,
+  HostListener,
   PLATFORM_ID,
+  computed,
   inject,
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import {
+  NavigationEnd,
+  NavigationStart,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet,
+} from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { filter, map, startWith } from 'rxjs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
+import { DocsAssistantComponent } from '../components/docs-assistant/docs-assistant.component';
+import { DocsAssistantDrawerService } from '../services/docs-assistant-drawer.service';
+import { DocumentationContentService } from '../services/documentation-content.service';
+import { resolveDocsAssistantPageContext } from '../utils/docs-assistant-page-context.util';
 
 const MOBILE_BREAKPOINT = '(max-width: 767px)';
 
@@ -24,7 +39,9 @@ const MOBILE_BREAKPOINT = '(max-width: 767px)';
     RouterLinkActive,
     MatToolbarModule,
     MatButtonModule,
+    MatSidenavModule,
     LogoComponent,
+    DocsAssistantComponent,
   ],
   templateUrl: './documentation-site-shell.component.html',
   styleUrl: './documentation-site-shell.component.css',
@@ -34,12 +51,47 @@ export class DocumentationSiteShellComponent {
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly assistantDrawer = inject(DocsAssistantDrawerService);
+  private readonly router = inject(Router);
+  private readonly docsContent = inject(DocumentationContentService);
+
+  readonly assistantDrawerOpen = this.assistantDrawer.open;
+
+  readonly currentRoutePath = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => this.router.url.split('?')[0] ?? this.router.url),
+      startWith(this.router.url.split('?')[0] ?? this.router.url),
+    ),
+    { initialValue: this.router.url.split('?')[0] ?? this.router.url },
+  );
+
+  readonly askDocsPageContext = computed(() =>
+    resolveDocsAssistantPageContext(this.currentRoutePath(), this.docsContent),
+  );
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.isMobile.set(this.breakpointObserver.isMatched(MOBILE_BREAKPOINT));
       this.lockDocumentScrollWhileInDocs();
     }
+
+    this.destroyRef.onDestroy(() => {
+      this.assistantDrawer.closeDrawer();
+    });
+
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationStart),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((event) => {
+        const url = (event as NavigationStart).url.split('?')[0] ?? '';
+        if (!url.startsWith('/docs')) {
+          this.assistantDrawer.closeDrawer();
+        }
+      });
+
     this.observeViewport();
   }
 
@@ -51,6 +103,21 @@ export class DocumentationSiteShellComponent {
     this.destroyRef.onDestroy(() => {
       document.body.style.overflow = previousOverflow;
     });
+  }
+
+  closeAssistantDrawer(): void {
+    this.assistantDrawer.closeDrawer();
+  }
+
+  onAssistantDrawerOpenedChange(opened: boolean): void {
+    this.assistantDrawer.setOpen(opened);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.assistantDrawerOpen()) {
+      this.closeAssistantDrawer();
+    }
   }
 
   private observeViewport(): void {

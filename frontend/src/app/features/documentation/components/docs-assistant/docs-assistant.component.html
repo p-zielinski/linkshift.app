@@ -40,7 +40,7 @@
     }
 
     <p class="docs-assistant__history-note">
-      History is stored on this device only. Same chats appear in the app Ask docs drawer
+      History is stored on this device only. Same chats appear wherever you open Ask docs
     </p>
   </ng-template>
 
@@ -56,24 +56,18 @@
       @if (!hasMessages()) {
         <div class="docs-assistant__empty docs-assistant__empty--starters">
           <p class="docs-assistant__empty-title">Ask a question about redirects, link maps, API keys, or setup</p>
-          @if (layout() === 'embedded') {
-            <div class="docs-assistant__starters" role="list">
-              @for (prompt of starterPrompts; track prompt) {
-                <button
-                  type="button"
-                  class="docs-assistant__starter"
-                  role="listitem"
-                  (click)="onStarterPrompt(prompt)"
-                >
-                  {{ prompt }}
-                </button>
-              }
-            </div>
-          } @else {
-            <p class="text-app-muted text-sm mt-2">
-              Example: How do I add a redirect rule for one path?
-            </p>
-          }
+          <div class="docs-assistant__starters" role="list">
+            @for (prompt of starterPrompts; track prompt) {
+              <button
+                type="button"
+                class="docs-assistant__starter"
+                role="listitem"
+                (click)="onStarterPrompt(prompt)"
+              >
+                {{ prompt }}
+              </button>
+            }
+          </div>
         </div>
       }
 
@@ -149,11 +143,7 @@
       <p class="docs-assistant__error" role="alert">{{ error }}</p>
     }
 
-    <form
-      class="docs-assistant__form"
-      [class.docs-assistant__form--embedded]="layout() === 'embedded'"
-      (ngSubmit)="onSubmit()"
-    >
+    <form class="docs-assistant__form docs-assistant__form--embedded" (ngSubmit)="onSubmit()">
       <mat-form-field class="docs-assistant__question-field w-full" appearance="outline" subscriptSizing="dynamic">
         <mat-label>Question</mat-label>
         <textarea
@@ -164,9 +154,6 @@
           (keydown.control.enter)="onSubmit(); $event.preventDefault()"
           (keydown.meta.enter)="onSubmit(); $event.preventDefault()"
         ></textarea>
-        @if (layout() !== 'embedded') {
-          <mat-hint>e.g. How do I list domain groups?</mat-hint>
-        }
       </mat-form-field>
 
       <div class="docs-assistant__footer-row">
@@ -187,44 +174,22 @@
   </ng-template>
 
   <section
-    class="docs-assistant"
-    [class.docs-assistant--embedded]="layout() === 'embedded'"
+    class="docs-assistant docs-assistant--embedded app-assistant-drawer-layout"
     [class.docs-assistant--history-open]="showHistory()"
-    [class.app-assistant-drawer-layout]="layout() === 'embedded'"
     aria-label="Ask docs"
   >
-    <header
-      class="docs-assistant__header"
-      [class.app-assistant-drawer-layout__header]="layout() === 'embedded'"
-    >
+    <header class="docs-assistant__header app-assistant-drawer-layout__header">
       <div class="docs-assistant__header-brand min-w-0">
-        @if (layout() === 'embedded') {
-          <span class="docs-assistant__header-icon" aria-hidden="true">
-            <mat-icon>auto_awesome</mat-icon>
-          </span>
-        }
+        <span class="docs-assistant__header-icon" aria-hidden="true">
+          <mat-icon>auto_awesome</mat-icon>
+        </span>
         <div class="min-w-0">
           <h2 class="docs-assistant__title">Ask docs</h2>
           <p class="docs-assistant__subtitle">Answers from LinkShift documentation</p>
         </div>
       </div>
 
-      <div
-        class="docs-assistant__header-actions"
-        [class.docs-assistant__header-actions--embedded]="layout() === 'embedded'"
-      >
-        @if (layout() === 'embedded') {
-          <a
-            mat-stroked-button
-            routerLink="/docs/assistant"
-            class="docs-assistant__full-page"
-            matTooltip="Open full page"
-            (click)="onOpenFullPage()"
-          >
-            Full page
-          </a>
-        }
-
+      <div class="docs-assistant__header-actions docs-assistant__header-actions--embedded">
         <button
           mat-icon-button
           type="button"
@@ -247,46 +212,32 @@
         </button>
       </div>
 
-      @if (layout() === 'embedded') {
-        <button
-          mat-icon-button
-          type="button"
-          class="docs-assistant__header-close"
-          aria-label="Close Ask docs"
-          matTooltip="Close"
-          (click)="onClose()"
-        >
-          <mat-icon>close</mat-icon>
-        </button>
-      }
+      <button
+        mat-icon-button
+        type="button"
+        class="docs-assistant__header-close"
+        aria-label="Close Ask docs"
+        matTooltip="Close"
+        (click)="onClose()"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
     </header>
 
-    @if (layout() === 'embedded') {
-      <div class="app-assistant-drawer-layout__main">
-        @if (showHistory()) {
-          <aside class="app-assistant-drawer-layout__aside" aria-label="Chat history">
-            <ng-container *ngTemplateOutlet="historyPanel" />
-          </aside>
-        }
+    <div class="app-assistant-drawer-layout__main">
+      @if (showHistory()) {
+        <aside class="app-assistant-drawer-layout__aside" aria-label="Chat history">
+          <ng-container *ngTemplateOutlet="historyPanel" />
+        </aside>
+      }
 
-        <div class="app-assistant-drawer-layout__body">
-          <ng-container *ngTemplateOutlet="messagesPanel" />
-        </div>
+      <div class="app-assistant-drawer-layout__body">
+        <ng-container *ngTemplateOutlet="messagesPanel" />
       </div>
+    </div>
 
-      <footer class="app-assistant-drawer-layout__actions docs-assistant__composer">
-        <ng-container *ngTemplateOutlet="composerPanel" />
-      </footer>
-    } @else if (showHistory()) {
-      <div class="docs-assistant__history">
-        <ng-container *ngTemplateOutlet="historyPanel" />
-      </div>
-    } @else {
-      <ng-container *ngTemplateOutlet="messagesPanel" />
-
-      <footer class="docs-assistant__composer">
-        <ng-container *ngTemplateOutlet="composerPanel" />
-      </footer>
-    }
+    <footer class="app-assistant-drawer-layout__actions docs-assistant__composer">
+      <ng-container *ngTemplateOutlet="composerPanel" />
+    </footer>
   </section>
 }

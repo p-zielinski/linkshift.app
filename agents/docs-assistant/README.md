@@ -66,7 +66,7 @@ Supabase table DDL: `backend-tools/supabase/agent_search_logs.sql`.
 Implemented in `frontend/src/app/features/documentation/`:
 
 - Sidebar CTA: **Ask docs** in `app-documentation-shell` (left nav, under header).
-- Chat page: `/docs/assistant` in the main content column (no right overlay / FAB).
+- Chat UI: right drawer only (`DocsAssistantDrawerService`), opened from docs sidebar or dashboard app shell (no `/docs/assistant` page).
 - API client: `DocsAssistantApiService`; Turnstile: `TurnstileService` + `APP_TURNSTILE_SITE_KEY`.
 - Local history: `linkshift_docs_assistant_history_v1` in localStorage (max 20 threads).
 

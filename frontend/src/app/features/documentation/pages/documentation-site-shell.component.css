@@ -1,9 +1,31 @@
 :host {
-  display: flex;
-  flex-direction: column;
+  display: block;
   height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
+}
+
+.docs-site-shell {
+  height: 100%;
+  min-height: 0;
+}
+
+:host ::ng-deep .docs-site-shell.mat-drawer-container {
+  height: 100%;
+  min-height: 0;
+}
+
+:host ::ng-deep .docs-site-shell > .mat-drawer-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Sticky toolbar uses z-10; drop below Material backdrop while Ask docs is open. */
+:host ::ng-deep .docs-site-shell--assistant-open .docs-site-toolbar.mat-toolbar {
+  z-index: 0;
 }
 
 .docs-site-content {
@@ -25,4 +47,28 @@
   height: 100%;
   min-height: 0;
   overflow: hidden;
+}
+
+:host ::ng-deep .app-assistant-drawer.mat-drawer {
+  width: min(100vw, 100%, 1280px);
+  max-width: 1280px;
+  border-left: 1px solid rgba(31, 24, 28, 0.1);
+  box-shadow: -12px 0 40px rgba(31, 24, 28, 0.14);
+}
+
+:host ::ng-deep .app-assistant-drawer .mat-drawer-inner-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fff8fa 0%, #fff 38%, #f9f4f7 100%);
+}
+
+:host ::ng-deep .app-assistant-drawer app-docs-assistant {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
 }

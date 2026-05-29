@@ -24,8 +24,6 @@ import { DocsAssistantDrawerService } from '../../services/docs-assistant-drawer
 import { parseDocsAssistantSource } from '../../utils/docs-assistant-source.util';
 import type { DocsAssistantMessage } from '../../services/docs-assistant-history.storage';
 
-export type DocsAssistantLayout = 'standalone' | 'embedded';
-
 const STARTER_PROMPTS = [
   'How do I create a redirect rule for one path?',
   'What is a link map and when should I use it?',
@@ -52,7 +50,6 @@ const STARTER_PROMPTS = [
 })
 export class DocsAssistantComponent {
   readonly pageContext = input<string | null>(null);
-  readonly layout = input<DocsAssistantLayout>('standalone');
 
   readonly closeRequested = output<void>();
 
@@ -84,7 +81,7 @@ export class DocsAssistantComponent {
     });
 
     effect(() => {
-      if (this.layout() !== 'embedded' || !this.drawer.open() || !this.isBrowser) {
+      if (!this.drawer.open() || !this.isBrowser) {
         return;
       }
 
@@ -98,10 +95,6 @@ export class DocsAssistantComponent {
 
   onClose(): void {
     this.closeRequested.emit();
-  }
-
-  onOpenFullPage(): void {
-    this.drawer.closeDrawer();
   }
 
   onToggleHistory(): void {
