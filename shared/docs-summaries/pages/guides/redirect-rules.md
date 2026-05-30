@@ -1,30 +1,47 @@
 ---
 source: shared/docs/pages/guides/redirect-rules.md
-generatedAt: 2026-05-28T15:50:33.041Z
+generatedAt: 2026-05-30T07:03:08.287Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for developers using LinkShift, explaining how to implement and manage redirect rules for routing requests.
+This document is for users of LinkShift who need guidance on creating and managing redirect rules for routing requests.
 
 ## What this doc covers
-- **Redirect rules guides**
-  - [Matching and destinations](./redirect-rules-core.md): Overview of routing mechanics, including rate limits, caching, rule fields, source types, `pathMatch`, `queryMatch`, `matchMethod`, priority, and both static and dynamic destinations.
-  - [Link maps and redirect rules](./redirect-rules-link-maps.md): Details on `linkMapId`, two-layer query matching, handling lookup misses, and validation processes.
-  - [Validation, simulate, and analytics](./redirect-rules-operations.md): Instructions for creating/updating validation, using `POST …/simulate`, and accessing analytics.
-  - [Recipes and anti-patterns](./redirect-rules-recipes.md): A cookbook of how-to guides, recipe examples, and common anti-patterns to avoid.
+- Overview of redirect rules and their purpose in routing.
+- Instructions for accessing and using the Redirect Rules feature in the dashboard.
+- Recommended reading order for understanding conditional routing and related concepts.
+- Links to specific guides covering various aspects of redirect rules:
+  - Matching and destinations
+  - Link maps and redirect rules
+  - Validation, simulation, and analytics
+  - Recipes and anti-patterns
+  - FAQ and troubleshooting
+  - Redirect rules in the dashboard
 
 ## Key workflows and rules
-- **Creating Redirect Rules**: Follow the guidelines in the [Matching and destinations](./redirect-rules-core.md) section to define when a request should be redirected and to where.
-- **Simulating Redirects**: Use the `POST /api/v1/redirect-rules/simulate` endpoint to test redirect rules before deploying them.
-- **Analytics**: Access analytics features to monitor the performance and effectiveness of redirect rules as outlined in the [Validation, simulate, and analytics](./redirect-rules-operations.md) section.
+1. **Accessing Redirect Rules**: 
+   - Open the LinkShift dashboard.
+   - Navigate to the sidebar and select **Redirect Rules**.
+   - Click on **Add rule** to initiate the rule creation wizard, which includes steps for defining scope, matching criteria, destination, and status.
+
+2. **Recommended Reading Order for Conditional Routing**:
+   - Start with [Redirect engine concepts](../concepts/redirect-engine-concepts.md).
+   - Proceed to [Engine — variables](../concepts/redirect-engine-variables.md).
+   - Continue with [Engine — conditionals](../concepts/redirect-engine-conditionals.md).
+   - Follow up with [Redirect rules — recipes](./redirect-rules-recipes.md).
+   - Review [Redirect rules — matching](./redirect-rules-core.md) for field references.
+   - Finally, check [Redirect rules — simulate](./redirect-rules-operations.md) for simulation guidance.
 
 ## Limits and constraints
-- Rate limits and caching behaviors are discussed in the [Matching and destinations](./redirect-rules-core.md) guide.
-- Specific validation rules and constraints for creating and updating redirect rules are detailed in the [Validation, simulate, and analytics](./redirect-rules-operations.md) section.
+- The document does not specify explicit quotas or limits for redirect rules.
+- Users should refer to the linked guides for details on rate limits, caching, and validation rules.
 
 ## Related docs and API areas
-- [Redirect engine concepts](../concepts/redirect-engine-concepts.md): For foundational concepts related to the redirect engine.
-- [Link maps](./link-maps.md): Related to managing link maps in conjunction with redirect rules.
-- [Redirect tests](./redirect-tests.md): For testing redirect rules.
-- [Getting started](./getting-started.md): Initial setup and configuration guidance.
+- [Redirect engine concepts](../concepts/redirect-engine-concepts.md)
+- [Matching and destinations](./redirect-rules-core.md)
+- [Link maps and redirect rules](./redirect-rules-link-maps.md)
+- [Validation, simulate, and analytics](./redirect-rules-operations.md)
+- [Recipes and anti-patterns](./redirect-rules-recipes.md)
+- [FAQ and troubleshooting](./faq.md)
+- [Redirect rules in the dashboard](./dashboard/redirect-rules-in-dashboard.md)

@@ -1,4 +1,4 @@
-# LinkShift Public API Guide
+# Getting started
 
 This guide explains how to use LinkShift programmatically with organization API keys.
 
@@ -11,6 +11,36 @@ Send your API key with this header:
 ```http
 X-API-Key: <your_api_key>
 ```
+
+User sign-in, registration, email verification, password reset, and team invite acceptance are **web app flows** (`/auth`, `/invite`, and related routes). They are not part of the Management API. See [Account and access](./account-and-access.md).
+
+Subscription changes, Paddle portal access, and cancellation are also **dashboard-only** — see [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md). QR and redirect trace use the separate [Public tools API](./public-tools-api.md), not `X-API-Key`.
+
+### Create an API key
+
+API keys are created in the dashboard, not via the Management API. One-time setup (~2 minutes); the rest of the checklist stays in API docs below.
+
+1. Sign in and open the dashboard.
+2. Sidebar **Organization** → **Manage API keys** (`/organization/api-keys`).
+3. Select **Create API key**.
+4. In the dialog (**Create API key**), set **Key name**, and optionally **Never expires** or **Expires at**.
+5. After save, copy the secret from the one-time reveal dialog — it may not appear again.
+
+Optional detail: [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md#create-a-key).
+
+**OpenAPI contract:** browse operations at [API reference](../reference.md) and `/docs/api/:operationId`, or use **Download OpenAPI spec** on the API keys page.
+
+---
+
+## API automation checklist
+
+Use this sequence when you automate routing with the Management API. API keys are created in the dashboard only; steps 2–5 use the Management API.
+
+1. Create an API key in the dashboard (same steps as [Create an API key](#create-an-api-key) above): **Organization** → **Manage API keys** → **Create API key** → copy the one-time secret
+2. `POST /api/v1/domain-groups` — [Domains and domain groups — Domain groups](./domains-and-groups.md#domain-groups)
+3. `POST /api/v1/subdomains` or `POST /api/v1/domains` — [Domains](./domains-and-groups.md#domains) or [LinkShift subdomains](./domains-and-groups.md#linkshift-subdomains)
+4. `POST /api/v1/redirect-rules` — [Redirect rules — matching and destinations](./redirect-rules-core.md#rule-fields)
+5. `POST /api/v1/redirect-rules/simulate` — [Redirect rules — simulate before rollout](./redirect-rules-operations.md#simulate-before-rollout)
 
 ---
 
@@ -69,7 +99,7 @@ LinkShift routing is more than CRUD endpoints. Read these in order:
 5. **[Link map entries](./link-map-entries.md)** — bulk import and key format
 6. **[Redirect tests](./redirect-tests.md)** — CI regression fixtures for routing (`/api/v1/redirect-tests` + simulate)
 
-> **Not the same doc:** `backend/docs/testing-plan.md` in the repository covers **API key** rate limits, paywall, and cache tests — not redirect rule regression. Use the [redirect tests guide](./redirect-tests.md) for routing CI.
+> **Not the same doc:** Internal API key rate-limit and paywall test plans are not published here. Use the [redirect tests guide](./redirect-tests.md) for routing CI and regression fixtures.
 
 Infrastructure and topology:
 

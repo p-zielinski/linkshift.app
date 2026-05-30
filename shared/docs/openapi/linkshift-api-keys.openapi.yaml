@@ -4,19 +4,29 @@ info:
   version: 1.0.0
   summary: Organization-scoped redirect management API
   description: |
-    This specification describes the LinkShift endpoints that can be accessed with organization API keys.
+    Organization-scoped Management API for redirect configuration, link maps, and operational checks.
+    Use it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.
 
-    Authentication:
-    - Preferred: `X-API-Key: <your_key>`
-    - Alternative: `Authorization: ApiKey <your_key>` (supported by backend, not modeled as a separate OpenAPI scheme)
+    **Authentication**
+    - Send your key on every request: `X-API-Key: <your_key>` (preferred).
+    - Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.
 
-    Important billing behavior:
-    - API keys are organization-scoped.
-    - API key management endpoints (`/api/v1/api-keys`) are intentionally excluded and require dashboard user auth.
+    **Typical setup order**
+    1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).
+    2. Link map + entries when rules resolve keys instead of a fixed destination.
+    3. Redirect tests + simulate for CI; analytics for traffic review.
 
-    Rate limiting:
-    - Management API requests are rate-limited per API key according to your organization's plan (not per organization aggregate).
-    - Use GET /api/v1/organization/usage for current limits. When exceeded, the API returns 429 — use backoff; do not hard-code thresholds in integrations.
+    **Errors and recovery**
+    - `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).
+    - `402` — API access isn't on your current plan. Upgrade subscription, then retry.
+    - `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).
+    - `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.
+    - `404` — ID doesn't exist or isn't in your organization scope.
+
+    **Dashboard-only**
+    API key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.
+
+    **Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.
 servers:
   - url: https://linkshift.app
     description: Production API host
@@ -24,27 +34,46 @@ security:
   - ApiKeyAuth: []
 tags:
   - name: Organization
-    description: Organization-scoped operational data available for the current API key.
+    description: |
+      Identity and capacity for the organization tied to your API key.
+      Start with GET organization (sanity check), then GET organization/usage before bulk imports or CI loops.
   - name: Domain Groups
-    description: Domain group management, including robots policy defaults for assigned domains.
+    description: |
+      First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.
+      Set robots policy defaults here before attaching domains.
   - name: Domains
-    description: Domain inventory and grouping used by redirect execution.
+    description: |
+      Your custom hostnames assigned to a domain group.
+      Create after the group exists; rules match traffic on these hosts.
   - name: Subdomains
-    description: LinkShift-hosted subdomain labels mapped to domain groups.
+    description: |
+      LinkShift-hosted short labels (e.g. `promo` → `promo.linkshift.app`) in a domain group.
+      Use when you don't bring your own domain yet.
   - name: Redirect Rules
-    description: Core redirect routing rules, analytics, and simulation endpoints.
+    description: |
+      Matching logic and HTTP status for live redirects.
+      Pair with POST simulate (no live traffic) and GET analytics (aggregated hits).
+      List/create require `domainGroupId`.
   - name: Redirect Tests
-    description: Stored redirect test fixtures for regression and CI validation.
+    description: |
+      Named fixtures (path + expected outcome) for regression and CI.
+      Store expectations here; run POST redirect-rules/simulate to evaluate them in pipelines.
   - name: Link Maps
-    description: Key-value routing maps referenced by redirect rules.
+    description: |
+      Named key→URL tables referenced by rules via `linkMapId`.
+      Create the map, then add entries (or import) before pointing a rule at it.
   - name: Link Map Entries
-    description: Entry-level CRUD and bulk import operations for link maps.
+    description: |
+      Keys inside a link map. Supports cursor list, single CRUD, bulk delete (rollback), and import (up to 500 rows, create-only).
 paths:
   /api/v1/organization:
     get:
       tags: [Organization]
-      summary: Get organization
-      description: Returns organization details for the authenticated organization context.
+      summary: Get organization profile
+      description: |
+        Returns the organization bound to your API key (`id`, `name`, timestamps).
+        Use as a connectivity check after rotating keys or in deployment smoke tests.
+        Doesn't include usage counters — call GET organization/usage for limits and inventory.
       operationId: getOrganization
       responses:
         '200':
@@ -63,8 +92,11 @@ paths:
   /api/v1/organization/usage:
     get:
       tags: [Organization]
-      summary: Get organization usage summary
-      description: Returns current resource usage for the authenticated organization.
+      summary: Get organization usage counters
+      description: |
+        Returns active resource counts (domain groups, domains, rules, link-map entries, etc.) for your organization.
+        Compare counts to your plan limits in the dashboard; this endpoint doesn't return limit ceilings or billing state.
+        Poll before large imports or rule batches to avoid hitting plan caps mid-run.
       operationId: getOrganizationUsage
       responses:
         '200':
@@ -84,7 +116,9 @@ paths:
     get:
       tags: [Domain Groups]
       summary: List domain groups
-      description: Returns all active domain groups owned by the authenticated organization.
+      description: |
+        Returns every active domain group in one response (no cursor pagination).
+        Use `data[].id` as `domainGroupId` on domains, rules, tests, and link maps.
       operationId: listDomainGroups
       responses:
         '200':
@@ -102,7 +136,10 @@ paths:
     post:
       tags: [Domain Groups]
       summary: Create domain group
-      description: Creates a domain group and optionally configures robots policy defaults.
+      description: |
+        Creates a domain group — the scope container for domains, rules, and link maps.
+        Optional `robotsPolicy` / `customRobotsContent` apply to all domains you attach later.
+        Returns 400 when the name is invalid or robots content is missing for CUSTOM policy.
       operationId: createDomainGroup
       requestBody:
         required: true
@@ -117,12 +154,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DomainGroup'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '402':
           $ref: '#/components/responses/PaymentRequired'
-        '404':
-          $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
@@ -131,8 +168,10 @@ paths:
       - $ref: '#/components/parameters/EntityId'
     get:
       tags: [Domain Groups]
-      summary: Get domain group
-      description: Returns one domain group by ID when it belongs to the authenticated organization.
+      summary: Get domain group by ID
+      description: |
+        Fetches one domain group including robots policy fields.
+        Returns 404 when the ID is unknown or soft-deleted outside your organization.
       operationId: getDomainGroup
       responses:
         '200':
@@ -152,7 +191,10 @@ paths:
     put:
       tags: [Domain Groups]
       summary: Update domain group
-      description: Updates mutable domain-group fields such as name and robots policy options.
+      description: |
+        Updates name and/or robots policy for an existing group.
+        Changing robots policy impacts all domains in the group on next request.
+        Returns 404 when the group doesn't exist in your organization.
       operationId: updateDomainGroup
       requestBody:
         required: true
@@ -177,8 +219,10 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Domain Groups]
-      summary: Delete domain group
-      description: Marks a domain group as deleted without physically removing historical records.
+      summary: Delete domain group (soft)
+      description: |
+        Soft-deletes the group; it stops appearing in lists and can't receive new resources.
+        Historical analytics may still reference the ID. Returns 404 when already deleted or out of scope.
       operationId: deleteDomainGroup
       responses:
         '200':
@@ -196,7 +240,9 @@ paths:
     get:
       tags: [Domains]
       summary: List domains
-      description: Returns all active domains for the authenticated organization.
+      description: |
+        Returns all active custom domains in one response (no cursor pagination).
+        Filter client-side by `domainGroupId` when you only need one group.
       operationId: listDomains
       responses:
         '200':
@@ -214,7 +260,9 @@ paths:
     post:
       tags: [Domains]
       summary: Create domain
-      description: Creates a new domain in a target domain group after uniqueness and ownership checks.
+      description: |
+        Registers a custom hostname under `domainGroupId`.
+        Hostname must match the request pattern (lowercase labels). Returns 404 when the group ID is invalid; 409 when the name is already taken in your organization.
       operationId: createDomain
       requestBody:
         required: true
@@ -245,8 +293,10 @@ paths:
       - $ref: '#/components/parameters/EntityId'
     get:
       tags: [Domains]
-      summary: Get domain
-      description: Returns one domain by ID when it belongs to the authenticated organization.
+      summary: Get domain by ID
+      description: |
+        Fetches one domain record (`name`, `domainGroupId`, timestamps).
+        Returns 404 when the ID is unknown, soft-deleted, or outside your organization.
       operationId: getDomain
       responses:
         '200':
@@ -266,7 +316,9 @@ paths:
     put:
       tags: [Domains]
       summary: Update domain
-      description: Updates mutable domain fields such as name or assigned domain group.
+      description: |
+        Changes hostname and/or moves the domain to another group (`domainGroupId` is required in the body).
+        Returns 409 when the new hostname conflicts with an existing domain.
       operationId: updateDomain
       requestBody:
         required: true
@@ -293,8 +345,10 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Domains]
-      summary: Delete domain
-      description: Marks a domain as deleted without hard-removing it from storage.
+      summary: Delete domain (soft)
+      description: |
+        Soft-deletes the domain; it no longer matches live redirect traffic.
+        Returns 404 when the ID isn't in your organization.
       operationId: deleteDomain
       responses:
         '200':
@@ -311,8 +365,10 @@ paths:
   /api/v1/subdomains:
     get:
       tags: [Subdomains]
-      summary: List subdomains
-      description: Returns all active LinkShift subdomains for the authenticated organization.
+      summary: List LinkShift subdomains
+      description: |
+        Returns all active LinkShift-hosted subdomain labels in one response (no cursor pagination).
+        Each row includes `domainGroupId` for filtering in automation scripts.
       operationId: listSubdomains
       responses:
         '200':
@@ -329,8 +385,10 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     post:
       tags: [Subdomains]
-      summary: Create subdomain
-      description: Creates a LinkShift-hosted subdomain label in a target domain group.
+      summary: Create LinkShift subdomain
+      description: |
+        Reserves a lowercase label (max 30 chars) on LinkShift infrastructure under `domainGroupId`.
+        Returns 404 when the group is invalid; 409 when the label is already taken.
       operationId: createSubdomain
       requestBody:
         required: true
@@ -361,8 +419,10 @@ paths:
       - $ref: '#/components/parameters/EntityId'
     get:
       tags: [Subdomains]
-      summary: Get subdomain
-      description: Returns one LinkShift subdomain by ID when it belongs to the authenticated organization.
+      summary: Get LinkShift subdomain by ID
+      description: |
+        Fetches one subdomain label and its `domainGroupId`.
+        Returns 404 when unknown or outside your organization.
       operationId: getSubdomain
       responses:
         '200':
@@ -381,8 +441,10 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     put:
       tags: [Subdomains]
-      summary: Update subdomain
-      description: Updates mutable subdomain fields such as name or assigned domain group.
+      summary: Update LinkShift subdomain
+      description: |
+        Renames the label and/or reassigns `domainGroupId` (required in body).
+        Returns 409 on label conflict.
       operationId: updateSubdomain
       requestBody:
         required: true
@@ -409,8 +471,10 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Subdomains]
-      summary: Delete subdomain
-      description: Marks a LinkShift subdomain as deleted without hard-removing it from storage.
+      summary: Delete LinkShift subdomain (soft)
+      description: |
+        Soft-deletes the label; it stops serving redirect traffic.
+        Returns 404 when out of scope.
       operationId: deleteSubdomain
       responses:
         '200':
@@ -427,15 +491,19 @@ paths:
   /api/v1/redirect-rules:
     get:
       tags: [Redirect Rules]
-      summary: List redirect rules
+      summary: List redirect rules (cursor)
       description: |
-        Cursor-style pagination ordered by `priority desc, createdAt desc, id desc`.
+        Lists redirect rules for one `domainGroupId`, highest `priority` first.
+        Page with `limit` (default 20, max 100) and `startAfterId` from `moreStartingAfterId` on the previous response.
+        Optional `search` filters source/destination text. Returns 400 when query params are invalid.
       operationId: listRedirectRules
       parameters:
         - name: domainGroupId
           in: query
           required: true
-          description: Domain group scope for listing rules.
+          description: >-
+            Domain group whose rules you want. Required on every page; get IDs from
+            list domain groups or your provisioning store.
           schema:
             type: string
         - name: limit
@@ -466,6 +534,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RedirectRuleQueryResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '402':
@@ -476,11 +546,10 @@ paths:
       tags: [Redirect Rules]
       summary: Create redirect rule
       description: |
-        Redirect rules are deeply validated in backend logic. Key constraints include:
-        - Source regex parsing and capture group consistency.
-        - Destination URL structure and supported placeholder/functions validation.
-        - Conditional expression and operator validation.
-        - Link-map and destination exclusivity (`linkMapId` requires empty destination).
+        Adds a rule that participates in **live** redirect matching for the domain group.
+        Not idempotent — duplicate sources may be rejected or behave unpredictably; use list + update in CI when you need upsert semantics.
+        Set `linkMapId` only with a null/empty `destination`. Deeper validation (regex captures, placeholders, conditionals) runs server-side — expect 400 with `details` on failure.
+        For dry-run matching without traffic impact, use POST redirect-rules/simulate after create.
       operationId: createRedirectRule
       requestBody:
         required: true
@@ -509,8 +578,12 @@ paths:
   /api/v1/redirect-rules/analytics:
     get:
       tags: [Redirect Rules]
-      summary: Get top redirect rules analytics
-      description: Returns aggregated hit statistics for rules within the selected time window.
+      summary: Get top redirect rules by hits
+      description: |
+        Aggregated hit counts per rule (and top link-map keys / request variants) for monitoring — not raw request logs.
+        Preset window: omit `start`/`end` and use `range` (`day` = 24h, `week` = 7d, `month` = 30d, default `day`), ending at the current UTC hour.
+        Custom window: pass both `start` and `end` (ISO-8601 UTC); values floor to hour boundaries; span max 31 days.
+        Optional `domainGroupId` narrows results. Dashboard charts may show additional dimensions not exposed here.
       operationId: getRedirectRuleAnalytics
       parameters:
         - name: limit
@@ -576,7 +649,10 @@ paths:
     post:
       tags: [Redirect Rules]
       summary: Simulate redirect rule matching
-      description: Evaluates request samples against current rules without applying live redirects. Set checkDestinationBlacklist to true to mirror live blacklist behavior for absolute targets.
+      description: |
+        Evaluates up to 100 request samples against **current** rules — no HTTP redirect is issued and analytics aren't written.
+        Use in CI after POST create redirect rule or when validating redirect tests: build `entries[]` from fixture `pathWithQuery` + `requestData`.
+        Unknown `domainGroupId` → 400. Set `checkDestinationBlacklist: true` to surface `blacklistBlocked` / `blacklistCheckFailed` like live traffic (403/503 behavior).
       operationId: simulateRedirectRules
       requestBody:
         required: true
@@ -605,8 +681,10 @@ paths:
       - $ref: '#/components/parameters/EntityId'
     get:
       tags: [Redirect Rules]
-      summary: Get redirect rule
-      description: Returns one redirect rule by ID.
+      summary: Get redirect rule by ID
+      description: |
+        Fetches the full rule (source, destination, `linkMapId`, priority, match options, block flags).
+        Returns 404 when soft-deleted or outside your organization.
       operationId: getRedirectRule
       responses:
         '200':
@@ -626,7 +704,9 @@ paths:
     put:
       tags: [Redirect Rules]
       summary: Update redirect rule
-      description: Updates a redirect rule and re-runs backend validation constraints.
+      description: |
+        Replaces mutable fields on an existing rule; same validation as create.
+        Changes apply to live matching on the next request. Returns 400 on invalid source/destination/conditional payload; 404 when the rule ID is out of scope.
       operationId: updateRedirectRule
       requestBody:
         required: true
@@ -653,8 +733,10 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Redirect Rules]
-      summary: Delete redirect rule
-      description: Soft-deletes a redirect rule so it no longer participates in matching.
+      summary: Delete redirect rule (soft)
+      description: |
+        Removes the rule from live matching (soft delete).
+        Idempotent for automation: repeating delete on the same ID still returns 404 once gone.
       operationId: deleteRedirectRule
       responses:
         '200':
@@ -671,14 +753,18 @@ paths:
   /api/v1/redirect-tests:
     get:
       tags: [Redirect Tests]
-      summary: List redirect tests
-      description: Lists stored redirect test cases for a domain group with cursor pagination.
+      summary: List redirect tests (cursor)
+      description: |
+        Lists stored CI/regression fixtures for one `domainGroupId`.
+        Default `limit` is 100 (max 100). Use `startAfterId` from `moreStartingAfterId` to walk pages.
       operationId: listRedirectTests
       parameters:
         - name: domainGroupId
           in: query
           required: true
-          description: Domain group scope for listing test fixtures.
+          description: >-
+            Domain group that owns the fixtures. Pair with POST simulate using the same
+            group ID in each sample.
           schema:
             type: string
         - name: limit
@@ -709,6 +795,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RedirectTestQueryResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '402':
@@ -717,8 +805,11 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     post:
       tags: [Redirect Tests]
-      summary: Create redirect test
-      description: Stores a redirect expectation fixture used for simulation-based regression checks.
+      summary: Create redirect test fixture
+      description: |
+        Persists an expected outcome (`expectedResult`) for a `pathWithQuery` under a domain group.
+        Doesn't run matching by itself — in CI, POST redirect-rules/simulate with equivalent request data and assert against `expectedResult`.
+        Returns 404 when `domainGroupId` is invalid.
       operationId: createRedirectTest
       requestBody:
         required: true
@@ -749,8 +840,10 @@ paths:
       - $ref: '#/components/parameters/EntityId'
     get:
       tags: [Redirect Tests]
-      summary: Get redirect test
-      description: Returns one stored redirect test fixture by ID.
+      summary: Get redirect test by ID
+      description: |
+        Fetches one fixture including `pathWithQuery`, `requestData`, and `expectedResult`.
+        Returns 404 when deleted or outside your organization.
       operationId: getRedirectTest
       responses:
         '200':
@@ -769,8 +862,10 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     put:
       tags: [Redirect Tests]
-      summary: Update redirect test
-      description: Updates mutable fields of a stored redirect test fixture.
+      summary: Update redirect test fixture
+      description: |
+        Changes path, request metadata, or expected outcome for an existing fixture.
+        Returns 400 when the body is invalid; 404 when the test ID is out of scope.
       operationId: updateRedirectTest
       requestBody:
         required: true
@@ -797,8 +892,10 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Redirect Tests]
-      summary: Delete redirect test
-      description: Soft-deletes a redirect test fixture.
+      summary: Delete redirect test (soft)
+      description: |
+        Removes a fixture from the catalog (soft delete).
+        Use when retiring CI cases; simulate history isn't stored per test.
       operationId: deleteRedirectTest
       responses:
         '200':
@@ -816,13 +913,17 @@ paths:
     get:
       tags: [Link Maps]
       summary: List link maps
-      description: Lists link maps for a domain group, including matching behavior settings.
+      description: |
+        Returns all link maps in a domain group as a JSON array (not cursor-paginated).
+        Each item includes `entriesCount` so you can spot empty maps before wiring rules.
       operationId: listLinkMaps
       parameters:
         - name: domainGroupId
           in: query
           required: true
-          description: Domain group scope for listing link maps.
+          description: >-
+            Domain group that owns the maps. Required; use the same ID on create link map
+            and import link map entries.
           schema:
             type: string
       responses:
@@ -831,7 +932,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LinkMapQueryResult'
+                type: array
+                items:
+                  $ref: '#/components/schemas/LinkMap'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '402':
@@ -841,7 +946,10 @@ paths:
     post:
       tags: [Link Maps]
       summary: Create link map
-      description: Creates a link map that can be referenced by redirect rules for key-based resolution.
+      description: |
+        Creates an empty key→URL table under `domainGroupId`.
+        Add entries (POST create or POST import) before setting `linkMapId` on a redirect rule.
+        Returns 404 when the domain group doesn't exist.
       operationId: createLinkMap
       requestBody:
         required: true
@@ -872,8 +980,10 @@ paths:
       - $ref: '#/components/parameters/EntityId'
     get:
       tags: [Link Maps]
-      summary: Get link map
-      description: Returns one link map by ID.
+      summary: Get link map by ID
+      description: |
+        Fetches map settings (`caseSensitive`, `queryMatch`, `fallbackDestination`) and `entriesCount`.
+        Returns 404 when the map is deleted or outside your organization.
       operationId: getLinkMap
       responses:
         '200':
@@ -893,7 +1003,10 @@ paths:
     put:
       tags: [Link Maps]
       summary: Update link map
-      description: Updates link-map behavior such as case sensitivity, query matching, or fallback destination.
+      description: |
+        Changes matching behavior or fallback URL for an existing map.
+        Doesn't modify entries — use link map entry endpoints for keys.
+        Returns 400 when `fallbackDestination` isn't a valid http(s) URL.
       operationId: updateLinkMap
       requestBody:
         required: true
@@ -920,8 +1033,10 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Link Maps]
-      summary: Delete link map
-      description: Soft-deletes a link map. Deletion may be blocked when map is used by active rules.
+      summary: Delete link map (soft)
+      description: |
+        Soft-deletes the map when it has zero entries and no active redirect rules reference it.
+        Returns 400 with `details` when entries remain or rules still point at `linkMapId` — delete entries first or detach rules.
       operationId: deleteLinkMap
       responses:
         '200':
@@ -940,14 +1055,18 @@ paths:
   /api/v1/link-map-entries:
     get:
       tags: [Link Map Entries]
-      summary: List link map entries
-      description: Lists entries of one link map using cursor pagination and optional search.
+      summary: List link map entries (cursor)
+      description: |
+        Pages keys inside one `linkMapId` (default `limit` 20, max 100).
+        Response uses `hasMore` / `moreStartingAfterId` (no `dataType` field). Optional `search` scans keys and destinations (max 1024 chars).
       operationId: listLinkMapEntries
       parameters:
         - name: linkMapId
           in: query
           required: true
-          description: Parent link-map ID used to scope entry listing.
+          description: >-
+            Link map to list. Get IDs from list link maps or create link map; use the same
+            ID on import and bulk delete.
           schema:
             type: string
         - name: limit
@@ -962,9 +1081,10 @@ paths:
         - name: search
           in: query
           required: false
-          description: Optional search string matched against entry keys.
+          description: Optional search string matched against entry keys and destinations.
           schema:
             type: string
+            maxLength: 1024
         - name: startAfterId
           in: query
           required: false
@@ -977,7 +1097,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LinkMapEntryQueryResult'
+                $ref: '#/components/schemas/LinkMapEntryListResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '402':
@@ -987,7 +1109,10 @@ paths:
     post:
       tags: [Link Map Entries]
       summary: Create link map entry
-      description: Creates one key-to-destination mapping in a link map.
+      description: |
+        Adds one key→destination row. Keys are path/query fragments, not full URLs.
+        Returns 400 on invalid key characters or destination URL; 404 when `linkMapId` is unknown.
+        For hundreds of rows, prefer POST import link map entries.
       operationId: createLinkMapEntry
       requestBody:
         required: true
@@ -1014,8 +1139,11 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Link Map Entries]
-      summary: Delete multiple link map entries by IDs
-      description: Bulk-deletes selected entries in a single request.
+      summary: Bulk-delete link map entries by ID
+      description: |
+        Soft-deletes up to 1,000 entries in one call — use to roll back a bad import without deleting the whole map.
+        Body requires `linkMapId` plus `entryIds` from list/create/import responses.
+        Response `deletedCount` may be lower than requested when some IDs were already deleted. Returns 404 when the map ID is invalid.
       operationId: deleteManyLinkMapEntries
       requestBody:
         required: true
@@ -1048,8 +1176,11 @@ paths:
   /api/v1/link-map-entries/import:
     post:
       tags: [Link Map Entries]
-      summary: Import link map entries
-      description: Bulk upserts entries for a link map and returns import totals plus row-level failures.
+      summary: Import link map entries (bulk create)
+      description: |
+        Creates up to 500 entries per request (**create-only** — duplicate keys appear in `errors[]`, not updated).
+        HTTP 200 even when some rows fail: check `importedCount`, `failedCount`, and `errors[].error` per row.
+        Roll back partial imports with DELETE bulk (pass `importedEntryIds`). Returns 404 when `linkMapId` is invalid.
       operationId: importLinkMapEntries
       requestBody:
         required: true
@@ -1080,8 +1211,10 @@ paths:
       - $ref: '#/components/parameters/EntityId'
     get:
       tags: [Link Map Entries]
-      summary: Get link map entry
-      description: Returns one link-map entry by ID.
+      summary: Get link map entry by ID
+      description: |
+        Fetches one row (`key`, `keyNormalized`, `destination`, parent `linkMapId`).
+        Returns 404 when soft-deleted or outside your organization.
       operationId: getLinkMapEntry
       responses:
         '200':
@@ -1101,7 +1234,9 @@ paths:
     put:
       tags: [Link Map Entries]
       summary: Update link map entry
-      description: Updates key or destination for a link-map entry.
+      description: |
+        Changes `key` and/or `destination` on one row (send at least one field).
+        Returns 400 when validation fails (e.g. duplicate key); 404 when the entry ID is out of scope.
       operationId: updateLinkMapEntry
       requestBody:
         required: true
@@ -1128,8 +1263,10 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Link Map Entries]
-      summary: Delete link map entry
-      description: Soft-deletes one link-map entry by ID.
+      summary: Delete link map entry (soft)
+      description: |
+        Soft-deletes one entry by path `{id}`.
+        For many IDs from an import, use bulk-delete instead.
       operationId: deleteLinkMapEntry
       responses:
         '200':
@@ -1149,20 +1286,26 @@ components:
       type: apiKey
       in: header
       name: X-API-Key
-      description: API key generated in LinkShift dashboard (`Organization -> Manage API keys`).
+      description: |
+        Organization API key from the dashboard (Organization → API keys).
+        Send via `X-API-Key` on every request in this spec.
 
   parameters:
     EntityId:
       name: id
       in: path
       required: true
-      description: Resource identifier.
+      description: >-
+        Resource ID from a prior list or create response (same string you store in
+        automation state). Wrong or foreign-org IDs return 404.
       schema:
         type: string
 
   responses:
     Unauthorized:
-      description: Missing or invalid API key
+      description: >-
+        Missing or invalid API key. Verify the `X-API-Key` header and that the key
+        wasn't revoked in the dashboard; rotate if needed, then retry.
       content:
         application/json:
           schema:
@@ -1176,7 +1319,9 @@ components:
                 details: Missing or invalid API key.
                 requestId: req_example
     PaymentRequired:
-      description: API usage requires paid plan
+      description: >-
+        API access isn't enabled on your subscription (`feature` is often `api_access`).
+        Upgrade the plan in the dashboard, then retry with the same key.
       content:
         application/json:
           schema:
@@ -1191,7 +1336,9 @@ components:
                 details: API key usage is available on paid plans only. Upgrade your subscription to use API access.
                 requestId: req_example
     TooManyRequests:
-      description: Per-key rate limit exceeded
+      description: >-
+        Per-key rate limit for your plan. Back off exponentially with jitter; avoid
+        tight retry loops. Check GET organization/usage for current inventory (limits are plan-defined, not returned here).
       content:
         application/json:
           schema:
@@ -1205,19 +1352,25 @@ components:
                 details: API key rate limit exceeded
                 requestId: req_example
     BadRequest:
-      description: Validation error
+      description: >-
+        Request body or query failed validation. Read `details` (and optional field hints)
+        in the JSON body; fix the payload and retry. Include `requestId` when contacting support.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
     NotFound:
-      description: Resource not found
+      description: >-
+        Resource ID doesn't exist, was soft-deleted, or isn't in your organization.
+        Confirm the ID from a fresh list call and that you're using the correct API key.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
     Conflict:
-      description: Resource conflict
+      description: >-
+        Unique constraint conflict (e.g. domain hostname or subdomain label already
+        registered). Change the name or update the existing resource instead of creating again.
       content:
         application/json:
           schema:
@@ -1225,7 +1378,9 @@ components:
 
   schemas:
     ErrorResponse:
-      description: Standardized error payload returned by API endpoints.
+      description: |
+        Standard error envelope. Use `key` for branching in code, `details` for human-readable fixes,
+        and `requestId` when escalating to support.
       type: object
       properties:
         code:
@@ -1249,7 +1404,9 @@ components:
       required: [code, key, message]
 
     Organization:
-      description: Organization entity bound to the authenticated API key context.
+      description: |
+        Tenant record for your API key. `configuration` may include subscription metadata;
+        treat it as read-only in integrations.
       type: object
       properties:
         id: { type: string, description: Organization ID. }
@@ -1269,7 +1426,9 @@ components:
       required: [id, name, createdAt, updatedAt]
 
     DomainGroup:
-      description: Domain-group entity used to scope domains, rules, tests, and link maps.
+      description: |
+        Scope boundary for redirect configuration. All rules, tests, and link maps reference
+        a domain group ID; robots policy here applies to every domain in the group.
       type: object
       properties:
         id: { type: string, description: Domain-group ID. }
@@ -1324,7 +1483,9 @@ components:
       required: [id, name, domainGroupId, createdAt, updatedAt]
 
     RedirectRule:
-      description: Redirect rule resolved during request matching.
+      description: |
+        Live redirect matcher: evaluated by priority (higher first) within a domain group.
+        Either `destination` or `linkMapId` drives the target URL; `isBlocked` pauses matching without deleting.
       type: object
       properties:
         id: { type: string, description: Redirect-rule ID. }
@@ -1383,7 +1544,9 @@ components:
         - updatedAt
 
     RedirectTest:
-      description: Stored redirect test fixture used for regression checks.
+      description: |
+        CI fixture storing input (`pathWithQuery`, `requestData`) and expected simulate output (`expectedResult`).
+        Run POST redirect-rules/simulate in pipelines to validate against live rule config.
       type: object
       properties:
         id: { type: string, description: Redirect-test ID. }
@@ -1418,7 +1581,9 @@ components:
         - updatedAt
 
     LinkMap:
-      description: Link map used to resolve short keys to destinations.
+      description: |
+        Named lookup table: redirect rules reference it via `linkMapId` to resolve a key to a destination URL.
+        `entriesCount` helps you verify imports before going live.
       type: object
       properties:
         id: { type: string, description: Link-map ID. }
@@ -1433,6 +1598,9 @@ components:
           type: string
           nullable: true
           description: Optional destination used when no key matches.
+        entriesCount:
+          type: integer
+          description: Count of active entries (included on list and get responses).
         createdAt: { type: string, format: date-time, description: Creation timestamp (UTC). }
         updatedAt: { type: string, format: date-time, description: Last update timestamp (UTC). }
         deletedAt:
@@ -1475,18 +1643,20 @@ components:
         - updatedAt
 
     OrganizationUsage:
-      description: Snapshot of current organization resource usage counters.
+      description: |
+        Counts of **active** resources in your organization (soft-deleted items excluded).
+        Compare to plan limits in the dashboard — this object doesn't include max allowed values or rate-limit quotas.
       type: object
       properties:
-        domainGroups: { type: integer, description: Number of active domain groups. }
-        domains: { type: integer, description: Number of active domains. }
-        subdomains: { type: integer, description: Number of active LinkShift subdomains. }
-        rules: { type: integer, description: Number of active redirect rules. }
-        tests: { type: integer, description: Number of active redirect tests. }
-        users: { type: integer, description: Number of organization members. }
-        apiKeys: { type: integer, description: Number of configured organization API keys. }
-        linkMaps: { type: integer, description: Number of active link maps. }
-        linkMapEntries: { type: integer, description: Number of active link-map entries. }
+        domainGroups: { type: integer, description: Active domain groups (scope containers). }
+        domains: { type: integer, description: Active custom domains attached to groups. }
+        subdomains: { type: integer, description: Active LinkShift-hosted subdomain labels. }
+        rules: { type: integer, description: Active redirect rules across all groups. }
+        tests: { type: integer, description: Active redirect test fixtures stored for CI. }
+        users: { type: integer, description: Organization members (dashboard users). }
+        apiKeys: { type: integer, description: API keys configured (management is dashboard-only). }
+        linkMaps: { type: integer, description: Active link maps. }
+        linkMapEntries: { type: integer, description: Active key rows across all link maps. }
       required: [domainGroups, domains, subdomains, rules, tests, users, apiKeys, linkMaps, linkMapEntries]
 
     QueryResultMeta:
@@ -1577,18 +1747,22 @@ components:
                 $ref: '#/components/schemas/LinkMap'
           required: [data]
 
-    LinkMapEntryQueryResult:
-      description: Paginated link-map-entry query response.
-      allOf:
-        - $ref: '#/components/schemas/QueryResultMeta'
-        - type: object
-          properties:
-            data:
-              type: array
-              description: Link-map-entry items in current page.
-              items:
-                $ref: '#/components/schemas/LinkMapEntry'
-          required: [data]
+    LinkMapEntryListResult:
+      description: Cursor-paginated link-map entry list (no dataType envelope).
+      type: object
+      properties:
+        data:
+          type: array
+          description: Link-map-entry items in the current page.
+          items:
+            $ref: '#/components/schemas/LinkMapEntry'
+        hasMore:
+          type: boolean
+          description: Whether additional results exist after this page.
+        moreStartingAfterId:
+          type: string
+          description: Cursor token to request the next page when hasMore is true.
+      required: [data, hasMore]
 
     HttpMethod:
       description: HTTP request method.
@@ -1607,7 +1781,11 @@ components:
       description: Payload for creating a domain group.
       type: object
       properties:
-        name: { type: string, minLength: 1, description: Domain-group name. }
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Domain-group name.
         robotsPolicy:
           $ref: '#/components/schemas/RobotsPolicy'
         customRobotsContent:
@@ -1621,7 +1799,11 @@ components:
       description: Payload for updating a domain group.
       type: object
       properties:
-        name: { type: string, minLength: 1, description: Domain-group name. }
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Domain-group name.
         robotsPolicy:
           $ref: '#/components/schemas/RobotsPolicy'
         customRobotsContent:
@@ -1635,16 +1817,31 @@ components:
       description: Payload for creating a domain.
       type: object
       properties:
-        name: { type: string, description: Fully qualified domain name. }
-        domainGroupId: { type: string, description: Target domain-group ID. }
+        name:
+          type: string
+          minLength: 1
+          description: Fully qualified domain name (DNS hostname labels).
+          pattern: '^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$'
+        domainGroupId:
+          type: string
+          maxLength: 100
+          description: Target domain-group ID.
       required: [name, domainGroupId]
 
     UpdateDomainRequest:
       description: Payload for updating a domain.
       type: object
       properties:
-        name: { type: string, description: Fully qualified domain name. }
-        domainGroupId: { type: string, description: Target domain-group ID. }
+        name:
+          type: string
+          minLength: 1
+          description: Fully qualified domain name (DNS hostname labels).
+          pattern: '^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$'
+        domainGroupId:
+          type: string
+          maxLength: 100
+          description: Target domain-group ID.
+      required: [domainGroupId]
 
     CreateLinkShiftSubdomainRequest:
       description: Payload for creating a LinkShift subdomain.
@@ -1652,10 +1849,14 @@ components:
       properties:
         name:
           type: string
+          minLength: 1
           maxLength: 30
           pattern: '^[a-z0-9-]{1,30}$'
           description: Subdomain label before base host, lowercase letters/numbers/hyphens.
-        domainGroupId: { type: string, description: Target domain-group ID. }
+        domainGroupId:
+          type: string
+          maxLength: 100
+          description: Target domain-group ID.
       required: [name, domainGroupId]
 
     UpdateLinkShiftSubdomainRequest:
@@ -1664,10 +1865,15 @@ components:
       properties:
         name:
           type: string
+          minLength: 1
           maxLength: 30
           pattern: '^[a-z0-9-]{1,30}$'
           description: Subdomain label before base host, lowercase letters/numbers/hyphens.
-        domainGroupId: { type: string, description: Target domain-group ID. }
+        domainGroupId:
+          type: string
+          maxLength: 100
+          description: Target domain-group ID.
+      required: [domainGroupId]
 
     CreateRedirectRuleRequest:
       description: Payload for creating a redirect rule.
@@ -1687,7 +1893,10 @@ components:
           description: HTTP redirect status used for rule matches.
         matchMethod:
           type: array
-          description: Allowed request methods. Empty array means all methods.
+          maxItems: 6
+          description: >-
+            Allowed request methods (no duplicates). Empty array means all methods.
+            At most six methods (all seven HTTP methods cannot be listed explicitly).
           items:
             $ref: '#/components/schemas/HttpMethod'
         queryMatch:
@@ -1710,7 +1919,10 @@ components:
           maximum: 1000
           default: 0
           description: Rule priority (higher first).
-        domainGroupId: { type: string, description: Target domain-group ID. }
+        domainGroupId:
+          type: string
+          maxLength: 100
+          description: Target domain-group ID.
       required: [source, domainGroupId]
 
     UpdateRedirectRuleRequest:
@@ -1730,7 +1942,8 @@ components:
           description: HTTP redirect status used for rule matches.
         matchMethod:
           type: array
-          description: Allowed request methods. Empty array means all methods.
+          maxItems: 6
+          description: Allowed request methods (no duplicates). Empty array means all methods.
           items:
             $ref: '#/components/schemas/HttpMethod'
         queryMatch:
@@ -1764,14 +1977,25 @@ components:
           items:
             type: object
             properties:
-              domainGroupId: { type: string, description: Domain-group scope for this sample. }
-              hostname: { type: string, description: Optional request host header. }
-              path: { type: string, description: Request path (without protocol/host). }
+              domainGroupId:
+                type: string
+                maxLength: 100
+                description: Domain-group scope for this sample.
+              hostname:
+                type: string
+                maxLength: 253
+                description: Optional request host header.
+              path:
+                type: string
+                minLength: 1
+                description: Request path (without protocol/host).
               method:
                 $ref: '#/components/schemas/HttpMethod'
               ip: { type: string, description: Optional client IP used by conditional rules. }
               userAgent:
-                { type: string, description: Optional user-agent used by conditional rules. }
+                type: string
+                maxLength: 512
+                description: Optional user-agent used by conditional rules.
               headers:
                 type: object
                 description: >-
@@ -1939,7 +2163,9 @@ components:
           default: ignore
           description: Query matching strategy for key resolution requests.
         fallbackDestination:
-          { type: string, description: Fallback destination URL used when key lookup misses. }
+          type: string
+          description: Optional fallback destination URL (must start with http:// or https://).
+          pattern: '^https?://'
       required: [name, domainGroupId]
 
     UpdateLinkMapRequest:
@@ -1955,34 +2181,47 @@ components:
         fallbackDestination:
           type: string
           nullable: true
-          description: Fallback destination URL used when key lookup misses.
+          description: Fallback destination URL (must start with http:// or https:// when set).
+          pattern: '^https?://'
 
     CreateLinkMapEntryRequest:
       description: Payload for creating one link-map entry.
       type: object
       properties:
         linkMapId: { type: string, description: Parent link-map ID. }
-        key: { type: string, minLength: 1, maxLength: 1024, description: Lookup key. }
+        key:
+          type: string
+          minLength: 1
+          maxLength: 1024
+          description: >-
+            Path or query lookup key (not a full URL). Must not contain spaces, %, or #.
         destination:
           type: string
           minLength: 1
           maxLength: 16384
-          description: Destination URL resolved for the key.
+          description: Destination URL (must start with http:// or https://).
+          pattern: '^https?://'
       required: [linkMapId, key, destination]
 
     UpdateLinkMapEntryRequest:
       description: Payload for updating one link-map entry.
       type: object
       properties:
-        key: { type: string, minLength: 1, maxLength: 1024, description: Lookup key. }
+        key:
+          type: string
+          minLength: 1
+          maxLength: 1024
+          description: Path or query lookup key (not a full URL).
         destination:
           type: string
           minLength: 1
           maxLength: 16384
-          description: Destination URL resolved for the key.
+          description: Destination URL (must start with http:// or https://).
+          pattern: '^https?://'
 
     DeleteLinkMapEntriesByIdRequest:
-      description: Payload for bulk deletion of link-map entries.
+      description: |
+        Identifies up to 1,000 entry IDs to soft-delete under one `linkMapId` (rollback helper after import).
       type: object
       properties:
         linkMapId: { type: string, description: Parent link-map ID. }
@@ -1995,7 +2234,7 @@ components:
       required: [linkMapId, entryIds]
 
     ImportLinkMapEntriesRequest:
-      description: Payload for bulk import/upsert of link-map entries.
+      description: Payload for bulk create of link-map entries (duplicate keys fail per row, no updates).
       type: object
       properties:
         linkMapId: { type: string, description: Parent link-map ID. }
@@ -2012,26 +2251,35 @@ components:
                 type: string
                 minLength: 1
                 maxLength: 16384
-                description: Destination URL resolved for the key.
+                description: Destination URL (must start with http:// or https://).
+                pattern: '^https?://'
             required: [key, destination]
       required: [linkMapId, entries]
 
     ImportLinkMapEntriesResponse:
-      description: Import summary including totals and row-level failures.
+      description: Import summary including totals, created entry IDs, and row-level errors.
       type: object
       properties:
-        total: { type: integer, description: Number of processed rows. }
-        created: { type: integer, description: Number of newly created entries. }
-        updated: { type: integer, description: Number of updated entries. }
-        failed: { type: integer, description: Number of rows rejected during import. }
-        failures:
+        total: { type: integer, description: Number of rows in the request payload. }
+        importedCount:
+          type: integer
+          description: Number of entries successfully created.
+        failedCount:
+          type: integer
+          description: Number of rows that failed validation or creation.
+        importedEntryIds:
           type: array
-          description: Row-level failures with index, key, and reason.
+          description: IDs of entries created during this import.
+          items: { type: string }
+        errors:
+          type: array
+          description: Row-level failures (sorted by index).
           items:
             type: object
             properties:
               index: { type: integer, description: Index of failed row in import payload. }
               key: { type: string, description: Entry key from failed row. }
-              reason: { type: string, description: Validation or processing failure reason. }
-            required: [index, key, reason]
-      required: [total, created, updated, failed, failures]
+              destination: { type: string, description: Destination URL from failed row. }
+              error: { type: string, description: Validation or processing failure message. }
+            required: [index, key, destination, error]
+      required: [total, importedCount, failedCount, importedEntryIds, errors]

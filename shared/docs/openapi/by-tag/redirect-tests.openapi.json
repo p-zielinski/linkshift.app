@@ -4,7 +4,7 @@
     "title": "LinkShift Management API (API Key Accessible Endpoints) — Redirect Tests",
     "version": "1.0.0",
     "summary": "Organization-scoped redirect management API",
-    "description": "This specification describes the LinkShift endpoints that can be accessed with organization API keys.\n\nAuthentication:\n- Preferred: `X-API-Key: <your_key>`\n- Alternative: `Authorization: ApiKey <your_key>` (supported by backend, not modeled as a separate OpenAPI scheme)\n\nImportant billing behavior:\n- API keys are organization-scoped.\n- API key management endpoints (`/api/v1/api-keys`) are intentionally excluded and require dashboard user auth.\n\nRate limiting:\n- Management API requests are rate-limited per API key according to your organization's plan (not per organization aggregate).\n- Use GET /api/v1/organization/usage for current limits. When exceeded, the API returns 429 — use backoff; do not hard-code thresholds in integrations.\nThis document contains only operations tagged \"Redirect Tests\".\nTag scope: Stored redirect test fixtures for regression and CI validation."
+    "description": "Organization-scoped Management API for redirect configuration, link maps, and operational checks.\nUse it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.\n\n**Authentication**\n- Send your key on every request: `X-API-Key: <your_key>` (preferred).\n- Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.\n\n**Typical setup order**\n1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).\n2. Link map + entries when rules resolve keys instead of a fixed destination.\n3. Redirect tests + simulate for CI; analytics for traffic review.\n\n**Errors and recovery**\n- `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).\n- `402` — API access isn't on your current plan. Upgrade subscription, then retry.\n- `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).\n- `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.\n- `404` — ID doesn't exist or isn't in your organization scope.\n\n**Dashboard-only**\nAPI key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.\n\n**Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.\nThis document contains only operations tagged \"Redirect Tests\".\nTag scope: Named fixtures (path + expected outcome) for regression and CI.\nStore expectations here; run POST redirect-rules/simulate to evaluate them in pipelines.\n"
   },
   "servers": [
     {
@@ -20,7 +20,7 @@
   "tags": [
     {
       "name": "Redirect Tests",
-      "description": "Stored redirect test fixtures for regression and CI validation."
+      "description": "Named fixtures (path + expected outcome) for regression and CI.\nStore expectations here; run POST redirect-rules/simulate to evaluate them in pipelines.\n"
     }
   ],
   "paths": {
@@ -29,15 +29,15 @@
         "tags": [
           "Redirect Tests"
         ],
-        "summary": "List redirect tests",
-        "description": "Lists stored redirect test cases for a domain group with cursor pagination.",
+        "summary": "List redirect tests (cursor)",
+        "description": "Lists stored CI/regression fixtures for one `domainGroupId`.\nDefault `limit` is 100 (max 100). Use `startAfterId` from `moreStartingAfterId` to walk pages.\n",
         "operationId": "listRedirectTests",
         "parameters": [
           {
             "name": "domainGroupId",
             "in": "query",
             "required": true,
-            "description": "Domain group scope for listing test fixtures.",
+            "description": "Domain group that owns the fixtures. Pair with POST simulate using the same group ID in each sample.",
             "schema": {
               "type": "string"
             }
@@ -84,6 +84,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
@@ -99,8 +102,8 @@
         "tags": [
           "Redirect Tests"
         ],
-        "summary": "Create redirect test",
-        "description": "Stores a redirect expectation fixture used for simulation-based regression checks.",
+        "summary": "Create redirect test fixture",
+        "description": "Persists an expected outcome (`expectedResult`) for a `pathWithQuery` under a domain group.\nDoesn't run matching by itself — in CI, POST redirect-rules/simulate with equivalent request data and assert against `expectedResult`.\nReturns 404 when `domainGroupId` is invalid.\n",
         "operationId": "createRedirectTest",
         "requestBody": {
           "required": true,
@@ -151,8 +154,8 @@
         "tags": [
           "Redirect Tests"
         ],
-        "summary": "Get redirect test",
-        "description": "Returns one stored redirect test fixture by ID.",
+        "summary": "Get redirect test by ID",
+        "description": "Fetches one fixture including `pathWithQuery`, `requestData`, and `expectedResult`.\nReturns 404 when deleted or outside your organization.\n",
         "operationId": "getRedirectTest",
         "responses": {
           "200": {
@@ -183,8 +186,8 @@
         "tags": [
           "Redirect Tests"
         ],
-        "summary": "Update redirect test",
-        "description": "Updates mutable fields of a stored redirect test fixture.",
+        "summary": "Update redirect test fixture",
+        "description": "Changes path, request metadata, or expected outcome for an existing fixture.\nReturns 400 when the body is invalid; 404 when the test ID is out of scope.\n",
         "operationId": "updateRedirectTest",
         "requestBody": {
           "required": true,
@@ -228,8 +231,8 @@
         "tags": [
           "Redirect Tests"
         ],
-        "summary": "Delete redirect test",
-        "description": "Soft-deletes a redirect test fixture.",
+        "summary": "Delete redirect test (soft)",
+        "description": "Removes a fixture from the catalog (soft delete).\nUse when retiring CI cases; simulate history isn't stored per test.\n",
         "operationId": "deleteRedirectTest",
         "responses": {
           "200": {
@@ -329,7 +332,7 @@
         ]
       },
       "RedirectTest": {
-        "description": "Stored redirect test fixture used for regression checks.",
+        "description": "CI fixture storing input (`pathWithQuery`, `requestData`) and expected simulate output (`expectedResult`).\nRun POST redirect-rules/simulate in pipelines to validate against live rule config.\n",
         "type": "object",
         "properties": {
           "id": {
@@ -452,7 +455,7 @@
         ]
       },
       "ErrorResponse": {
-        "description": "Standardized error payload returned by API endpoints.",
+        "description": "Standard error envelope. Use `key` for branching in code, `details` for human-readable fixes,\nand `requestId` when escalating to support.\n",
         "type": "object",
         "properties": {
           "code": {
@@ -488,8 +491,18 @@
       }
     },
     "responses": {
+      "BadRequest": {
+        "description": "Request body or query failed validation. Read `details` (and optional field hints) in the JSON body; fix the payload and retry. Include `requestId` when contacting support.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
       "Unauthorized": {
-        "description": "Missing or invalid API key",
+        "description": "Missing or invalid API key. Verify the `X-API-Key` header and that the key wasn't revoked in the dashboard; rotate if needed, then retry.",
         "content": {
           "application/json": {
             "schema": {
@@ -510,7 +523,7 @@
         }
       },
       "PaymentRequired": {
-        "description": "API usage requires paid plan",
+        "description": "API access isn't enabled on your subscription (`feature` is often `api_access`). Upgrade the plan in the dashboard, then retry with the same key.",
         "content": {
           "application/json": {
             "schema": {
@@ -532,7 +545,7 @@
         }
       },
       "TooManyRequests": {
-        "description": "Per-key rate limit exceeded",
+        "description": "Per-key rate limit for your plan. Back off exponentially with jitter; avoid tight retry loops. Check GET organization/usage for current inventory (limits are plan-defined, not returned here).",
         "content": {
           "application/json": {
             "schema": {
@@ -552,18 +565,8 @@
           }
         }
       },
-      "BadRequest": {
-        "description": "Validation error",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ErrorResponse"
-            }
-          }
-        }
-      },
       "NotFound": {
-        "description": "Resource not found",
+        "description": "Resource ID doesn't exist, was soft-deleted, or isn't in your organization. Confirm the ID from a fresh list call and that you're using the correct API key.",
         "content": {
           "application/json": {
             "schema": {
@@ -578,7 +581,7 @@
         "name": "id",
         "in": "path",
         "required": true,
-        "description": "Resource identifier.",
+        "description": "Resource ID from a prior list or create response (same string you store in automation state). Wrong or foreign-org IDs return 404.",
         "schema": {
           "type": "string"
         }
@@ -589,7 +592,7 @@
         "type": "apiKey",
         "in": "header",
         "name": "X-API-Key",
-        "description": "API key generated in LinkShift dashboard (`Organization -> Manage API keys`)."
+        "description": "Organization API key from the dashboard (Organization → API keys).\nSend via `X-API-Key` on every request in this spec.\n"
       }
     }
   },

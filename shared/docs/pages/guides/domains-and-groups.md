@@ -6,6 +6,15 @@ For how rules match requests, see [Redirect rules guide](./redirect-rules.md).
 
 ---
 
+## In the dashboard
+
+Prefer the UI? Use the sidebar:
+
+- **Domain Groups** → **Add group** — [Domain groups in the dashboard](./dashboard/domain-groups-in-dashboard.md)
+- **Domains** → **Add domain** or **Subdomains** → **Add subdomain** — [Domains and subdomains in the dashboard](./dashboard/domains-and-subdomains-in-dashboard.md)
+
+---
+
 ## Architecture
 
 ```
@@ -195,9 +204,13 @@ GET /api/v1/organization/usage
 
 Returns plan usage: domain counts, rule counts, link map entries, etc. Use before bulk imports to avoid limit errors.
 
+**In the dashboard:** the home **Dashboard** page (`/dashboard`) shows the same meters (domain groups, domains, rules, link maps, tests, seats, API keys, redirection rate, analytics retention). See [Dashboard overview — Dashboard home](./dashboard/dashboard-overview.md#dashboard-home-dashboard).
+
 ---
 
 ## Routing setup checklist
+
+**API path**
 
 1. **Create domain group** — production vs staging separation
 2. **Add domain or subdomain** — attach to group
@@ -205,6 +218,8 @@ Returns plan usage: domain counts, rule counts, link map entries, etc. Use befor
 4. **Optional: link maps** — for short links at scale
 5. **Simulate** — verify routing before DNS cutover
 6. **Add redirect tests** — lock behavior in CI
+
+**Dashboard path** — same order in the app: [Domain groups](./dashboard/domain-groups-in-dashboard.md) → [Domains and subdomains](./dashboard/domains-and-subdomains-in-dashboard.md) → [Redirect rules](./dashboard/redirect-rules-in-dashboard.md) → [Link maps](./dashboard/link-maps-in-dashboard.md) (optional) → [Tests](./dashboard/tests-in-dashboard.md) (**Run tests** or **Fetch expected result** instead of simulate).
 
 ---
 

@@ -1,51 +1,56 @@
 ---
 source: shared/docs/pages/concepts/redirect-engine-conditionals.md
-generatedAt: 2026-05-28T15:48:29.365Z
+generatedAt: 2026-05-30T06:58:57.647Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for developers implementing conditional routing in the LinkShift redirect engine, explaining the syntax, workflows, and rules for creating redirect conditions.
+This document is for developers working with the LinkShift redirect engine, explaining the syntax and mechanics of conditional routing.
 
 ## What this doc covers
-- **Conditional routing syntax**: Explanation of ternary expressions for destination resolution.
-- **Destination resolution order**: Steps for resolving destinations within a rule.
-- **Live redirect pipeline**: Overview of the end-to-end process for handling redirects.
-- **Routing decision flow**: Diagram illustrating the redirect process.
-- **Condition operators**: List of operators available for conditions.
-- **Functions in conditions**: Functions that can be used within conditions.
-- **Regex match (`~=`)**: Details on using regex for matching conditions.
-- **Nested logic**: Guidelines for simulating logical AND with nested ternaries.
-- **Nesting limit**: Maximum levels of nesting allowed in conditions.
+- **Conditional routing syntax**: Describes the ternary expression format for destinations.
+- **Destination resolution order**: Details the steps for resolving destinations within a rule.
+- **Live redirect pipeline**: Outlines the end-to-end process for handling incoming requests and applying redirect rules.
+- **Routing decision flow**: Provides a flowchart for the live redirect process.
+- **Condition operators**: Lists operators available for conditions in routing rules.
+- **Functions in conditions**: Describes functions that can be used within conditions.
+- **Regex match (`~=`)**: Explains how to use regex for matching conditions.
+- **Nested logic**: Details how to simulate logical AND with nested ternaries.
+- **Parentheses and URL colons**: Clarifies how the parser treats colons in URLs.
+- **Nesting limit**: States the maximum depth for nested conditionals.
 
 ## Key workflows and rules
 1. **Destination Resolution Order**:
    - Match the request based on path, query, and method.
-   - Substitute regex capture groups and resolve placeholders in the destination string.
-   - Parse the top-level ternary and evaluate conditions.
-   - Process the chosen branch recursively, with a maximum depth of 32.
+   - Substitute regex capture groups in the destination string.
+   - Resolve all placeholders in the string.
+   - Parse the top-level ternary expression.
+   - Evaluate each condition and process the chosen branch recursively (max depth of 32).
+   - Return the redirect target string.
 
 2. **Live Redirect Pipeline**:
-   - Check organization redirect rate limits and access.
-   - Load applicable rules and evaluate each for a match.
-   - Resolve destination based on whether a link map ID is set.
-   - Perform domain blacklist checks for absolute URLs.
+   - Check organization redirect rate limit; return 429 if exceeded.
+   - Verify organization redirect access; return 402 if suspended or over limits.
+   - Handle requests to `/robots.txt` separately.
+   - Load applicable rules and evaluate them in order.
+   - If a rule matches, resolve the destination and check for domain blacklist.
    - Return appropriate HTTP status codes based on the evaluation.
 
-3. **Condition Evaluation**:
-   - Each condition can only contain one operator.
-   - If no operator is found, the condition evaluates to false.
-   - Invalid conditions or functions yield false results.
+3. **Simulate Redirects**:
+   - Use `POST /api/v1/redirect-rules/simulate` to test rules without enforcing rate limits.
+   - Enable domain blacklist checks with `checkDestinationBlacklist: true`.
 
 ## Limits and constraints
-- **Nesting Limit**: Maximum of 32 nested ternaries is allowed; exceeding this results in a skipped rule.
-- **Rate Limits**: Organizations have a redirect limit per minute; exceeding this results in a `429` status.
-- **Access Checks**: Organizations may be suspended or exceed limits, resulting in a `402` status.
-- **Dynamic Values**: Avoid using dynamic values that can inject `?` or `:` into placeholders, as this may cause parsing errors.
+- **Nesting Limit**: Maximum of 32 nested conditionals is allowed; exceeding this results in a skipped rule.
+- **Rate Limits**: Organizations are subject to a redirect limit per minute; exceeding this results in a 429 status code.
+- **Access Checks**: Organizations may be suspended or over plan limits, resulting in a 402 status code.
+- **Invalid Conditions**: If a condition is missing an operator or has invalid syntax, it evaluates to false.
+- **Dynamic Values**: Avoid using dynamic values that could introduce `?` or `:` in placeholders before ternary parsing.
 
 ## Related docs and API areas
 - [Redirect engine concepts](./redirect-engine-concepts.md)
 - [Variables and modifiers](./redirect-engine-variables.md)
 - [Redirect rules — simulate vs live](../guides/redirect-rules-operations.md#simulate-vs-live-redirect)
+- [Destination domain blacklist](../concepts/redirect-engine-edge-cases.md#destination-domain-blacklist-runtime)
 - [Link map concepts — choosing queryMatch](./link-map-concepts.md#choosing-querymatch--decision-guide)
 - [Redirect rules — query matching](../guides/redirect-rules-core.md#query-matching-querymatch)

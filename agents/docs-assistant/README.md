@@ -89,3 +89,39 @@ Implemented in `frontend/src/app/features/documentation/`:
 - Local history: `linkshift_docs_assistant_history_v1` in localStorage (max 20 threads).
 
 See `agents/docs-assistant/FRONTEND_IMPLEMENTATION_LOG.md` for rollout notes and backlog.
+
+## Dashboard UI documentation (pipeline)
+
+Public API docs do not fully describe the **authenticated dashboard**. Use:
+
+| Artifact | Path |
+|----------|------|
+| UI map (draft) | `agents/docs-assistant/dashboard-map/DASHBOARD_MAP.md` |
+| Workflow | `agents/docs-assistant/dashboard-map/README.md` |
+| Map critic prompt | `agents/docs-assistant/prompts/dashboard-map-critic.md` |
+| Guide writer prompt | `agents/docs-assistant/prompts/dashboard-doc-writer.md` |
+| Guide critic prompt | `agents/docs-assistant/prompts/dashboard-doc-critic.md` |
+| Handoff | `.cursor/work/dashboard-docs-pipeline.md` |
+
+Target public pages: `shared/docs/pages/guides/dashboard/` (register in `manifest.yaml`, then `npm run docs:sync` and summaries).
+
+## Full documentation audit (dashboard + API dual-path)
+
+Goal: **≥ 9.5/10** coverage — every capability documented with accurate dashboard and/or API paths.
+
+| Step | Prompt | Mode | Handoff |
+|------|--------|------|---------|
+| 1 | `prompts/docs-full-audit-critic.md` | Read-only | Writes `.cursor/work/full-docs-audit-findings.md` |
+| 2 | `prompts/docs-full-audit-fixer.md` | Edit docs + manifest | Appends **Fixer pass**; runs `docs:sync` |
+| 3 | `prompts/docs-full-audit-critic-fix.md` | Edit in place + re-score | Appends **Critic fix pass**; runs `docs:sync` |
+
+Run in order in Cursor Agent mode (or three subagents). Do not skip step 1 — step 2 needs the findings queue.
+
+### Closing the gap to 9.5+ and verifying 9.7
+
+| Step | Prompt | When |
+|------|--------|------|
+| 4 | `prompts/docs-gap-closer-fixer.md` | After critic-fix (~9.4); adds auth, billing, public-tools guides |
+| 5 | `prompts/docs-final-verification-97.md` | After gap closer; strict re-score + in-place fixes (target ≥ 9.7) |
+
+Handoff: `.cursor/work/full-docs-audit-pipeline.md`, findings: `.cursor/work/full-docs-audit-findings.md`.

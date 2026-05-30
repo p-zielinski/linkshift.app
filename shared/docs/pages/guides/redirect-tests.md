@@ -6,6 +6,12 @@ Base path: `/api/v1/redirect-tests`
 
 ---
 
+## In the dashboard
+
+In the sidebar, open **Tests**, select **Add test**, or use **Run tests** on the **Tests** page or the **Redirect tests** card under **Redirect Rules**. See [Tests in the dashboard](./dashboard/tests-in-dashboard.md).
+
+---
+
 ## What redirect tests are
 
 A redirect test is a fixture:
@@ -164,7 +170,7 @@ POST /api/v1/redirect-tests
 
 ## CI workflow
 
-This repository does **not** ship a mandatory GitHub Actions job that runs redirect tests against your production API. Implement the pattern below in **your** pipeline (GitHub Actions, GitLab CI, etc.). (The repo may include other workflows such as `docs-summaries` for documentation maintenance — that is unrelated to redirect regression testing.)
+LinkShift doesn't include a hosted CI runner — run redirect tests from **your** pipeline (GitHub Actions, GitLab CI, etc.) using the API and the pattern below. To create fixtures and run tests interactively, see [Tests in the dashboard](./dashboard/tests-in-dashboard.md). For API keys and authentication, see [Getting started](./getting-started.md).
 
 ### 1. Deploy or sync rules
 

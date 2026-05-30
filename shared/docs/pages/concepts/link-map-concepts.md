@@ -232,7 +232,7 @@ Typical propagation: immediate after successful API response under normal load.
 
 Redirect rules on the edge use a separate per-hostname cache (also **up to 5 minutes** if invalidation fails). See [Redirect rules — propagation and caching](../guides/redirect-rules-core.md#propagation-and-caching).
 
-Internal cache keys and invalidation hooks: [`shared/not-public/cache-and-data-layer.md`](../../../not-public/cache-and-data-layer.md).
+Entry and map changes propagate through the platform cache. Under normal operation, updates apply on the next lookup; if invalidation does not run, allow up to **5 minutes** before live traffic consistently reflects your edits.
 
 ---
 

@@ -2,6 +2,8 @@
 
 Use this documentation to configure redirect routing, manage domains and link maps, and inspect API contracts from OpenAPI.
 
+This page is the docs **hub** — follow the tutorial steps first, then use the map below when you know what you need.
+
 **New here?** Read [What is LinkShift.app?](./intro/what-is-linkshift.md) for a business-technical overview of the platform and rules engine.
 
 ---
@@ -20,13 +22,22 @@ Core capabilities:
 
 ---
 
-## Your first redirect in 5 minutes
+## Tutorial — Your first redirect in 5 minutes
 
-### 1. Authenticate
+### In the dashboard
 
-All API calls use header `X-API-Key: <your_key>`. See [Getting started](./guides/getting-started.md).
+1. Sign in and open the dashboard. See [Dashboard overview](./guides/dashboard/dashboard-overview.md) for navigation and limits.
+2. Create a **domain group** — [Domain groups in the dashboard](./guides/dashboard/domain-groups-in-dashboard.md).
+3. Add a **domain** or subdomain in that group — [Domains and subdomains in the dashboard](./guides/dashboard/domains-and-subdomains-in-dashboard.md).
+4. Create a **redirect rule** for `/old-page` → your new URL — [Redirect rules in the dashboard](./guides/dashboard/redirect-rules-in-dashboard.md).
+5. Validate with **Run tests** or **Fetch expected result** — [Tests in the dashboard](./guides/dashboard/tests-in-dashboard.md).
 
-### 2. Create domain group + domain
+Point DNS at LinkShift when you are ready for live traffic.
+
+### Automate instead
+
+1. Authenticate — all API calls use header `X-API-Key: <your_key>`. See [Getting started](./guides/getting-started.md).
+2. Create domain group + domain:
 
 ```json
 POST /api/v1/domain-groups
@@ -36,9 +47,7 @@ POST /api/v1/domains
 { "name": "links.example.com", "domainGroupId": "dmg_xxx" }
 ```
 
-### 3. Create redirect rule
-
-Simple path redirect:
+3. Create redirect rule:
 
 ```json
 POST /api/v1/redirect-rules
@@ -51,7 +60,7 @@ POST /api/v1/redirect-rules
 }
 ```
 
-### 4. Verify with simulate
+4. Verify with simulate:
 
 ```json
 POST /api/v1/redirect-rules/simulate
@@ -72,6 +81,8 @@ Expected: `matched: true`, `target: https://example.com/new-page`.
 
 ## Documentation map
 
+Use this **index** when you know what you need — lookup and deep links, not a step-by-step lesson.
+
 ### Start here
 
 | Guide | When to read |
@@ -82,6 +93,26 @@ Expected: `matched: true`, `target: https://example.com/new-page`.
 | [FAQ and troubleshooting](./guides/faq.md) | Index to overview FAQ, recipes, and engine edge-case FAQ |
 | [Overview FAQ](./overview-faq.md) | Common questions and troubleshooting matrix |
 | [Domains and domain groups](./guides/domains-and-groups.md) | Domain topology |
+| [Account and access](./guides/account-and-access.md) | Sign in, invites, email verification, password reset, legal consent |
+| **Invited to a team?** | [Account and access — Accept an invitation](./guides/account-and-access.md#accept-an-invitation) |
+| [Billing and plans in the dashboard](./guides/billing-and-plans-in-dashboard.md) | Usage meters, upgrade, Paddle portal, cancel |
+| [Public tools API](./guides/public-tools-api.md) | QR and redirect trace (not Management API) |
+
+### Dashboard (authenticated app)
+
+Task guides for the sidebar UI — start at [Dashboard overview](./guides/dashboard/dashboard-overview.md):
+
+| Guide | When to read |
+|-------|--------------|
+| [Dashboard overview](./guides/dashboard/dashboard-overview.md) | Shell, nav, profile, billing summary, docs assistant |
+| [Domain groups](./guides/dashboard/domain-groups-in-dashboard.md) | Create and manage domain groups |
+| [Domains and subdomains](./guides/dashboard/domains-and-subdomains-in-dashboard.md) | Custom domains and LinkShift subdomains |
+| [Redirect rules](./guides/dashboard/redirect-rules-in-dashboard.md) | Rule wizard, table, redirect tests card |
+| [Link maps](./guides/dashboard/link-maps-in-dashboard.md) | Maps, entries, CSV import |
+| [Tests](./guides/dashboard/tests-in-dashboard.md) | Redirect test fixtures and **Run tests** |
+| [Analytics](./guides/dashboard/analytics-in-dashboard.md) | Traffic chart and rule drill-down |
+| [Organization and API keys](./guides/dashboard/organization-and-api-keys-in-dashboard.md) | Members, invites, API keys |
+| [Tools](./guides/dashboard/tools-in-dashboard.md) | QR generator and redirect tester (signed in) |
 
 ### Routing depth
 
@@ -123,4 +154,4 @@ Quick answers and a live-redirect symptom matrix: [FAQ index](./guides/faq.md) �
 - Markdown guides for routing concepts and workflows
 - Schema tree for request/response inspection
 - Built-in Try me with session-level API key persistence
-- Guides synced via `npm run docs:sync` from repository root
+- Guides synced from the published markdown source on each docs deploy

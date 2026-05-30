@@ -9,6 +9,12 @@ Base path: `/api/v1/link-maps`
 
 ---
 
+## In the dashboard
+
+In the sidebar, open **Link Maps** and select **Add link map**, then manage entries on the map detail page. See [Link maps in the dashboard](./dashboard/link-maps-in-dashboard.md).
+
+---
+
 ## When to use link maps
 
 | Scenario | Without link map | With link map |

@@ -4,7 +4,7 @@
     "title": "LinkShift Management API (API Key Accessible Endpoints) — Organization",
     "version": "1.0.0",
     "summary": "Organization-scoped redirect management API",
-    "description": "This specification describes the LinkShift endpoints that can be accessed with organization API keys.\n\nAuthentication:\n- Preferred: `X-API-Key: <your_key>`\n- Alternative: `Authorization: ApiKey <your_key>` (supported by backend, not modeled as a separate OpenAPI scheme)\n\nImportant billing behavior:\n- API keys are organization-scoped.\n- API key management endpoints (`/api/v1/api-keys`) are intentionally excluded and require dashboard user auth.\n\nRate limiting:\n- Management API requests are rate-limited per API key according to your organization's plan (not per organization aggregate).\n- Use GET /api/v1/organization/usage for current limits. When exceeded, the API returns 429 — use backoff; do not hard-code thresholds in integrations.\nThis document contains only operations tagged \"Organization\".\nTag scope: Organization-scoped operational data available for the current API key."
+    "description": "Organization-scoped Management API for redirect configuration, link maps, and operational checks.\nUse it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.\n\n**Authentication**\n- Send your key on every request: `X-API-Key: <your_key>` (preferred).\n- Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.\n\n**Typical setup order**\n1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).\n2. Link map + entries when rules resolve keys instead of a fixed destination.\n3. Redirect tests + simulate for CI; analytics for traffic review.\n\n**Errors and recovery**\n- `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).\n- `402` — API access isn't on your current plan. Upgrade subscription, then retry.\n- `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).\n- `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.\n- `404` — ID doesn't exist or isn't in your organization scope.\n\n**Dashboard-only**\nAPI key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.\n\n**Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.\nThis document contains only operations tagged \"Organization\".\nTag scope: Identity and capacity for the organization tied to your API key.\nStart with GET organization (sanity check), then GET organization/usage before bulk imports or CI loops.\n"
   },
   "servers": [
     {
@@ -20,7 +20,7 @@
   "tags": [
     {
       "name": "Organization",
-      "description": "Organization-scoped operational data available for the current API key."
+      "description": "Identity and capacity for the organization tied to your API key.\nStart with GET organization (sanity check), then GET organization/usage before bulk imports or CI loops.\n"
     }
   ],
   "paths": {
@@ -29,8 +29,8 @@
         "tags": [
           "Organization"
         ],
-        "summary": "Get organization",
-        "description": "Returns organization details for the authenticated organization context.",
+        "summary": "Get organization profile",
+        "description": "Returns the organization bound to your API key (`id`, `name`, timestamps).\nUse as a connectivity check after rotating keys or in deployment smoke tests.\nDoesn't include usage counters — call GET organization/usage for limits and inventory.\n",
         "operationId": "getOrganization",
         "responses": {
           "200": {
@@ -60,8 +60,8 @@
         "tags": [
           "Organization"
         ],
-        "summary": "Get organization usage summary",
-        "description": "Returns current resource usage for the authenticated organization.",
+        "summary": "Get organization usage counters",
+        "description": "Returns active resource counts (domain groups, domains, rules, link-map entries, etc.) for your organization.\nCompare counts to your plan limits in the dashboard; this endpoint doesn't return limit ceilings or billing state.\nPoll before large imports or rule batches to avoid hitting plan caps mid-run.\n",
         "operationId": "getOrganizationUsage",
         "responses": {
           "200": {
@@ -90,7 +90,7 @@
   "components": {
     "schemas": {
       "Organization": {
-        "description": "Organization entity bound to the authenticated API key context.",
+        "description": "Tenant record for your API key. `configuration` may include subscription metadata;\ntreat it as read-only in integrations.\n",
         "type": "object",
         "properties": {
           "id": {
@@ -132,44 +132,44 @@
         ]
       },
       "OrganizationUsage": {
-        "description": "Snapshot of current organization resource usage counters.",
+        "description": "Counts of **active** resources in your organization (soft-deleted items excluded).\nCompare to plan limits in the dashboard — this object doesn't include max allowed values or rate-limit quotas.\n",
         "type": "object",
         "properties": {
           "domainGroups": {
             "type": "integer",
-            "description": "Number of active domain groups."
+            "description": "Active domain groups (scope containers)."
           },
           "domains": {
             "type": "integer",
-            "description": "Number of active domains."
+            "description": "Active custom domains attached to groups."
           },
           "subdomains": {
             "type": "integer",
-            "description": "Number of active LinkShift subdomains."
+            "description": "Active LinkShift-hosted subdomain labels."
           },
           "rules": {
             "type": "integer",
-            "description": "Number of active redirect rules."
+            "description": "Active redirect rules across all groups."
           },
           "tests": {
             "type": "integer",
-            "description": "Number of active redirect tests."
+            "description": "Active redirect test fixtures stored for CI."
           },
           "users": {
             "type": "integer",
-            "description": "Number of organization members."
+            "description": "Organization members (dashboard users)."
           },
           "apiKeys": {
             "type": "integer",
-            "description": "Number of configured organization API keys."
+            "description": "API keys configured (management is dashboard-only)."
           },
           "linkMaps": {
             "type": "integer",
-            "description": "Number of active link maps."
+            "description": "Active link maps."
           },
           "linkMapEntries": {
             "type": "integer",
-            "description": "Number of active link-map entries."
+            "description": "Active key rows across all link maps."
           }
         },
         "required": [
@@ -185,7 +185,7 @@
         ]
       },
       "ErrorResponse": {
-        "description": "Standardized error payload returned by API endpoints.",
+        "description": "Standard error envelope. Use `key` for branching in code, `details` for human-readable fixes,\nand `requestId` when escalating to support.\n",
         "type": "object",
         "properties": {
           "code": {
@@ -222,7 +222,7 @@
     },
     "responses": {
       "Unauthorized": {
-        "description": "Missing or invalid API key",
+        "description": "Missing or invalid API key. Verify the `X-API-Key` header and that the key wasn't revoked in the dashboard; rotate if needed, then retry.",
         "content": {
           "application/json": {
             "schema": {
@@ -243,7 +243,7 @@
         }
       },
       "PaymentRequired": {
-        "description": "API usage requires paid plan",
+        "description": "API access isn't enabled on your subscription (`feature` is often `api_access`). Upgrade the plan in the dashboard, then retry with the same key.",
         "content": {
           "application/json": {
             "schema": {
@@ -265,7 +265,7 @@
         }
       },
       "TooManyRequests": {
-        "description": "Per-key rate limit exceeded",
+        "description": "Per-key rate limit for your plan. Back off exponentially with jitter; avoid tight retry loops. Check GET organization/usage for current inventory (limits are plan-defined, not returned here).",
         "content": {
           "application/json": {
             "schema": {
@@ -291,7 +291,7 @@
         "type": "apiKey",
         "in": "header",
         "name": "X-API-Key",
-        "description": "API key generated in LinkShift dashboard (`Organization -> Manage API keys`)."
+        "description": "Organization API key from the dashboard (Organization → API keys).\nSend via `X-API-Key` on every request in this spec.\n"
       }
     }
   },
