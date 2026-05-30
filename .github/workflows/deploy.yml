@@ -74,6 +74,7 @@ jobs:
             echo "APP_LEGAL_VERSION=$APP_LEGAL_VERSION"
             echo "APP_PADDLE_CLIENT_TOKEN=$APP_PADDLE_CLIENT_TOKEN"
             echo "APP_PADDLE_ENV=$APP_PADDLE_ENV"
+            echo "APP_TURNSTILE_SITE_KEY=$APP_TURNSTILE_SITE_KEY"
             echo "APP_AUTH_GATE_ENABLED=$APP_AUTH_GATE_ENABLED"
           } >> "$GITHUB_ENV"
 
@@ -108,6 +109,7 @@ jobs:
             APP_LEGAL_VERSION=${{ env.APP_LEGAL_VERSION }}
             APP_PADDLE_CLIENT_TOKEN=${{ env.APP_PADDLE_CLIENT_TOKEN }}
             APP_PADDLE_ENV=${{ env.APP_PADDLE_ENV }}
+            APP_TURNSTILE_SITE_KEY=${{ env.APP_TURNSTILE_SITE_KEY }}
             APP_AUTH_GATE_ENABLED=${{ env.APP_AUTH_GATE_ENABLED }}
           tags: |
             ghcr.io/${{ github.repository_owner }}/linkshift-frontend:latest

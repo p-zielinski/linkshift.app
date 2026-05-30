@@ -139,11 +139,18 @@
   gap: 10px 16px;
 }
 
-.docs-assistant__footer-row .docs-assistant__disclaimer {
+.docs-assistant__footer-row .docs-assistant__footer-notes {
   flex: 1 1 auto;
   flex-shrink: 0;
   min-width: auto;
   max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.docs-assistant__footer-row .docs-assistant__disclaimer,
+.docs-assistant__footer-row .docs-assistant__privacy-note {
   margin: 0;
 }
 

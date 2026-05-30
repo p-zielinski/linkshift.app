@@ -11,7 +11,7 @@ describe('needsLegalConsent', () => {
     legalAddress: 'Address',
     privacyEmail: 'privacy@test.app',
     minAge: 16,
-    legalVersion: 'v1',
+    legalVersion: 'v2',
   };
 
   it('returns true when consent timestamps are missing', () => {
@@ -40,7 +40,7 @@ describe('needsLegalConsent', () => {
       termsAcceptedAt: new Date().toISOString(),
       privacyAcceptedAt: new Date().toISOString(),
       ageConfirmedAt: new Date().toISOString(),
-      legalVersion: 'v1',
+      legalVersion: 'v2',
     } as User;
 
     expect(needsLegalConsent(user, siteConfig)).toBe(false);

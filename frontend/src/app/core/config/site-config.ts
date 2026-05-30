@@ -20,7 +20,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   legalAddress: 'Available upon request',
   privacyEmail: 'privacy@redirectcontrol.app',
   minAge: 16,
-  legalVersion: 'v1',
+  legalVersion: 'v2',
 };
 
 export const SITE_CONFIG = new InjectionToken<SiteConfig>('SITE_CONFIG', {
