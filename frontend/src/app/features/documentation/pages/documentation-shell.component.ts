@@ -1,5 +1,6 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
+  AfterViewInit,
   Component,
   DestroyRef,
   PLATFORM_ID,
@@ -8,13 +9,9 @@ import {
   ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  Router,
-  RouterLink,
-  RouterLinkActive,
-  RouterOutlet,
-  NavigationEnd,
-} from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter, map, startWith } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import {
   MatSidenavContent,
@@ -26,11 +23,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { filter } from 'rxjs/operators';
 import { DocumentationOpenApiService } from '../services/documentation-openapi.service';
 import { DocumentationContentService } from '../services/documentation-content.service';
+import { DocumentationScrollService } from '../services/documentation-scroll.service';
 import { OpenApiTagGroup } from '../models/openapi.types';
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
+import { DocsAssistantDrawerService } from '../services/docs-assistant-drawer.service';
 
 const MOBILE_BREAKPOINT = '(max-width: 1023px)';
 const SMALL_SCREEN_BREAKPOINT = '(max-width: 767px)';
@@ -55,19 +53,22 @@ const SMALL_SCREEN_BREAKPOINT = '(max-width: 767px)';
   templateUrl: './documentation-shell.component.html',
   styleUrl: './documentation-shell.component.css',
 })
-export class DocumentationShellComponent {
+export class DocumentationShellComponent implements AfterViewInit {
   readonly openApi = inject(DocumentationOpenApiService);
   readonly docsContent = inject(DocumentationContentService);
+  private readonly docsScroll = inject(DocumentationScrollService);
 
   readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly assistantDrawer = inject(DocsAssistantDrawerService);
 
   readonly isMobile = signal(false);
   readonly isSmallScreen = signal(false);
   readonly mobileDrawerOpen = signal(false);
   readonly manuallyExpandedGroups = signal<string[]>([]);
+  readonly assistantDrawerOpen = this.assistantDrawer.open;
 
   @ViewChild(MatSidenavContent) private docsContentRef?: MatSidenavContent;
 
@@ -90,21 +91,25 @@ export class DocumentationShellComponent {
           this.mobileDrawerOpen.set(false);
         }
       });
+  }
 
-    this.router.events
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      )
-      .subscribe(() => {
-        this.scrollDocsContentToTop();
-      });
+  ngAfterViewInit(): void {
+    this.docsScroll.registerSidenavContent(this.docsContentRef);
   }
 
   readonly introLinks = [
     { label: 'Overview', route: '/docs' },
     { label: 'API reference', route: '/docs/reference' },
   ];
+
+  readonly currentRoutePath = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => this.router.url.split('?')[0] ?? this.router.url),
+      startWith(this.router.url.split('?')[0] ?? this.router.url),
+    ),
+    { initialValue: this.router.url.split('?')[0] ?? this.router.url },
+  );
 
   readonly siteLinks = [
     { label: 'Home', route: '/home' },
@@ -152,18 +157,20 @@ export class DocumentationShellComponent {
     this.closeDrawerOnMobile();
   }
 
-  private currentRoutePath(): string {
-    return this.router.url.split('?')[0] ?? this.router.url;
+  openAssistantDrawer(): void {
+    this.closeDrawerOnMobile();
+    this.assistantDrawer.openDrawer();
   }
 
-  private scrollDocsContentToTop(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
+  closeAssistantDrawer(): void {
+    this.assistantDrawer.closeDrawer();
+  }
+
+  toggleAssistantDrawer(): void {
+    if (!this.assistantDrawerOpen()) {
+      this.closeDrawerOnMobile();
     }
-
-    this.docsContentRef?.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
+    this.assistantDrawer.toggleDrawer();
   }
+
 }

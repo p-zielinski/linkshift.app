@@ -9,3 +9,5 @@ deploy/stack.env
 /node_modules/
 /backend-tools/node_modules/
 /backend-tools/dist/
+.env
+.cursor/*

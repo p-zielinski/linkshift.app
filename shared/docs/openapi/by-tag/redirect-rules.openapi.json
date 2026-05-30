@@ -1,0 +1,1084 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LinkShift Management API (API Key Accessible Endpoints) — Redirect Rules",
+    "version": "1.0.0",
+    "summary": "Organization-scoped redirect management API",
+    "description": "Organization-scoped Management API for redirect configuration, link maps, and operational checks.\nUse it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.\n\n**Authentication**\n- Send your key on every request: `X-API-Key: <your_key>` (preferred).\n- Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.\n\n**Typical setup order**\n1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).\n2. Link map + entries when rules resolve keys instead of a fixed destination.\n3. Redirect tests + simulate for CI; analytics for traffic review.\n\n**Errors and recovery**\n- `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).\n- `402` — API access isn't on your current plan. Upgrade subscription, then retry.\n- `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).\n- `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.\n- `404` — ID doesn't exist or isn't in your organization scope.\n\n**Dashboard-only**\nAPI key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.\n\n**Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.\nThis document contains only operations tagged \"Redirect Rules\".\nTag scope: Matching logic and HTTP status for live redirects.\nPair with POST simulate (no live traffic) and GET analytics (aggregated hits).\nList/create require `domainGroupId`.\n"
+  },
+  "servers": [
+    {
+      "url": "https://linkshift.app",
+      "description": "Production API host"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Redirect Rules",
+      "description": "Matching logic and HTTP status for live redirects.\nPair with POST simulate (no live traffic) and GET analytics (aggregated hits).\nList/create require `domainGroupId`.\n"
+    }
+  ],
+  "paths": {
+    "/api/v1/redirect-rules": {
+      "get": {
+        "tags": [
+          "Redirect Rules"
+        ],
+        "summary": "List redirect rules (cursor)",
+        "description": "Lists redirect rules for one `domainGroupId`, highest `priority` first.\nPage with `limit` (default 20, max 100) and `startAfterId` from `moreStartingAfterId` on the previous response.\nOptional `search` filters source/destination text. Returns 400 when query params are invalid.\n",
+        "operationId": "listRedirectRules",
+        "parameters": [
+          {
+            "name": "domainGroupId",
+            "in": "query",
+            "required": true,
+            "description": "Domain group whose rules you want. Required on every page; get IDs from list domain groups or your provisioning store.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of items to return (cursor page size).",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Free-text search over rule source/destination fields.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startAfterId",
+            "in": "query",
+            "required": false,
+            "description": "Cursor token using the last item ID from previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Redirect rules list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectRuleQueryResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Redirect Rules"
+        ],
+        "summary": "Create redirect rule",
+        "description": "Adds a rule that participates in **live** redirect matching for the domain group.\nNot idempotent — duplicate sources may be rejected or behave unpredictably; use list + update in CI when you need upsert semantics.\nSet `linkMapId` only with a null/empty `destination`. Deeper validation (regex captures, placeholders, conditionals) runs server-side — expect 400 with `details` on failure.\nFor dry-run matching without traffic impact, use POST redirect-rules/simulate after create.\n",
+        "operationId": "createRedirectRule",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRedirectRuleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created redirect rule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectRule"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/redirect-rules/analytics": {
+      "get": {
+        "tags": [
+          "Redirect Rules"
+        ],
+        "summary": "Get top redirect rules by hits",
+        "description": "Aggregated hit counts per rule (and top link-map keys / request variants) for monitoring — not raw request logs.\nPreset window: omit `start`/`end` and use `range` (`day` = 24h, `week` = 7d, `month` = 30d, default `day`), ending at the current UTC hour.\nCustom window: pass both `start` and `end` (ISO-8601 UTC); values floor to hour boundaries; span max 31 days.\nOptional `domainGroupId` narrows results. Dashboard charts may show additional dimensions not exposed here.\n",
+        "operationId": "getRedirectRuleAnalytics",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Number of top rules returned in analytics results.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 50
+            }
+          },
+          {
+            "name": "range",
+            "in": "query",
+            "required": false,
+            "description": "Predefined analytics range (used when start/end are not provided).",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "day",
+                "week",
+                "month"
+              ]
+            }
+          },
+          {
+            "name": "domainGroupId",
+            "in": "query",
+            "required": false,
+            "description": "Limit analytics to a specific domain group.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "description": "Start of analytics window (ISO-8601 UTC datetime). Floored to the start of that UTC hour. Inclusive — hourly buckets with bucketStart >= this value are included.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "description": "End of analytics window (ISO-8601 UTC datetime). Floored to the start of that UTC hour. Inclusive — hourly buckets with bucketStart <= this value are included. Span from start to end cannot exceed 31 days.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Analytics payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectRuleAnalyticsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/redirect-rules/simulate": {
+      "post": {
+        "tags": [
+          "Redirect Rules"
+        ],
+        "summary": "Simulate redirect rule matching",
+        "description": "Evaluates up to 100 request samples against **current** rules — no HTTP redirect is issued and analytics aren't written.\nUse in CI after POST create redirect rule or when validating redirect tests: build `entries[]` from fixture `pathWithQuery` + `requestData`.\nUnknown `domainGroupId` → 400. Set `checkDestinationBlacklist: true` to surface `blacklistBlocked` / `blacklistCheckFailed` like live traffic (403/503 behavior).\n",
+        "operationId": "simulateRedirectRules",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateRedirectsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Simulation results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectSimulationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/redirect-rules/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/EntityId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Redirect Rules"
+        ],
+        "summary": "Get redirect rule by ID",
+        "description": "Fetches the full rule (source, destination, `linkMapId`, priority, match options, block flags).\nReturns 404 when soft-deleted or outside your organization.\n",
+        "operationId": "getRedirectRule",
+        "responses": {
+          "200": {
+            "description": "Redirect rule details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectRule"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Redirect Rules"
+        ],
+        "summary": "Update redirect rule",
+        "description": "Replaces mutable fields on an existing rule; same validation as create.\nChanges apply to live matching on the next request. Returns 400 on invalid source/destination/conditional payload; 404 when the rule ID is out of scope.\n",
+        "operationId": "updateRedirectRule",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRedirectRuleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated redirect rule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectRule"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Redirect Rules"
+        ],
+        "summary": "Delete redirect rule (soft)",
+        "description": "Removes the rule from live matching (soft delete).\nIdempotent for automation: repeating delete on the same ID still returns 404 once gone.\n",
+        "operationId": "deleteRedirectRule",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RedirectRuleQueryResult": {
+        "description": "Paginated redirect-rule query response.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/QueryResultMeta"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "description": "Redirect-rule items in current page.",
+                "items": {
+                  "$ref": "#/components/schemas/RedirectRule"
+                }
+              }
+            },
+            "required": [
+              "data"
+            ]
+          }
+        ]
+      },
+      "CreateRedirectRuleRequest": {
+        "description": "Payload for creating a redirect rule.",
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16384,
+            "description": "Source matcher expression."
+          },
+          "destination": {
+            "type": "string",
+            "maxLength": 16384,
+            "nullable": true,
+            "description": "Static destination URL. Keep null when using `linkMapId`."
+          },
+          "statusCode": {
+            "type": "integer",
+            "enum": [
+              301,
+              302,
+              307,
+              308
+            ],
+            "default": 302,
+            "description": "HTTP redirect status used for rule matches."
+          },
+          "matchMethod": {
+            "type": "array",
+            "maxItems": 6,
+            "description": "Allowed request methods (no duplicates). Empty array means all methods. At most six methods (all seven HTTP methods cannot be listed explicitly).",
+            "items": {
+              "$ref": "#/components/schemas/HttpMethod"
+            }
+          },
+          "queryMatch": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "ignore",
+              "subset"
+            ],
+            "default": "exact",
+            "description": "Query-string matching strategy."
+          },
+          "pathMatch": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "prefix"
+            ],
+            "default": "exact",
+            "description": "Path matching strategy."
+          },
+          "linkMapId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional link-map ID for key-based destinations."
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000,
+            "default": 0,
+            "description": "Rule priority (higher first)."
+          },
+          "domainGroupId": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Target domain-group ID."
+          }
+        },
+        "required": [
+          "source",
+          "domainGroupId"
+        ]
+      },
+      "RedirectRule": {
+        "description": "Live redirect matcher: evaluated by priority (higher first) within a domain group.\nEither `destination` or `linkMapId` drives the target URL; `isBlocked` pauses matching without deleting.\n",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Redirect-rule ID."
+          },
+          "source": {
+            "type": "string",
+            "description": "Source matcher expression."
+          },
+          "destination": {
+            "type": "string",
+            "nullable": true,
+            "description": "Static redirect destination URL. Null when dynamic destination is used via link map."
+          },
+          "statusCode": {
+            "type": "integer",
+            "enum": [
+              301,
+              302,
+              307,
+              308
+            ],
+            "description": "HTTP redirect status returned for matches."
+          },
+          "matchMethod": {
+            "type": "array",
+            "description": "Allowed request methods. Empty array means all methods.",
+            "items": {
+              "$ref": "#/components/schemas/HttpMethod"
+            }
+          },
+          "queryMatch": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "ignore",
+              "subset"
+            ],
+            "description": "Query-string matching strategy."
+          },
+          "pathMatch": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "prefix"
+            ],
+            "description": "Path matching strategy."
+          },
+          "linkMapId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional linked map used for key-based destinations."
+          },
+          "isBlocked": {
+            "type": "boolean",
+            "description": "Whether the rule is currently blocked from execution."
+          },
+          "blockedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when the rule was blocked."
+          },
+          "priority": {
+            "type": "integer",
+            "description": "Rule priority (higher first)."
+          },
+          "domainGroupId": {
+            "type": "string",
+            "description": "Parent domain-group ID."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp (UTC)."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp (UTC)."
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Soft-delete timestamp in UTC when deleted."
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "statusCode",
+          "matchMethod",
+          "queryMatch",
+          "pathMatch",
+          "priority",
+          "domainGroupId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "RedirectRuleAnalyticsResponse": {
+        "description": "Aggregated rule-level traffic analytics.",
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "description": "Per-rule analytics entries.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rule": {
+                  "$ref": "#/components/schemas/RedirectRule"
+                },
+                "hits": {
+                  "type": "integer",
+                  "description": "Total matched hits in selected range."
+                },
+                "topLinkMapKeys": {
+                  "type": "array",
+                  "description": "Most frequent link-map keys matched by this rule.",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "description": "Resolved link-map key."
+                      },
+                      "hits": {
+                        "type": "integer",
+                        "description": "Number of hits for this key."
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "hits"
+                    ]
+                  }
+                },
+                "topRequestVariants": {
+                  "type": "array",
+                  "description": "Most frequent request variant signatures for this rule.",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "requestMethod": {
+                        "type": "string",
+                        "description": "Request method."
+                      },
+                      "requestPath": {
+                        "type": "string",
+                        "description": "Request path."
+                      },
+                      "requestQuery": {
+                        "type": "string",
+                        "description": "Request query string."
+                      },
+                      "requestUrl": {
+                        "type": "string",
+                        "description": "Full normalized request URL."
+                      },
+                      "destination": {
+                        "type": "string",
+                        "description": "Destination URL returned by matching."
+                      },
+                      "linkMapKey": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Link-map key used in resolution when applicable."
+                      },
+                      "hits": {
+                        "type": "integer",
+                        "description": "Hit count for this variant."
+                      }
+                    },
+                    "required": [
+                      "requestMethod",
+                      "requestPath",
+                      "requestQuery",
+                      "requestUrl",
+                      "destination",
+                      "hits"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "rule",
+                "hits",
+                "topLinkMapKeys",
+                "topRequestVariants"
+              ]
+            }
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "SimulateRedirectsRequest": {
+        "description": "Batch request payload for rule simulation.",
+        "type": "object",
+        "properties": {
+          "checkDestinationBlacklist": {
+            "type": "boolean",
+            "default": false,
+            "description": "When true, each matched absolute http(s) target is checked against the platform domain blacklist (same logic as live redirects). Default false preserves legacy simulate behavior."
+          },
+          "entries": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "description": "Request samples that should be evaluated by the simulation engine.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "domainGroupId": {
+                  "type": "string",
+                  "maxLength": 100,
+                  "description": "Domain-group scope for this sample."
+                },
+                "hostname": {
+                  "type": "string",
+                  "maxLength": 253,
+                  "description": "Optional request host header."
+                },
+                "path": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Request path (without protocol/host)."
+                },
+                "method": {
+                  "$ref": "#/components/schemas/HttpMethod"
+                },
+                "ip": {
+                  "type": "string",
+                  "description": "Optional client IP used by conditional rules."
+                },
+                "userAgent": {
+                  "type": "string",
+                  "maxLength": 512,
+                  "description": "Optional user-agent used by conditional rules."
+                },
+                "headers": {
+                  "type": "object",
+                  "description": "Optional request headers map. Keys `user-agent` and `accept-language` (case-insensitive) feed `{user-agent}` and `{accept-language}` placeholders.",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "query": {
+                  "type": "object",
+                  "description": "Optional query parameters map.",
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "domainGroupId",
+                "path"
+              ]
+            }
+          }
+        },
+        "required": [
+          "entries"
+        ]
+      },
+      "RedirectSimulationResponse": {
+        "description": "Simulation result payload for each input request sample.",
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "description": "Simulation result rows matching the input order.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "description": "Index of input entry."
+                },
+                "domainGroupId": {
+                  "type": "string",
+                  "description": "Domain-group scope used in simulation."
+                },
+                "method": {
+                  "type": "string",
+                  "description": "Effective HTTP method used for matching."
+                },
+                "path": {
+                  "type": "string",
+                  "description": "Effective request path used for matching."
+                },
+                "hostname": {
+                  "type": "string",
+                  "description": "Effective host used for matching."
+                },
+                "matched": {
+                  "type": "boolean",
+                  "description": "Whether a redirect rule matched."
+                },
+                "statusCode": {
+                  "type": "integer",
+                  "description": "Resulting HTTP status code."
+                },
+                "target": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Resolved redirect target URL when matched."
+                },
+                "linkMapKey": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Link-map lookup key extracted when a link-map rule matched; null otherwise."
+                },
+                "blacklistBlocked": {
+                  "type": "boolean",
+                  "description": "Present when checkDestinationBlacklist is true and the resolved absolute target host is on the platform domain blacklist. Rule matching succeeded; live traffic would return 403 instead of redirecting."
+                },
+                "blacklistCheckFailed": {
+                  "type": "boolean",
+                  "description": "Present when checkDestinationBlacklist is true and the blacklist service could not verify the destination. Live traffic would return 503 (fail-closed)."
+                }
+              },
+              "required": [
+                "index",
+                "domainGroupId",
+                "method",
+                "path",
+                "hostname",
+                "matched",
+                "statusCode",
+                "linkMapKey"
+              ]
+            }
+          }
+        },
+        "required": [
+          "results"
+        ]
+      },
+      "UpdateRedirectRuleRequest": {
+        "description": "Payload for updating a redirect rule.",
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16384,
+            "description": "Source matcher expression."
+          },
+          "destination": {
+            "type": "string",
+            "maxLength": 16384,
+            "nullable": true,
+            "description": "Static destination URL. Keep null when using `linkMapId`."
+          },
+          "statusCode": {
+            "type": "integer",
+            "enum": [
+              301,
+              302,
+              307,
+              308
+            ],
+            "description": "HTTP redirect status used for rule matches."
+          },
+          "matchMethod": {
+            "type": "array",
+            "maxItems": 6,
+            "description": "Allowed request methods (no duplicates). Empty array means all methods.",
+            "items": {
+              "$ref": "#/components/schemas/HttpMethod"
+            }
+          },
+          "queryMatch": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "ignore",
+              "subset"
+            ],
+            "description": "Query-string matching strategy."
+          },
+          "pathMatch": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "prefix"
+            ],
+            "description": "Path matching strategy."
+          },
+          "linkMapId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional link-map ID for key-based destinations."
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000,
+            "description": "Rule priority (higher first)."
+          }
+        }
+      },
+      "QueryResultMeta": {
+        "description": "Metadata envelope shared by cursor-paginated query responses.",
+        "type": "object",
+        "properties": {
+          "dataType": {
+            "type": "string",
+            "description": "Logical item type in the `data` array."
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether there are additional results after this page."
+          },
+          "moreStartingAfterId": {
+            "type": "string",
+            "description": "Cursor token to request the next page."
+          }
+        },
+        "required": [
+          "dataType",
+          "hasMore"
+        ]
+      },
+      "ErrorResponse": {
+        "description": "Standard error envelope. Use `key` for branching in code, `details` for human-readable fixes,\nand `requestId` when escalating to support.\n",
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "HTTP-like numeric status code."
+          },
+          "key": {
+            "type": "string",
+            "description": "Stable machine-readable error key."
+          },
+          "message": {
+            "type": "string",
+            "description": "Short error summary."
+          },
+          "details": {
+            "type": "string",
+            "description": "Human-readable details explaining the error."
+          },
+          "requestId": {
+            "type": "string",
+            "description": "Correlation ID useful for support and troubleshooting."
+          },
+          "feature": {
+            "type": "string",
+            "description": "Optional feature gate identifier when relevant (for example `api_access`)."
+          }
+        },
+        "required": [
+          "code",
+          "key",
+          "message"
+        ]
+      },
+      "HttpMethod": {
+        "description": "HTTP request method.",
+        "type": "string",
+        "enum": [
+          "GET",
+          "POST",
+          "PUT",
+          "PATCH",
+          "DELETE",
+          "OPTIONS",
+          "HEAD"
+        ]
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Request body or query failed validation. Read `details` (and optional field hints) in the JSON body; fix the payload and retry. Include `requestId` when contacting support.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid API key. Verify the `X-API-Key` header and that the key wasn't revoked in the dashboard; rotate if needed, then retry.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "unauthorized": {
+                "value": {
+                  "code": 401,
+                  "key": "unauthorized",
+                  "message": "Unauthorized",
+                  "details": "Missing or invalid API key.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PaymentRequired": {
+        "description": "API access isn't enabled on your subscription (`feature` is often `api_access`). Upgrade the plan in the dashboard, then retry with the same key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "paymentRequired": {
+                "value": {
+                  "code": 402,
+                  "key": "payment_required",
+                  "message": "Payment required",
+                  "feature": "api_access",
+                  "details": "API key usage is available on paid plans only. Upgrade your subscription to use API access.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Per-key rate limit for your plan. Back off exponentially with jitter; avoid tight retry loops. Check GET organization/usage for current inventory (limits are plan-defined, not returned here).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "tooManyRequests": {
+                "value": {
+                  "code": 429,
+                  "key": "too_many_requests",
+                  "message": "Too many requests",
+                  "details": "API key rate limit exceeded",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource ID doesn't exist, was soft-deleted, or isn't in your organization. Confirm the ID from a fresh list call and that you're using the correct API key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "EntityId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Resource ID from a prior list or create response (same string you store in automation state). Wrong or foreign-org IDs return 404.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Organization API key from the dashboard (Organization → API keys).\nSend via `X-API-Key` on every request in this spec.\n"
+      }
+    }
+  },
+  "x-linkshift": {
+    "sourceTag": "Redirect Rules",
+    "operationCount": 7,
+    "generatedBy": "scripts/openapi-split-by-tag.mjs"
+  }
+}

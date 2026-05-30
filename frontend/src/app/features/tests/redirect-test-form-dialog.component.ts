@@ -43,19 +43,12 @@ const METHOD_OPTIONS: Array<{ label: string; value: string }> = [
   { label: 'OPTIONS', value: HttpMethod.OPTIONS }
 ];
 
-const PROTOCOL_OPTIONS = [
-  { label: 'Auto', value: '' },
-  { label: 'HTTPS', value: 'https' },
-  { label: 'HTTP', value: 'http' }
-];
-
 type RedirectTestFormModel = {
   domainGroupId: string;
   hostname: string;
   path: string;
   query: string;
   method: string;
-  protocol: string;
   ip: string;
   userAgent: string;
   headers: string;
@@ -109,8 +102,6 @@ export class RedirectTestFormDialogComponent {
   readonly submitLabel = this.isEdit ? 'Save' : 'Create';
   readonly statusCodeOptions = STATUS_CODE_OPTIONS;
   readonly methodOptions = METHOD_OPTIONS;
-  readonly protocolOptions = PROTOCOL_OPTIONS;
-
   private readonly initialPathState = splitPathWithQuery(this.test?.pathWithQuery ?? '');
   private readonly initialQuery =
     stringifyQuery(this.test?.requestData?.query) || this.initialPathState.query;
@@ -136,10 +127,6 @@ export class RedirectTestFormDialogComponent {
     method:
       this.test?.requestData?.method ??
       this.prefill.method ??
-      '',
-    protocol:
-      this.test?.requestData?.protocol ??
-      this.prefill.protocol ??
       '',
     ip:
       this.test?.requestData?.ip ??
@@ -186,7 +173,6 @@ export class RedirectTestFormDialogComponent {
       path: model.path,
       query: model.query,
       method: model.method,
-      protocol: model.protocol,
       ip: model.ip,
       userAgent: model.userAgent,
       headers: model.headers
@@ -389,7 +375,6 @@ export class RedirectTestFormDialogComponent {
     try {
       const requestData = buildRequestData({
         method: model.method,
-        protocol: model.protocol,
         hostname: model.hostname,
         ip: model.ip,
         userAgent: model.userAgent,
@@ -401,7 +386,6 @@ export class RedirectTestFormDialogComponent {
         hostname: requestData.hostname,
         path: ensureLeadingSlash(model.path.trim()),
         method: requestData.method,
-        protocol: requestData.protocol,
         ip: requestData.ip,
         userAgent: requestData.userAgent,
         headers: requestData.headers,
@@ -442,7 +426,6 @@ export class RedirectTestFormDialogComponent {
       const pathWithQuery = buildPathWithQuery(value.path, value.query);
       const requestData = buildRequestData({
         method: value.method,
-        protocol: value.protocol,
         hostname: value.hostname,
         ip: value.ip,
         userAgent: value.userAgent,

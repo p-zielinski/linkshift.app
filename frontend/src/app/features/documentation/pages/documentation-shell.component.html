@@ -1,4 +1,4 @@
-<mat-sidenav-container class="docs-shell page-background">
+<mat-sidenav-container class="docs-shell page-background h-full min-h-0">
   <mat-sidenav
     class="docs-sidebar"
     [mode]="isMobile() ? 'over' : 'side'"
@@ -7,14 +7,30 @@
     [fixedTopGap]="0"
     (openedChange)="mobileDrawerOpen.set($event)"
   >
-    <div class="p-4">
-      <a routerLink="/docs" class="block rounded-xl borderbg-white p-3 no-underline">
-        <div class="text-base font-semibold text-app-text">LinkShift docs</div>
-        <div class="mt-1 text-xs text-app-muted">OpenAPI-driven API documentation</div>
-      </a>
-    </div>
+    <div class="docs-sidebar-layout flex min-h-0 flex-col">
+      <div class="shrink-0 p-4">
+        <button
+          type="button"
+          class="docs-sidebar-ask"
+          [class.docs-sidebar-ask--active]="assistantDrawerOpen()"
+          aria-label="Open Ask docs"
+          [attr.aria-expanded]="assistantDrawerOpen()"
+          (click)="openAssistantDrawer()"
+        >
+          <span class="docs-sidebar-ask__icon-badge" aria-hidden="true">
+            <mat-icon class="docs-sidebar-ask__icon">auto_awesome</mat-icon>
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="docs-sidebar-ask__title-row">
+              <span class="docs-sidebar-ask__title">Ask docs</span>
+              <span class="docs-sidebar-ask__ai-tag">AI</span>
+            </span>
+            <span class="docs-sidebar-ask__hint">Answers from documentation</span>
+          </span>
+        </button>
+      </div>
 
-    <div class="px-3 pb-4">
+      <div class="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
       @if (isSmallScreen()) {
         <div class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted">
           Site
@@ -48,6 +64,17 @@
             (click)="closeDrawerOnMobile()"
           >
             {{ item.label }}
+          </a>
+        }
+        @for (page of docsContent.introPages; track page.slug) {
+          <a
+            mat-list-item
+            class="rounded-lg"
+            [routerLink]="page.route"
+            routerLinkActive="active"
+            (click)="closeDrawerOnMobile()"
+          >
+            {{ page.title }}
           </a>
         }
       </mat-nav-list>
@@ -132,13 +159,14 @@
           }
         </mat-accordion>
       }
+      </div>
     </div>
   </mat-sidenav>
 
-  <mat-sidenav-content class="block h-full">
-    <div class="flex min-h-full flex-col">
+  <mat-sidenav-content class="flex h-full min-h-0 flex-col">
+    <div class="flex min-h-0 flex-1 flex-col">
       <mat-toolbar
-        class="sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fff3f6_0%,#fff_55%,#f7edf2_100%)] text-[#241c21] md:hidden"
+        class="docs-shell-mobile-toolbar sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fff3f6_0%,#fff_55%,#f7edf2_100%)] text-[#241c21] md:hidden"
       >
         <div class="mx-auto flex w-full max-w-[1280px] items-center gap-4 px-4 py-2">
           <div class="inline-flex items-center gap-3">
@@ -160,6 +188,17 @@
 
           <span class="flex-1"></span>
 
+          <button
+            mat-icon-button
+            type="button"
+            class="!text-[var(--app-accent-strong,#8f2045)]"
+            aria-label="Open Ask docs"
+            [attr.aria-expanded]="assistantDrawerOpen()"
+            (click)="toggleAssistantDrawer()"
+          >
+            <mat-icon>auto_awesome</mat-icon>
+          </button>
+
           <div class="md:hidden">
             <a mat-flat-button color="primary" routerLink="/auth">Go to App</a>
           </div>
@@ -168,9 +207,11 @@
 
       <div class="mx-auto w-full max-w-[1280px] flex-1 p-3 sm:p-4 lg:p-5">
         <div class="mt-2">
+          <div id="docs-page-top" class="docs-page-top-anchor" aria-hidden="true"></div>
           <router-outlet />
         </div>
       </div>
+
     </div>
   </mat-sidenav-content>
 </mat-sidenav-container>

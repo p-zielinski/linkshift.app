@@ -50,6 +50,8 @@ Public marketing tools are served by a dedicated service:
   - `GET /api/v1/public/qr-code`
   - `GET /api/v1/public/trace` (single-step trace)
   - `GET /trace` (single-step alias)
+  - `POST /api/v1/public/docs/search` — docs assistant (Turnstile + rate limits)
+  - `POST /api/v1/public/docs/rate` — thumbs up/down on answers
 - Redirect trace behavior:
   - One API call returns one hop (`maxRedirects: 0`)
   - Frontend decides whether to continue and applies hop limit/loop detection
@@ -90,12 +92,11 @@ SSR/CSR routing checklist for dashboard pages:
 
 ## File-Tree Conventions
 
-- Backend docs: `backend/docs/*`
-- Public API docs: `backend/docs/public-api/*`
-- OpenAPI spec for API-key-accessible endpoints:
-  - `backend/docs/openapi/linkshift-api-keys.openapi.yaml`
-- Shared cross-runtime models:
-  - `shared/models/*`
+- Shared documentation (markdown + OpenAPI): `shared/docs/*`
+- Docs sync script: `scripts/docs-sync.mjs` (`npm run docs:sync` from repo root)
+- Docs AI agent: `agents/docs-assistant/` (implementation in `backend-tools/src/docs-assistant/`)
+- Internal backend notes (non-public): `backend/docs/*` (e.g. testing plans, `redirect-engine-code-review-queue.md` for engine TDD follow-ups)
+- Shared cross-runtime models: `shared/models/*`
 
 ## Development Notes
 

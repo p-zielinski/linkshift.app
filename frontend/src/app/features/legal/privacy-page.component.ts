@@ -13,7 +13,7 @@ import { SeoService } from '../../core/seo/seo.service';
 export class PrivacyPageComponent implements OnInit {
   private readonly seo = inject(SeoService);
   readonly siteConfig = inject(SITE_CONFIG);
-  readonly updatedAt = '2026-02-26';
+  readonly updatedAt = '2026-05-30';
 
   ngOnInit(): void {
     this.seo.updateTags({

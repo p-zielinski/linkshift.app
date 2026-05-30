@@ -1,0 +1,604 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LinkShift Management API (API Key Accessible Endpoints) — Redirect Tests",
+    "version": "1.0.0",
+    "summary": "Organization-scoped redirect management API",
+    "description": "Organization-scoped Management API for redirect configuration, link maps, and operational checks.\nUse it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.\n\n**Authentication**\n- Send your key on every request: `X-API-Key: <your_key>` (preferred).\n- Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.\n\n**Typical setup order**\n1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).\n2. Link map + entries when rules resolve keys instead of a fixed destination.\n3. Redirect tests + simulate for CI; analytics for traffic review.\n\n**Errors and recovery**\n- `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).\n- `402` — API access isn't on your current plan. Upgrade subscription, then retry.\n- `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).\n- `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.\n- `404` — ID doesn't exist or isn't in your organization scope.\n\n**Dashboard-only**\nAPI key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.\n\n**Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.\nThis document contains only operations tagged \"Redirect Tests\".\nTag scope: Named fixtures (path + expected outcome) for regression and CI.\nStore expectations here; run POST redirect-rules/simulate to evaluate them in pipelines.\n"
+  },
+  "servers": [
+    {
+      "url": "https://linkshift.app",
+      "description": "Production API host"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Redirect Tests",
+      "description": "Named fixtures (path + expected outcome) for regression and CI.\nStore expectations here; run POST redirect-rules/simulate to evaluate them in pipelines.\n"
+    }
+  ],
+  "paths": {
+    "/api/v1/redirect-tests": {
+      "get": {
+        "tags": [
+          "Redirect Tests"
+        ],
+        "summary": "List redirect tests (cursor)",
+        "description": "Lists stored CI/regression fixtures for one `domainGroupId`.\nDefault `limit` is 100 (max 100). Use `startAfterId` from `moreStartingAfterId` to walk pages.\n",
+        "operationId": "listRedirectTests",
+        "parameters": [
+          {
+            "name": "domainGroupId",
+            "in": "query",
+            "required": true,
+            "description": "Domain group that owns the fixtures. Pair with POST simulate using the same group ID in each sample.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of tests returned in one page.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Optional text search over test path/query content.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startAfterId",
+            "in": "query",
+            "required": false,
+            "description": "Cursor token using the last item ID from previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Redirect tests list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectTestQueryResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Redirect Tests"
+        ],
+        "summary": "Create redirect test fixture",
+        "description": "Persists an expected outcome (`expectedResult`) for a `pathWithQuery` under a domain group.\nDoesn't run matching by itself — in CI, POST redirect-rules/simulate with equivalent request data and assert against `expectedResult`.\nReturns 404 when `domainGroupId` is invalid.\n",
+        "operationId": "createRedirectTest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRedirectTestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created redirect test",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectTest"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/redirect-tests/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/EntityId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Redirect Tests"
+        ],
+        "summary": "Get redirect test by ID",
+        "description": "Fetches one fixture including `pathWithQuery`, `requestData`, and `expectedResult`.\nReturns 404 when deleted or outside your organization.\n",
+        "operationId": "getRedirectTest",
+        "responses": {
+          "200": {
+            "description": "Redirect test details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectTest"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Redirect Tests"
+        ],
+        "summary": "Update redirect test fixture",
+        "description": "Changes path, request metadata, or expected outcome for an existing fixture.\nReturns 400 when the body is invalid; 404 when the test ID is out of scope.\n",
+        "operationId": "updateRedirectTest",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRedirectTestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated redirect test",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedirectTest"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Redirect Tests"
+        ],
+        "summary": "Delete redirect test (soft)",
+        "description": "Removes a fixture from the catalog (soft delete).\nUse when retiring CI cases; simulate history isn't stored per test.\n",
+        "operationId": "deleteRedirectTest",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RedirectTestQueryResult": {
+        "description": "Paginated redirect-test query response.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/QueryResultMeta"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "description": "Redirect-test items in current page.",
+                "items": {
+                  "$ref": "#/components/schemas/RedirectTest"
+                }
+              }
+            },
+            "required": [
+              "data"
+            ]
+          }
+        ]
+      },
+      "CreateRedirectTestRequest": {
+        "description": "Payload for creating a redirect test fixture.",
+        "type": "object",
+        "properties": {
+          "domainGroupId": {
+            "type": "string",
+            "description": "Domain-group scope for the test."
+          },
+          "pathWithQuery": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16384,
+            "description": "Request path including query string."
+          },
+          "requestData": {
+            "type": "object",
+            "description": "Optional request context map (method, query, headers, IP, user-agent, accept-language via headers.accept-language).",
+            "additionalProperties": true
+          },
+          "expectedResult": {
+            "type": "object",
+            "description": "Expected simulation outcome.",
+            "properties": {
+              "matched": {
+                "type": "boolean",
+                "description": "Expected match/no-match decision."
+              },
+              "statusCode": {
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 599,
+                "description": "Expected HTTP status code."
+              },
+              "target": {
+                "type": "string",
+                "nullable": true,
+                "description": "Expected destination URL (or null)."
+              }
+            },
+            "required": [
+              "matched",
+              "statusCode",
+              "target"
+            ]
+          }
+        },
+        "required": [
+          "domainGroupId",
+          "pathWithQuery",
+          "expectedResult"
+        ]
+      },
+      "RedirectTest": {
+        "description": "CI fixture storing input (`pathWithQuery`, `requestData`) and expected simulate output (`expectedResult`).\nRun POST redirect-rules/simulate in pipelines to validate against live rule config.\n",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Redirect-test ID."
+          },
+          "organizationId": {
+            "type": "string",
+            "description": "Owning organization ID."
+          },
+          "domainGroupId": {
+            "type": "string",
+            "description": "Domain-group scope for this test."
+          },
+          "pathWithQuery": {
+            "type": "string",
+            "description": "Request path including query string."
+          },
+          "requestData": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Optional request metadata such as method, headers, query, user-agent, or accept-language (via headers.accept-language)."
+          },
+          "expectedResult": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Expected simulation outcome payload."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp (UTC)."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp (UTC)."
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Soft-delete timestamp in UTC when deleted."
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "domainGroupId",
+          "pathWithQuery",
+          "requestData",
+          "expectedResult",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateRedirectTestRequest": {
+        "description": "Payload for updating a redirect test fixture.",
+        "type": "object",
+        "properties": {
+          "pathWithQuery": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16384,
+            "description": "Request path including query string."
+          },
+          "requestData": {
+            "type": "object",
+            "description": "Optional request context map (method, query, headers, IP, user-agent, accept-language via headers.accept-language).",
+            "additionalProperties": true
+          },
+          "expectedResult": {
+            "type": "object",
+            "description": "Expected simulation outcome.",
+            "properties": {
+              "matched": {
+                "type": "boolean",
+                "description": "Expected match/no-match decision."
+              },
+              "statusCode": {
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 599,
+                "description": "Expected HTTP status code."
+              },
+              "target": {
+                "type": "string",
+                "nullable": true,
+                "description": "Expected destination URL (or null)."
+              }
+            },
+            "required": [
+              "matched",
+              "statusCode",
+              "target"
+            ]
+          }
+        }
+      },
+      "QueryResultMeta": {
+        "description": "Metadata envelope shared by cursor-paginated query responses.",
+        "type": "object",
+        "properties": {
+          "dataType": {
+            "type": "string",
+            "description": "Logical item type in the `data` array."
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether there are additional results after this page."
+          },
+          "moreStartingAfterId": {
+            "type": "string",
+            "description": "Cursor token to request the next page."
+          }
+        },
+        "required": [
+          "dataType",
+          "hasMore"
+        ]
+      },
+      "ErrorResponse": {
+        "description": "Standard error envelope. Use `key` for branching in code, `details` for human-readable fixes,\nand `requestId` when escalating to support.\n",
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "HTTP-like numeric status code."
+          },
+          "key": {
+            "type": "string",
+            "description": "Stable machine-readable error key."
+          },
+          "message": {
+            "type": "string",
+            "description": "Short error summary."
+          },
+          "details": {
+            "type": "string",
+            "description": "Human-readable details explaining the error."
+          },
+          "requestId": {
+            "type": "string",
+            "description": "Correlation ID useful for support and troubleshooting."
+          },
+          "feature": {
+            "type": "string",
+            "description": "Optional feature gate identifier when relevant (for example `api_access`)."
+          }
+        },
+        "required": [
+          "code",
+          "key",
+          "message"
+        ]
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Request body or query failed validation. Read `details` (and optional field hints) in the JSON body; fix the payload and retry. Include `requestId` when contacting support.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid API key. Verify the `X-API-Key` header and that the key wasn't revoked in the dashboard; rotate if needed, then retry.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "unauthorized": {
+                "value": {
+                  "code": 401,
+                  "key": "unauthorized",
+                  "message": "Unauthorized",
+                  "details": "Missing or invalid API key.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PaymentRequired": {
+        "description": "API access isn't enabled on your subscription (`feature` is often `api_access`). Upgrade the plan in the dashboard, then retry with the same key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "paymentRequired": {
+                "value": {
+                  "code": 402,
+                  "key": "payment_required",
+                  "message": "Payment required",
+                  "feature": "api_access",
+                  "details": "API key usage is available on paid plans only. Upgrade your subscription to use API access.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Per-key rate limit for your plan. Back off exponentially with jitter; avoid tight retry loops. Check GET organization/usage for current inventory (limits are plan-defined, not returned here).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "tooManyRequests": {
+                "value": {
+                  "code": 429,
+                  "key": "too_many_requests",
+                  "message": "Too many requests",
+                  "details": "API key rate limit exceeded",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource ID doesn't exist, was soft-deleted, or isn't in your organization. Confirm the ID from a fresh list call and that you're using the correct API key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "EntityId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Resource ID from a prior list or create response (same string you store in automation state). Wrong or foreign-org IDs return 404.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Organization API key from the dashboard (Organization → API keys).\nSend via `X-API-Key` on every request in this spec.\n"
+      }
+    }
+  },
+  "x-linkshift": {
+    "sourceTag": "Redirect Tests",
+    "operationCount": 5,
+    "generatedBy": "scripts/openapi-split-by-tag.mjs"
+  }
+}

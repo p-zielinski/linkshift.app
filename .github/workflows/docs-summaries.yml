@@ -1,0 +1,64 @@
+name: Docs summaries
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'shared/docs/**'
+  workflow_dispatch:
+    inputs:
+      regenerate_all:
+        description: 'Regenerate summaries for all docs files'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: docs-summaries-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install frontend dependencies (yaml parser)
+        run: npm ci
+        working-directory: frontend
+
+      - name: Generate docs summaries
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_DOCS_SUMMARY_MODEL || 'gpt-4o-mini' }}
+          DOCS_SUMMARIES_BASE: ${{ github.event.before }}
+          DOCS_SUMMARIES_HEAD: ${{ github.sha }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.regenerate_all }}" = "true" ]; then
+            node scripts/docs-summaries.mjs --all
+          else
+            node scripts/docs-summaries.mjs --base "$DOCS_SUMMARIES_BASE" --head "$DOCS_SUMMARIES_HEAD"
+          fi
+
+      - name: Commit and push summaries
+        run: |
+          if git diff --quiet -- shared/docs-summaries shared/docs/openapi/by-tag; then
+            echo "No summary or by-tag split changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shared/docs-summaries shared/docs/openapi/by-tag
+          git commit -m "chore(docs): update docs summaries [docs-summaries]"
+          git push

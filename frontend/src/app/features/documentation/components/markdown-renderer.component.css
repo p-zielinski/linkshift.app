@@ -1,18 +1,33 @@
 :host {
   display: block;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .docs-markdown.markdown-body {
   color: var(--app-text);
   background: transparent;
-  max-width: none;
+  max-width: 100%;
   line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.docs-markdown.markdown-body :is(h1, h2, h3, h4, h5, h6) {
+  scroll-margin-top: 70px;
+}
+
+@media (min-width: 768px) {
+  .docs-markdown.markdown-body :is(h1, h2, h3, h4, h5, h6) {
+    scroll-margin-top: 15px;
+  }
 }
 
 .docs-markdown.markdown-body pre {
   border-radius: 12px;
   border: 1px solid rgba(31, 24, 28, 0.14);
   background: #fff;
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 .docs-markdown.markdown-body code,
@@ -25,11 +40,43 @@
   border-left-color: rgba(192, 55, 98, 0.42);
 }
 
+.docs-markdown.markdown-body table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  background: #fff;
+  color: var(--app-text);
+}
+
 .docs-markdown.markdown-body table th,
 .docs-markdown.markdown-body table td {
-  border-color: rgba(31, 24, 28, 0.14);
+  border: 1px solid rgba(31, 24, 28, 0.14);
+  padding: 0.5rem 0.75rem;
+  background: #fff;
+  color: var(--app-text);
+}
+
+.docs-markdown.markdown-body table tr:nth-child(2n) td {
+  background: rgba(253, 246, 248, 0.85);
+}
+
+.docs-markdown.markdown-body table th {
+  background: rgba(246, 199, 216, 0.22);
+  font-weight: 600;
 }
 
 .docs-markdown.markdown-body a {
   color: var(--app-accent-strong);
+}
+
+.docs-markdown.markdown-body .mermaid {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  overflow-x: auto;
+  max-width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(31, 24, 28, 0.14);
+  background: #fff;
 }

@@ -74,7 +74,7 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'Content-Type, Authorization, Accept, X-Requested-With, X-XSRF-TOKEN',
+    'Content-Type, Authorization, Accept, X-Requested-With, X-XSRF-TOKEN, X-Turnstile-Token',
   );
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 
@@ -104,12 +104,12 @@ app.use((req, res, next) => {
     'Content-Security-Policy',
     [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline' ${paddleScriptOrigins.join(' ')}`,
+      `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com ${paddleScriptOrigins.join(' ')}`,
       `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${paddleStyleOrigins.join(' ')}`,
       `font-src 'self' https://fonts.gstatic.com ${paddleAssetOrigins.join(' ')}`,
       `img-src 'self' data: blob: ${paddleAssetOrigins.join(' ')}`,
       `connect-src ${connectSrc}`,
-      `frame-src 'self' ${paddleFrameOrigins.join(' ')}`,
+      `frame-src 'self' https://challenges.cloudflare.com ${paddleFrameOrigins.join(' ')}`,
       "frame-ancestors 'none'",
     ].join('; '),
   );
@@ -138,11 +138,12 @@ app.get('/runtime-config.js', (_req, res) => {
       process.env['APP_SUPPORT_EMAIL'] ??
       'privacy@redirectcontrol.app',
     APP_MIN_AGE: process.env['APP_MIN_AGE'] ?? '16',
-    APP_LEGAL_VERSION: process.env['APP_LEGAL_VERSION'] ?? 'v1',
+    APP_LEGAL_VERSION: process.env['APP_LEGAL_VERSION'] ?? 'v2',
     APP_AUTH_GATE_ENABLED: process.env['APP_AUTH_GATE_ENABLED'] ?? 'false',
     APP_DOMAIN_TARGET_IP: process.env['APP_DOMAIN_TARGET_IP'] ?? '',
     APP_PADDLE_CLIENT_TOKEN: process.env['APP_PADDLE_CLIENT_TOKEN'] ?? '',
     APP_PADDLE_ENV: process.env['APP_PADDLE_ENV'] ?? '',
+    APP_TURNSTILE_SITE_KEY: process.env['APP_TURNSTILE_SITE_KEY'] ?? '',
   };
 
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');

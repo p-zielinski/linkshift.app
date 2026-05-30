@@ -33,6 +33,16 @@
   color: var(--app-muted, #6b7280);
 }
 
+.legal-card a {
+  color: var(--app-accent-strong, #8f2045);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legal-card a:hover {
+  color: var(--app-accent, #c03762);
+}
+
 .legal-card ul {
   margin: 8px 0 0 20px;
 }

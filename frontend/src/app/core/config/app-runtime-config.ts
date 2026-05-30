@@ -16,6 +16,7 @@ export type AppRuntimeConfig = {
   APP_AUTH_GATE_ENABLED: string;
   APP_PADDLE_CLIENT_TOKEN: string;
   APP_PADDLE_ENV: string;
+  APP_TURNSTILE_SITE_KEY: string;
 };
 
 export const DEFAULT_APP_RUNTIME_CONFIG: AppRuntimeConfig = {
@@ -29,11 +30,12 @@ export const DEFAULT_APP_RUNTIME_CONFIG: AppRuntimeConfig = {
   APP_LEGAL_ADDRESS: 'Available upon request',
   APP_PRIVACY_EMAIL: 'privacy@redirectcontrol.app',
   APP_MIN_AGE: '16',
-  APP_LEGAL_VERSION: 'v1',
+  APP_LEGAL_VERSION: 'v2',
   APP_DOMAIN_TARGET_IP: '',
   APP_AUTH_GATE_ENABLED: 'false',
   APP_PADDLE_CLIENT_TOKEN: '',
   APP_PADDLE_ENV: 'sandbox',
+  APP_TURNSTILE_SITE_KEY: '',
 };
 
 export const resolveAppRuntimeConfig = (

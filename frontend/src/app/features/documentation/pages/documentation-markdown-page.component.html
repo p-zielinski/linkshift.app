@@ -1,5 +1,5 @@
 @if (page(); as pageData) {
-  <section class="grid gap-4">
+  <section class="grid min-w-0 gap-4">
     <mat-card
       class="border border-[rgba(31,24,28,0.14)] bg-[radial-gradient(circle_at_top_right,#fff2f7_0%,#fff_50%,#f8f2f6_100%)] p-5 sm:p-6"
     >
@@ -7,7 +7,15 @@
         <div
           class="rounded-full border border-[rgba(31,24,28,0.24)] px-2.5 py-0.5 text-[11px] uppercase tracking-[0.06em]"
         >
-          {{ pageData.category === 'concept' ? 'Concept' : 'Guide' }}
+          {{
+            pageData.category === 'concept'
+              ? 'Concept'
+              : pageData.category === 'guide'
+                ? 'Guide'
+                : pageData.category === 'intro'
+                  ? 'Intro'
+                  : 'Docs'
+          }}
         </div>
         <a mat-stroked-button routerLink="/docs/reference">API reference</a>
       </div>
@@ -15,8 +23,11 @@
       <p class="mt-2 text-app-muted">{{ pageData.description }}</p>
     </mat-card>
 
-    <mat-card class="p-5 sm:p-6">
-      <app-markdown-renderer [markdown]="pageData.markdown" />
+    <mat-card class="min-w-0 overflow-hidden p-5 sm:p-6">
+      <app-markdown-renderer
+        [markdown]="pageData.markdown"
+        [sourcePath]="pageData.sourcePath"
+      />
     </mat-card>
   </section>
 } @else {

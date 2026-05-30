@@ -85,15 +85,6 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Protocol</mat-label>
-          <mat-select [formField]="form.protocol">
-            @for (option of protocolOptions; track option.value) {
-              <mat-option [value]="option.value">{{ option.label }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
           <mat-label>IP address</mat-label>
           <input matInput type="text" [formField]="form.ip" />
           <mat-hint>Example: 203.0.113.10</mat-hint>
