@@ -1,0 +1,79 @@
+{
+  "source": "shared/docs/openapi/linkshift-api-keys.openapi.yaml",
+  "generatedAt": "2026-05-30T06:57:07.492Z",
+  "format": "json",
+  "tags": [
+    {
+      "name": "Organization",
+      "slug": "organization",
+      "description": "Identity and capacity for the organization tied to your API key.\nStart with GET organization (sanity check), then GET organization/usage before bulk imports or CI loops.\n",
+      "operationCount": 2,
+      "files": [
+        "shared/docs/openapi/by-tag/organization.openapi.json"
+      ]
+    },
+    {
+      "name": "Domain Groups",
+      "slug": "domain-groups",
+      "description": "First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.\nSet robots policy defaults here before attaching domains.\n",
+      "operationCount": 5,
+      "files": [
+        "shared/docs/openapi/by-tag/domain-groups.openapi.json"
+      ]
+    },
+    {
+      "name": "Domains",
+      "slug": "domains",
+      "description": "Your custom hostnames assigned to a domain group.\nCreate after the group exists; rules match traffic on these hosts.\n",
+      "operationCount": 5,
+      "files": [
+        "shared/docs/openapi/by-tag/domains.openapi.json"
+      ]
+    },
+    {
+      "name": "Subdomains",
+      "slug": "subdomains",
+      "description": "LinkShift-hosted short labels (e.g. `promo` → `promo.linkshift.app`) in a domain group.\nUse when you don't bring your own domain yet.\n",
+      "operationCount": 5,
+      "files": [
+        "shared/docs/openapi/by-tag/subdomains.openapi.json"
+      ]
+    },
+    {
+      "name": "Redirect Rules",
+      "slug": "redirect-rules",
+      "description": "Matching logic and HTTP status for live redirects.\nPair with POST simulate (no live traffic) and GET analytics (aggregated hits).\nList/create require `domainGroupId`.\n",
+      "operationCount": 7,
+      "files": [
+        "shared/docs/openapi/by-tag/redirect-rules.openapi.json"
+      ]
+    },
+    {
+      "name": "Redirect Tests",
+      "slug": "redirect-tests",
+      "description": "Named fixtures (path + expected outcome) for regression and CI.\nStore expectations here; run POST redirect-rules/simulate to evaluate them in pipelines.\n",
+      "operationCount": 5,
+      "files": [
+        "shared/docs/openapi/by-tag/redirect-tests.openapi.json"
+      ]
+    },
+    {
+      "name": "Link Maps",
+      "slug": "link-maps",
+      "description": "Named key→URL tables referenced by rules via `linkMapId`.\nCreate the map, then add entries (or import) before pointing a rule at it.\n",
+      "operationCount": 5,
+      "files": [
+        "shared/docs/openapi/by-tag/link-maps.openapi.json"
+      ]
+    },
+    {
+      "name": "Link Map Entries",
+      "slug": "link-map-entries",
+      "description": "Keys inside a link map. Supports cursor list, single CRUD, bulk delete (rollback), and import (up to 500 rows, create-only).\n",
+      "operationCount": 7,
+      "files": [
+        "shared/docs/openapi/by-tag/link-map-entries.openapi.json"
+      ]
+    }
+  ]
+}

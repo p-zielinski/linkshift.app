@@ -1,0 +1,512 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LinkShift Management API (API Key Accessible Endpoints) — Domain Groups",
+    "version": "1.0.0",
+    "summary": "Organization-scoped redirect management API",
+    "description": "Organization-scoped Management API for redirect configuration, link maps, and operational checks.\nUse it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.\n\n**Authentication**\n- Send your key on every request: `X-API-Key: <your_key>` (preferred).\n- Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.\n\n**Typical setup order**\n1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).\n2. Link map + entries when rules resolve keys instead of a fixed destination.\n3. Redirect tests + simulate for CI; analytics for traffic review.\n\n**Errors and recovery**\n- `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).\n- `402` — API access isn't on your current plan. Upgrade subscription, then retry.\n- `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).\n- `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.\n- `404` — ID doesn't exist or isn't in your organization scope.\n\n**Dashboard-only**\nAPI key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.\n\n**Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.\nThis document contains only operations tagged \"Domain Groups\".\nTag scope: First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.\nSet robots policy defaults here before attaching domains.\n"
+  },
+  "servers": [
+    {
+      "url": "https://linkshift.app",
+      "description": "Production API host"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Domain Groups",
+      "description": "First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.\nSet robots policy defaults here before attaching domains.\n"
+    }
+  ],
+  "paths": {
+    "/api/v1/domain-groups": {
+      "get": {
+        "tags": [
+          "Domain Groups"
+        ],
+        "summary": "List domain groups",
+        "description": "Returns every active domain group in one response (no cursor pagination).\nUse `data[].id` as `domainGroupId` on domains, rules, tests, and link maps.\n",
+        "operationId": "listDomainGroups",
+        "responses": {
+          "200": {
+            "description": "Domain groups list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DomainGroupQueryResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Domain Groups"
+        ],
+        "summary": "Create domain group",
+        "description": "Creates a domain group — the scope container for domains, rules, and link maps.\nOptional `robotsPolicy` / `customRobotsContent` apply to all domains you attach later.\nReturns 400 when the name is invalid or robots content is missing for CUSTOM policy.\n",
+        "operationId": "createDomainGroup",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDomainGroupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created domain group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DomainGroup"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/domain-groups/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/EntityId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Domain Groups"
+        ],
+        "summary": "Get domain group by ID",
+        "description": "Fetches one domain group including robots policy fields.\nReturns 404 when the ID is unknown or soft-deleted outside your organization.\n",
+        "operationId": "getDomainGroup",
+        "responses": {
+          "200": {
+            "description": "Domain group details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DomainGroup"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Domain Groups"
+        ],
+        "summary": "Update domain group",
+        "description": "Updates name and/or robots policy for an existing group.\nChanging robots policy impacts all domains in the group on next request.\nReturns 404 when the group doesn't exist in your organization.\n",
+        "operationId": "updateDomainGroup",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDomainGroupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated domain group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DomainGroup"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Domain Groups"
+        ],
+        "summary": "Delete domain group (soft)",
+        "description": "Soft-deletes the group; it stops appearing in lists and can't receive new resources.\nHistorical analytics may still reference the ID. Returns 404 when already deleted or out of scope.\n",
+        "operationId": "deleteDomainGroup",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DomainGroupQueryResult": {
+        "description": "Paginated domain-group query response.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/QueryResultMeta"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "description": "Domain-group items in current page.",
+                "items": {
+                  "$ref": "#/components/schemas/DomainGroup"
+                }
+              }
+            },
+            "required": [
+              "data"
+            ]
+          }
+        ]
+      },
+      "CreateDomainGroupRequest": {
+        "description": "Payload for creating a domain group.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Domain-group name."
+          },
+          "robotsPolicy": {
+            "$ref": "#/components/schemas/RobotsPolicy"
+          },
+          "customRobotsContent": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 4096,
+            "description": "Required when robotsPolicy is CUSTOM."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "DomainGroup": {
+        "description": "Scope boundary for redirect configuration. All rules, tests, and link maps reference\na domain group ID; robots policy here applies to every domain in the group.\n",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Domain-group ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable domain-group name."
+          },
+          "organizationId": {
+            "type": "string",
+            "description": "Owning organization ID."
+          },
+          "robotsPolicy": {
+            "$ref": "#/components/schemas/RobotsPolicy"
+          },
+          "customRobotsContent": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 4096,
+            "description": "Used only when robotsPolicy is CUSTOM."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp (UTC)."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp (UTC)."
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Soft-delete timestamp in UTC when deleted."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "organizationId",
+          "robotsPolicy",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateDomainGroupRequest": {
+        "description": "Payload for updating a domain group.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Domain-group name."
+          },
+          "robotsPolicy": {
+            "$ref": "#/components/schemas/RobotsPolicy"
+          },
+          "customRobotsContent": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 4096,
+            "description": "Required when robotsPolicy is CUSTOM."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "QueryResultMeta": {
+        "description": "Metadata envelope shared by cursor-paginated query responses.",
+        "type": "object",
+        "properties": {
+          "dataType": {
+            "type": "string",
+            "description": "Logical item type in the `data` array."
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether there are additional results after this page."
+          },
+          "moreStartingAfterId": {
+            "type": "string",
+            "description": "Cursor token to request the next page."
+          }
+        },
+        "required": [
+          "dataType",
+          "hasMore"
+        ]
+      },
+      "ErrorResponse": {
+        "description": "Standard error envelope. Use `key` for branching in code, `details` for human-readable fixes,\nand `requestId` when escalating to support.\n",
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "HTTP-like numeric status code."
+          },
+          "key": {
+            "type": "string",
+            "description": "Stable machine-readable error key."
+          },
+          "message": {
+            "type": "string",
+            "description": "Short error summary."
+          },
+          "details": {
+            "type": "string",
+            "description": "Human-readable details explaining the error."
+          },
+          "requestId": {
+            "type": "string",
+            "description": "Correlation ID useful for support and troubleshooting."
+          },
+          "feature": {
+            "type": "string",
+            "description": "Optional feature gate identifier when relevant (for example `api_access`)."
+          }
+        },
+        "required": [
+          "code",
+          "key",
+          "message"
+        ]
+      },
+      "RobotsPolicy": {
+        "type": "string",
+        "description": "Controls robots.txt behavior for all domains in a domain group.\nCUSTOM requires customRobotsContent.\n",
+        "default": "NONE",
+        "enum": [
+          "NONE",
+          "ALLOW_ALL",
+          "DISALLOW_ALL",
+          "DISALLOW_BAD_BOTS",
+          "CUSTOM"
+        ]
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Missing or invalid API key. Verify the `X-API-Key` header and that the key wasn't revoked in the dashboard; rotate if needed, then retry.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "unauthorized": {
+                "value": {
+                  "code": 401,
+                  "key": "unauthorized",
+                  "message": "Unauthorized",
+                  "details": "Missing or invalid API key.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PaymentRequired": {
+        "description": "API access isn't enabled on your subscription (`feature` is often `api_access`). Upgrade the plan in the dashboard, then retry with the same key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "paymentRequired": {
+                "value": {
+                  "code": 402,
+                  "key": "payment_required",
+                  "message": "Payment required",
+                  "feature": "api_access",
+                  "details": "API key usage is available on paid plans only. Upgrade your subscription to use API access.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Per-key rate limit for your plan. Back off exponentially with jitter; avoid tight retry loops. Check GET organization/usage for current inventory (limits are plan-defined, not returned here).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "tooManyRequests": {
+                "value": {
+                  "code": 429,
+                  "key": "too_many_requests",
+                  "message": "Too many requests",
+                  "details": "API key rate limit exceeded",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Request body or query failed validation. Read `details` (and optional field hints) in the JSON body; fix the payload and retry. Include `requestId` when contacting support.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource ID doesn't exist, was soft-deleted, or isn't in your organization. Confirm the ID from a fresh list call and that you're using the correct API key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "EntityId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Resource ID from a prior list or create response (same string you store in automation state). Wrong or foreign-org IDs return 404.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Organization API key from the dashboard (Organization → API keys).\nSend via `X-API-Key` on every request in this spec.\n"
+      }
+    }
+  },
+  "x-linkshift": {
+    "sourceTag": "Domain Groups",
+    "operationCount": 5,
+    "generatedBy": "scripts/openapi-split-by-tag.mjs"
+  }
+}

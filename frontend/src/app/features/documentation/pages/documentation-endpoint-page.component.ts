@@ -1,5 +1,14 @@
-import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  PLATFORM_ID,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
@@ -15,6 +24,7 @@ import {
   OpenApiSecuritySchemeObject,
 } from '../models/openapi.types';
 import { DocumentationOpenApiService } from '../services/documentation-openapi.service';
+import { DocumentationScrollService } from '../services/documentation-scroll.service';
 import { buildSchemaTree, SchemaTreeNode } from '../utils/openapi-schema-tree';
 import { resolveSchema } from '../utils/openapi-resolver';
 import { SchemaTreeComponent } from '../components/schema-tree.component';
@@ -48,6 +58,8 @@ export class DocumentationEndpointPageComponent implements OnInit {
   private readonly siteConfig = inject(SITE_CONFIG);
   private readonly destroyRef = inject(DestroyRef);
   private readonly dialog = inject(MatDialog);
+  private readonly docsScroll = inject(DocumentationScrollService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   readonly openApi = inject(DocumentationOpenApiService);
 
@@ -215,6 +227,18 @@ export class DocumentationEndpointPageComponent implements OnInit {
         canonicalPath: `/docs/api/${endpoint.id}`,
         keywords: `linkshift api, ${endpoint.operationId}, ${endpoint.path}`,
         type: 'article',
+      });
+
+      if (!isPlatformBrowser(this.platformId)) {
+        return;
+      }
+
+      queueMicrotask(() => {
+        if (this.docsScroll.currentFragment()) {
+          this.docsScroll.retryAnchorScrollFromPage();
+        } else {
+          this.docsScroll.requestScrollToTop();
+        }
       });
     });
   }

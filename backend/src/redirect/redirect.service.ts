@@ -58,9 +58,21 @@ import { RedirectAnalyticsService } from '../security/redirect-analytics.service
 import { Logger } from 'nestjs-pino';
 import { LinkMapService } from '../link-map/link-map.service';
 import { ConfigService } from '@nestjs/config';
+import { parsePrimaryAcceptLanguageTag } from './accept-language.util';
+import {
+  isStoredRegexSource,
+  parseStoredRegexSource,
+} from './redirect-source.util';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+/** Live routing, simulate, and GET /api/v1/redirect-rules list ordering. */
+const REDIRECT_RULE_EVALUATION_ORDER = [
+  { priority: 'desc' },
+  { createdAt: 'desc' },
+  { id: 'desc' },
+] satisfies Prisma.RedirectRuleOrderByWithRelationInput[];
 
 /**
  * Define the structure of the domain context query using Prisma.validator.
@@ -76,7 +88,7 @@ const domainWithRelations = Prisma.validator<Prisma.DomainDefaultArgs>()({
             deletedAt: null,
             isBlocked: false,
           },
-          orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+          orderBy: REDIRECT_RULE_EVALUATION_ORDER,
         },
       },
     },
@@ -94,7 +106,7 @@ const linkShiftSubdomainWithRelations =
               deletedAt: null,
               isBlocked: false,
             },
-            orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+            orderBy: REDIRECT_RULE_EVALUATION_ORDER,
           },
         },
       },
@@ -147,7 +159,6 @@ type RedirectSimulationEntry = {
   hostname?: string;
   path: string;
   method?: HttpMethod;
-  protocol?: 'http' | 'https';
   ip?: string;
   userAgent?: string;
   headers?: Record<string, string>;
@@ -163,7 +174,16 @@ type RedirectSimulationResult = {
   matched: boolean;
   statusCode: number;
   target: string | null;
+  linkMapKey: string | null;
+  blacklistBlocked?: boolean;
+  blacklistCheckFailed?: boolean;
 };
+
+type DestinationBlacklistEvaluation =
+  | { outcome: 'skipped' }
+  | { outcome: 'allowed' }
+  | { outcome: 'blocked'; domain: string }
+  | { outcome: 'failed'; domain: string; error: unknown };
 
 type RedirectMatchContext = {
   path: string;
@@ -1206,7 +1226,7 @@ export class RedirectService {
             skip: 1,
           }
         : {}),
-      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+      orderBy: REDIRECT_RULE_EVALUATION_ORDER,
     });
 
     const hasMore = rows.length > take;
@@ -1588,6 +1608,19 @@ export class RedirectService {
 
     // 3. Validate logic
     const hasLinkMap = Boolean(data.linkMapId);
+    if (
+      hasLinkMap &&
+      data.destination !== undefined &&
+      data.destination !== null
+    ) {
+      return throwHttpException(
+        new BadRequestError({
+          requestId: this.clsService.getId(),
+          details: 'Destination must be empty when linkMapId is provided.',
+          relatedObjectParameter: 'destination',
+        }),
+      );
+    }
     if (!hasLinkMap && !data.destination) {
       return throwHttpException(
         new BadRequestError({
@@ -1902,7 +1935,7 @@ export class RedirectService {
       );
     }
 
-    if (params.source.startsWith('/') && params.source.lastIndexOf('/') > 0) {
+    if (isStoredRegexSource(params.source)) {
       return throwHttpException(
         new BadRequestError({
           requestId: this.clsService.getId(),
@@ -2068,7 +2101,7 @@ export class RedirectService {
                   deletedAt: null,
                   isBlocked: false,
                 },
-                orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+                orderBy: REDIRECT_RULE_EVALUATION_ORDER,
               },
             },
           },
@@ -2114,7 +2147,7 @@ export class RedirectService {
                   deletedAt: null,
                   isBlocked: false,
                 },
-                orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+                orderBy: REDIRECT_RULE_EVALUATION_ORDER,
               },
             },
           },
@@ -2200,32 +2233,40 @@ export class RedirectService {
 
     if (match) {
       const statusCode = match.rule.statusCode ?? 302;
-      const targetDomain = this.destinationExtractor.extractUrl(match.target);
+      const blacklistEvaluation = await this.evaluateDestinationBlacklist(
+        match.target,
+      );
 
-      if (targetDomain) {
-        try {
-          const isBlacklisted =
-            await this.domainBlacklistService.isBlacklisted(targetDomain);
-          if (isBlacklisted) {
-            this.logger.warn('Redirect blocked by blacklist', {
-              ruleId: match.rule.id ?? null,
-              domain: targetDomain,
-              hostname,
-            });
-            res.status(403).json({
-              message: 'Destination domain is blocked',
-              error: 'Forbidden',
-              statusCode: 403,
-            });
-            return;
-          }
-        } catch (error) {
-          this.logger.error('Redirect blacklist check failed', {
-            ruleId: match.rule.id ?? null,
-            domain: targetDomain,
-            error: error instanceof Error ? error.message : 'unknown_error',
-          });
-        }
+      if (blacklistEvaluation.outcome === 'blocked') {
+        this.logger.warn('Redirect blocked by blacklist', {
+          ruleId: match.rule.id ?? null,
+          domain: blacklistEvaluation.domain,
+          hostname,
+        });
+        res.status(403).json({
+          message: 'Destination domain is blocked',
+          error: 'Forbidden',
+          statusCode: 403,
+        });
+        return;
+      }
+
+      if (blacklistEvaluation.outcome === 'failed') {
+        this.logger.error('Redirect blacklist check failed', {
+          ruleId: match.rule.id ?? null,
+          domain: blacklistEvaluation.domain,
+          error:
+            blacklistEvaluation.error instanceof Error
+              ? blacklistEvaluation.error.message
+              : 'unknown_error',
+        });
+        res.status(503).json({
+          message:
+            "Couldn't verify redirect destination. Try again in a moment.",
+          error: 'Service Unavailable',
+          statusCode: 503,
+        });
+        return;
       }
 
       if (match.rule.id) {
@@ -2307,6 +2348,7 @@ export class RedirectService {
   async simulateRedirects(
     organizationId: string,
     entries: RedirectSimulationEntry[],
+    options?: { checkDestinationBlacklist?: boolean },
   ): Promise<{ results: RedirectSimulationResult[] }> {
     await this.organizationService.checkRedirectionAccess(organizationId);
 
@@ -2325,7 +2367,7 @@ export class RedirectService {
             deletedAt: null,
             isBlocked: false,
           } as Prisma.RedirectRuleWhereInput,
-          orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+          orderBy: REDIRECT_RULE_EVALUATION_ORDER,
         },
         domains: {
           where: { deletedAt: null },
@@ -2361,6 +2403,7 @@ export class RedirectService {
             matched: false,
             statusCode: 400,
             target: null,
+            linkMapKey: null,
           };
         }
 
@@ -2397,7 +2440,7 @@ export class RedirectService {
 
         if (match) {
           const statusCode = match.rule.statusCode ?? 302;
-          return {
+          const result: RedirectSimulationResult = {
             index,
             domainGroupId: entry.domainGroupId,
             method: request.method,
@@ -2406,7 +2449,23 @@ export class RedirectService {
             matched: true,
             statusCode,
             target: match.target,
+            linkMapKey: match.linkMapKey,
           };
+
+          if (options?.checkDestinationBlacklist) {
+            const blacklistEvaluation = await this.evaluateDestinationBlacklist(
+              match.target,
+            );
+            if (blacklistEvaluation.outcome === 'blocked') {
+              result.statusCode = 403;
+              result.blacklistBlocked = true;
+            } else if (blacklistEvaluation.outcome === 'failed') {
+              result.statusCode = 503;
+              result.blacklistCheckFailed = true;
+            }
+          }
+
+          return result;
         }
 
         return {
@@ -2418,6 +2477,7 @@ export class RedirectService {
           matched: false,
           statusCode: 404,
           target: null,
+          linkMapKey: null,
         };
       }),
     );
@@ -2517,25 +2577,26 @@ export class RedirectService {
   }
 
   private parseStoredRegexSource(source: string): RegExp | null {
-    if (!source.startsWith('/')) {
-      return null;
-    }
+    return parseStoredRegexSource(source);
+  }
 
-    const lastSlashIndex = source.lastIndexOf('/');
-    if (lastSlashIndex <= 0) {
-      return null;
-    }
-
-    const pattern = source.substring(1, lastSlashIndex);
-    const flags = source.substring(lastSlashIndex + 1);
-    if (!/^[dgimsuvy]*$/.test(flags)) {
-      return null;
+  private async evaluateDestinationBlacklist(
+    target: string,
+  ): Promise<DestinationBlacklistEvaluation> {
+    const targetDomain = this.destinationExtractor.extractUrl(target);
+    if (!targetDomain) {
+      return { outcome: 'skipped' };
     }
 
     try {
-      return new RegExp(pattern, flags);
-    } catch {
-      return null;
+      const isBlacklisted =
+        await this.domainBlacklistService.isBlacklisted(targetDomain);
+      if (isBlacklisted) {
+        return { outcome: 'blocked', domain: targetDomain };
+      }
+      return { outcome: 'allowed' };
+    } catch (error) {
+      return { outcome: 'failed', domain: targetDomain, error };
     }
   }
 
@@ -2558,7 +2619,6 @@ export class RedirectService {
     const headers = this.normalizeHeaders(entry.headers);
     const userAgent = entry.userAgent ?? headers['user-agent'] ?? '';
     const method = (entry.method ?? 'GET').toUpperCase();
-    const protocol = entry.protocol ?? 'https';
     const ip = entry.ip ?? '127.0.0.1';
     const { path, originalUrl } = this.normalizePath(entry.path, entry.query);
 
@@ -2575,7 +2635,7 @@ export class RedirectService {
 
     return {
       method,
-      protocol,
+      protocol: 'https',
       path,
       originalUrl,
       ip,
@@ -2644,6 +2704,8 @@ export class RedirectService {
     const path = url.pathname.replace(/^\//, '');
     const segments = path.split('/').filter(Boolean);
 
+    const acceptLanguage = req.get('Accept-Language') || '';
+
     const variables: Record<string, string | undefined> = {
       'domain.fqdn': url.hostname,
       'domain.label': hostParts.slice(0, -1).join('.'),
@@ -2654,8 +2716,8 @@ export class RedirectService {
       method: req.method,
       ip: req.ip || req.socket.remoteAddress,
       'user-agent': req.get('User-Agent') || '',
-      // Geo placeholder (Mock)
-      'geo.country': this.getCountryByIp(req.ip || req.socket.remoteAddress),
+      'accept-language': acceptLanguage,
+      'accept-language.primary': parsePrimaryAcceptLanguageTag(acceptLanguage),
     };
 
     segments.forEach((seg, i) => (variables[`segments.${i}`] = seg));
@@ -2667,12 +2729,8 @@ export class RedirectService {
     return variables;
   }
 
-  private getCountryByIp(ip: string | undefined): string {
-    // TODO: Integrate with MaxMind GeoIP or similar service
-    // For now, we return 'US' as default, or 'PL' if localhost for testing
-    if (ip === '127.0.0.1' || ip === '::1') return 'PL';
-    return 'US';
-  }
+  // Future addon: GeoIP lookup and `{geo.country}` placeholder from client IP.
+  // private getCountryByIp(ip: string | undefined): string { ... }
 
   private isMethodMatch(
     matchMethod: HttpMethod[] | undefined,

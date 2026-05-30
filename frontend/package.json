@@ -7,7 +7,7 @@
     "build": "ng build",
     "dev": "ng build --watch --configuration development",
     "test": "ng test",
-    "docs:sync": "node scripts/sync-documentation.mjs",
+    "docs:sync": "node ../scripts/docs-sync.mjs",
     "lint:templates": "eslint --max-warnings=0 \"src/**/*.html\"",
     "format:templates": "eslint --fix \"src/**/*.html\"",
     "serve:ssr:frontend": "node dist/frontend/server/server.mjs"
@@ -50,6 +50,8 @@
     "express": "^5.1.0",
     "github-markdown-css": "^5.9.0",
     "marked": "^18.0.2",
+    "marked-gfm-heading-id": "^4.1.4",
+    "mermaid": "^11.15.0",
     "ng-apexcharts": "2.0.4",
     "plyr": "^3.8.4",
     "qs": "^6.15.1",

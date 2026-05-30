@@ -149,7 +149,9 @@ export class RedirectRulesController {
       organizationId,
       entryCount: body.entries?.length ?? 0,
     });
-    return this.redirectService.simulateRedirects(organizationId, body.entries);
+    return this.redirectService.simulateRedirects(organizationId, body.entries, {
+      checkDestinationBlacklist: body.checkDestinationBlacklist,
+    });
   }
 
   @Put(':id')

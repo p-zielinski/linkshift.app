@@ -57,6 +57,8 @@ describe('RedirectService', () => {
   let cacheManagerService: CacheManagerService;
   let linkMapService: LinkMapService;
   let redirectAnalyticsService: RedirectAnalyticsService;
+  let domainBlacklistService: { isBlacklisted: jest.Mock };
+  let destinationExtractor: { extractUrl: jest.Mock };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -205,6 +207,8 @@ describe('RedirectService', () => {
     redirectAnalyticsService = module.get<RedirectAnalyticsService>(
       RedirectAnalyticsService,
     );
+    domainBlacklistService = module.get(DomainBlacklistService);
+    destinationExtractor = module.get(DestinationExtractorService);
 
     (prisma.domain.findMany as jest.Mock).mockResolvedValue([]);
     (prisma.linkShiftSubdomain.findMany as jest.Mock).mockResolvedValue([]);
@@ -592,6 +596,48 @@ describe('RedirectService', () => {
       const req = createMockRequest('http://test.com/v11/users');
       expect(await service.getRedirect(req, rules)).toBeNull();
     });
+
+    it('should not match prefix source /long/ against bare /long', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '/long/',
+          destination: '/matched',
+          pathMatch: 'prefix',
+          queryMatch: 'ignore',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/long');
+      expect(await service.getRedirect(req, rules)).toBeNull();
+    });
+
+    it('should match wildcard regardless of queryMatch', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination: '/caught',
+          queryMatch: 'exact',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/any?utm=unexpected');
+      expect(await service.getRedirect(req, rules)).toBe('/caught');
+    });
+
+    it('should unescape double braces in destination', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '/doc',
+          destination: 'https://example.com/{{literal}}',
+          queryMatch: 'ignore',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/doc');
+      expect(await service.getRedirect(req, rules)).toBe(
+        'https://example.com/{literal}',
+      );
+    });
   });
 
   describe('Link Map Rules', () => {
@@ -640,6 +686,32 @@ describe('RedirectService', () => {
       const result = await service.getRedirect(req, rules);
 
       expect(result).toBe('https://fallback.com');
+    });
+
+    it('should extract link map key from multi-segment rule source prefix', async () => {
+      (linkMapService.resolveLinkMapDestination as jest.Mock).mockResolvedValue(
+        'https://target.com/summer',
+      );
+
+      const rules: RedirectRule[] = [
+        {
+          source: '/v2/go',
+          destination: '',
+          pathMatch: 'prefix',
+          queryMatch: 'ignore',
+          linkMapId: 'lmap_123',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/v2/go/summer');
+      const result = await service.getRedirect(req, rules);
+
+      expect(result).toBe('https://target.com/summer');
+      expect(linkMapService.resolveLinkMapDestination).toHaveBeenCalledWith(
+        'lmap_123',
+        'summer',
+        expect.any(URLSearchParams),
+      );
     });
   });
 
@@ -1138,31 +1210,63 @@ describe('RedirectService', () => {
       );
     });
 
-    it('should handle nested conditions (If-Else-If logic)', async () => {
-      // Logic: If Country is PL -> /pl, Else If Country is US -> /us, Else -> /global
-      // Note: Test helper defaults IP to 127.0.0.1 which mocks to 'PL' in our service
-
+    it('should route based on Accept-Language primary tag', async () => {
       const rules: RedirectRule[] = [
         {
           source: '*',
           destination:
-            "'{geo.country}' == 'PL' ? /pl : ('{geo.country}' == 'US' ? /us : /global)",
+            "'{accept-language.primary:to_lower_case}' includes 'pl' ? /pl : /en",
         },
       ];
 
-      // Case 1: IP 127.0.0.1 -> PL
-      const reqPL = createMockRequest('http://test.com');
-      expect(await service.getRedirect(reqPL, rules)).toBe('/pl');
+      const reqPolish = createMockRequest('http://test.com', {
+        'accept-language': 'pl-PL,pl;q=0.9,en;q=0.8',
+      });
+      expect(await service.getRedirect(reqPolish, rules)).toBe('/pl');
 
-      // Case 2: Unknown IP (defaults to US in stub)
-      const reqUS = createMockRequest('http://test.com');
-      reqUS.ip = '8.8.8.8';
-      reqUS.socket.remoteAddress = '8.8.8.8';
+      const reqEnglish = createMockRequest('http://test.com', {
+        'accept-language': 'en-US,en;q=0.9',
+      });
+      expect(await service.getRedirect(reqEnglish, rules)).toBe('/en');
+    });
 
-      // We need to re-create the service or mock the private method,
-      // but since we can't easily mock private, we rely on the stub logic:
-      // Stub returns 'US' for anything not local.
-      expect(await service.getRedirect(reqUS, rules)).toBe('/us');
+    it('should substitute raw Accept-Language in destinations', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '/lang',
+          destination: 'https://example.com/?al={accept-language}',
+          queryMatch: 'ignore',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/lang', {
+        'accept-language': 'de-DE,de;q=0.9',
+      });
+      expect(await service.getRedirect(req, rules)).toBe(
+        'https://example.com/?al=de-DE,de;q=0.9',
+      );
+    });
+
+    it('should handle nested conditions (If-Else-If logic)', async () => {
+      const rules: RedirectRule[] = [
+        {
+          source: '*',
+          destination:
+            "'{method}' == 'GET' ? /get : ('{method}' == 'POST' ? /post : /other)",
+        },
+      ];
+
+      const reqGet = createMockRequest('http://test.com');
+      reqGet.method = 'GET';
+      expect(await service.getRedirect(reqGet, rules)).toBe('/get');
+
+      const reqPost = createMockRequest('http://test.com');
+      reqPost.method = 'POST';
+      expect(await service.getRedirect(reqPost, rules)).toBe('/post');
+
+      const reqPatch = createMockRequest('http://test.com');
+      reqPatch.method = 'PATCH';
+      expect(await service.getRedirect(reqPatch, rules)).toBe('/other');
     });
 
     it('should handle complex mixed logic with parentheses', async () => {
@@ -1478,6 +1582,33 @@ describe('RedirectService', () => {
       );
     });
 
+    it('should create rules with root-relative conditional destinations from docs examples', async () => {
+      (prisma.redirectRule.create as jest.Mock).mockResolvedValue({
+        id: 'rule_relative',
+        domainGroupId,
+      });
+
+      await service.createRule(organizationId, {
+        source: '*',
+        destination:
+          "'{user-agent}' ~= 'iPhone' ? /mobile-site : /desktop-site",
+        statusCode: 302,
+        matchMethod: [],
+        queryMatch: 'ignore',
+        domainGroupId,
+        priority: 10,
+      });
+
+      expect(prisma.redirectRule.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            destination:
+              "'{user-agent}' ~= 'iPhone' ? /mobile-site : /desktop-site",
+          }),
+        }),
+      );
+    });
+
     it('should allow empty matchMethod arrays (all methods)', async () => {
       (prisma.redirectRule.create as jest.Mock).mockResolvedValue({
         id: 'rule_1',
@@ -1496,7 +1627,66 @@ describe('RedirectService', () => {
       expect(prisma.redirectRule.create).toHaveBeenCalled();
     });
 
-    it('should allow link map rules without destination', async () => {
+    it('should reject createRule when plain path destination uses $N capture groups', async () => {
+      await expect(
+        service.createRule(organizationId, {
+          source: '/go',
+          destination: 'https://example.com/dest?ref=$0',
+          statusCode: 302,
+          matchMethod: [],
+          domainGroupId,
+          priority: 0,
+        }),
+      ).rejects.toBeInstanceOf(HttpException);
+
+      expect(prisma.redirectRule.create).not.toHaveBeenCalled();
+    });
+
+    it('should reject updateRule when plain path destination uses $N capture groups', async () => {
+      (prisma.redirectRule.findFirst as jest.Mock).mockResolvedValue({
+        id: 'rule_plain',
+        source: '/go',
+        destination: 'https://example.com/safe',
+        statusCode: 302,
+        matchMethod: [],
+        queryMatch: 'exact',
+        pathMatch: 'exact',
+        linkMapId: null,
+        domainGroupId,
+      });
+
+      await expect(
+        service.updateRule('rule_plain', organizationId, {
+          destination: 'https://example.com/$1',
+        }),
+      ).rejects.toBeInstanceOf(HttpException);
+
+      expect(prisma.redirectRule.update).not.toHaveBeenCalled();
+    });
+
+    it('should reject link map create when destination is empty string', async () => {
+      (prisma.linkMap.findFirst as jest.Mock).mockResolvedValue({
+        id: 'link_map_1',
+      });
+
+      await expect(
+        service.createRule(organizationId, {
+          source: '/short',
+          destination: '',
+          statusCode: 302,
+          matchMethod: [],
+          pathMatch: 'prefix',
+          queryMatch: 'ignore',
+          domainGroupId,
+          priority: 0,
+          linkMapId: 'link_map_1',
+        }),
+      ).rejects.toBeInstanceOf(HttpException);
+
+      expect(prisma.redirectRule.create).not.toHaveBeenCalled();
+    });
+
+    it('should allow link map rules with null destination', async () => {
       (prisma.redirectRule.create as jest.Mock).mockResolvedValue({
         id: 'rule_link_map',
         domainGroupId,
@@ -1507,7 +1697,7 @@ describe('RedirectService', () => {
 
       await service.createRule(organizationId, {
         source: '/short',
-        destination: '',
+        destination: null,
         statusCode: 302,
         matchMethod: [],
         pathMatch: 'prefix',
@@ -1524,6 +1714,83 @@ describe('RedirectService', () => {
           }),
         }),
       );
+    });
+
+    it('should allow multi-segment plain path source for link map rules', async () => {
+      (prisma.redirectRule.create as jest.Mock).mockResolvedValue({
+        id: 'rule_link_map_multi',
+        domainGroupId,
+      });
+      (prisma.linkMap.findFirst as jest.Mock).mockResolvedValue({
+        id: 'link_map_1',
+      });
+
+      await service.createRule(organizationId, {
+        source: '/v2/go',
+        destination: null,
+        statusCode: 302,
+        matchMethod: [],
+        pathMatch: 'prefix',
+        queryMatch: 'ignore',
+        domainGroupId,
+        priority: 0,
+        linkMapId: 'link_map_1',
+      });
+
+      expect(prisma.redirectRule.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            source: '/v2/go',
+            linkMapId: 'link_map_1',
+          }),
+        }),
+      );
+    });
+
+    it('should allow partner/acme style multi-segment link map rule source', async () => {
+      (prisma.redirectRule.create as jest.Mock).mockResolvedValue({
+        id: 'rule_link_map_partner',
+        domainGroupId,
+      });
+      (prisma.linkMap.findFirst as jest.Mock).mockResolvedValue({
+        id: 'link_map_1',
+      });
+
+      await service.createRule(organizationId, {
+        source: '/partner/acme',
+        destination: null,
+        statusCode: 302,
+        matchMethod: [],
+        pathMatch: 'prefix',
+        queryMatch: 'ignore',
+        domainGroupId,
+        priority: 0,
+        linkMapId: 'link_map_1',
+      });
+
+      expect(prisma.redirectRule.create).toHaveBeenCalled();
+    });
+
+    it('should reject regex-formatted source for link map rules', async () => {
+      (prisma.linkMap.findFirst as jest.Mock).mockResolvedValue({
+        id: 'link_map_1',
+      });
+
+      await expect(
+        service.createRule(organizationId, {
+          source: '/^\\/blog\\/(.+)$/',
+          destination: null,
+          statusCode: 302,
+          matchMethod: [],
+          pathMatch: 'prefix',
+          queryMatch: 'ignore',
+          domainGroupId,
+          priority: 0,
+          linkMapId: 'link_map_1',
+        }),
+      ).rejects.toThrow();
+
+      expect(prisma.redirectRule.create).not.toHaveBeenCalled();
     });
 
     it('should update link map rule with null destination', async () => {
@@ -1794,6 +2061,160 @@ describe('RedirectService', () => {
         10,
       );
       expect(res.redirect).toHaveBeenCalledWith(301, 'https://example.com/new');
+    });
+
+    it('should return 503 and not redirect when blacklist check throws', async () => {
+      const req = createMockRequest('http://example.com/old');
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      } as any;
+
+      destinationExtractor.extractUrl.mockReturnValue('evil.example');
+      domainBlacklistService.isBlacklisted.mockRejectedValue(
+        new Error('blacklist unavailable'),
+      );
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_1',
+          redirectRules: [
+            {
+              id: 'rule_1',
+              source: '/old',
+              destination: 'https://evil.example/target',
+              statusCode: 302,
+              matchMethod: [],
+              queryMatch: 'exact',
+              pathMatch: 'exact',
+            },
+          ],
+        },
+      });
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue({
+        configuration: null,
+      });
+      (cacheManagerService.checkRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
+        undefined,
+      );
+
+      await service.applyRedirect(req, res);
+
+      expect(domainBlacklistService.isBlacklisted).toHaveBeenCalledWith(
+        'evil.example',
+      );
+      expect(res.status).toHaveBeenCalledWith(503);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          statusCode: 503,
+          error: 'Service Unavailable',
+          message: expect.stringContaining("Couldn't verify redirect destination"),
+        }),
+      );
+      expect(res.redirect).not.toHaveBeenCalled();
+    });
+
+    it('should return 403 when blacklist marks target domain as blocked', async () => {
+      const req = createMockRequest('http://example.com/old');
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      } as any;
+
+      destinationExtractor.extractUrl.mockReturnValue('blocked.example');
+      domainBlacklistService.isBlacklisted.mockResolvedValue(true);
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_1',
+          redirectRules: [
+            {
+              id: 'rule_1',
+              source: '/old',
+              destination: 'https://blocked.example/target',
+              statusCode: 302,
+              matchMethod: [],
+              queryMatch: 'exact',
+              pathMatch: 'exact',
+            },
+          ],
+        },
+      });
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue({
+        configuration: null,
+      });
+      (cacheManagerService.checkRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
+        undefined,
+      );
+
+      await service.applyRedirect(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Destination domain is blocked',
+          statusCode: 403,
+        }),
+      );
+      expect(res.redirect).not.toHaveBeenCalled();
+    });
+
+    it('should redirect when blacklist check passes', async () => {
+      const req = createMockRequest('http://example.com/old');
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      } as any;
+
+      destinationExtractor.extractUrl.mockReturnValue('safe.example');
+      domainBlacklistService.isBlacklisted.mockResolvedValue(false);
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_1',
+          redirectRules: [
+            {
+              id: 'rule_1',
+              source: '/old',
+              destination: 'https://safe.example/target',
+              statusCode: 302,
+              matchMethod: [],
+              queryMatch: 'exact',
+              pathMatch: 'exact',
+            },
+          ],
+        },
+      });
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue({
+        configuration: null,
+      });
+      (cacheManagerService.checkRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
+        undefined,
+      );
+
+      await service.applyRedirect(req, res);
+
+      expect(domainBlacklistService.isBlacklisted).toHaveBeenCalledWith(
+        'safe.example',
+      );
+      expect(res.redirect).toHaveBeenCalledWith(
+        302,
+        'https://safe.example/target',
+      );
+      expect(res.status).not.toHaveBeenCalledWith(403);
+      expect(res.status).not.toHaveBeenCalledWith(503);
     });
 
     it('should return robots.txt content and skip redirect rules when robots policy is active', async () => {
@@ -2191,7 +2612,11 @@ describe('RedirectService', () => {
             include: {
               redirectRules: {
                 where: { deletedAt: null, isBlocked: false },
-                orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+                orderBy: [
+                  { priority: 'desc' },
+                  { createdAt: 'desc' },
+                  { id: 'desc' },
+                ],
               },
             },
           },
@@ -2257,5 +2682,418 @@ describe('RedirectService', () => {
         'CADDY_DOMAIN_ALLOWED:deleted-group.com',
       );
     });
+  });
+
+  describe('Rule evaluation order', () => {
+    it('prefers higher rule id when priority and createdAt tie (list order)', async () => {
+      const rules: RedirectRule[] = [
+        {
+          id: 'rule_zzz',
+          source: '*',
+          destination: 'https://winner.example',
+          queryMatch: 'ignore',
+        },
+        {
+          id: 'rule_aaa',
+          source: '*',
+          destination: 'https://loser.example',
+          queryMatch: 'ignore',
+        },
+      ];
+
+      const req = createMockRequest('http://test.com/any');
+      expect(await service.getRedirect(req, rules)).toBe(
+        'https://winner.example',
+      );
+    });
+  });
+
+  describe('simulateRedirects', () => {
+    const organizationId = 'org_sim';
+    const domainGroupId = 'dmg_sim';
+
+    beforeEach(() => {
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
+        undefined,
+      );
+    });
+
+    it('loads rules with priority, createdAt, and id descending', async () => {
+      (prisma.domainGroup.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: domainGroupId,
+          redirectRules: [],
+          domains: [{ name: 'links.example.com' }],
+        },
+      ]);
+
+      await service.simulateRedirects(organizationId, [
+        {
+          domainGroupId,
+          path: '/',
+          hostname: 'links.example.com',
+        },
+      ]);
+
+      expect(prisma.domainGroup.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          include: expect.objectContaining({
+            redirectRules: expect.objectContaining({
+              orderBy: [
+                { priority: 'desc' },
+                { createdAt: 'desc' },
+                { id: 'desc' },
+              ],
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('prefers higher rule id when priority and createdAt tie', async () => {
+      (prisma.domainGroup.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: domainGroupId,
+          redirectRules: [
+            {
+              id: 'rule_zzz',
+              source: '*',
+              destination: 'https://winner.example',
+              statusCode: 302,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'exact',
+              linkMapId: null,
+            },
+            {
+              id: 'rule_aaa',
+              source: '*',
+              destination: 'https://loser.example',
+              statusCode: 302,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'exact',
+              linkMapId: null,
+            },
+          ],
+          domains: [{ name: 'links.example.com' }],
+        },
+      ]);
+
+      const { results } = await service.simulateRedirects(organizationId, [
+        {
+          domainGroupId,
+          path: '/any',
+          hostname: 'links.example.com',
+        },
+      ]);
+
+      expect(results[0]).toMatchObject({
+        matched: true,
+        target: 'https://winner.example',
+      });
+    });
+
+    it('should return linkMapKey when a link map rule matches', async () => {
+      (prisma.domainGroup.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: domainGroupId,
+          redirectRules: [
+            {
+              id: 'rule_lm',
+              source: '/go',
+              destination: null,
+              statusCode: 302,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'prefix',
+              linkMapId: 'lmap_sim',
+            },
+          ],
+          domains: [{ name: 'links.example.com' }],
+        },
+      ]);
+      (linkMapService.resolveLinkMapDestination as jest.Mock).mockResolvedValue(
+        'https://shop.example/summer',
+      );
+
+      const { results } = await service.simulateRedirects(organizationId, [
+        {
+          domainGroupId,
+          path: '/go/summer',
+          hostname: 'links.example.com',
+        },
+      ]);
+
+      expect(results).toHaveLength(1);
+      expect(results[0]).toMatchObject({
+        matched: true,
+        target: 'https://shop.example/summer',
+        linkMapKey: 'summer',
+      });
+    });
+
+    it('should return linkMapKey null for non-link-map rule matches', async () => {
+      (prisma.domainGroup.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: domainGroupId,
+          redirectRules: [
+            {
+              id: 'rule_static',
+              source: '/legacy',
+              destination: 'https://example.com/new',
+              statusCode: 301,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'exact',
+              linkMapId: null,
+            },
+          ],
+          domains: [{ name: 'links.example.com' }],
+        },
+      ]);
+
+      const { results } = await service.simulateRedirects(organizationId, [
+        {
+          domainGroupId,
+          path: '/legacy',
+          hostname: 'links.example.com',
+        },
+      ]);
+
+      expect(results[0]).toMatchObject({
+        matched: true,
+        target: 'https://example.com/new',
+        linkMapKey: null,
+      });
+    });
+
+    it('should route simulate entries using Accept-Language headers', async () => {
+      (prisma.domainGroup.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: domainGroupId,
+          redirectRules: [
+            {
+              id: 'rule_lang',
+              source: '*',
+              destination:
+                "'{accept-language.primary:to_lower_case}' includes 'pl' ? https://example.com/pl : https://example.com/en",
+              statusCode: 302,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'exact',
+              linkMapId: null,
+            },
+          ],
+          domains: [{ name: 'links.example.com' }],
+        },
+      ]);
+
+      const { results: polishResults } = await service.simulateRedirects(
+        organizationId,
+        [
+          {
+            domainGroupId,
+            path: '/',
+            hostname: 'links.example.com',
+            headers: { 'accept-language': 'pl-PL,pl;q=0.9,en;q=0.8' },
+          },
+        ],
+      );
+
+      expect(polishResults[0]).toMatchObject({
+        matched: true,
+        target: 'https://example.com/pl',
+      });
+
+      const { results: englishResults } = await service.simulateRedirects(
+        organizationId,
+        [
+          {
+            domainGroupId,
+            path: '/',
+            hostname: 'links.example.com',
+            headers: { 'accept-language': 'en-US,en;q=0.9' },
+          },
+        ],
+      );
+
+      expect(englishResults[0]).toMatchObject({
+        matched: true,
+        target: 'https://example.com/en',
+      });
+    });
+
+    it('should not apply domain blacklist by default (unlike live redirect)', async () => {
+      domainBlacklistService.isBlacklisted.mockResolvedValue(true);
+
+      (prisma.domainGroup.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: domainGroupId,
+          redirectRules: [
+            {
+              id: 'rule_blocked_target',
+              source: '/x',
+              destination: 'https://blocked.example/target',
+              statusCode: 302,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'exact',
+              linkMapId: null,
+            },
+          ],
+          domains: [{ name: 'links.example.com' }],
+        },
+      ]);
+
+      const { results } = await service.simulateRedirects(organizationId, [
+        {
+          domainGroupId,
+          path: '/x',
+          hostname: 'links.example.com',
+        },
+      ]);
+
+      expect(results[0]).toMatchObject({
+        matched: true,
+        statusCode: 302,
+        target: 'https://blocked.example/target',
+      });
+      expect(domainBlacklistService.isBlacklisted).not.toHaveBeenCalled();
+    });
+
+    it('should apply domain blacklist when checkDestinationBlacklist is true', async () => {
+      destinationExtractor.extractUrl.mockReturnValue('blocked.example');
+      domainBlacklistService.isBlacklisted.mockResolvedValue(true);
+
+      (prisma.domainGroup.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: domainGroupId,
+          redirectRules: [
+            {
+              id: 'rule_blocked_target',
+              source: '/x',
+              destination: 'https://blocked.example/target',
+              statusCode: 302,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'exact',
+              linkMapId: null,
+            },
+          ],
+          domains: [{ name: 'links.example.com' }],
+        },
+      ]);
+
+      const { results } = await service.simulateRedirects(
+        organizationId,
+        [
+          {
+            domainGroupId,
+            path: '/x',
+            hostname: 'links.example.com',
+          },
+        ],
+        { checkDestinationBlacklist: true },
+      );
+
+      expect(results[0]).toMatchObject({
+        matched: true,
+        statusCode: 403,
+        target: 'https://blocked.example/target',
+        blacklistBlocked: true,
+      });
+      expect(domainBlacklistService.isBlacklisted).toHaveBeenCalledWith(
+        'blocked.example',
+      );
+    });
+
+    it('should return 503 in simulate when blacklist check fails and checkDestinationBlacklist is true', async () => {
+      destinationExtractor.extractUrl.mockReturnValue('blocked.example');
+      domainBlacklistService.isBlacklisted.mockRejectedValue(
+        new Error('blacklist unavailable'),
+      );
+
+      (prisma.domainGroup.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: domainGroupId,
+          redirectRules: [
+            {
+              id: 'rule_blocked_target',
+              source: '/x',
+              destination: 'https://blocked.example/target',
+              statusCode: 302,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'exact',
+              linkMapId: null,
+            },
+          ],
+          domains: [{ name: 'links.example.com' }],
+        },
+      ]);
+
+      const { results } = await service.simulateRedirects(
+        organizationId,
+        [
+          {
+            domainGroupId,
+            path: '/x',
+            hostname: 'links.example.com',
+          },
+        ],
+        { checkDestinationBlacklist: true },
+      );
+
+      expect(results[0]).toMatchObject({
+        matched: true,
+        statusCode: 503,
+        target: 'https://blocked.example/target',
+        blacklistCheckFailed: true,
+      });
+    });
+
+    it('should skip blacklist check for root-relative targets when checkDestinationBlacklist is true', async () => {
+      domainBlacklistService.isBlacklisted.mockResolvedValue(true);
+
+      (prisma.domainGroup.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: domainGroupId,
+          redirectRules: [
+            {
+              id: 'rule_relative',
+              source: '/mobile',
+              destination: '/app',
+              statusCode: 302,
+              matchMethod: [],
+              queryMatch: 'ignore',
+              pathMatch: 'exact',
+              linkMapId: null,
+            },
+          ],
+          domains: [{ name: 'links.example.com' }],
+        },
+      ]);
+
+      const { results } = await service.simulateRedirects(
+        organizationId,
+        [
+          {
+            domainGroupId,
+            path: '/mobile',
+            hostname: 'links.example.com',
+          },
+        ],
+        { checkDestinationBlacklist: true },
+      );
+
+      expect(results[0]).toMatchObject({
+        matched: true,
+        statusCode: 302,
+        target: '/app',
+      });
+      expect(domainBlacklistService.isBlacklisted).not.toHaveBeenCalled();
+    });
+
   });
 });

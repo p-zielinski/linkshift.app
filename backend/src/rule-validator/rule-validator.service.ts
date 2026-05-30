@@ -5,6 +5,10 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { REDIRECT_ENGINE_LIMITS } from '../constants';
 import { Logger } from 'nestjs-pino';
+import {
+  isStoredRegexSource,
+  parseStoredRegexSource,
+} from '../redirect/redirect-source.util';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -28,7 +32,8 @@ export class RuleValidatorService {
     'method',
     'ip',
     'user-agent',
-    'geo.country',
+    'accept-language',
+    'accept-language.primary',
   ];
 
   private readonly ALLOWED_OPERATORS = [
@@ -49,7 +54,13 @@ export class RuleValidatorService {
     };
 
     const captureGroupCount = this.validateSource(source, result);
-    this.validateDestination(destination, result, captureGroupCount);
+    const allowsCaptureSubstitution = isStoredRegexSource(source);
+    this.validateDestination(
+      destination,
+      result,
+      captureGroupCount,
+      allowsCaptureSubstitution,
+    );
 
     if (result.errors.length > 0) {
       result.isValid = false;
@@ -64,21 +75,33 @@ export class RuleValidatorService {
       return 0;
     }
 
-    // Check if it's a Regex
-    if (source.startsWith('/') && source.lastIndexOf('/') > 0) {
-      try {
-        // Extract regex body and flags
-        const lastSlashIndex = source.lastIndexOf('/');
-        const pattern = source.substring(1, lastSlashIndex);
-        const flags = source.substring(lastSlashIndex + 1);
+    if (source === '*' || !source.startsWith('/')) {
+      return 0;
+    }
 
-        // Attempt compilation
-        new RegExp(pattern, flags);
+    const lastSlashIndex = source.lastIndexOf('/');
+    if (lastSlashIndex <= 0) {
+      return 0;
+    }
 
-        // Count capturing groups (primitive approach, but sufficient for most cases)
-        // Look for opening parentheses that are not escaped and not non-capturing groups (?:)
+    const pattern = source.substring(1, lastSlashIndex);
+    const flags = source.substring(lastSlashIndex + 1);
+    const flagsAreValid = /^[dgimsuvy]*$/.test(flags);
+
+    if (flagsAreValid) {
+      const compiled = parseStoredRegexSource(source);
+      if (compiled) {
         const capturingGroups = pattern.match(/(?<!\\)\((?!\?:)/g);
         return capturingGroups ? capturingGroups.length : 0;
+      }
+      result.errors.push('Invalid Regex in source: pattern could not be compiled');
+      return 0;
+    }
+
+    const looksLikeRegexAttempt = /[\^$*+?[({|]/.test(pattern);
+    if (looksLikeRegexAttempt) {
+      try {
+        new RegExp(pattern, flags);
       } catch (e: any) {
         result.errors.push(`Invalid Regex in source: ${e?.message}`);
         return 0;
@@ -92,6 +115,7 @@ export class RuleValidatorService {
     destination: string,
     result: ValidationResult,
     maxCaptureGroups: number,
+    allowsCaptureSubstitution: boolean,
   ): void {
     if (!destination) {
       result.errors.push('Destination cannot be empty');
@@ -99,13 +123,20 @@ export class RuleValidatorService {
     }
 
     // Recursive validation of logic structure
-    this.processDestinationLogic(destination, result, maxCaptureGroups, 0);
+    this.processDestinationLogic(
+      destination,
+      result,
+      maxCaptureGroups,
+      allowsCaptureSubstitution,
+      0,
+    );
   }
 
   private processDestinationLogic(
     segment: string,
     result: ValidationResult,
     maxCaptureGroups: number,
+    allowsCaptureSubstitution: boolean,
     depth: number,
   ): void {
     if (depth > REDIRECT_ENGINE_LIMITS.MAX_RECURSION_DEPTH) {
@@ -127,7 +158,12 @@ export class RuleValidatorService {
       trimmed.startsWith('https://') ||
       trimmed.startsWith('/');
     if (isUrlLike) {
-      this.validateLeaf(trimmed, result, maxCaptureGroups);
+      this.validateLeaf(
+        trimmed,
+        result,
+        maxCaptureGroups,
+        allowsCaptureSubstitution,
+      );
       return;
     }
 
@@ -142,12 +178,14 @@ export class RuleValidatorService {
           split.truePart,
           result,
           maxCaptureGroups,
+          allowsCaptureSubstitution,
           depth + 1,
         );
         this.processDestinationLogic(
           split.falsePart,
           result,
           maxCaptureGroups,
+          allowsCaptureSubstitution,
           depth + 1,
         );
         return;
@@ -175,20 +213,30 @@ export class RuleValidatorService {
     }
 
     // It's a leaf (final destination string)
-    this.validateLeaf(trimmed, result, maxCaptureGroups);
+    this.validateLeaf(
+      trimmed,
+      result,
+      maxCaptureGroups,
+      allowsCaptureSubstitution,
+    );
   }
 
   private validateLeaf(
     target: string,
     result: ValidationResult,
     maxCaptureGroups: number,
+    allowsCaptureSubstitution: boolean,
   ): void {
     // 1. Regex Groups
     const regexGroups = target.match(/\$(\d+)/g);
     if (regexGroups) {
       regexGroups.forEach((group) => {
         const index = parseInt(group.substring(1), 10);
-        if (index > maxCaptureGroups) {
+        if (!allowsCaptureSubstitution) {
+          result.errors.push(
+            `Destination uses $${index}, but capture groups ($N) require a regex source in /pattern/flags form.`,
+          );
+        } else if (index > maxCaptureGroups) {
           result.errors.push(
             `Destination uses group $${index}, but source only has ${maxCaptureGroups} capturing group(s).`,
           );
@@ -227,25 +275,21 @@ export class RuleValidatorService {
 
     if (!mock) return;
 
-    // Rule: Destination must parse to an external URL.
-    // We enforce starting with http:// or https:// only.
     const allowedPrefixes = ['http://', 'https://'];
-    const hasValidPrefix = allowedPrefixes.some((p) => mock.startsWith(p));
+    const isAbsolute = allowedPrefixes.some((p) => mock.startsWith(p));
+    const isRootRelative = mock.startsWith('/');
 
-    if (!hasValidPrefix) {
+    if (!isAbsolute && !isRootRelative) {
       result.errors.push(
-        `Destination must start with 'http://' or 'https://'. Found: "${destination}"`,
+        `Destination must start with 'http://', 'https://', or '/'. Found: "${destination}"`,
       );
       return;
     }
 
-    // Try parsing as URL
     try {
-      if (mock.startsWith('/')) {
-        // Relative path validation
+      if (isRootRelative) {
         new URL(mock, 'http://example.com');
       } else {
-        // Absolute URL validation
         new URL(mock);
       }
     } catch (e) {

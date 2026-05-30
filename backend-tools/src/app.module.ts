@@ -3,15 +3,22 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { ClsModule } from 'nestjs-cls';
 import { HttpModule } from '@nestjs/axios';
+import { ThrottlerModule } from '@nestjs/throttler';
 import type { Request } from 'express';
+import { DocsAssistantController } from './api/docs-assistant.controller';
 import { PublicToolsController } from './api/public-tools.controller';
 import { TraceController } from './api/trace.controller';
 import { AppController } from './app.controller';
+import { DocsAssistantRateLimitService } from './docs-assistant/docs-assistant-rate-limit.service';
+import { DocsAssistantService } from './docs-assistant/docs-assistant.service';
+import { DocsCatalogService } from './docs-assistant/docs-catalog.service';
+import { DocsContentLoaderService } from './docs-assistant/docs-content-loader.service';
 import { RedisModule } from './redis/redis.module';
 import { QrCodeService } from './qr-code/qr-code.service';
 import { QrCodeRateLimitService } from './qr-code/qr-code-rate-limit.service';
 import { RedirectTraceService } from './redirect-trace/redirect-trace.service';
 import { RedirectTraceRateLimitService } from './redirect-trace/redirect-trace-rate-limit.service';
+import { TurnstileGuard } from './security/turnstile.guard';
 import { createRequestId } from './utils';
 
 @Module({
@@ -75,14 +82,22 @@ import { createRequestId } from './utils';
       },
     }),
     HttpModule,
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60_000, limit: 100 }],
+    }),
     RedisModule,
   ],
-  controllers: [AppController, PublicToolsController, TraceController],
+  controllers: [AppController, PublicToolsController, TraceController, DocsAssistantController],
   providers: [
     QrCodeService,
     QrCodeRateLimitService,
     RedirectTraceService,
     RedirectTraceRateLimitService,
+    DocsCatalogService,
+    DocsContentLoaderService,
+    DocsAssistantService,
+    DocsAssistantRateLimitService,
+    TurnstileGuard,
   ],
 })
 export class AppModule {}

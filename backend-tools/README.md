@@ -23,3 +23,9 @@ If Redis is unavailable, public tools still work and rate limiting is temporaril
 - `GET /api/v1/public/qr-code`
 - `GET /api/v1/public/trace` (single hop / single request result)
 - `GET /trace` (single hop alias)
+- `POST /api/v1/public/docs/search` — documentation assistant (`x-turnstile-token`, body `{ "question": "..." }`); responds with NDJSON status events and a final result
+- `POST /api/v1/public/docs/rate` — feedback on a search (`{ "logId": "...", "rating": 1 | -1 | 0 }`)
+
+See `agents/docs-assistant/README.md` for models and Turnstile setup.
+
+Supabase (dev + prod projects, SQL, env): `supabase/README.md`.

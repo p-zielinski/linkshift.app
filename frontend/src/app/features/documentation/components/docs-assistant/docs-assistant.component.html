@@ -1,0 +1,269 @@
+@if (isBrowser) {
+  <ng-template #historyPanel>
+    <div class="docs-assistant__history-toolbar">
+      <span class="text-xs font-semibold uppercase tracking-wide text-app-muted">History</span>
+      @if (session.threads().length > 0) {
+        <button mat-button type="button" (click)="onClearHistory()">Clear history</button>
+      }
+    </div>
+
+    @if (session.threads().length === 0) {
+      <p class="docs-assistant__empty">No previous chats on this device</p>
+    } @else {
+      <ul class="docs-assistant__thread-list">
+        @for (thread of session.threads(); track thread.id) {
+          <li>
+            <button
+              type="button"
+              class="docs-assistant__thread-item"
+              [class.docs-assistant__thread-item--active]="
+                session.activeThread()?.id === thread.id
+              "
+              (click)="onSelectThread(thread.id)"
+            >
+              <span class="docs-assistant__thread-title">{{ thread.title }}</span>
+              <span class="docs-assistant__thread-meta">{{ thread.updatedAt | date: 'short' }}</span>
+            </button>
+            <button
+              mat-icon-button
+              type="button"
+              class="docs-assistant__thread-delete"
+              aria-label="Delete chat"
+              matTooltip="Delete chat"
+              (click)="onDeleteThread(thread.id, $event)"
+            >
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+
+    <p class="docs-assistant__history-note">
+      History is stored on this device only. Same chats appear wherever you open Ask docs
+    </p>
+  </ng-template>
+
+  <ng-template #messagesPanel>
+    @if (pageContext(); as context) {
+      <div class="docs-assistant__context">
+        <span class="docs-assistant__context-label">About: {{ context }}</span>
+        <button mat-stroked-button type="button" (click)="onUsePageContext()">Use in question</button>
+      </div>
+    }
+
+    <div class="docs-assistant__messages" role="log" aria-live="polite" aria-relevant="additions">
+      @if (!hasMessages()) {
+        <div class="docs-assistant__empty docs-assistant__empty--starters">
+          <p class="docs-assistant__empty-title">Ask a question about redirects, link maps, API keys, or setup</p>
+          <div class="docs-assistant__starters" role="list">
+            @for (prompt of starterPrompts; track prompt) {
+              <button
+                type="button"
+                class="docs-assistant__starter"
+                role="listitem"
+                (click)="onStarterPrompt(prompt)"
+              >
+                {{ prompt }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @for (message of activeMessages(); track message.id) {
+        <article
+          class="docs-assistant__message"
+          [class.docs-assistant__message--user]="message.role === 'user'"
+          [class.docs-assistant__message--assistant]="message.role === 'assistant'"
+        >
+          <div class="docs-assistant__bubble">
+            @if (message.role === 'assistant') {
+              <div class="docs-assistant__markdown">
+                <app-markdown-renderer [markdown]="message.text" />
+              </div>
+            } @else {
+              <p class="docs-assistant__text">{{ message.text }}</p>
+            }
+
+            @if (message.role === 'assistant' && message.sources?.length) {
+              <div class="docs-assistant__sources">
+                <div class="docs-assistant__sources-title">Sources</div>
+                <ul>
+                  @for (source of message.sources; track source) {
+                    @let parsed = parseSource(source);
+                    <li>
+                      @if (parsed.route) {
+                        <a [routerLink]="parsed.route" (click)="onSourceLinkClick($event)">{{
+                          parsed.label
+                        }}</a>
+                      } @else {
+                        <span>{{ parsed.label }}</span>
+                      }
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+
+            @if (message.role === 'assistant' && message.logId) {
+              <div class="docs-assistant__rating">
+                <span class="text-xs text-app-muted">Helpful?</span>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Helpful"
+                    matTooltip="Helpful"
+                    [class.docs-assistant__rating--active]="message.rating === 1"
+                    (click)="onRate(message, 1)"
+                  >
+                    <mat-icon>thumb_up</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Not helpful"
+                    matTooltip="Not helpful"
+                    [class.docs-assistant__rating--active]="message.rating === -1"
+                    (click)="onRate(message, -1)"
+                  >
+                    <mat-icon>thumb_down</mat-icon>
+                  </button>
+              </div>
+            }
+          </div>
+        </article>
+      }
+
+      @if (session.isSearching()) {
+        <div class="docs-assistant__loading">
+          <mat-spinner diameter="22" />
+          <div class="docs-assistant__loading-text">
+            <span>{{ session.searchStatusLabel() }}</span>
+            @if (session.showLongSearchHint()) {
+              <span class="docs-assistant__loading-hint">
+                Still working… {{ session.searchElapsedSeconds() }}s
+              </span>
+            }
+          </div>
+        </div>
+      }
+
+      <div #messagesEnd aria-hidden="true"></div>
+    </div>
+  </ng-template>
+
+  <ng-template #composerPanel>
+    @if (session.errorMessage(); as error) {
+      <p class="docs-assistant__error" role="alert">{{ error }}</p>
+    }
+
+    <div
+      class="docs-assistant__form docs-assistant__form--embedded"
+      role="search"
+      aria-label="Ask docs"
+    >
+      <mat-form-field class="docs-assistant__question-field w-full" appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Question</mat-label>
+        <textarea
+          #questionInput
+          matInput
+          rows="3"
+          [formControl]="questionControl"
+          (keydown.enter)="onComposerEnter($event)"
+        ></textarea>
+      </mat-form-field>
+
+      <div class="docs-assistant__footer-row">
+        <div class="docs-assistant__footer-notes">
+          <p class="docs-assistant__disclaimer text-xs text-app-muted">
+            Answers use AI and official docs. Verify critical settings before production changes
+          </p>
+          <p class="docs-assistant__privacy-note text-xs text-app-muted">
+            Questions and answers are processed by OpenAI and used to improve AI services. Do not
+            include sensitive or confidential information.
+            <a routerLink="/privacy" class="text-app-accent-strong">Privacy Policy</a>
+          </p>
+        </div>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="docs-assistant__submit"
+          [disabled]="questionControl.invalid || session.isSearching()"
+          (click)="onAskClick($event)"
+        >
+          Ask
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+  <section
+    class="docs-assistant docs-assistant--embedded app-assistant-drawer-layout"
+    [class.docs-assistant--history-open]="showHistory()"
+    aria-label="Ask docs"
+  >
+    <header class="docs-assistant__header app-assistant-drawer-layout__header">
+      <div class="docs-assistant__header-brand min-w-0">
+        <span class="docs-assistant__header-icon" aria-hidden="true">
+          <mat-icon>auto_awesome</mat-icon>
+        </span>
+        <div class="min-w-0">
+          <h2 class="docs-assistant__title">Ask docs</h2>
+          <p class="docs-assistant__subtitle">Answers from LinkShift documentation</p>
+        </div>
+      </div>
+
+      <div class="docs-assistant__header-actions docs-assistant__header-actions--embedded">
+        <button
+          mat-icon-button
+          type="button"
+          [attr.aria-pressed]="showHistory()"
+          aria-label="Chat history"
+          matTooltip="Chat history"
+          (click)="onToggleHistory()"
+        >
+          <mat-icon>history</mat-icon>
+        </button>
+
+        <button
+          mat-icon-button
+          type="button"
+          aria-label="New chat"
+          matTooltip="New chat"
+          (click)="onNewChat()"
+        >
+          <mat-icon>add_comment</mat-icon>
+        </button>
+      </div>
+
+      <button
+        mat-icon-button
+        type="button"
+        class="docs-assistant__header-close"
+        aria-label="Close Ask docs"
+        matTooltip="Close"
+        (click)="onClose()"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </header>
+
+    <div class="app-assistant-drawer-layout__main">
+      @if (showHistory()) {
+        <aside class="app-assistant-drawer-layout__aside" aria-label="Chat history">
+          <ng-container *ngTemplateOutlet="historyPanel" />
+        </aside>
+      }
+
+      <div class="app-assistant-drawer-layout__body">
+        <ng-container *ngTemplateOutlet="messagesPanel" />
+      </div>
+    </div>
+
+    <footer class="app-assistant-drawer-layout__actions docs-assistant__composer">
+      <ng-container *ngTemplateOutlet="composerPanel" />
+    </footer>
+  </section>
+}

@@ -2,7 +2,6 @@ import { HttpMethod } from './http-method.model';
 
 export type RedirectTestRequestData = {
   method?: HttpMethod;
-  protocol?: 'http' | 'https';
   hostname?: string;
   ip?: string;
   userAgent?: string;

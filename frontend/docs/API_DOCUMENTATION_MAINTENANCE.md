@@ -4,34 +4,38 @@ This guide explains how to keep LinkShift docs in sync with API changes.
 
 ## Source of truth
 
-1. OpenAPI: `frontend/public/linkshift-api-keys.openapi.yaml`
-2. Backend guides: `backend/docs/**/*.md`
+1. OpenAPI: `shared/docs/openapi/linkshift-api-keys.openapi.yaml`
+2. Markdown pages: `shared/docs/pages/**/*.md`
+3. Page registry: `shared/docs/manifest.yaml`
 
 Do not manually duplicate endpoint contracts in frontend files.
 
 ## Update workflow
 
-1. Update OpenAPI and/or backend markdown docs.
-2. Run:
+1. Update OpenAPI and/or markdown under `shared/docs/`.
+2. Register new or changed pages in `shared/docs/manifest.yaml` when needed.
+3. Run from repository root:
 
 ```bash
-npm --prefix frontend run docs:sync
+npm run docs:sync
 ```
 
-3. Verify generated file changes:
+4. Verify generated file changes:
    - `frontend/src/app/features/documentation/generated/documentation.generated.ts`
-4. Verify sitemap docs block changed (auto-updated between `<!-- docs:start -->` and `<!-- docs:end -->`):
+5. Verify sitemap docs block changed (auto-updated between `<!-- docs:start -->` and `<!-- docs:end -->`):
    - `frontend/public/sitemap.xml`
-5. If docs structure changed, update:
+6. Verify OpenAPI copy:
+   - `frontend/public/linkshift-api-keys.openapi.yaml`
+7. If docs structure changed, update:
    - `frontend/public/llms.txt`
    - `frontend/public/robots.txt` (when new docs path groups are added)
-6. Run build:
+8. Run build:
 
 ```bash
 npm --prefix frontend run build
 ```
 
-7. Open `/docs` and verify:
+9. Open `/docs` and verify:
    - sidebar groups,
    - endpoint pages,
    - schema trees,
@@ -39,26 +43,13 @@ npm --prefix frontend run build
 
 ## Common pitfalls
 
-1. Missing `operationId` in OpenAPI can create unstable endpoint URLs.
-   - Always keep operation IDs explicit and unique.
-2. `$ref` loops can make schema trees unreadable.
-   - Prefer modular schemas with clear ownership boundaries.
-3. Non-JSON media types are supported, but schema display is optimized for JSON.
-4. If docs load fails in browser, confirm the API spec is served at:
-   - `/linkshift-api-keys.openapi.yaml`
+- Forgetting `docs:sync` after editing `shared/docs/`.
+- Editing `frontend/public/linkshift-api-keys.openapi.yaml` directly — changes will be overwritten on sync.
+- Adding a markdown file without a `manifest.yaml` entry.
+- Changing `operationId` in OpenAPI without expecting docs URL changes (`/docs/api/:operationId`).
 
-## Try me behavior
+## Public URLs
 
-Try me stores base URL and API key in `sessionStorage`.
-
-- Values persist when navigating between docs pages.
-- Values are cleared when browser session ends.
-
-## When to add new guide pages
-
-Add new backend markdown files when API behavior needs context that schema alone cannot explain, for example:
-
-- validation semantics,
-- operational guardrails,
-- migration workflows,
-- rollback and safety procedures.
+- Docs hub: `/docs`
+- API reference: `/docs/reference`
+- OpenAPI download: `/linkshift-api-keys.openapi.yaml`

@@ -1,0 +1,491 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LinkShift Management API (API Key Accessible Endpoints) — Subdomains",
+    "version": "1.0.0",
+    "summary": "Organization-scoped redirect management API",
+    "description": "Organization-scoped Management API for redirect configuration, link maps, and operational checks.\nUse it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.\n\n**Authentication**\n- Send your key on every request: `X-API-Key: <your_key>` (preferred).\n- Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.\n\n**Typical setup order**\n1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).\n2. Link map + entries when rules resolve keys instead of a fixed destination.\n3. Redirect tests + simulate for CI; analytics for traffic review.\n\n**Errors and recovery**\n- `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).\n- `402` — API access isn't on your current plan. Upgrade subscription, then retry.\n- `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).\n- `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.\n- `404` — ID doesn't exist or isn't in your organization scope.\n\n**Dashboard-only**\nAPI key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.\n\n**Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.\nThis document contains only operations tagged \"Subdomains\".\nTag scope: LinkShift-hosted short labels (e.g. `promo` → `promo.linkshift.app`) in a domain group.\nUse when you don't bring your own domain yet.\n"
+  },
+  "servers": [
+    {
+      "url": "https://linkshift.app",
+      "description": "Production API host"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Subdomains",
+      "description": "LinkShift-hosted short labels (e.g. `promo` → `promo.linkshift.app`) in a domain group.\nUse when you don't bring your own domain yet.\n"
+    }
+  ],
+  "paths": {
+    "/api/v1/subdomains": {
+      "get": {
+        "tags": [
+          "Subdomains"
+        ],
+        "summary": "List LinkShift subdomains",
+        "description": "Returns all active LinkShift-hosted subdomain labels in one response (no cursor pagination).\nEach row includes `domainGroupId` for filtering in automation scripts.\n",
+        "operationId": "listSubdomains",
+        "responses": {
+          "200": {
+            "description": "Subdomains list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkShiftSubdomainQueryResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Subdomains"
+        ],
+        "summary": "Create LinkShift subdomain",
+        "description": "Reserves a lowercase label (max 30 chars) on LinkShift infrastructure under `domainGroupId`.\nReturns 404 when the group is invalid; 409 when the label is already taken.\n",
+        "operationId": "createSubdomain",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLinkShiftSubdomainRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created subdomain",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkShiftSubdomain"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/subdomains/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/EntityId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Subdomains"
+        ],
+        "summary": "Get LinkShift subdomain by ID",
+        "description": "Fetches one subdomain label and its `domainGroupId`.\nReturns 404 when unknown or outside your organization.\n",
+        "operationId": "getSubdomain",
+        "responses": {
+          "200": {
+            "description": "Subdomain details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkShiftSubdomain"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Subdomains"
+        ],
+        "summary": "Update LinkShift subdomain",
+        "description": "Renames the label and/or reassigns `domainGroupId` (required in body).\nReturns 409 on label conflict.\n",
+        "operationId": "updateSubdomain",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLinkShiftSubdomainRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated subdomain",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkShiftSubdomain"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Subdomains"
+        ],
+        "summary": "Delete LinkShift subdomain (soft)",
+        "description": "Soft-deletes the label; it stops serving redirect traffic.\nReturns 404 when out of scope.\n",
+        "operationId": "deleteSubdomain",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LinkShiftSubdomainQueryResult": {
+        "description": "Paginated LinkShift-subdomain query response.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/QueryResultMeta"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "description": "LinkShift-subdomain items in current page.",
+                "items": {
+                  "$ref": "#/components/schemas/LinkShiftSubdomain"
+                }
+              }
+            },
+            "required": [
+              "data"
+            ]
+          }
+        ]
+      },
+      "CreateLinkShiftSubdomainRequest": {
+        "description": "Payload for creating a LinkShift subdomain.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30,
+            "pattern": "^[a-z0-9-]{1,30}$",
+            "description": "Subdomain label before base host, lowercase letters/numbers/hyphens."
+          },
+          "domainGroupId": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Target domain-group ID."
+          }
+        },
+        "required": [
+          "name",
+          "domainGroupId"
+        ]
+      },
+      "LinkShiftSubdomain": {
+        "description": "LinkShift-hosted subdomain label assigned to a domain group.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Subdomain ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Subdomain label without base host suffix."
+          },
+          "domainGroupId": {
+            "type": "string",
+            "description": "Parent domain-group ID."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp (UTC)."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp (UTC)."
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Soft-delete timestamp in UTC when deleted."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "domainGroupId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateLinkShiftSubdomainRequest": {
+        "description": "Payload for updating a LinkShift subdomain.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30,
+            "pattern": "^[a-z0-9-]{1,30}$",
+            "description": "Subdomain label before base host, lowercase letters/numbers/hyphens."
+          },
+          "domainGroupId": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Target domain-group ID."
+          }
+        },
+        "required": [
+          "domainGroupId"
+        ]
+      },
+      "QueryResultMeta": {
+        "description": "Metadata envelope shared by cursor-paginated query responses.",
+        "type": "object",
+        "properties": {
+          "dataType": {
+            "type": "string",
+            "description": "Logical item type in the `data` array."
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether there are additional results after this page."
+          },
+          "moreStartingAfterId": {
+            "type": "string",
+            "description": "Cursor token to request the next page."
+          }
+        },
+        "required": [
+          "dataType",
+          "hasMore"
+        ]
+      },
+      "ErrorResponse": {
+        "description": "Standard error envelope. Use `key` for branching in code, `details` for human-readable fixes,\nand `requestId` when escalating to support.\n",
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "HTTP-like numeric status code."
+          },
+          "key": {
+            "type": "string",
+            "description": "Stable machine-readable error key."
+          },
+          "message": {
+            "type": "string",
+            "description": "Short error summary."
+          },
+          "details": {
+            "type": "string",
+            "description": "Human-readable details explaining the error."
+          },
+          "requestId": {
+            "type": "string",
+            "description": "Correlation ID useful for support and troubleshooting."
+          },
+          "feature": {
+            "type": "string",
+            "description": "Optional feature gate identifier when relevant (for example `api_access`)."
+          }
+        },
+        "required": [
+          "code",
+          "key",
+          "message"
+        ]
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Missing or invalid API key. Verify the `X-API-Key` header and that the key wasn't revoked in the dashboard; rotate if needed, then retry.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "unauthorized": {
+                "value": {
+                  "code": 401,
+                  "key": "unauthorized",
+                  "message": "Unauthorized",
+                  "details": "Missing or invalid API key.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PaymentRequired": {
+        "description": "API access isn't enabled on your subscription (`feature` is often `api_access`). Upgrade the plan in the dashboard, then retry with the same key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "paymentRequired": {
+                "value": {
+                  "code": 402,
+                  "key": "payment_required",
+                  "message": "Payment required",
+                  "feature": "api_access",
+                  "details": "API key usage is available on paid plans only. Upgrade your subscription to use API access.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Per-key rate limit for your plan. Back off exponentially with jitter; avoid tight retry loops. Check GET organization/usage for current inventory (limits are plan-defined, not returned here).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "tooManyRequests": {
+                "value": {
+                  "code": 429,
+                  "key": "too_many_requests",
+                  "message": "Too many requests",
+                  "details": "API key rate limit exceeded",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource ID doesn't exist, was soft-deleted, or isn't in your organization. Confirm the ID from a fresh list call and that you're using the correct API key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Unique constraint conflict (e.g. domain hostname or subdomain label already registered). Change the name or update the existing resource instead of creating again.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "EntityId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Resource ID from a prior list or create response (same string you store in automation state). Wrong or foreign-org IDs return 404.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Organization API key from the dashboard (Organization → API keys).\nSend via `X-API-Key` on every request in this spec.\n"
+      }
+    }
+  },
+  "x-linkshift": {
+    "sourceTag": "Subdomains",
+    "operationCount": 5,
+    "generatedBy": "scripts/openapi-split-by-tag.mjs"
+  }
+}

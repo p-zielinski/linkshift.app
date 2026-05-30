@@ -8,12 +8,8 @@
     <div class="mt-4">
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>URL</mat-label>
-        <input
-          matInput
-          [formControl]="sourceUrlControl"
-          autocomplete="off"
-          placeholder="https://linkshift.app"
-        />
+        <input matInput [formControl]="sourceUrlControl" autocomplete="off" />
+        <mat-hint>e.g. https://linkshift.app</mat-hint>
       </mat-form-field>
     </div>
 

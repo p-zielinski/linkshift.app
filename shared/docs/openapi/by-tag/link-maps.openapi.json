@@ -1,0 +1,518 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LinkShift Management API (API Key Accessible Endpoints) — Link Maps",
+    "version": "1.0.0",
+    "summary": "Organization-scoped redirect management API",
+    "description": "Organization-scoped Management API for redirect configuration, link maps, and operational checks.\nUse it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.\n\n**Authentication**\n- Send your key on every request: `X-API-Key: <your_key>` (preferred).\n- Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.\n\n**Typical setup order**\n1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).\n2. Link map + entries when rules resolve keys instead of a fixed destination.\n3. Redirect tests + simulate for CI; analytics for traffic review.\n\n**Errors and recovery**\n- `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).\n- `402` — API access isn't on your current plan. Upgrade subscription, then retry.\n- `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).\n- `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.\n- `404` — ID doesn't exist or isn't in your organization scope.\n\n**Dashboard-only**\nAPI key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.\n\n**Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.\nThis document contains only operations tagged \"Link Maps\".\nTag scope: Named key→URL tables referenced by rules via `linkMapId`.\nCreate the map, then add entries (or import) before pointing a rule at it.\n"
+  },
+  "servers": [
+    {
+      "url": "https://linkshift.app",
+      "description": "Production API host"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Link Maps",
+      "description": "Named key→URL tables referenced by rules via `linkMapId`.\nCreate the map, then add entries (or import) before pointing a rule at it.\n"
+    }
+  ],
+  "paths": {
+    "/api/v1/link-maps": {
+      "get": {
+        "tags": [
+          "Link Maps"
+        ],
+        "summary": "List link maps",
+        "description": "Returns all link maps in a domain group as a JSON array (not cursor-paginated).\nEach item includes `entriesCount` so you can spot empty maps before wiring rules.\n",
+        "operationId": "listLinkMaps",
+        "parameters": [
+          {
+            "name": "domainGroupId",
+            "in": "query",
+            "required": true,
+            "description": "Domain group that owns the maps. Required; use the same ID on create link map and import link map entries.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Link maps list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LinkMap"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Link Maps"
+        ],
+        "summary": "Create link map",
+        "description": "Creates an empty key→URL table under `domainGroupId`.\nAdd entries (POST create or POST import) before setting `linkMapId` on a redirect rule.\nReturns 404 when the domain group doesn't exist.\n",
+        "operationId": "createLinkMap",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLinkMapRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created link map",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkMap"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/link-maps/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/EntityId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Link Maps"
+        ],
+        "summary": "Get link map by ID",
+        "description": "Fetches map settings (`caseSensitive`, `queryMatch`, `fallbackDestination`) and `entriesCount`.\nReturns 404 when the map is deleted or outside your organization.\n",
+        "operationId": "getLinkMap",
+        "responses": {
+          "200": {
+            "description": "Link map details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkMap"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Link Maps"
+        ],
+        "summary": "Update link map",
+        "description": "Changes matching behavior or fallback URL for an existing map.\nDoesn't modify entries — use link map entry endpoints for keys.\nReturns 400 when `fallbackDestination` isn't a valid http(s) URL.\n",
+        "operationId": "updateLinkMap",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLinkMapRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated link map",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkMap"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Link Maps"
+        ],
+        "summary": "Delete link map (soft)",
+        "description": "Soft-deletes the map when it has zero entries and no active redirect rules reference it.\nReturns 400 with `details` when entries remain or rules still point at `linkMapId` — delete entries first or detach rules.\n",
+        "operationId": "deleteLinkMap",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LinkMap": {
+        "description": "Named lookup table: redirect rules reference it via `linkMapId` to resolve a key to a destination URL.\n`entriesCount` helps you verify imports before going live.\n",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Link-map ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable link-map name."
+          },
+          "domainGroupId": {
+            "type": "string",
+            "description": "Parent domain-group ID."
+          },
+          "caseSensitive": {
+            "type": "boolean",
+            "description": "Controls key matching case sensitivity."
+          },
+          "queryMatch": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "ignore",
+              "subset"
+            ],
+            "description": "Query-string matching strategy for key resolution requests."
+          },
+          "fallbackDestination": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional destination used when no key matches."
+          },
+          "entriesCount": {
+            "type": "integer",
+            "description": "Count of active entries (included on list and get responses)."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp (UTC)."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp (UTC)."
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Soft-delete timestamp in UTC when deleted."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "domainGroupId",
+          "caseSensitive",
+          "queryMatch",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateLinkMapRequest": {
+        "description": "Payload for creating a link map.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Link-map display name."
+          },
+          "domainGroupId": {
+            "type": "string",
+            "description": "Parent domain-group ID."
+          },
+          "caseSensitive": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether key matching is case sensitive."
+          },
+          "queryMatch": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "ignore",
+              "subset"
+            ],
+            "default": "ignore",
+            "description": "Query matching strategy for key resolution requests."
+          },
+          "fallbackDestination": {
+            "type": "string",
+            "description": "Optional fallback destination URL (must start with http:// or https://).",
+            "pattern": "^https?://"
+          }
+        },
+        "required": [
+          "name",
+          "domainGroupId"
+        ]
+      },
+      "UpdateLinkMapRequest": {
+        "description": "Payload for updating a link map.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Link-map display name."
+          },
+          "caseSensitive": {
+            "type": "boolean",
+            "description": "Whether key matching is case sensitive."
+          },
+          "queryMatch": {
+            "type": "string",
+            "enum": [
+              "exact",
+              "ignore",
+              "subset"
+            ],
+            "description": "Query matching strategy for key resolution requests."
+          },
+          "fallbackDestination": {
+            "type": "string",
+            "nullable": true,
+            "description": "Fallback destination URL (must start with http:// or https:// when set).",
+            "pattern": "^https?://"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "description": "Standard error envelope. Use `key` for branching in code, `details` for human-readable fixes,\nand `requestId` when escalating to support.\n",
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "HTTP-like numeric status code."
+          },
+          "key": {
+            "type": "string",
+            "description": "Stable machine-readable error key."
+          },
+          "message": {
+            "type": "string",
+            "description": "Short error summary."
+          },
+          "details": {
+            "type": "string",
+            "description": "Human-readable details explaining the error."
+          },
+          "requestId": {
+            "type": "string",
+            "description": "Correlation ID useful for support and troubleshooting."
+          },
+          "feature": {
+            "type": "string",
+            "description": "Optional feature gate identifier when relevant (for example `api_access`)."
+          }
+        },
+        "required": [
+          "code",
+          "key",
+          "message"
+        ]
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Request body or query failed validation. Read `details` (and optional field hints) in the JSON body; fix the payload and retry. Include `requestId` when contacting support.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid API key. Verify the `X-API-Key` header and that the key wasn't revoked in the dashboard; rotate if needed, then retry.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "unauthorized": {
+                "value": {
+                  "code": 401,
+                  "key": "unauthorized",
+                  "message": "Unauthorized",
+                  "details": "Missing or invalid API key.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PaymentRequired": {
+        "description": "API access isn't enabled on your subscription (`feature` is often `api_access`). Upgrade the plan in the dashboard, then retry with the same key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "paymentRequired": {
+                "value": {
+                  "code": 402,
+                  "key": "payment_required",
+                  "message": "Payment required",
+                  "feature": "api_access",
+                  "details": "API key usage is available on paid plans only. Upgrade your subscription to use API access.",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Per-key rate limit for your plan. Back off exponentially with jitter; avoid tight retry loops. Check GET organization/usage for current inventory (limits are plan-defined, not returned here).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "examples": {
+              "tooManyRequests": {
+                "value": {
+                  "code": 429,
+                  "key": "too_many_requests",
+                  "message": "Too many requests",
+                  "details": "API key rate limit exceeded",
+                  "requestId": "req_example"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource ID doesn't exist, was soft-deleted, or isn't in your organization. Confirm the ID from a fresh list call and that you're using the correct API key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "EntityId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Resource ID from a prior list or create response (same string you store in automation state). Wrong or foreign-org IDs return 404.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Organization API key from the dashboard (Organization → API keys).\nSend via `X-API-Key` on every request in this spec.\n"
+      }
+    }
+  },
+  "x-linkshift": {
+    "sourceTag": "Link Maps",
+    "operationCount": 5,
+    "generatedBy": "scripts/openapi-split-by-tag.mjs"
+  }
+}

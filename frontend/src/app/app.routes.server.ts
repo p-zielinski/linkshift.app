@@ -1,9 +1,39 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
+import {
+  DOCUMENTATION_MARKDOWN_PAGES,
+  OPENAPI_ENDPOINTS_SNAPSHOT,
+} from './features/documentation/generated/documentation.generated';
+
+function markdownPrerenderParams(category: 'intro' | 'guide' | 'concept') {
+  return DOCUMENTATION_MARKDOWN_PAGES.filter((page) => page.category === category).map(
+    (page) => ({ slug: page.slug }),
+  );
+}
 
 export const serverRoutes: ServerRoute[] = [
-  { path: 'docs', renderMode: RenderMode.Server },
-  { path: 'docs/:section', renderMode: RenderMode.Server },
-  { path: 'docs/:section/:id', renderMode: RenderMode.Server },
+  { path: 'docs', renderMode: RenderMode.Prerender },
+  { path: 'docs/reference', renderMode: RenderMode.Prerender },
+  {
+    path: 'docs/intro/:slug',
+    renderMode: RenderMode.Prerender,
+    getPrerenderParams: async () => markdownPrerenderParams('intro'),
+  },
+  {
+    path: 'docs/guides/:slug',
+    renderMode: RenderMode.Prerender,
+    getPrerenderParams: async () => markdownPrerenderParams('guide'),
+  },
+  {
+    path: 'docs/concepts/:slug',
+    renderMode: RenderMode.Prerender,
+    getPrerenderParams: async () => markdownPrerenderParams('concept'),
+  },
+  {
+    path: 'docs/api/:operationId',
+    renderMode: RenderMode.Prerender,
+    getPrerenderParams: async () =>
+      OPENAPI_ENDPOINTS_SNAPSHOT.map((endpoint) => ({ operationId: endpoint.id })),
+  },
   { path: 'dashboard', renderMode: RenderMode.Client },
   { path: 'tools', renderMode: RenderMode.Client },
   { path: 'tools/:tool', renderMode: RenderMode.Client },
