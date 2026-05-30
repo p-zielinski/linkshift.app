@@ -30,7 +30,7 @@ export const DEFAULT_APP_RUNTIME_CONFIG: AppRuntimeConfig = {
   APP_LEGAL_ADDRESS: 'Available upon request',
   APP_PRIVACY_EMAIL: 'privacy@redirectcontrol.app',
   APP_MIN_AGE: '16',
-  APP_LEGAL_VERSION: 'v1',
+  APP_LEGAL_VERSION: 'v2',
   APP_DOMAIN_TARGET_IP: '',
   APP_AUTH_GATE_ENABLED: 'false',
   APP_PADDLE_CLIENT_TOKEN: '',

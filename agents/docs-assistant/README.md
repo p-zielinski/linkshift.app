@@ -56,7 +56,9 @@ Structured logs (pino) per request — filter by `requestId` from the controller
 
 `outcome`: `empty_question`, `early_exit`, `no_catalog_match`, `completed`.
 
-Question/answer text is not logged — only lengths, ids, sources, and routing metadata.
+Question/answer text is not logged — only lengths, ids, sources, routing metadata, and LLM token totals (`llmPromptTokens`, `llmCompletionTokens`, `llmEstimatedCostUsd`).
+
+When Supabase is configured, each completed search log stores aggregated OpenAI usage (`llm_prompt_tokens`, `llm_completion_tokens`, `llm_estimated_cost_usd`, `llm_usage_detail` per stage). Cost is estimated from model pricing defaults in code; override with `DOCS_ASSISTANT_MODEL_PRICING_JSON` in backend-tools env.
 
 `sources` are **user-facing citations** (docs routes and API reference tags), not internal `openapi/by-tag` slice paths. Slices are LLM context only; the canonical contract is `linkshift-api-keys.openapi.yaml` at `/docs/reference`.
 

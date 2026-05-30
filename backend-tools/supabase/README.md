@@ -103,7 +103,8 @@ If `logId` is `null`, check backend-tools logs for `Supabase is not configured` 
 | Action | What to do |
 |--------|------------|
 | New developer machine | Create dev project or share dev URL/key via secrets manager; copy into `backend-tools/.env` |
-| Schema change | Edit `agent_search_logs.sql` (or add `migrations/002_....sql`); run SQL on **dev**, test, then run on **prod** |
+| Schema change | Edit `agent_search_logs.sql` (or add `migrations/00N_....sql`); run SQL on **dev**, test, then run on **prod** |
+| Token cost columns (existing DB) | Run [`migrations/002_llm_token_usage.sql`](./migrations/002_llm_token_usage.sql) on dev + prod |
 | Prod analytics | Supabase dashboard on **prod** project only |
 | Local experiments | Never point local `.env` at **prod** keys |
 

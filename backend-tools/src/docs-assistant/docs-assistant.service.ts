@@ -30,6 +30,8 @@ import { DocsCatalogService } from './docs-catalog.service';
 import { DocsContentLoaderService } from './docs-content-loader.service';
 import type { DocsSearchResultEvent, DocsSearchStreamEvent } from './docs-assistant-stream.model';
 import { DocsAssistantPipelineTrace } from './docs-assistant-pipeline-trace.util';
+import { DocsAssistantLlmUsageTracker } from './docs-assistant-llm-usage-tracker';
+import type { DocsAssistantLlmStage } from './docs-assistant-llm-usage.model';
 
 function toSearchResultEvent(
   event: Omit<DocsSearchResultEvent, 'conversationSummary'> & {
@@ -75,6 +77,9 @@ export class DocsAssistantService implements OnModuleInit {
     const trimmedQuestion = question.trim();
     const priorSummary = trimConversationSummary(conversationSummary);
     const trace = new DocsAssistantPipelineTrace(this.logger, this.clsService.getId());
+    const llmUsage = new DocsAssistantLlmUsageTracker(
+      this.configService.get<string>('DOCS_ASSISTANT_MODEL_PRICING_JSON'),
+    );
 
     if (!trimmedQuestion) {
       trace.completePipeline('empty_question');
@@ -102,7 +107,7 @@ export class DocsAssistantService implements OnModuleInit {
     yield { type: 'status', stage: 'routing' };
     trace.startStage('routing');
 
-    const routerData = await this.runRouter(trimmedQuestion, priorSummary, catalog);
+    const routerData = await this.runRouter(trimmedQuestion, priorSummary, catalog, llmUsage);
 
     trace.completeStage('routing', {
       model: this.routerModel(),
@@ -114,6 +119,7 @@ export class DocsAssistantService implements OnModuleInit {
     if (isRouterEarlyExitIntent(routerData.intent)) {
       trace.completePipeline('early_exit', {
         intent: routerData.intent,
+        ...this.llmUsageLogFields(llmUsage),
       });
       const earlyExit = buildRouterEarlyExitResult(routerData);
       yield toSearchResultEvent({
@@ -146,6 +152,7 @@ export class DocsAssistantService implements OnModuleInit {
       trace.completePipeline('no_catalog_match', {
         intent: routerData.intent,
         routerSuggestedIds,
+        ...this.llmUsageLogFields(llmUsage),
       });
       const noMatch = buildNoCatalogMatchResult(routerData);
       yield toSearchResultEvent({
@@ -176,7 +183,13 @@ export class DocsAssistantService implements OnModuleInit {
     yield { type: 'status', stage: 'drafting' };
     trace.startStage('drafting');
 
-    const generatorResult = await this.runGenerator(trimmedQuestion, context, sources, priorSummary);
+    const generatorResult = await this.runGenerator(
+      trimmedQuestion,
+      context,
+      sources,
+      priorSummary,
+      llmUsage,
+    );
 
     trace.completeStage('drafting', {
       model: this.generatorModel(),
@@ -189,6 +202,7 @@ export class DocsAssistantService implements OnModuleInit {
       answer: generatorResult.answer,
       sourcesUsed: sources,
       executionTimeMs: Date.now() - startTime,
+      llmUsage: llmUsage.getTotals(),
     });
 
     trace.completePipeline('completed', {
@@ -197,6 +211,7 @@ export class DocsAssistantService implements OnModuleInit {
       sourceCount: sources.length,
       usedKeywordFallback,
       logId,
+      ...this.llmUsageLogFields(llmUsage),
     });
 
     yield toSearchResultEvent({
@@ -251,6 +266,19 @@ export class DocsAssistantService implements OnModuleInit {
     );
   }
 
+  private llmUsageLogFields(llmUsage: DocsAssistantLlmUsageTracker): Record<string, unknown> {
+    const totals = llmUsage.getTotals();
+    if (!totals) {
+      return {};
+    }
+
+    return {
+      llmPromptTokens: totals.promptTokens,
+      llmCompletionTokens: totals.completionTokens,
+      llmEstimatedCostUsd: totals.estimatedCostUsd,
+    };
+  }
+
   private async runRouter(
     question: string,
     conversationSummary: string | null,
@@ -260,6 +288,7 @@ export class DocsAssistantService implements OnModuleInit {
       userFacingRef: string;
       summary: string;
     }>,
+    llmUsage: DocsAssistantLlmUsageTracker,
   ): Promise<RouterResult> {
     const fallback: RouterResult = {
       intent: 'DOCUMENTATION_SEARCH',
@@ -275,6 +304,7 @@ export class DocsAssistantService implements OnModuleInit {
       schema: RouterResultSchema,
       fallback,
       stage: 'router',
+      llmUsage,
     });
   }
 
@@ -283,6 +313,7 @@ export class DocsAssistantService implements OnModuleInit {
     context: string,
     sourcesChecked: string[],
     conversationSummary: string | null,
+    llmUsage: DocsAssistantLlmUsageTracker,
   ): Promise<{ answer: string; conversationSummary: string | null }> {
     const previousSummary = trimConversationSummary(conversationSummary);
     const fallbackAnswer = buildUnknownInDocsAnswer(sourcesChecked);
@@ -311,6 +342,7 @@ export class DocsAssistantService implements OnModuleInit {
       schema: GeneratorResultSchema,
       fallback,
       stage: 'generator',
+      llmUsage,
     });
 
     return {
@@ -349,18 +381,26 @@ export class DocsAssistantService implements OnModuleInit {
     schema,
     fallback,
     stage,
+    llmUsage,
   }: {
     model: string;
     systemPrompt: string;
     userPayload: unknown;
     schema: import('zod').ZodType<T>;
     fallback: T;
-    stage: 'router' | 'generator';
+    stage: DocsAssistantLlmStage;
+    llmUsage: DocsAssistantLlmUsageTracker;
   }): Promise<T> {
     const maxAttempts = 2;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const raw = await this.createJsonCompletion({ model, systemPrompt, userPayload });
+      const raw = await this.createJsonCompletion({
+        model,
+        systemPrompt,
+        userPayload,
+        stage,
+        llmUsage,
+      });
       const parsed = parseValidatedJson(raw, schema);
 
       if (parsed.ok) {
@@ -387,10 +427,14 @@ export class DocsAssistantService implements OnModuleInit {
     model,
     systemPrompt,
     userPayload,
+    stage,
+    llmUsage,
   }: {
     model: string;
     systemPrompt: string;
     userPayload: unknown;
+    stage: DocsAssistantLlmStage;
+    llmUsage: DocsAssistantLlmUsageTracker;
   }): Promise<string> {
     const response = await this.openai!.chat.completions.create({
       model,
@@ -401,6 +445,8 @@ export class DocsAssistantService implements OnModuleInit {
       ],
     });
 
+    llmUsage.record(stage, model, response.usage);
+
     return response.choices[0]?.message?.content ?? '{}';
   }
 
@@ -409,6 +455,7 @@ export class DocsAssistantService implements OnModuleInit {
     answer: string;
     sourcesUsed: string[];
     executionTimeMs: number;
+    llmUsage: ReturnType<DocsAssistantLlmUsageTracker['getTotals']>;
   }): Promise<string | null> {
     if (!this.supabase) {
       this.logger.warn('Supabase is not configured; search log skipped', {
@@ -425,6 +472,10 @@ export class DocsAssistantService implements OnModuleInit {
         sources_used: payload.sourcesUsed,
         critic_notes: null,
         execution_time_ms: payload.executionTimeMs,
+        llm_prompt_tokens: payload.llmUsage?.promptTokens ?? null,
+        llm_completion_tokens: payload.llmUsage?.completionTokens ?? null,
+        llm_estimated_cost_usd: payload.llmUsage?.estimatedCostUsd ?? null,
+        llm_usage_detail: payload.llmUsage?.byStage ?? null,
       })
       .select('id')
       .single();
