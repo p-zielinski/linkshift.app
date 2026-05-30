@@ -61,6 +61,23 @@ sliceType: openapi-by-tag
     expect(entry.contentSources[1]?.type).toBe('openapi-slice');
   });
 
+  it('builds openapi catalog entries with dashboard companion pages when provided', () => {
+    const entry = buildOpenApiCatalogEntry(
+      'Domain Groups',
+      'openapi/by-tag/domain-groups.openapi.json',
+      'summary text',
+      'pages/guides/domains-and-groups.md',
+      'pages/guides/dashboard/domain-groups-in-dashboard.md',
+    );
+
+    expect(entry.contentSources).toHaveLength(3);
+    expect(entry.contentSources[0]?.docsRelativePath).toBe(
+      'pages/guides/dashboard/domain-groups-in-dashboard.md',
+    );
+    expect(entry.contentSources[1]?.docsRelativePath).toBe('pages/guides/domains-and-groups.md');
+    expect(entry.contentSources[2]?.type).toBe('openapi-slice');
+  });
+
   it('builds page catalog entries with docs routes', () => {
     const entry = buildPageCatalogEntry('pages/concepts/redirect-engine-concepts.md', 'summary');
     expect(entry.catalogId).toBe('page:concepts/redirect-engine-concepts');

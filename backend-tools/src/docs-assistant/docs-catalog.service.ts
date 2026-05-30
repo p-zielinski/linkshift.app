@@ -37,6 +37,17 @@ const OPENAPI_TAG_GUIDE_PAGES: Record<string, string> = {
   Organization: 'pages/guides/getting-started.md',
 };
 
+const OPENAPI_TAG_DASHBOARD_PAGES: Record<string, string> = {
+  'Domain Groups': 'pages/guides/dashboard/domain-groups-in-dashboard.md',
+  Domains: 'pages/guides/dashboard/domains-and-subdomains-in-dashboard.md',
+  Subdomains: 'pages/guides/dashboard/domains-and-subdomains-in-dashboard.md',
+  'Redirect Rules': 'pages/guides/dashboard/redirect-rules-in-dashboard.md',
+  'Redirect Tests': 'pages/guides/dashboard/tests-in-dashboard.md',
+  'Link Maps': 'pages/guides/dashboard/link-maps-in-dashboard.md',
+  'Link Map Entries': 'pages/guides/dashboard/link-maps-in-dashboard.md',
+  Organization: 'pages/guides/dashboard/organization-and-api-keys-in-dashboard.md',
+};
+
 @Injectable()
 export class DocsCatalogService implements OnModuleInit {
   private readonly logger = new Logger(DocsCatalogService.name);
@@ -95,6 +106,7 @@ export class DocsCatalogService implements OnModuleInit {
             slicePath,
             summary,
             OPENAPI_TAG_GUIDE_PAGES[openApiTag],
+            OPENAPI_TAG_DASHBOARD_PAGES[openApiTag],
           ),
         );
       }

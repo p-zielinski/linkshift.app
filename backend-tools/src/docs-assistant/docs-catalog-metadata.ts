@@ -129,6 +129,7 @@ export function buildOpenApiCatalogEntry(
   slicePath: string,
   summary: string,
   guidePage: string | undefined,
+  dashboardPage?: string,
 ): DocsCatalogEntry {
   const contentSources: DocsContentSource[] = [
     {
@@ -140,6 +141,10 @@ export function buildOpenApiCatalogEntry(
 
   if (guidePage) {
     contentSources.unshift({ type: 'page-md', docsRelativePath: guidePage });
+  }
+
+  if (dashboardPage && dashboardPage !== guidePage) {
+    contentSources.unshift({ type: 'page-md', docsRelativePath: dashboardPage });
   }
 
   return {

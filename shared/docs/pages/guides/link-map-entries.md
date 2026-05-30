@@ -8,6 +8,12 @@ Base path: `/api/v1/link-map-entries`
 
 ---
 
+## In the dashboard
+
+On a link map detail page (`/link-maps/:id`), use **Add entry**, **Import entries**, **Rollback imported entries** (after a bulk import), or **Delete selected** for entry CRUD, import, and rollback. See [Link maps in the dashboard](./dashboard/link-maps-in-dashboard.md).
+
+---
+
 ## Entry structure
 
 | Field | Description |

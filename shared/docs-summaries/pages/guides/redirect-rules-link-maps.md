@@ -1,6 +1,6 @@
 ---
 source: shared/docs/pages/guides/redirect-rules-link-maps.md
-generatedAt: 2026-05-28T15:49:49.000Z
+generatedAt: 2026-05-30T07:02:31.577Z
 model: gpt-4o-mini
 ---
 
@@ -8,40 +8,44 @@ model: gpt-4o-mini
 This document is for developers implementing redirect rules that utilize link maps, explaining how to connect and configure them effectively.
 
 ## What this doc covers
-- **Link maps + redirect rules**: Overview of how link maps function with redirect rules.
-- **How it works**: Step-by-step explanation of the matching process.
-- **API requirements for link map rules**: Specific field requirements when using `linkMapId`.
-- **Two layers of query matching**: Explanation of how query matching works at both the redirect rule and link map levels.
-- **When lookup fails**: Behavior when a link map lookup does not return an entry.
-- **Link map rule validation and testing dynamic logic**: Guidelines for validating link map rules and testing dynamic routing logic.
+- Overview of link maps and redirect rules
+- How link maps work with redirect rules
+- API requirements for link map rules
+- Two layers of query matching
+- Handling lookup failures
+- Validation and testing dynamic logic for link map rules
 
 ## Key workflows and rules
-1. **Matching Process**:
-   - The rule matches the request path using `pathMatch` and `queryMatch`.
-   - The source prefix is stripped to extract the link map key.
-   - The key and request query are used for a link map lookup.
-   - The destination from the matched entry is used for the redirect.
+1. **Link Map Rule Processing**:
+   - A redirect rule matches a request path using `pathMatch` and `queryMatch`.
+   - The engine extracts the link map key from the request path after stripping the source prefix.
+   - The extracted key and request query are used for a lookup in the link map.
+   - The destination from the matched entry is used for the redirect, with the HTTP status code coming from the redirect rule.
 
-2. **API Requirements**:
+2. **Example of Link Map Rule**:
+   - Rule source: `/go`, Request: `/go/summer?utm=email`
+   - Extracted key: `summer`, Redirect target: `https://shop.example/sale`
+
+3. **API Requirements**:
    - When `linkMapId` is set:
      - `destination` must be omitted or set to JSON `null`.
      - `pathMatch` must be `prefix`.
      - `queryMatch` must be `ignore`.
      - `source` must be a plain path without wildcards or regex.
 
-3. **Handling Lookup Failures**:
-   - If no entry is found and no `fallbackDestination` is set, the rule does not redirect.
-   - It is recommended to add a specific fallback rule below the link map rule.
+4. **Handling Lookup Failures**:
+   - If the link map lookup fails and no `fallbackDestination` is set, the rule does not redirect, and the engine continues to the next rule.
+   - To handle empty extracted keys, set a `fallbackDestination` or add a lower-priority catch-all rule.
 
-4. **Validation and Testing**:
-   - To validate routing, use `POST /api/v1/redirect-rules/simulate` with the expected path/query/method.
-   - Create a temporary rule without `linkMapId` for testing and delete it afterward.
+5. **Validation and Testing**:
+   - When `linkMapId` is set, the stored `destination` is always `null`.
+   - To validate routing before deployment, use `POST /api/v1/redirect-rules/simulate` with the expected path/query/method.
 
 ## Limits and constraints
-- The `destination` field must be omitted or set to JSON `null` when `linkMapId` is present; any other value will result in a `400` error.
 - The link map must belong to the same `domainGroupId` as the redirect rule.
 - Entry destinations in link maps must be static URLs; dynamic placeholders or ternaries are not allowed.
-- The `queryMatch` for redirect rules using link maps must be set to `ignore`.
+- The `destination` field must be omitted or set to `null` when creating/updating link map rules; any other value results in a `400` error.
+- The API does not evaluate rule-level `destination` when `linkMapId` is set; only map entry and `fallbackDestination` URLs are considered.
 
 ## Related docs and API areas
 - [Redirect rules guide](./redirect-rules.md)
@@ -50,3 +54,4 @@ This document is for developers implementing redirect rules that utilize link ma
 - [Link maps guide](./link-maps.md#when-visitors-hit-the-prefix-only)
 - [Link map concepts](../concepts/link-map-concepts.md)
 - [Redirect tests](./redirect-tests.md)
+- `POST /api/v1/redirect-rules/simulate` for testing redirect rules.

@@ -1,7 +1,7 @@
 ---
 llmSlice: shared/docs/openapi/by-tag/redirect-tests.openapi.json
 source: shared/docs/openapi/by-tag/redirect-tests.openapi.json
-generatedAt: 2026-05-28T15:47:50.515Z
+generatedAt: 2026-05-30T06:58:26.739Z
 model: gpt-4o-mini
 sliceType: openapi-by-tag
 canonicalOpenApi: shared/docs/openapi/linkshift-api-keys.openapi.yaml
@@ -9,44 +9,50 @@ openApiTag: Redirect Tests
 ---
 
 ## Purpose
-This OpenAPI tag covers the LinkShift endpoints related to managing stored redirect test fixtures for regression and CI validation, accessible via API keys.
+This OpenAPI tag covers the management of redirect test configurations for API-key clients, allowing automation of redirect rules and testing without dashboard session cookies.
 
 ## Endpoints
 - **`GET /api/v1/redirect-tests`** (`listRedirectTests`)
-  - Lists stored redirect test cases for a domain group with cursor pagination.
-  - Notable request parameters: `domainGroupId`, `limit`, `search`, `startAfterId`.
+  - Lists stored CI/regression fixtures for a specified `domainGroupId`. The default `limit` is 100, with a maximum of 100. Use `startAfterId` to paginate results.
 
 - **`POST /api/v1/redirect-tests`** (`createRedirectTest`)
-  - Stores a redirect expectation fixture used for simulation-based regression checks.
-  - Request body fields: `domainGroupId`, `pathWithQuery`, `requestData`, `expectedResult`.
-  - Response fields: `id`, `organizationId`, `domainGroupId`, `pathWithQuery`, `requestData`, `expectedResult`, `createdAt`, `updatedAt`, `deletedAt`.
+  - Creates a redirect test fixture by persisting an expected outcome (`expectedResult`) for a given `pathWithQuery` under a specified domain group. Returns a 404 error if the `domainGroupId` is invalid. 
+  - **Request Body Fields**: `domainGroupId`, `pathWithQuery`, `requestData`, `expectedResult`.
+  - **Response Fields**: `id`, `organizationId`, `domainGroupId`, `pathWithQuery`, `requestData`, `expectedResult`, `createdAt`, `updatedAt`, `deletedAt`.
 
 - **`GET /api/v1/redirect-tests/{id}`** (`getRedirectTest`)
-  - Returns one stored redirect test fixture by ID.
-  - Response fields: `id`, `organizationId`, `domainGroupId`, `pathWithQuery`, `requestData`, `expectedResult`, `createdAt`, `updatedAt`, `deletedAt`.
+  - Retrieves a single redirect test fixture by its ID, including `pathWithQuery`, `requestData`, and `expectedResult`. Returns a 404 error if the test is deleted or not within the organization scope.
+  - **Response Fields**: `id`, `organizationId`, `domainGroupId`, `pathWithQuery`, `requestData`, `expectedResult`, `createdAt`, `updatedAt`, `deletedAt`.
 
 - **`PUT /api/v1/redirect-tests/{id}`** (`updateRedirectTest`)
-  - Updates mutable fields of a stored redirect test fixture.
-  - Request body fields: `pathWithQuery`, `requestData`, `expectedResult`.
-  - Response fields: `id`, `organizationId`, `domainGroupId`, `pathWithQuery`, `requestData`, `expectedResult`, `createdAt`, `updatedAt`, `deletedAt`.
+  - Updates an existing redirect test fixture's path, request metadata, or expected outcome. Returns a 400 error for invalid requests and a 404 error if the test ID is out of scope.
+  - **Request Body Fields**: `pathWithQuery`, `requestData`, `expectedResult`.
+  - **Response Fields**: `id`, `organizationId`, `domainGroupId`, `pathWithQuery`, `requestData`, `expectedResult`, `createdAt`, `updatedAt`, `deletedAt`.
 
 - **`DELETE /api/v1/redirect-tests/{id}`** (`deleteRedirectTest`)
-  - Soft-deletes a redirect test fixture.
+  - Soft deletes a redirect test fixture from the catalog, useful for retiring CI cases. Simulated history is not stored per test.
 
 ## Auth, billing, and rate limits
-- Authentication is done via `X-API-Key: <your_key>` or `Authorization: ApiKey <your_key>`.
-- API keys are organization-scoped.
-- API key management endpoints (`/api/v1/api-keys`) are excluded and require dashboard user authentication.
-- Management API requests are rate-limited per API key according to the organization's plan.
-- Use `GET /api/v1/organization/usage` for current limits; exceeding limits results in a 429 status code.
+- **Authentication**: Include `X-API-Key: <your_key>` in every request. Alternatively, use `Authorization: ApiKey <your_key>`.
+- **Error Codes**:
+  - `401`: Key missing, revoked, or incorrect organization.
+  - `402`: API access not available on the current plan.
+  - `429`: Per-key rate limit exceeded; implement backoff with jitter.
+  - `400`: Request body or query validation failed; check `details` and `requestId` in the response.
+  - `404`: ID does not exist or is not within the organization scope.
 
 ## Data shapes
-- **RedirectTestQueryResult**: Paginated redirect-test query response.
-- **CreateRedirectTestRequest**: Payload for creating a redirect test fixture, with fields: `domainGroupId`, `pathWithQuery`, `requestData`, `expectedResult`.
-- **RedirectTest**: Stored redirect test fixture used for regression checks, with fields: `id`, `organizationId`, `domainGroupId`, `pathWithQuery`, `requestData`, `expectedResult`, `createdAt`, `updatedAt`, `deletedAt`.
-- **UpdateRedirectTestRequest**: Payload for updating a redirect test fixture, with fields: `pathWithQuery`, `requestData`, `expectedResult`.
-- **QueryResultMeta**: Metadata envelope for cursor-paginated query responses, with fields: `dataType`, `hasMore`, `moreStartingAfterId`.
-- **ErrorResponse**: Standardized error payload returned by API endpoints, with fields: `code`, `key`, `message`, `details`, `requestId`, `feature`.
+- **RedirectTestQueryResult**: Paginated response for redirect test queries.
+- **CreateRedirectTestRequest**: Payload for creating a redirect test fixture.
+  - **Fields**: `domainGroupId`, `pathWithQuery`, `requestData`, `expectedResult`.
+- **RedirectTest**: CI fixture containing input and expected output for simulations.
+  - **Fields**: `id`, `organizationId`, `domainGroupId`, `pathWithQuery`, `requestData`, `expectedResult`, `createdAt`, `updatedAt`, `deletedAt`.
+- **UpdateRedirectTestRequest**: Payload for updating a redirect test fixture.
+  - **Fields**: `pathWithQuery`, `requestData`, `expectedResult`.
+- **QueryResultMeta**: Metadata for cursor-paginated query responses.
+  - **Fields**: `dataType`, `hasMore`, `moreStartingAfterId`.
+- **ErrorResponse**: Standard error response structure.
+  - **Fields**: `code`, `key`, `message`, `details`, `requestId`, `feature`.
 
 ## Related endpoints outside this tag
-- `GET /api/v1/organization/usage` (for rate limits)
+- **`POST /api/v1/redirect-rules/simulate`**: Used to evaluate redirect tests in CI pipelines against live rule configurations.

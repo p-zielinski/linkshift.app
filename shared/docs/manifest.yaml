@@ -43,7 +43,32 @@ pages:
     source: pages/guides/getting-started.md
     route: /docs/guides/getting-started
     description: >-
-      Authentication, scope, quotas, routing doc index, and API surface overview.
+      LinkShift Management API — authentication, API key scope, plan paywall,
+      rate limits, and routing documentation index.
+
+  - slug: account-and-access
+    category: guide
+    source: pages/guides/account-and-access.md
+    route: /docs/guides/account-and-access
+    description: >-
+      Sign in, register, verify email, change email, reset password, accept
+      invites, and legal consent — web app flows outside the Management API.
+
+  - slug: billing-and-plans-in-dashboard
+    category: guide
+    source: pages/guides/billing-and-plans-in-dashboard.md
+    route: /docs/guides/billing-and-plans-in-dashboard
+    description: >-
+      Dashboard billing — usage meters, Upgrade, Paddle portal, and cancel;
+      no Management API billing endpoints.
+
+  - slug: public-tools-api
+    category: guide
+    source: pages/guides/public-tools-api.md
+    route: /docs/guides/public-tools-api
+    description: >-
+      Public QR and single-hop redirect trace endpoints — separate from the
+      Management API; security and dashboard tools cross-links.
 
   - slug: domains-and-groups
     category: guide
@@ -113,6 +138,70 @@ pages:
     route: /docs/guides/redirect-tests
     description: >-
       Redirect test fixtures, CI workflow, and simulate comparison patterns.
+
+  - slug: dashboard-overview
+    category: guide
+    source: pages/guides/dashboard/dashboard-overview.md
+    route: /docs/guides/dashboard-overview
+    description: >-
+      Dashboard app shell, sidebar, Ask docs assistant, domain-group gate, home
+      usage, profile email, and billing summary.
+
+  - slug: domain-groups-in-dashboard
+    category: guide
+    source: pages/guides/dashboard/domain-groups-in-dashboard.md
+    route: /docs/guides/domain-groups-in-dashboard
+    description: >-
+      Create, edit, and delete domain groups and robots.txt policy from the dashboard.
+
+  - slug: domains-and-subdomains-in-dashboard
+    category: guide
+    source: pages/guides/dashboard/domains-and-subdomains-in-dashboard.md
+    route: /docs/guides/domains-and-subdomains-in-dashboard
+    description: >-
+      Attach custom domains and starter subdomains to a domain group in the UI.
+
+  - slug: redirect-rules-in-dashboard
+    category: guide
+    source: pages/guides/dashboard/redirect-rules-in-dashboard.md
+    route: /docs/guides/redirect-rules-in-dashboard
+    description: >-
+      Redirect rule wizard, post-save test chain, filters, and Run tests summary card.
+
+  - slug: link-maps-in-dashboard
+    category: guide
+    source: pages/guides/dashboard/link-maps-in-dashboard.md
+    route: /docs/guides/link-maps-in-dashboard
+    description: >-
+      Link map list, detail page, entries, CSV import, and bulk delete in the dashboard.
+
+  - slug: tests-in-dashboard
+    category: guide
+    source: pages/guides/dashboard/tests-in-dashboard.md
+    route: /docs/guides/tests-in-dashboard
+    description: >-
+      Redirect test wizard, Fetch expected result, and Run tests from Tests or Redirect Rules.
+
+  - slug: analytics-in-dashboard
+    category: guide
+    source: pages/guides/dashboard/analytics-in-dashboard.md
+    route: /docs/guides/analytics-in-dashboard
+    description: >-
+      Redirect rules analytics — domain group filter, time ranges, chart, and top rules.
+
+  - slug: organization-and-api-keys-in-dashboard
+    category: guide
+    source: pages/guides/dashboard/organization-and-api-keys-in-dashboard.md
+    route: /docs/guides/organization-and-api-keys-in-dashboard
+    description: >-
+      Invite teammates, seat usage, and create, edit, or delete organization API keys in the UI.
+
+  - slug: tools-in-dashboard
+    category: guide
+    source: pages/guides/dashboard/tools-in-dashboard.md
+    route: /docs/guides/tools-in-dashboard
+    description: >-
+      Dashboard QR Code Generator and Redirect Tester tools inside the authenticated shell.
 
   - slug: link-map-concepts
     category: concept

@@ -4,7 +4,7 @@
     "title": "LinkShift Management API (API Key Accessible Endpoints) — Domain Groups",
     "version": "1.0.0",
     "summary": "Organization-scoped redirect management API",
-    "description": "This specification describes the LinkShift endpoints that can be accessed with organization API keys.\n\nAuthentication:\n- Preferred: `X-API-Key: <your_key>`\n- Alternative: `Authorization: ApiKey <your_key>` (supported by backend, not modeled as a separate OpenAPI scheme)\n\nImportant billing behavior:\n- API keys are organization-scoped.\n- API key management endpoints (`/api/v1/api-keys`) are intentionally excluded and require dashboard user auth.\n\nRate limiting:\n- Management API requests are rate-limited per API key according to your organization's plan (not per organization aggregate).\n- Use GET /api/v1/organization/usage for current limits. When exceeded, the API returns 429 — use backoff; do not hard-code thresholds in integrations.\nThis document contains only operations tagged \"Domain Groups\".\nTag scope: Domain group management, including robots policy defaults for assigned domains."
+    "description": "Organization-scoped Management API for redirect configuration, link maps, and operational checks.\nUse it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.\n\n**Authentication**\n- Send your key on every request: `X-API-Key: <your_key>` (preferred).\n- Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.\n\n**Typical setup order**\n1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).\n2. Link map + entries when rules resolve keys instead of a fixed destination.\n3. Redirect tests + simulate for CI; analytics for traffic review.\n\n**Errors and recovery**\n- `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).\n- `402` — API access isn't on your current plan. Upgrade subscription, then retry.\n- `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).\n- `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.\n- `404` — ID doesn't exist or isn't in your organization scope.\n\n**Dashboard-only**\nAPI key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.\n\n**Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.\nThis document contains only operations tagged \"Domain Groups\".\nTag scope: First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.\nSet robots policy defaults here before attaching domains.\n"
   },
   "servers": [
     {
@@ -20,7 +20,7 @@
   "tags": [
     {
       "name": "Domain Groups",
-      "description": "Domain group management, including robots policy defaults for assigned domains."
+      "description": "First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.\nSet robots policy defaults here before attaching domains.\n"
     }
   ],
   "paths": {
@@ -30,7 +30,7 @@
           "Domain Groups"
         ],
         "summary": "List domain groups",
-        "description": "Returns all active domain groups owned by the authenticated organization.",
+        "description": "Returns every active domain group in one response (no cursor pagination).\nUse `data[].id` as `domainGroupId` on domains, rules, tests, and link maps.\n",
         "operationId": "listDomainGroups",
         "responses": {
           "200": {
@@ -59,7 +59,7 @@
           "Domain Groups"
         ],
         "summary": "Create domain group",
-        "description": "Creates a domain group and optionally configures robots policy defaults.",
+        "description": "Creates a domain group — the scope container for domains, rules, and link maps.\nOptional `robotsPolicy` / `customRobotsContent` apply to all domains you attach later.\nReturns 400 when the name is invalid or robots content is missing for CUSTOM policy.\n",
         "operationId": "createDomainGroup",
         "requestBody": {
           "required": true,
@@ -82,14 +82,14 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
           "402": {
             "$ref": "#/components/responses/PaymentRequired"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
@@ -107,8 +107,8 @@
         "tags": [
           "Domain Groups"
         ],
-        "summary": "Get domain group",
-        "description": "Returns one domain group by ID when it belongs to the authenticated organization.",
+        "summary": "Get domain group by ID",
+        "description": "Fetches one domain group including robots policy fields.\nReturns 404 when the ID is unknown or soft-deleted outside your organization.\n",
         "operationId": "getDomainGroup",
         "responses": {
           "200": {
@@ -140,7 +140,7 @@
           "Domain Groups"
         ],
         "summary": "Update domain group",
-        "description": "Updates mutable domain-group fields such as name and robots policy options.",
+        "description": "Updates name and/or robots policy for an existing group.\nChanging robots policy impacts all domains in the group on next request.\nReturns 404 when the group doesn't exist in your organization.\n",
         "operationId": "updateDomainGroup",
         "requestBody": {
           "required": true,
@@ -181,8 +181,8 @@
         "tags": [
           "Domain Groups"
         ],
-        "summary": "Delete domain group",
-        "description": "Marks a domain group as deleted without physically removing historical records.",
+        "summary": "Delete domain group (soft)",
+        "description": "Soft-deletes the group; it stops appearing in lists and can't receive new resources.\nHistorical analytics may still reference the ID. Returns 404 when already deleted or out of scope.\n",
         "operationId": "deleteDomainGroup",
         "responses": {
           "200": {
@@ -236,6 +236,7 @@
           "name": {
             "type": "string",
             "minLength": 1,
+            "maxLength": 255,
             "description": "Domain-group name."
           },
           "robotsPolicy": {
@@ -253,7 +254,7 @@
         ]
       },
       "DomainGroup": {
-        "description": "Domain-group entity used to scope domains, rules, tests, and link maps.",
+        "description": "Scope boundary for redirect configuration. All rules, tests, and link maps reference\na domain group ID; robots policy here applies to every domain in the group.\n",
         "type": "object",
         "properties": {
           "id": {
@@ -310,6 +311,7 @@
           "name": {
             "type": "string",
             "minLength": 1,
+            "maxLength": 255,
             "description": "Domain-group name."
           },
           "robotsPolicy": {
@@ -349,7 +351,7 @@
         ]
       },
       "ErrorResponse": {
-        "description": "Standardized error payload returned by API endpoints.",
+        "description": "Standard error envelope. Use `key` for branching in code, `details` for human-readable fixes,\nand `requestId` when escalating to support.\n",
         "type": "object",
         "properties": {
           "code": {
@@ -398,7 +400,7 @@
     },
     "responses": {
       "Unauthorized": {
-        "description": "Missing or invalid API key",
+        "description": "Missing or invalid API key. Verify the `X-API-Key` header and that the key wasn't revoked in the dashboard; rotate if needed, then retry.",
         "content": {
           "application/json": {
             "schema": {
@@ -419,7 +421,7 @@
         }
       },
       "PaymentRequired": {
-        "description": "API usage requires paid plan",
+        "description": "API access isn't enabled on your subscription (`feature` is often `api_access`). Upgrade the plan in the dashboard, then retry with the same key.",
         "content": {
           "application/json": {
             "schema": {
@@ -441,7 +443,7 @@
         }
       },
       "TooManyRequests": {
-        "description": "Per-key rate limit exceeded",
+        "description": "Per-key rate limit for your plan. Back off exponentially with jitter; avoid tight retry loops. Check GET organization/usage for current inventory (limits are plan-defined, not returned here).",
         "content": {
           "application/json": {
             "schema": {
@@ -461,8 +463,18 @@
           }
         }
       },
+      "BadRequest": {
+        "description": "Request body or query failed validation. Read `details` (and optional field hints) in the JSON body; fix the payload and retry. Include `requestId` when contacting support.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
       "NotFound": {
-        "description": "Resource not found",
+        "description": "Resource ID doesn't exist, was soft-deleted, or isn't in your organization. Confirm the ID from a fresh list call and that you're using the correct API key.",
         "content": {
           "application/json": {
             "schema": {
@@ -477,7 +489,7 @@
         "name": "id",
         "in": "path",
         "required": true,
-        "description": "Resource identifier.",
+        "description": "Resource ID from a prior list or create response (same string you store in automation state). Wrong or foreign-org IDs return 404.",
         "schema": {
           "type": "string"
         }
@@ -488,7 +500,7 @@
         "type": "apiKey",
         "in": "header",
         "name": "X-API-Key",
-        "description": "API key generated in LinkShift dashboard (`Organization -> Manage API keys`)."
+        "description": "Organization API key from the dashboard (Organization → API keys).\nSend via `X-API-Key` on every request in this spec.\n"
       }
     }
   },

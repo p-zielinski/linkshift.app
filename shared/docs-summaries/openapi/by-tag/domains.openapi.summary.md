@@ -1,7 +1,7 @@
 ---
 llmSlice: shared/docs/openapi/by-tag/domains.openapi.json
 source: shared/docs/openapi/by-tag/domains.openapi.json
-generatedAt: 2026-05-28T15:46:54.948Z
+generatedAt: 2026-05-30T06:57:34.817Z
 model: gpt-4o-mini
 sliceType: openapi-by-tag
 canonicalOpenApi: shared/docs/openapi/linkshift-api-keys.openapi.yaml
@@ -9,59 +9,55 @@ openApiTag: Domains
 ---
 
 ## Purpose
-This OpenAPI tag covers the LinkShift endpoints related to domain management that can be accessed using organization API keys.
+This OpenAPI tag covers the management of custom domains within the LinkShift API, allowing API-key clients to automate domain configuration and redirect rules.
 
 ## Endpoints
 - **`GET /api/v1/domains`** (`listDomains`)
-  - Returns all active domains for the authenticated organization.
-  
+  - Returns all active custom domains in one response (no cursor pagination). Clients can filter results client-side by `domainGroupId`.
+
 - **`POST /api/v1/domains`** (`createDomain`)
-  - Creates a new domain in a target domain group after performing uniqueness and ownership checks.
-  - **Request Body Fields:** `name`, `domainGroupId`
-  - **Response Fields:** `id`, `name`, `domainGroupId`, `createdAt`, `updatedAt`, `deletedAt`
+  - Registers a custom hostname under `domainGroupId`. The hostname must match the request pattern (lowercase labels). 
+  - **Request Body Fields**: `name`, `domainGroupId`
+  - **Response Fields**: `id`, `name`, `domainGroupId`, `createdAt`, `updatedAt`, `deletedAt`
+  - Returns `404` when the group ID is invalid; `409` when the name is already taken in your organization.
 
 - **`GET /api/v1/domains/{id}`** (`getDomain`)
-  - Returns one domain by ID, provided it belongs to the authenticated organization.
-  - **Response Fields:** `id`, `name`, `domainGroupId`, `createdAt`, `updatedAt`, `deletedAt`
+  - Fetches one domain record by ID, including `name`, `domainGroupId`, and timestamps.
+  - **Response Fields**: `id`, `name`, `domainGroupId`, `createdAt`, `updatedAt`, `deletedAt`
+  - Returns `404` when the ID is unknown, soft-deleted, or outside your organization.
 
 - **`PUT /api/v1/domains/{id}`** (`updateDomain`)
-  - Updates mutable domain fields such as `name` or assigned `domainGroupId`.
-  - **Request Body Fields:** `name`, `domainGroupId`
-  - **Response Fields:** `id`, `name`, `domainGroupId`, `createdAt`, `updatedAt`, `deletedAt`
+  - Changes the hostname and/or moves the domain to another group (requires `domainGroupId` in the body).
+  - **Request Body Fields**: `name`, `domainGroupId`
+  - **Response Fields**: `id`, `name`, `domainGroupId`, `createdAt`, `updatedAt`, `deletedAt`
+  - Returns `409` when the new hostname conflicts with an existing domain.
 
 - **`DELETE /api/v1/domains/{id}`** (`deleteDomain`)
-  - Marks a domain as deleted without permanently removing it from storage.
+  - Soft-deletes the domain, making it no longer match live redirect traffic.
+  - Returns `404` when the ID isn't in your organization.
 
 ## Auth, billing, and rate limits
-- **Authentication:** 
-  - Preferred: `X-API-Key: <your_key>`
-  - Alternative: `Authorization: ApiKey <your_key>`
-  
-- **Billing Behavior:**
-  - API keys are organization-scoped.
-  - API key management endpoints (`/api/v1/api-keys`) are excluded and require dashboard user authentication.
-
-- **Rate Limiting:**
-  - Management API requests are rate-limited per API key according to the organization's plan.
-  - Use `GET /api/v1/organization/usage` to check current limits.
-  - When limits are exceeded, the API returns a 429 status code; implement backoff strategies and avoid hard-coding thresholds.
+- **Authentication**: Send your key on every request using `X-API-Key: <your_key>` (preferred) or `Authorization: ApiKey <your_key>`.
+- **Error Codes**:
+  - `401`: Key missing, revoked, or wrong organization.
+  - `402`: API access isn't on your current plan; upgrade subscription, then retry.
+  - `429`: Per-key rate limit for your plan; clients should back off with jitter and read current usage via `GET /api/v1/organization/usage`.
+  - `400`: Request body or query failed validation; inspect `details` and `requestId` in the JSON body.
+  - `404`: ID doesn't exist or isn't in your organization scope.
+- **Dashboard-only**: API key CRUD, billing checkout, and some analytics views require signed-in dashboard authentication.
 
 ## Data shapes
-- **DomainQueryResult:** Paginated domain query response.
-- **CreateDomainRequest:** Payload for creating a domain.
-  - **Fields:** `name`, `domainGroupId`
-  
-- **Domain:** Domain entity assigned to a domain group.
-  - **Fields:** `id`, `name`, `domainGroupId`, `createdAt`, `updatedAt`, `deletedAt`
-  
-- **UpdateDomainRequest:** Payload for updating a domain.
-  - **Fields:** `name`, `domainGroupId`
-  
-- **QueryResultMeta:** Metadata envelope for cursor-paginated query responses.
-  - **Fields:** `dataType`, `hasMore`, `moreStartingAfterId`
-  
-- **ErrorResponse:** Standardized error payload returned by API endpoints.
-  - **Fields:** `code`, `key`, `message`, `details`, `requestId`, `feature`
+- **DomainQueryResult**: Paginated domain query response.
+- **CreateDomainRequest**: Payload for creating a domain.
+  - **Fields**: `name`, `domainGroupId`
+- **Domain**: Domain entity assigned to a domain group.
+  - **Fields**: `id`, `name`, `domainGroupId`, `createdAt`, `updatedAt`, `deletedAt`
+- **UpdateDomainRequest**: Payload for updating a domain.
+  - **Fields**: `name`, `domainGroupId`
+- **QueryResultMeta**: Metadata envelope for cursor-paginated query responses.
+  - **Fields**: `dataType`, `hasMore`, `moreStartingAfterId`
+- **ErrorResponse**: Standard error envelope.
+  - **Fields**: `code`, `key`, `message`, `details`, `requestId`, `feature`
 
 ## Related endpoints outside this tag
-- **`GET /api/v1/organization/usage`** (not part of Domains tag) - Used to check current API usage limits.
+- **GET /api/v1/organization/usage**: To read current usage and manage rate limits.

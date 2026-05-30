@@ -24,6 +24,9 @@ Use conditional destination syntax. See [Redirect engine concepts](./concepts/re
 **How do I test before deploy?**  
 `POST /api/v1/redirect-rules/simulate`. See [Redirect rules — simulate](./guides/redirect-rules-operations.md#simulate-before-rollout).
 
+**How do I trace a URL or generate a QR code?**  
+Use **Tools** in the dashboard ([Tools in the dashboard](./guides/dashboard/tools-in-dashboard.md)) or the public `/redirect-tester` and `/qr-code-generator` routes. Trace is not part of the Management API; each trace call returns one hop (the UI may follow more). Endpoint details: [Public tools API](./guides/public-tools-api.md).
+
 **What happens when no rule matches?**  
 No redirect — visitor gets 404 from LinkShift edge. A rule can match the path but still be skipped (for example link map miss with no fallback); the engine then tries the next rule.
 

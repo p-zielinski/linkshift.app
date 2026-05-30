@@ -10,6 +10,10 @@ Base path: `/api/v1/redirect-rules`
 
 ---
 
+## How matching works
+
+How requests are evaluated, rate-limited, and cached on the edge before a rule returns a redirect target.
+
 ## How routing works
 
 Every request to a domain or LinkShift subdomain in your organization hits a **domain group**. That group owns an ordered list of redirect rules.
@@ -85,11 +89,15 @@ LinkShift caches routing data on the edge to keep redirects fast. Under normal o
 
 Simulate and redirect tests **read current database state** for rules and maps (they do not use edge redirect/link-map caches), but they still run `checkRedirectionAccess` — see [Simulate vs live redirect](./redirect-rules-operations.md#simulate-vs-live-redirect).
 
-Operator runbooks (cache key names, Redis/L1 layout): [`shared/not-public/cache-and-data-layer.md`](../../../not-public/cache-and-data-layer.md).
+Rule and link map changes propagate through the platform cache. Under normal operation, updates apply on the next request; if cache invalidation does not run, allow up to **5 minutes** before live traffic consistently reflects your edits.
 
 More detail on link map resolution cache: [Link map concepts — cache model](../concepts/link-map-concepts.md#cache-model).
 
 ---
+
+## Rule fields reference
+
+Field catalog, source types, and matching modes — use this section when you need exact API shapes and validation rules.
 
 ## Rule fields
 

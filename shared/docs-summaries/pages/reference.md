@@ -1,58 +1,69 @@
 ---
 source: shared/docs/pages/reference.md
-generatedAt: 2026-05-28T15:51:37.037Z
+generatedAt: 2026-05-30T07:04:05.234Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for developers and users of LinkShift, explaining the API reference, including endpoint details, parameters, and workflows.
+This document is for developers and users of the LinkShift API, providing detailed reference information about API endpoints, parameters, and workflows.
 
 ## What this doc covers
-- **API reference**: Overview of endpoint pages and interactive request execution.
-- **Endpoint pages**: Accessing operations via `/docs/reference` or `/docs/api/:operationId`.
-- **Guides vs reference**: Differentiation between behavior guides and contract definitions in OpenAPI.
-- **Routing cheat sheet**: Quick reference for routing topics and associated guides.
-- **Routing decision index**: Overview of routing goals and corresponding features.
-- **Engine limits (at a glance)**: Summary of various limits related to routing rules and link maps.
-- **List pagination defaults**: Default pagination settings for various resources.
+- **API Reference**: Overview of endpoint pages and their structure.
+- **Guides vs Reference**: Differentiation between guides for behavior and OpenAPI pages for contracts.
+- **Routing Cheat Sheet**: Quick reference for routing features and their corresponding guides.
+- **Routing Decision Index**: A decision-making flow for selecting routing features.
+- **Engine Limits**: Overview of limits related to routing rules and analytics.
+- **List Pagination Defaults**: Default pagination settings for various resources.
 - **Tags**: Description of tags related to different API operations.
-- **Key operations for routing**: Listing of important API operations with their methods and paths.
+- **Key Operations for Routing**: List of key operations with their HTTP methods and paths.
 
 ## Key workflows and rules
 1. **Creating Redirect Rules**:
-   - Use `POST /api/v1/redirect-rules` to create a redirect rule.
-   - Define `source`, `pathMatch`, `queryMatch`, and `destination`.
-   
+   - Use `POST /api/v1/redirect-rules` to create a new redirect rule.
+   - Define `source`, `pathMatch`, and `destination` fields according to the routing decision index.
+
 2. **Simulating Redirect Rules**:
    - Use `POST /api/v1/redirect-rules/simulate` to test redirect rules.
-   - Submit up to 100 entries per request.
+   - Input a maximum of 100 entries per request.
 
-3. **Importing Link Map Entries**:
-   - Use `POST /api/v1/link-map-entries/import` to import entries.
-   - Limit of 500 entries per request.
+3. **Analytics for Redirect Rules**:
+   - Retrieve analytics using `GET /api/v1/redirect-rules/analytics`.
 
-4. **Getting Redirect Rule Analytics**:
-   - Use `GET /api/v1/redirect-rules/analytics` to retrieve analytics for redirect rules.
+4. **Creating Link Maps**:
+   - Use `POST /api/v1/link-maps` to create a new link map.
+
+5. **Importing Link Map Entries**:
+   - Use `POST /api/v1/link-map-entries/import` to import up to 500 entries in a single request.
+
+6. **Creating Redirect Tests**:
+   - Use `POST /api/v1/redirect-tests` to create a new redirect test.
 
 ## Limits and constraints
-- **Source/Destination Length**: Maximum of 16,384 characters each.
-- **Conditional Nesting**: Up to 32 levels.
-- **Priority**: Values range from 0 to 1000, with higher values evaluated first.
-- **Match Method**: Supports all 7 HTTP methods; max 6 explicit values.
-- **Redirect Test Limits**: 
-  - `pathWithQuery`: Max 16,384 characters.
-  - `target`: Max 4,096 characters.
-  - List limit: 1–100 per page (default 100).
-- **Link Map Entry Key**: Max 1,024 characters; destination max 16,384 characters.
-- **Link Maps List**: No pagination; retrieves all maps in a group.
-- **Edge Cache TTL**: Up to 5 minutes if invalidation fails.
+- **Field Limits**:
+  - `source` and `destination` lengths: 16,384 characters each.
+  - Conditional nesting: Up to 32 levels.
+  - `priority`: Range from 0 to 1000 (higher values evaluated first).
+  - `matchMethod`: Up to 6 explicit values; includes all 7 methods except `CONNECT` and `TRACE`.
+
+- **Analytics Limits**:
+  - Maximum of 50 rules returned in analytics queries.
+  - Custom date ranges for analytics must not exceed 31 days.
+
+- **Redirect Test Limits**:
+  - `pathWithQuery`: Maximum 16,384 characters.
+  - `target`: Maximum 4,096 characters.
+  - Redirect test list limit: 1-100 per page (default 100).
+
+- **Link Map Entry Limits**:
+  - Entry `key`: Maximum 1,024 characters.
+  - Entry `destination`: Maximum 16,384 characters; must start with `http://` or `https://`.
+
+- **Propagation and Caching**: Redirect rules may have a brief caching period of up to 5 minutes if invalidation fails.
 
 ## Related docs and API areas
 - **Redirect Rules Guide**: [Redirect rules guide](./guides/redirect-rules.md)
 - **Redirect Engine Concepts**: [Redirect engine concepts](./concepts/redirect-engine-concepts.md)
 - **Link Maps Guide**: [Link maps guide](./guides/link-maps.md)
-- **Troubleshooting Matrix**: [Overview — troubleshooting matrix](./overview-faq.md#troubleshooting-matrix-live-redirects)
-- **Key Operations**: 
-  - `POST /api/v1/redirect-rules`
-  - `POST /api/v1/link-maps`
-  - `POST /api/v1/redirect-tests`
+- **FAQ Index**: [FAQ index](./guides/faq.md)
+- **Troubleshooting Matrix**: [Troubleshooting matrix](./overview-faq.md#troubleshooting-matrix-live-redirects)
+- **Routing Decision Flow Diagram**: [Routing decision flow](./concepts/redirect-engine-conditionals.md#routing-decision-flow-diagram)

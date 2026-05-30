@@ -58,6 +58,8 @@ Detail: [Redirect rules — how routing works](../guides/redirect-rules-core.md#
 
 | Reader | Start here |
 |--------|------------|
+| **Dashboard operator** | [Dashboard overview](../guides/dashboard/dashboard-overview.md) → task guides by area (domain groups, rules, link maps, tests, analytics) |
+| **Account admin** (sign-in, invites, billing meters) | [Account and access](../guides/account-and-access.md) · [Billing and plans in the dashboard](../guides/billing-and-plans-in-dashboard.md) · [Organization and API keys](../guides/dashboard/organization-and-api-keys-in-dashboard.md) |
 | **New developer** | [Getting started](../guides/getting-started.md) → [Redirect rules](../guides/redirect-rules.md) → [Redirect engine concepts](../concepts/redirect-engine-concepts.md) |
 | **API integrator** | [API reference](../reference.md) and OpenAPI pages under `/docs/api/…` |
 | **Short-link operator** | [Link maps](../guides/link-maps.md) + [Link map entries](../guides/link-map-entries.md) |
@@ -65,43 +67,14 @@ Detail: [Redirect rules — how routing works](../guides/redirect-rules-core.md#
 
 ---
 
-## Programmable routing in practice
+## Try it yourself
 
-**Static redirect** — move `/old` to a new URL:
+Hands-on steps (dashboard and API) live on the docs hub — not on this explanation page:
 
-```json
-{
-  "source": "/old",
-  "destination": "https://example.com/new",
-  "statusCode": 301,
-  "queryMatch": "ignore"
-}
-```
+- [Your first redirect in 5 minutes — In the dashboard](../overview.md#in-the-dashboard)
+- [Your first redirect in 5 minutes — Automate instead](../overview.md#automate-instead)
 
-**Conditional** — mobile vs desktop from User-Agent:
-
-```json
-{
-  "source": "*",
-  "destination": "'{user-agent:to_lower_case}' includes 'mobile' ? /m : /d",
-  "queryMatch": "ignore",
-  "priority": 10
-}
-```
-
-**Short link** — prefix rule + link map (`destination: null` on the rule):
-
-```json
-{
-  "source": "/go",
-  "pathMatch": "prefix",
-  "queryMatch": "ignore",
-  "linkMapId": "lmap_xxx",
-  "destination": null
-}
-```
-
-Request `/go/summer` → key `summer` → entry URL from the map.
+For routing patterns and copy-paste examples, see [Redirect rules — recipes](../guides/redirect-rules-recipes.md).
 
 ---
 
@@ -121,4 +94,4 @@ Request `/go/summer` → key `summer` → entry URL from the map.
 3. [Redirect rules guide](../guides/redirect-rules.md) — matching, priorities, link maps, How-To cookbook  
 4. [Redirect engine concepts](../concepts/redirect-engine-concepts.md) — placeholders, modifiers, limits, advanced FAQ  
 
-Management API contract: OpenAPI at `/docs/reference` and `linkshift-api-keys.openapi.yaml` in the repository.
+Management API contract: [API reference](../reference.md) (`/docs/reference`) and per-operation pages at `/docs/api/:operationId`. Download the spec from **Organization** → **API keys** → **Download OpenAPI spec**.
