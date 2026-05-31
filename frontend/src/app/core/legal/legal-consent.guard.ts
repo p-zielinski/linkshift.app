@@ -4,7 +4,8 @@ import { AuthStore } from '../store/auth.store';
 import { SITE_CONFIG } from '../config/site-config';
 import { needsLegalConsent } from './legal-consent.utils';
 
-export const legalConsentGuard: CanActivateFn = (_route, state) => {
+/** Use on AppShell with `canActivate` and `canActivateChild` so every dashboard route is gated. */
+const enforceLegalConsent: CanActivateFn = (_route, state) => {
   const authStore = inject(AuthStore);
   const siteConfig = inject(SITE_CONFIG);
   const router = inject(Router);
@@ -24,3 +25,5 @@ export const legalConsentGuard: CanActivateFn = (_route, state) => {
 
   return router.parseUrl('/legal/consent');
 };
+
+export const legalConsentGuard: CanActivateFn = enforceLegalConsent;

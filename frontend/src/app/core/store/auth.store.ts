@@ -19,6 +19,7 @@ import { OrganizationUsageStore } from './organization-usage.store';
 import { RedirectRulesAnalyticsStore } from './redirect-rules-analytics.store';
 import { ApiKeyStore } from './api-key.store';
 import { extractErrorMessage } from './store-error.utils';
+import { mapAuthUser } from '../legal/map-auth-user';
 import {
   clearStoredSession,
   loadStoredSession,
@@ -69,7 +70,7 @@ export const AuthStore = signalStore(
     const setSession = (payload: AuthResponse) => {
       const nextState: AuthState = {
         accessToken: payload.accessToken,
-        user: payload.user,
+        user: mapAuthUser(payload.user),
         organization: payload.organization,
         isLoading: false,
         error: null
@@ -90,12 +91,13 @@ export const AuthStore = signalStore(
     };
 
     const setSessionProfile = (payload: AuthSession) => {
+      const user = mapAuthUser(payload.user);
       patchState(store, {
-        user: payload.user,
+        user,
         organization: payload.organization
       });
       storeSession({
-        user: payload.user,
+        user,
         organization: payload.organization
       });
     };
@@ -109,6 +111,14 @@ export const AuthStore = signalStore(
       patchState(store, { user: nextUser });
       storeSession({
         user: nextUser,
+        organization: store.organization()
+      });
+    };
+
+    const setUser = (user: User) => {
+      patchState(store, { user });
+      storeSession({
+        user,
         organization: store.organization()
       });
     };
@@ -226,6 +236,7 @@ export const AuthStore = signalStore(
       fetchSession,
       logout,
       updateUser,
+      setUser,
       clearError: () => patchState(store, { error: null })
     };
   })
