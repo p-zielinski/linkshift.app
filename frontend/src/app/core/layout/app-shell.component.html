@@ -14,29 +14,30 @@
         <div class="text-[13px] text-app-muted">Environment-ready routing</div>
       </div>
 
-      @if (!legalConsentRequired()) {
-        <div class="mb-2 shrink-0">
-          <button
-            type="button"
-            class="app-sidebar-ask"
-            [class.app-sidebar-ask--active]="assistantDrawerOpen()"
-            aria-label="Open Ask docs"
-            [attr.aria-expanded]="assistantDrawerOpen()"
-            (click)="openAssistantDrawer()"
-          >
-            <span class="app-sidebar-ask__icon-badge" aria-hidden="true">
-              <mat-icon class="app-sidebar-ask__icon">auto_awesome</mat-icon>
+      <div class="mb-2 shrink-0">
+        <button
+          [disabled]="legalConsentRequired()"
+          type="button"
+          class="app-sidebar-ask"
+          [class.app-sidebar-ask--active]="assistantDrawerOpen() && !legalConsentRequired()"
+          [matTooltip]="legalConsentRequired() ? 'Accept updated terms to continue.' : ''"
+          [matTooltipDisabled]="!legalConsentRequired()"
+          aria-label="Open Ask docs"
+          [attr.aria-expanded]="assistantDrawerOpen()"
+          (click)="openAssistantDrawer()"
+        >
+          <span class="app-sidebar-ask__icon-badge" aria-hidden="true">
+            <mat-icon class="app-sidebar-ask__icon">auto_awesome</mat-icon>
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="app-sidebar-ask__title-row">
+              <span class="app-sidebar-ask__title">Ask docs</span>
+              <span class="app-sidebar-ask__ai-tag">AI</span>
             </span>
-            <span class="min-w-0 flex-1">
-              <span class="app-sidebar-ask__title-row">
-                <span class="app-sidebar-ask__title">Ask docs</span>
-                <span class="app-sidebar-ask__ai-tag">AI</span>
-              </span>
-              <span class="app-sidebar-ask__hint">Answers from documentation</span>
-            </span>
-          </button>
-        </div>
-      }
+            <span class="app-sidebar-ask__hint">Answers from documentation</span>
+          </span>
+        </button>
+      </div>
 
       <div class="min-h-0 flex-1 overflow-y-auto">
         <mat-nav-list>

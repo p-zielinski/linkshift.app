@@ -34,6 +34,47 @@
   box-shadow: 0 6px 18px rgba(192, 55, 98, 0.16);
 }
 
+.app-sidebar-ask:disabled {
+  cursor: not-allowed;
+  border-color: rgba(31, 24, 28, 0.1);
+  background: rgba(31, 24, 28, 0.04);
+  box-shadow: none;
+  transform: none;
+  opacity: 0.72;
+}
+
+.app-sidebar-ask:disabled:hover {
+  transform: none;
+  border-color: rgba(31, 24, 28, 0.1);
+  box-shadow: none;
+}
+
+.app-sidebar-ask:disabled.app-sidebar-ask--active {
+  border-color: rgba(31, 24, 28, 0.1);
+  background: rgba(31, 24, 28, 0.04);
+  box-shadow: none;
+}
+
+.app-sidebar-ask:disabled .app-sidebar-ask__icon-badge {
+  background: linear-gradient(145deg, #b5adb2 0%, #958b92 100%);
+  box-shadow: none;
+}
+
+.app-sidebar-ask:disabled .app-sidebar-ask__title {
+  color: var(--app-muted, #6f5f68);
+  font-weight: 600;
+}
+
+.app-sidebar-ask:disabled .app-sidebar-ask__ai-tag {
+  color: var(--app-muted, #6f5f68);
+  background: rgba(31, 24, 28, 0.06);
+  border-color: rgba(31, 24, 28, 0.1);
+}
+
+.app-sidebar-ask:disabled .app-sidebar-ask__hint {
+  color: rgba(111, 95, 104, 0.7);
+}
+
 .app-sidebar-ask__icon-badge {
   display: inline-flex;
   align-items: center;
