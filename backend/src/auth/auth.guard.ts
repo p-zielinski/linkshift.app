@@ -12,6 +12,7 @@ import {
 import { LegalService } from '../legal/legal.service';
 import { Logger } from 'nestjs-pino';
 import { AuthenticatedPrincipal } from './auth-context.model';
+import { shouldBypassLegalConsentCheck } from './legal-consent-bypass.util';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -50,7 +51,7 @@ export class AuthGuard implements CanActivate {
       return this.throwForbiddenError();
     }
 
-    if (!this.shouldBypassLegalCheck(request)) {
+    if (!shouldBypassLegalConsentCheck(request)) {
       const upToDate = this.legalService.isConsentUpToDate(user as any);
       if (!upToDate) {
         return this.throwLegalConsentError();
@@ -104,8 +105,4 @@ export class AuthGuard implements CanActivate {
     );
   }
 
-  private shouldBypassLegalCheck(request: Request): boolean {
-    const path = request.path ?? request.url ?? '';
-    return path.startsWith('/api/v1/auth/accept-legal');
-  }
 }
