@@ -8,6 +8,7 @@ import {
   rankCatalogIdsByQuestion,
   toOpenApiSlicePath,
   toOpenApiUserFacingRef,
+  resolveDocsPageRoute,
   toPageUserFacingRef,
 } from './docs-catalog-metadata';
 
@@ -44,6 +45,15 @@ sliceType: openapi-by-tag
       'Guide: Link Maps (/docs/guides/link-maps)',
     );
     expect(toPageUserFacingRef('pages/reference.md')).toBe('API reference (/docs/reference)');
+  });
+
+  it('maps dashboard guide sources to flat /docs/guides routes', () => {
+    expect(resolveDocsPageRoute('pages/guides/dashboard/domain-groups-in-dashboard.md')).toBe(
+      '/docs/guides/domain-groups-in-dashboard',
+    );
+    expect(toPageUserFacingRef('pages/guides/dashboard/domain-groups-in-dashboard.md')).toBe(
+      'Guide: Domain Groups In Dashboard (/docs/guides/domain-groups-in-dashboard)',
+    );
   });
 
   it('builds openapi catalog entries with guide companion pages', () => {

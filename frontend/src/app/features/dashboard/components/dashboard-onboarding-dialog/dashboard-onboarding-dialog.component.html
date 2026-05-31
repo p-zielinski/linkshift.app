@@ -76,8 +76,8 @@
           </div>
         } @else {
           <div class="mt-2 text-sm text-app-muted">
-            No groups loaded yet. Your starter group is created during registration and should appear
-            after refresh.
+            No groups loaded yet. Your starter group is created during registration and should
+            appear after refresh.
           </div>
         }
       </div>
@@ -95,9 +95,7 @@
               </div>
             }
             @if (subdomainOverflow() > 0) {
-              <div class="text-xs text-app-muted">
-                +{{ subdomainOverflow() }} more subdomain(s)
-              </div>
+              <div class="text-xs text-app-muted">+{{ subdomainOverflow() }} more subdomain(s)</div>
             }
           </div>
         } @else {
@@ -114,9 +112,15 @@
       <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
         <div class="text-sm font-semibold">Hierarchy at a glance</div>
         <div class="mt-3 grid gap-2 text-sm text-app-muted">
-          <div><span class="font-semibold text-app-text">1.</span> Domain group scopes your setup.</div>
-          <div><span class="font-semibold text-app-text">2.</span> Domains/subdomains receive traffic.</div>
-          <div><span class="font-semibold text-app-text">3.</span> Redirect rules match request paths.</div>
+          <div>
+            <span class="font-semibold text-app-text">1.</span> Domain group scopes your setup.
+          </div>
+          <div>
+            <span class="font-semibold text-app-text">2.</span> Domains/subdomains receive traffic.
+          </div>
+          <div>
+            <span class="font-semibold text-app-text">3.</span> Redirect rules match request paths.
+          </div>
           <div>
             <span class="font-semibold text-app-text">4.</span> Link maps (shortlinks) plug into a
             redirect rule path.
@@ -128,7 +132,8 @@
         <div class="font-semibold">Short example</div>
         <div class="mt-2 text-app-muted">
           Create a rule for <span class="font-mono">/go</span>, then connect a link map.
-          <span class="font-mono">/go/docs</span> can resolve to a dynamic destination from that map.
+          <span class="font-mono">/go/docs</span> can resolve to a dynamic destination from that
+          map.
         </div>
       </div>
     </div>

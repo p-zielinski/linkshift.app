@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { MatSidenavContent } from '@angular/material/sidenav';
 import { filter } from 'rxjs/operators';
 import {
   getDocsNavigationFragment,
@@ -9,11 +8,14 @@ import {
 import { docsScrollDebug } from '../utils/docs-scroll-debug.util';
 import {
   findDocsAnchorElement,
+  findDocsMainBodyScroller,
   findDocsScrollContainer,
   findDocsShellRoot,
-  isDocsScrollAtTop,
+  isDocsMainBodyAtTop,
+  readDocsSidebarNavScrollTop,
+  restoreDocsSidebarNavScrollTop,
   scrollDocsAnchorElement,
-  scrollDocsPageToTop,
+  scrollDocsMainBodyToTop,
   waitForNextPaint,
 } from '../utils/docs-scroll.util';
 
@@ -27,8 +29,7 @@ const SCROLL_TO_TOP_LATE_RETRY_MS = 120;
 export class DocumentationScrollService {
   private readonly router = inject(Router);
 
-  private scrollContainer: HTMLElement | null = null;
-  private sidenavContent: MatSidenavContent | null = null;
+  private mainBodyScroll: HTMLElement | null = null;
   private pendingFragment: string | null = null;
   private coalesceTimer: ReturnType<typeof setTimeout> | null = null;
   private coalesceContentRoot: HTMLElement | null = null;
@@ -37,7 +38,7 @@ export class DocumentationScrollService {
   private anchorScrollGeneration = 0;
   private pendingScrollToTop = false;
   private scrollToTopFollowUpGeneration = 0;
-  private useSmoothScrollToTop = false;
+  private sidebarNavScrollSnapshot: number | null = null;
 
   constructor() {
     if (typeof history !== 'undefined' && 'scrollRestoration' in history) {
@@ -51,6 +52,51 @@ export class DocumentationScrollService {
       });
   }
 
+  registerMainBodyScroll(element: HTMLElement | null): void {
+    this.mainBodyScroll = element;
+    docsScrollDebug('registerMainBodyScroll', {
+      registered: element instanceof HTMLElement,
+      id: element?.id ?? null,
+    });
+  }
+
+  /** @deprecated Use registerMainBodyScroll */
+  registerSidenavContent(content: { getElementRef(): { nativeElement: unknown } } | null | undefined): void {
+    const element = content?.getElementRef().nativeElement;
+    if (element instanceof HTMLElement) {
+      const body = element.querySelector<HTMLElement>('.docs-main-body-scroll');
+      this.registerMainBodyScroll(body ?? element);
+    }
+  }
+
+  /** Call from sidebar pointerdown before navigation mutates layout/scroll. */
+  recordSidebarNavScroll(): void {
+    const scrollTop = readDocsSidebarNavScrollTop();
+    if (scrollTop === null) {
+      return;
+    }
+
+    this.sidebarNavScrollSnapshot = scrollTop;
+    docsScrollDebug('recordSidebarNavScroll', { scrollTop });
+  }
+
+  restoreSidebarNavScrollIfPending(): void {
+    if (this.sidebarNavScrollSnapshot === null) {
+      return;
+    }
+
+    restoreDocsSidebarNavScrollTop(this.sidebarNavScrollSnapshot);
+  }
+
+  /** Routed page finished rendering (API page, overview, etc.). */
+  notifyRouteContentReady(): void {
+    if (!this.pendingScrollToTop) {
+      return;
+    }
+
+    this.applyScrollToTopAfterContentReady();
+  }
+
   private handleNavigationEnd(navigationUrl: string): void {
     this.cancelAnchorScrollWork();
     this.cancelScrollToTopFollowUp();
@@ -61,11 +107,12 @@ export class DocumentationScrollService {
     docsScrollDebug('NavigationEnd', {
       url: navigationUrl,
       fragment,
-      hash: typeof window !== 'undefined' ? window.location.hash : null,
+      sidebarScrollTop: readDocsSidebarNavScrollTop(),
+      bodyScrollTop: this.resolveMainBodyScroll()?.scrollTop ?? null,
     });
 
     if (!fragment) {
-      this.requestScrollToTop();
+      this.beginScrollToTop();
       return;
     }
 
@@ -74,86 +121,52 @@ export class DocumentationScrollService {
     this.requestAnchorScroll('NavigationEnd');
   }
 
-  private cancelAnchorScrollWork(): void {
-    this.anchorScrollGeneration += 1;
-
-    if (this.coalesceTimer !== null) {
-      clearTimeout(this.coalesceTimer);
-      this.coalesceTimer = null;
+  private beginScrollToTop(): void {
+    if (this.sidebarNavScrollSnapshot === null) {
+      this.sidebarNavScrollSnapshot = readDocsSidebarNavScrollTop();
     }
 
-    if (this.anchorScrollRetryTimer !== null) {
-      clearTimeout(this.anchorScrollRetryTimer);
-      this.anchorScrollRetryTimer = null;
-    }
-
-    this.coalesceContentRoot = null;
-  }
-
-  setPendingFragment(fragment: string | null): void {
-    this.pendingFragment = fragment;
-    docsScrollDebug('setPendingFragment', { fragment });
-  }
-
-  clearPendingFragment(): void {
-    this.pendingFragment = null;
-  }
-
-  currentFragment(): string | null {
-    return this.pendingFragment ?? getDocsRouteFragment(this.router);
-  }
-
-  registerScrollContainer(element: HTMLElement | null): void {
-    this.scrollContainer = element;
-    docsScrollDebug('registerScrollContainer', { registered: element instanceof HTMLElement });
-  }
-
-  registerSidenavContent(content: MatSidenavContent | null | undefined): void {
-    this.sidenavContent = content ?? null;
-    const element = content?.getElementRef().nativeElement;
-    if (element instanceof HTMLElement) {
-      this.registerScrollContainer(element);
-    }
-  }
-
-  /** Route change without `#fragment` — scroll runs after content paint (not immediately). */
-  requestScrollToTop(options?: { smooth?: boolean }): void {
     this.pendingScrollToTop = true;
-    this.useSmoothScrollToTop = options?.smooth ?? true;
-    this.clearPendingFragment();
     this.cancelScrollToTopFollowUp();
     this.scheduleScrollToTopFollowUp();
+    void waitForNextPaint().then(() => {
+      if (this.pendingScrollToTop) {
+        this.scrollMainBodyToTop();
+      }
+    });
   }
 
-  /** Scroll docs column (and document) to top. Returns false when already at top (no-op). */
   scrollContentToTop(): boolean {
-    const behavior: ScrollBehavior = this.useSmoothScrollToTop ? 'smooth' : 'auto';
-    const container = this.resolveScrollContainer();
+    return this.scrollMainBodyToTop();
+  }
 
-    if (isDocsScrollAtTop(container)) {
-      docsScrollDebug('scrollContentToTop:skipped-already-at-top', {
-        behavior,
-        sidenavScrollTop: container?.scrollTop ?? null,
+  private scrollMainBodyToTop(): boolean {
+    const body = this.resolveMainBodyScroll();
+
+    if (!body) {
+      docsScrollDebug('scrollMainBodyToTop:missing-body', {});
+      return false;
+    }
+
+    if (isDocsMainBodyAtTop(body)) {
+      docsScrollDebug('scrollMainBodyToTop:skipped-already-at-top', {
+        bodyScrollTop: body.scrollTop,
+        sidebarSnapshot: this.sidebarNavScrollSnapshot,
       });
       return false;
     }
 
-    if (container && container.scrollTop > 0) {
-      this.sidenavContent?.scrollTo({ top: 0, behavior });
-    }
+    const result = scrollDocsMainBodyToTop(body, { behavior: 'auto' });
+    this.restoreSidebarNavScroll();
 
-    const result = scrollDocsPageToTop(container, { behavior });
-
-    if (!container && result.targets.length === 0 && !result.skipped) {
-      docsScrollDebug('scrollContentToTop:missing-container', result);
-      return false;
-    }
-
-    docsScrollDebug('scrollContentToTop', {
-      behavior,
-      sidenavScrollTop: container?.scrollTop ?? null,
+    docsScrollDebug('scrollMainBodyToTop', {
+      bodyScrollTop: body.scrollTop,
+      sidebarScrollTopBefore: this.sidebarNavScrollSnapshot,
+      sidebarScrollTopAfter: readDocsSidebarNavScrollTop(),
+      targetLabels: result.targets.map((entry) => entry.label),
       ...result,
     });
+
     return !result.skipped;
   }
 
@@ -169,7 +182,7 @@ export class DocumentationScrollService {
         return;
       }
 
-      this.scrollContentToTop();
+      this.scrollMainBodyToTop();
       this.finishScrollToTopIfDone();
     }, SCROLL_TO_TOP_LATE_RETRY_MS);
   }
@@ -184,17 +197,46 @@ export class DocumentationScrollService {
         return;
       }
 
-      this.scrollContentToTop();
+      this.scrollMainBodyToTop();
       this.finishScrollToTopIfDone();
     });
   }
 
   private finishScrollToTopIfDone(): void {
-    const container = this.resolveScrollContainer();
-    if (!this.pendingScrollToTop || isDocsScrollAtTop(container)) {
+    const body = this.resolveMainBodyScroll();
+    if (!this.pendingScrollToTop || isDocsMainBodyAtTop(body)) {
+      this.restoreSidebarNavScroll();
       this.pendingScrollToTop = false;
-      this.useSmoothScrollToTop = false;
+      this.sidebarNavScrollSnapshot = null;
     }
+  }
+
+  private restoreSidebarNavScroll(): void {
+    restoreDocsSidebarNavScrollTop(this.sidebarNavScrollSnapshot);
+    requestAnimationFrame(() => {
+      restoreDocsSidebarNavScrollTop(this.sidebarNavScrollSnapshot);
+    });
+  }
+
+  private resolveMainBodyScroll(): HTMLElement | null {
+    if (this.mainBodyScroll && !this.mainBodyScroll.closest('.docs-sidebar')) {
+      return this.mainBodyScroll;
+    }
+
+    return findDocsMainBodyScroller(findDocsShellRoot());
+  }
+
+  setPendingFragment(fragment: string | null): void {
+    this.pendingFragment = fragment;
+    docsScrollDebug('setPendingFragment', { fragment });
+  }
+
+  clearPendingFragment(): void {
+    this.pendingFragment = null;
+  }
+
+  currentFragment(): string | null {
+    return this.pendingFragment ?? getDocsRouteFragment(this.router);
   }
 
   scrollToFragment(fragment: string, contentRoot?: HTMLElement | null): void {
@@ -246,6 +288,22 @@ export class DocumentationScrollService {
     }, 0);
   }
 
+  private cancelAnchorScrollWork(): void {
+    this.anchorScrollGeneration += 1;
+
+    if (this.coalesceTimer !== null) {
+      clearTimeout(this.coalesceTimer);
+      this.coalesceTimer = null;
+    }
+
+    if (this.anchorScrollRetryTimer !== null) {
+      clearTimeout(this.anchorScrollRetryTimer);
+      this.anchorScrollRetryTimer = null;
+    }
+
+    this.coalesceContentRoot = null;
+  }
+
   private async applyAnchorScroll(
     fragment: string,
     contentRoot: HTMLElement | undefined,
@@ -277,7 +335,7 @@ export class DocumentationScrollService {
       return;
     }
 
-    const registered = this.resolveScrollContainer();
+    const registered = this.resolveMainBodyScroll();
     const container = findDocsScrollContainer(target, registered);
     const result = scrollDocsAnchorElement(target, container);
 
@@ -370,16 +428,5 @@ export class DocumentationScrollService {
     }
 
     return roots[0] ?? null;
-  }
-
-  private resolveScrollContainer(): HTMLElement | null {
-    if (this.scrollContainer) {
-      return this.scrollContainer;
-    }
-
-    return (
-      findDocsShellRoot()?.querySelector<HTMLElement>('mat-sidenav-content.mat-sidenav-content') ??
-      document.querySelector<HTMLElement>('.docs-shell .mat-drawer-content')
-    );
   }
 }
