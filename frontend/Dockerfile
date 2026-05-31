@@ -1,6 +1,7 @@
 FROM node:24.12.0-slim AS deps
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./
+# VERY IMPORTANT: package-lock.json must be produced with npm@10.9.4 — see Deployment.Readme.md
 RUN npm ci
 
 FROM node:24.12.0-slim AS build
