@@ -24,6 +24,8 @@ import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { AuthStore } from '../store/auth.store';
+import { SITE_CONFIG } from '../config/site-config';
+import { needsLegalConsent } from '../legal/legal-consent.utils';
 import { DomainStore } from '../store/domain.store';
 import { DomainGroupStore } from '../store/domain-group.store';
 import { DEFAULT_LIST_KEY } from '../store/entity/entity-store.utils';
@@ -94,6 +96,7 @@ const MOBILE_BREAKPOINT = '(max-width: 1023px)';
 })
 export class AppShellComponent {
   readonly authStore = inject(AuthStore);
+  private readonly siteConfig = inject(SITE_CONFIG);
   private readonly router = inject(Router);
   private readonly domainStore = inject(DomainStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
@@ -112,6 +115,9 @@ export class AppShellComponent {
     () => this.domainGroupListResult() !== null && !this.domainGroupsLoading(),
   );
   readonly hasDomainGroups = computed(() => this.domainGroups().length > 0);
+  readonly legalConsentRequired = computed(() =>
+    needsLegalConsent(this.authStore.user(), this.siteConfig),
+  );
   readonly isMobile = signal(false);
   readonly mobileNavOpen = signal(false);
   readonly assistantDrawerOpen = this.assistantDrawer.open;
@@ -126,7 +132,7 @@ export class AppShellComponent {
       this.isMobile.set(this.breakpointObserver.isMatched(MOBILE_BREAKPOINT));
     }
     effect(() => {
-      if (this.authStore.isAuthenticated()) {
+      if (this.authStore.isAuthenticated() && !this.legalConsentRequired()) {
         this.domainStore.searchList();
         this.domainGroupStore.searchList();
       }
@@ -144,7 +150,23 @@ export class AppShellComponent {
   }
 
   isDisabled(item: NavItem): boolean {
+    if (this.legalConsentRequired()) {
+      return true;
+    }
+
     return !!item.requiresDomainGroups && this.domainGroupsReady() && !this.hasDomainGroups();
+  }
+
+  navDisabledTooltip(item: NavItem): string {
+    if (this.legalConsentRequired()) {
+      return 'Accept updated terms to continue.';
+    }
+
+    if (this.isDisabled(item)) {
+      return 'Create a domain group to access this section.';
+    }
+
+    return '';
   }
 
   toggleMobileNav(): void {

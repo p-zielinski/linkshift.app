@@ -201,6 +201,7 @@ export const routes: Routes = [
     path: '',
     component: AppShellComponent,
     canActivate: [authGuard, legalConsentGuard],
+    canActivateChild: [legalConsentGuard],
     children: [
       { path: 'dashboard', component: DashboardPageComponent },
       { path: 'tools', component: ToolsPageComponent },

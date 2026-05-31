@@ -10,6 +10,8 @@ import { form, validate, FormField } from '@angular/forms/signals';
 import { SITE_CONFIG } from '../../core/config/site-config';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { AuthStore } from '../../core/store/auth.store';
+import { mapAuthUser } from '../../core/legal/map-auth-user';
+import { needsLegalConsent } from '../../core/legal/legal-consent.utils';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -85,10 +87,44 @@ export class LegalConsentPageComponent {
     try {
       const payload = this.consentModel();
       const response = await firstValueFrom(this.authApi.acceptLegalConsent(payload));
-      if (response?.user) {
-        this.authStore.updateUser(response.user);
+      if (!response?.user) {
+        this.snackBar.open(
+          'Consent saved, but the account profile did not refresh. Reload the page and try again.',
+          'Dismiss',
+          { duration: 6000 },
+        );
+        return;
       }
-      await this.router.navigateByUrl('/dashboard');
+
+      const acceptedUser = mapAuthUser(response.user);
+      this.authStore.setUser(acceptedUser);
+
+      try {
+        await firstValueFrom(this.authStore.fetchSession());
+      } catch {
+        // Keep accept-legal response when session refresh fails.
+      }
+
+      const user = this.authStore.user();
+      if (needsLegalConsent(user, this.siteConfig)) {
+        const acceptedVersion = user?.legalVersion ?? 'unknown';
+        const requiredVersion = this.siteConfig.legalVersion;
+        this.snackBar.open(
+          `Consent recorded as ${acceptedVersion}, but this app requires ${requiredVersion}. Set LEGAL_VERSION and APP_LEGAL_VERSION to the same value, then try again.`,
+          'Dismiss',
+          { duration: 8000 },
+        );
+        return;
+      }
+
+      const navigated = await this.router.navigateByUrl('/dashboard');
+      if (!navigated) {
+        this.snackBar.open(
+          'Consent saved. Open Dashboard from the sidebar if you are not redirected.',
+          'Dismiss',
+          { duration: 5000 },
+        );
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Consent update failed.';
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });
