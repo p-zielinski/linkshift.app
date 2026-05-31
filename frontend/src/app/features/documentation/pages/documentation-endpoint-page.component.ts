@@ -237,7 +237,7 @@ export class DocumentationEndpointPageComponent implements OnInit {
         if (this.docsScroll.currentFragment()) {
           this.docsScroll.retryAnchorScrollFromPage();
         } else {
-          this.docsScroll.requestScrollToTop();
+          this.docsScroll.notifyRouteContentReady();
         }
       });
     });

@@ -59,7 +59,7 @@ export class DocumentationMarkdownPageComponent implements OnInit, AfterViewInit
         if (this.docsScroll.currentFragment()) {
           this.schedulePageAnchorRetry();
         } else {
-          this.docsScroll.requestScrollToTop();
+          this.docsScroll.notifyRouteContentReady();
         }
       });
     });

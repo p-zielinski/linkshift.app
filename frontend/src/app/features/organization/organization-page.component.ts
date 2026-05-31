@@ -40,7 +40,10 @@ import { UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
     PageHeaderComponent
   ],
   templateUrl: './organization-page.component.html',
-  styleUrl: './organization-page.component.css'
+  styleUrl: './organization-page.component.css',
+  host: {
+    '[style.--seat-width.%]': 'seatUsagePercent()',
+  },
 })
 export class OrganizationPageComponent {
   private readonly authStore = inject(AuthStore);

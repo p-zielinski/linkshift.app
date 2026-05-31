@@ -1,0 +1,3 @@
+.chart-placeholder {
+  min-height: var(--chart-height, 400px);
+}

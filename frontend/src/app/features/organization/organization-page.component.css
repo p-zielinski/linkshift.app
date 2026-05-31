@@ -36,5 +36,6 @@
 }
 
 .seat-progress {
+  width: var(--seat-width, 0%);
   background: var(--app-accent, #e11d48);
 }
