@@ -75,9 +75,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         if (error.status === 403) {
           const details = (error.error as { details?: string })?.details ?? '';
           if (details.toLowerCase().includes('legal consent')) {
-            // Only navigate if we are in the browser
             if (!isPlatformServer(platformId)) {
-              router.navigateByUrl('/legal/consent');
+              const currentPath = router.url.split('?')[0] ?? router.url;
+              if (!currentPath.startsWith('/legal/consent')) {
+                void router.navigateByUrl('/legal/consent');
+              }
             }
           }
         }

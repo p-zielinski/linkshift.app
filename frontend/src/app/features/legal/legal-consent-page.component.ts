@@ -99,12 +99,6 @@ export class LegalConsentPageComponent {
       const acceptedUser = mapAuthUser(response.user);
       this.authStore.setUser(acceptedUser);
 
-      try {
-        await firstValueFrom(this.authStore.fetchSession());
-      } catch {
-        // Keep accept-legal response when session refresh fails.
-      }
-
       const user = this.authStore.user();
       if (needsLegalConsent(user, this.siteConfig)) {
         const acceptedVersion = user?.legalVersion ?? 'unknown';
@@ -117,14 +111,7 @@ export class LegalConsentPageComponent {
         return;
       }
 
-      const navigated = await this.router.navigateByUrl('/dashboard');
-      if (!navigated) {
-        this.snackBar.open(
-          'Consent saved. Open Dashboard from the sidebar if you are not redirected.',
-          'Dismiss',
-          { duration: 5000 },
-        );
-      }
+      await this.router.navigateByUrl('/dashboard', { replaceUrl: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Consent update failed.';
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });

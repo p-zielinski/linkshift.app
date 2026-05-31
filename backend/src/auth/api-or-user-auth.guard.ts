@@ -12,6 +12,7 @@ import {
 } from '../cache/cache-manager.service';
 import { LegalService } from '../legal/legal.service';
 import { AuthenticatedPrincipal } from './auth-context.model';
+import { shouldBypassLegalConsentCheck } from './legal-consent-bypass.util';
 import { ApiKeyService } from '../api-key/api-key.service';
 import { User } from '@prisma/client';
 
@@ -55,7 +56,7 @@ export class ApiOrUserAuthGuard implements CanActivate {
             return this.throwForbiddenError();
           }
 
-          if (!this.shouldBypassLegalCheck(request)) {
+          if (!shouldBypassLegalConsentCheck(request)) {
             const upToDate = this.legalService.isConsentUpToDate(user as any);
             if (!upToDate) {
               return this.throwLegalConsentError();
@@ -137,8 +138,4 @@ export class ApiOrUserAuthGuard implements CanActivate {
     );
   }
 
-  private shouldBypassLegalCheck(request: Request): boolean {
-    const path = request.path ?? request.url ?? '';
-    return path.startsWith('/api/v1/auth/accept-legal');
-  }
 }
