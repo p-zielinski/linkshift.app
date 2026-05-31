@@ -57,3 +57,7 @@
 - Place reusable UI in `frontend/src/app/shared/components`.
 - Place feature-specific UI in `frontend/src/app/features/<feature>/components`.
 - Keep component files focused: one component per folder with `.component.ts` and `.component.html`.
+
+## Dependencies and lockfile — **VERY IMPORTANT**
+
+> **WARNING:** Regenerate `package-lock.json` only with npm **10.9.4** (`packageManager` in `frontend/package.json`). Run `corepack enable`, then `npm install` in `frontend/`, or `npx -y npm@10.9.4 install`. Using another npm version can break `npm ci` in CI and in `frontend/Dockerfile`. Always commit `package-lock.json` with `package.json` changes. Full deployment notes: [Deployment.Readme.md — Frontend dependencies (npm)](../Deployment.Readme.md#frontend-dependencies-npm--very-important).
