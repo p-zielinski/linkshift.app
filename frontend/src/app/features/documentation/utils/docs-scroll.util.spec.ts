@@ -2,11 +2,13 @@ import {
   DOCS_ANCHOR_SCROLL_OFFSET_NARROW_PX,
   DOCS_ANCHOR_SCROLL_OFFSET_WIDE_PX,
   findDocsAnchorElement,
+  findDocsScrolledElements,
   findDocsScrollContainer,
   parseDocsFragment,
   readDocsAnchorScrollOffsetPx,
   isDocsScrollAtTop,
   scrollDocsAnchorElement,
+  scrollDocsMainBodyToTop,
   scrollDocsPageToTop,
 } from './docs-scroll.util';
 import { buildDocsMarkdownHtml } from './docs-markdown-html.util';
@@ -161,53 +163,106 @@ describe('docs-scroll.util', () => {
     expect(scrollIntoView).not.toHaveBeenCalled();
   });
 
-  it('skips scroll when docs are already at the top', () => {
-    const shell = document.createElement('div');
-    shell.className = 'docs-shell';
-    const sidenavContent = document.createElement('mat-sidenav-content');
-    sidenavContent.className = 'mat-sidenav-content mat-drawer-content';
-    Object.defineProperty(sidenavContent, 'scrollTop', { writable: true, value: 0 });
-    shell.append(sidenavContent);
-    document.body.append(shell);
+  it('skips scroll when docs main body is already at the top', () => {
+    const body = document.createElement('div');
+    body.className = 'docs-main-body-scroll';
+    Object.defineProperty(body, 'scrollTop', { writable: true, value: 0 });
+    document.body.append(body);
 
-    expect(isDocsScrollAtTop(sidenavContent)).toBe(true);
+    expect(isDocsScrollAtTop(body)).toBe(true);
 
-    const result = scrollDocsPageToTop(sidenavContent);
+    const result = scrollDocsMainBodyToTop(body);
     expect(result.skipped).toBe(true);
     expect(result.targets).toHaveLength(0);
+
+    body.remove();
+  });
+
+  it('ignores sidebar scroll when collecting scrolled elements', () => {
+    const shell = document.createElement('div');
+    shell.className = 'docs-shell';
+
+    const sidebar = document.createElement('mat-sidenav');
+    sidebar.className = 'docs-sidebar mat-drawer';
+    const sidebarScroll = document.createElement('div');
+    sidebarScroll.className = 'docs-sidebar-nav-scroll';
+    Object.defineProperty(sidebarScroll, 'scrollTop', { writable: true, value: 500 });
+    sidebar.append(sidebarScroll);
+
+    const sidenavContent = document.createElement('mat-sidenav-content');
+    sidenavContent.className = 'mat-sidenav-content mat-drawer-content';
+    Object.defineProperty(sidenavContent, 'scrollTop', { writable: true, value: 120 });
+
+    shell.append(sidebar, sidenavContent);
+    document.body.append(shell);
+
+    const scrolled = findDocsScrolledElements(shell);
+
+    expect(scrolled).toContain(sidenavContent);
+    expect(scrolled).not.toContain(sidebarScroll);
 
     shell.remove();
   });
 
-  it('resets window scroll and nested docs scrollports', () => {
+  it('resets main body scroll but preserves sidebar scroll position', () => {
     const shell = document.createElement('div');
     shell.className = 'docs-shell';
 
-    const sidenavContent = document.createElement('mat-sidenav-content');
-    sidenavContent.className = 'mat-sidenav-content mat-drawer-content';
-    Object.defineProperty(sidenavContent, 'scrollTop', { writable: true, value: 420 });
-    Object.defineProperty(sidenavContent, 'scrollHeight', { value: 2000 });
-    Object.defineProperty(sidenavContent, 'clientHeight', { value: 500 });
-    sidenavContent.scrollTo = ((options?: ScrollToOptions) => {
-      sidenavContent.scrollTop = options?.top ?? 0;
-    }) as typeof sidenavContent.scrollTo;
+    const sidebar = document.createElement('mat-sidenav');
+    sidebar.className = 'docs-sidebar mat-drawer';
+    const sidebarScroll = document.createElement('div');
+    sidebarScroll.className = 'docs-sidebar-nav-scroll';
+    Object.defineProperty(sidebarScroll, 'scrollTop', { writable: true, value: 500 });
+    sidebar.append(sidebarScroll);
 
-    shell.append(sidenavContent);
+    const mainBody = document.createElement('div');
+    mainBody.className = 'docs-main-body-scroll';
+    Object.defineProperty(mainBody, 'scrollTop', { writable: true, value: 420 });
+    Object.defineProperty(mainBody, 'scrollHeight', { value: 2000 });
+    Object.defineProperty(mainBody, 'clientHeight', { value: 500 });
+    mainBody.scrollTo = ((options?: ScrollToOptions) => {
+      mainBody.scrollTop = options?.top ?? 0;
+    }) as typeof mainBody.scrollTo;
+
+    shell.append(sidebar, mainBody);
     document.body.append(shell);
+
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+
+    scrollDocsMainBodyToTop(mainBody);
+
+    expect(mainBody.scrollTop).toBe(0);
+    expect(sidebarScroll.scrollTop).toBe(500);
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    scrollTo.mockRestore();
+    shell.remove();
+  });
+
+  it('scrolls only the docs main body, not window', () => {
+    const mainBody = document.createElement('div');
+    mainBody.className = 'docs-main-body-scroll';
+    Object.defineProperty(mainBody, 'scrollTop', { writable: true, value: 420 });
+    Object.defineProperty(mainBody, 'scrollHeight', { value: 2000 });
+    Object.defineProperty(mainBody, 'clientHeight', { value: 500 });
+    mainBody.scrollTo = ((options?: ScrollToOptions) => {
+      mainBody.scrollTop = options?.top ?? 0;
+    }) as typeof mainBody.scrollTo;
+
+    document.body.append(mainBody);
 
     const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
     Object.defineProperty(window, 'scrollY', { writable: true, configurable: true, value: 180 });
 
-    const result = scrollDocsPageToTop(sidenavContent);
+    const result = scrollDocsMainBodyToTop(mainBody);
 
     expect(result.skipped).toBe(false);
-    expect(result.windowBefore).toBe(180);
-    expect(sidenavContent.scrollTop).toBe(0);
-    expect(result.targets.some((entry) => entry.before === 420 && entry.after === 0)).toBe(true);
-    expect(scrollTo).toHaveBeenCalled();
+    expect(mainBody.scrollTop).toBe(0);
+    expect(result.targets).toHaveLength(1);
+    expect(scrollTo).not.toHaveBeenCalled();
 
     scrollTo.mockRestore();
-    shell.remove();
+    mainBody.remove();
   });
 
   it('falls back to window scroll when no scroll container is provided', () => {

@@ -176,37 +176,92 @@ export function findDocsShellRoot(): HTMLElement | null {
   return document.querySelector<HTMLElement>('.docs-shell');
 }
 
+/** Docs nav drawer — scroll position must survive route changes. */
+export const DOCS_SIDEBAR_SELECTOR = '.docs-sidebar';
+
+/** Scrollable nav list inside the docs sidebar (position preserved on route change). */
+export const DOCS_SIDEBAR_NAV_SCROLL_SELECTOR = '.docs-sidebar-nav-scroll';
+
+/** Scrollable docs page body (not the sidebar, not document/window). */
+export const DOCS_MAIN_BODY_SCROLL_SELECTOR = '.docs-main-body-scroll';
+
+export const DOCS_MAIN_BODY_SCROLL_ID = 'docs-main-body-scroll';
+
+/** @deprecated Use DOCS_MAIN_BODY_SCROLL_ID */
+export const DOCS_MAIN_SCROLL_ID = DOCS_MAIN_BODY_SCROLL_ID;
+
+export function findDocsMainBodyScroller(shell: HTMLElement | null = findDocsShellRoot()): HTMLElement | null {
+  const docsShell =
+    shell?.classList.contains('docs-shell') ?
+      shell
+    : (shell?.querySelector<HTMLElement>('.docs-shell') ?? null);
+
+  if (!docsShell) {
+    return null;
+  }
+
+  return (
+    docsShell.querySelector<HTMLElement>(DOCS_MAIN_BODY_SCROLL_SELECTOR) ??
+    document.getElementById(DOCS_MAIN_BODY_SCROLL_ID)
+  );
+}
+
+/** @deprecated Use findDocsMainBodyScroller */
+export function findDocsMainContentRoot(shell: HTMLElement | null): HTMLElement | null {
+  return findDocsMainBodyScroller(shell);
+}
+
+export function findDocsSidebarNavScroller(): HTMLElement | null {
+  return findDocsShellRoot()?.querySelector<HTMLElement>(DOCS_SIDEBAR_NAV_SCROLL_SELECTOR) ?? null;
+}
+
+export function readDocsSidebarNavScrollTop(): number | null {
+  const scroller = findDocsSidebarNavScroller();
+  return scroller ? scroller.scrollTop : null;
+}
+
+export function restoreDocsSidebarNavScrollTop(scrollTop: number | null): void {
+  if (scrollTop === null) {
+    return;
+  }
+
+  const scroller = findDocsSidebarNavScroller();
+  if (scroller) {
+    scroller.scrollTop = scrollTop;
+  }
+}
+
+export function isInsideDocsSidebar(element: HTMLElement): boolean {
+  return element.closest(DOCS_SIDEBAR_SELECTOR) !== null;
+}
+
+/** Docs site shell locks document scroll; only the main column should reset. */
+export function isDocsSiteScrollLocked(): boolean {
+  if (typeof document === 'undefined') {
+    return false;
+  }
+
+  if (document.body.style.overflow === 'hidden') {
+    return true;
+  }
+
+  return getComputedStyle(document.body).overflowY === 'hidden';
+}
+
 export const DOCS_PAGE_TOP_ELEMENT_ID = 'docs-page-top';
 
+export function isDocsMainBodyAtTop(body: HTMLElement | null): boolean {
+  if (!body) {
+    return true;
+  }
+
+  return body.scrollTop <= DOCS_SCROLL_TOP_EPSILON_PX;
+}
+
+/** @deprecated Use isDocsMainBodyAtTop */
 export function isDocsScrollAtTop(preferred: HTMLElement | null): boolean {
-  if (typeof window !== 'undefined' && window.scrollY > DOCS_SCROLL_TOP_EPSILON_PX) {
-    return false;
-  }
-
-  if (
-    typeof document !== 'undefined' &&
-    document.documentElement.scrollTop > DOCS_SCROLL_TOP_EPSILON_PX
-  ) {
-    return false;
-  }
-
-  const shell = findDocsShellRoot();
-  const container =
-    preferred ??
-    shell?.querySelector<HTMLElement>('mat-sidenav-content.mat-sidenav-content') ??
-    null;
-
-  if (container && container.scrollTop > DOCS_SCROLL_TOP_EPSILON_PX) {
-    return false;
-  }
-
-  for (const element of findDocsScrolledElements(shell)) {
-    if (element.scrollTop > DOCS_SCROLL_TOP_EPSILON_PX) {
-      return false;
-    }
-  }
-
-  return true;
+  const body = preferred ?? findDocsMainBodyScroller();
+  return isDocsMainBodyAtTop(body);
 }
 
 export function scrollElementToTop(
@@ -262,6 +317,10 @@ export function findDocsScrolledElements(root: HTMLElement | null): HTMLElement[
   }
 
   const visit = (node: HTMLElement) => {
+    if (isInsideDocsSidebar(node)) {
+      return;
+    }
+
     if (node.scrollTop > 0) {
       add(node);
     }
@@ -285,28 +344,6 @@ export function findDocsPageTopElement(): HTMLElement | null {
   return document.getElementById(DOCS_PAGE_TOP_ELEMENT_ID);
 }
 
-/** scrollIntoView picks the correct scrollport (works when scrollTop on sidenav reads 0). */
-export function scrollDocsPageTopIntoView(
-  behavior: ScrollBehavior = 'auto',
-  scrollport?: HTMLElement | null,
-): boolean {
-  const anchor = findDocsPageTopElement();
-  if (!anchor) {
-    return false;
-  }
-
-  if (scrollport && scrollport.scrollTop <= DOCS_SCROLL_TOP_EPSILON_PX) {
-    const scrollportTop = scrollport.getBoundingClientRect().top;
-    const anchorTop = anchor.getBoundingClientRect().top;
-    if (Math.abs(anchorTop - scrollportTop) <= readDocsAnchorScrollOffsetPx() + DOCS_SCROLL_TOP_EPSILON_PX) {
-      return false;
-    }
-  }
-
-  anchor.scrollIntoView({ block: 'start', inline: 'nearest', behavior });
-  return true;
-}
-
 export type DocsScrollResetTarget = {
   label: string;
   before: number;
@@ -324,12 +361,12 @@ export type DocsScrollToTopOptions = {
   behavior?: ScrollBehavior;
 };
 
-/** Reset window, active scrollers, and scroll the page-top anchor into view. */
-export function scrollDocsPageToTop(
-  preferred: HTMLElement | null,
+/** Scroll only the docs main body column; never window or sidebar. */
+export function scrollDocsMainBodyToTop(
+  body: HTMLElement | null,
   options?: DocsScrollToTopOptions,
 ): DocsScrollResetResult {
-  const behavior = options?.behavior ?? 'smooth';
+  const behavior = options?.behavior ?? 'auto';
   const emptyResult = {
     skipped: true,
     windowBefore: 0,
@@ -337,63 +374,40 @@ export function scrollDocsPageToTop(
     targets: [] as DocsScrollResetTarget[],
   };
 
-  if (isDocsScrollAtTop(preferred)) {
+  if (!body || isDocsMainBodyAtTop(body)) {
     return emptyResult;
   }
 
-  const targets: DocsScrollResetTarget[] = [];
-  let windowBefore = 0;
-  let windowAfter = 0;
+  const before = body.scrollTop;
+  body.scrollTop = 0;
 
-  if (typeof window !== 'undefined') {
-    windowBefore = window.scrollY;
-    if (windowBefore > DOCS_SCROLL_TOP_EPSILON_PX) {
-      window.scrollTo({ top: 0, behavior });
-    }
-    scrollElementToTop(document.documentElement, behavior);
-    scrollElementToTop(document.body, behavior);
-    windowAfter = window.scrollY;
+  if (behavior === 'smooth' && typeof body.scrollTo === 'function') {
+    body.scrollTo({ top: 0, behavior: 'smooth' });
+  } else if (typeof body.scrollTo === 'function') {
+    body.scrollTo({ top: 0, behavior: 'auto' });
   }
 
-  const shell = findDocsShellRoot();
-  const seen = new Set<HTMLElement>();
-
-  const addTarget = (element: HTMLElement | null | undefined) => {
-    if (!element || seen.has(element) || element.scrollTop <= DOCS_SCROLL_TOP_EPSILON_PX) {
-      return;
-    }
-
-    seen.add(element);
-    const before = element.scrollTop;
-    scrollElementToTop(element, behavior);
-    targets.push({
-      label: describeDocsScrollElement(element),
-      before,
-      after: element.scrollTop,
-    });
+  return {
+    skipped: false,
+    windowBefore: 0,
+    windowAfter: 0,
+    targets: [
+      {
+        label: describeDocsScrollElement(body),
+        before,
+        after: body.scrollTop,
+      },
+    ],
   };
+}
 
-  addTarget(preferred);
-
-  for (const element of findDocsScrolledElements(shell)) {
-    addTarget(element);
-  }
-
-  const scrollport =
-    preferred ??
-    shell?.querySelector<HTMLElement>('mat-sidenav-content.mat-sidenav-content') ??
-    null;
-
-  const pageTopScrolled = scrollDocsPageTopIntoView(behavior, scrollport);
-  if (pageTopScrolled) {
-    targets.push({
-      label: '#docs-page-top.scrollIntoView',
-      before: -1,
-      after: 0,
-    });
-  }
-
-  return { skipped: false, windowBefore, windowAfter, targets };
+/** @deprecated Use scrollDocsMainBodyToTop */
+export function scrollDocsPageToTop(
+  preferred: HTMLElement | null,
+  options?: DocsScrollToTopOptions,
+): DocsScrollResetResult {
+  const body = preferred ?? findDocsMainBodyScroller();
+  return scrollDocsMainBodyToTop(body, options);
 }
 
 /** @deprecated Use scrollDocsPageToTop */

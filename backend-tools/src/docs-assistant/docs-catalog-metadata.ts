@@ -67,8 +67,30 @@ export function toOpenApiSlicePath(source: string | undefined): string | null {
   return normalized;
 }
 
+/** Public docs URL for a manifest page source path (see shared/docs/manifest.yaml routes). */
+export function resolveDocsPageRoute(pagePath: string): string {
+  const slug = pagePath.replace(/^pages\//, '').replace(/\.md$/i, '');
+
+  if (slug === 'overview') {
+    return '/docs';
+  }
+
+  if (slug === 'reference') {
+    return '/docs/reference';
+  }
+
+  // Dashboard UI guides live under pages/guides/dashboard/* but routes are flat /docs/guides/<slug>.
+  if (slug.startsWith('guides/dashboard/')) {
+    return `/docs/guides/${slug.slice('guides/dashboard/'.length)}`;
+  }
+
+  return `/docs/${slug}`;
+}
+
 export function toPageUserFacingRef(pagePath: string): string {
   const slug = pagePath.replace(/^pages\//, '').replace(/\.md$/i, '');
+  const route = resolveDocsPageRoute(pagePath);
+
   if (slug === 'overview') {
     return 'Documentation overview (/docs)';
   }
@@ -78,18 +100,19 @@ export function toPageUserFacingRef(pagePath: string): string {
   }
 
   if (slug.startsWith('guides/')) {
-    return `Guide: ${humanizeSlug(slug.replace(/^guides\//, ''))} (/docs/${slug})`;
+    const labelSlug = slug.replace(/^guides\//, '').replace(/^dashboard\//, '');
+    return `Guide: ${humanizeSlug(labelSlug)} (${route})`;
   }
 
   if (slug.startsWith('concepts/')) {
-    return `Concept: ${humanizeSlug(slug.replace(/^concepts\//, ''))} (/docs/${slug})`;
+    return `Concept: ${humanizeSlug(slug.replace(/^concepts\//, ''))} (${route})`;
   }
 
   if (slug.startsWith('intro/')) {
-    return `${humanizeSlug(slug.replace(/^intro\//, ''))} (/docs/${slug})`;
+    return `${humanizeSlug(slug.replace(/^intro\//, ''))} (${route})`;
   }
 
-  return `Documentation page (/docs/${slug})`;
+  return `Documentation page (${route})`;
 }
 
 export function toOpenApiUserFacingRef(openApiTag: string): string {

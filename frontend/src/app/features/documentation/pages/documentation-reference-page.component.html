@@ -1,10 +1,7 @@
 <section class="grid min-w-0 gap-4">
   @if (introPage(); as pageData) {
     <mat-card class="min-w-0 overflow-hidden border p-5 sm:p-6">
-      <app-markdown-renderer
-        [markdown]="pageData.markdown"
-        [sourcePath]="pageData.sourcePath"
-      />
+      <app-markdown-renderer [markdown]="pageData.markdown" [sourcePath]="pageData.sourcePath" />
     </mat-card>
   }
 

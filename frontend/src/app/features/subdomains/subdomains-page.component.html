@@ -9,18 +9,30 @@
     </button>
   </div>
 
-  <div class="flex flex-col gap-4 rounded-[16px] border border-app-border-soft bg-app-surface p-4 sm:flex-row sm:items-center">
-    <div class="hidden h-10 w-10 items-center justify-center rounded-full bg-app-background text-app-muted sm:flex">
+  <div
+    class="flex flex-col gap-4 rounded-[16px] border border-app-border-soft bg-app-surface p-4 sm:flex-row sm:items-center"
+  >
+    <div
+      class="hidden h-10 w-10 items-center justify-center rounded-full bg-app-background text-app-muted sm:flex"
+    >
       <mat-icon>dns</mat-icon>
     </div>
-    <div class="flex-1"> 
-      <div class="text-[11px] font-semibold uppercase tracking-[0.12em] text-app-muted">Base Routing Host</div>
+    <div class="flex-1">
+      <div class="text-[11px] font-semibold uppercase tracking-[0.12em] text-app-muted">
+        Base Routing Host
+      </div>
       <div class="mt-1 text-[14px] text-app-foreground">
         Dynamically created subdomains are automatically resolved against
-        <code class="rounded border border-app-border-soft bg-app-background px-1.5 py-0.5 font-mono text-[13px] text-app-foreground">{{ subdomainBaseHost() }}</code>
+        <code
+          class="rounded border border-app-border-soft bg-app-background px-1.5 py-0.5 font-mono text-[13px] text-app-foreground"
+          >{{ subdomainBaseHost() }}</code
+        >
       </div>
       <div class="mt-2 text-[13px] text-app-muted">
-        Resolution format: <code class="rounded bg-app-background px-1.5 py-0.5 font-mono text-[12px]">&lt;subdomain-name&gt;.{{ subdomainBaseHost() }}</code>
+        Resolution format:
+        <code class="rounded bg-app-background px-1.5 py-0.5 font-mono text-[12px]"
+          >&lt;subdomain-name&gt;.{{ subdomainBaseHost() }}</code
+        >
       </div>
     </div>
   </div>

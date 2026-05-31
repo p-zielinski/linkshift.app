@@ -3,6 +3,7 @@ import {
   AfterViewInit,
   Component,
   DestroyRef,
+  ElementRef,
   PLATFORM_ID,
   inject,
   signal,
@@ -13,10 +14,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { filter, map, startWith } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import {
-  MatSidenavContent,
-  MatSidenavModule,
-} from '@angular/material/sidenav';
+import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -70,7 +68,7 @@ export class DocumentationShellComponent implements AfterViewInit {
   readonly manuallyExpandedGroups = signal<string[]>([]);
   readonly assistantDrawerOpen = this.assistantDrawer.open;
 
-  @ViewChild(MatSidenavContent) private docsContentRef?: MatSidenavContent;
+  @ViewChild('docsMainBody') private docsMainBodyRef?: ElementRef<HTMLElement>;
 
   constructor() {
     this.openApi.load();
@@ -94,7 +92,7 @@ export class DocumentationShellComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.docsScroll.registerSidenavContent(this.docsContentRef);
+    this.docsScroll.registerMainBodyScroll(this.docsMainBodyRef?.nativeElement ?? null);
   }
 
   readonly introLinks = [
@@ -146,6 +144,12 @@ export class DocumentationShellComponent implements AfterViewInit {
     }
 
     this.manuallyExpandedGroups.update((groups) => [...groups, tag]);
+    this.docsScroll.restoreSidebarNavScrollIfPending();
+  }
+
+  /** Capture before router navigation / accordion layout so scroll-to-top cannot zero it. */
+  recordSidebarNavScroll(): void {
+    this.docsScroll.recordSidebarNavScroll();
   }
 
   onGroupClosed(tag: string): void {

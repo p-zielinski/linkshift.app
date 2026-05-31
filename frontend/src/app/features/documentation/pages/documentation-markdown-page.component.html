@@ -24,10 +24,7 @@
     </mat-card>
 
     <mat-card class="min-w-0 overflow-hidden p-5 sm:p-6">
-      <app-markdown-renderer
-        [markdown]="pageData.markdown"
-        [sourcePath]="pageData.sourcePath"
-      />
+      <app-markdown-renderer [markdown]="pageData.markdown" [sourcePath]="pageData.sourcePath" />
     </mat-card>
   </section>
 } @else {

@@ -48,13 +48,20 @@
   min-height: 0;
 }
 
-/* Markdown column scroll (anchor targets use this element). */
-:host ::ng-deep .docs-shell .mat-drawer-content,
-:host ::ng-deep .docs-shell mat-sidenav-content.mat-sidenav-content {
+/* Prevent scroll anchoring when API accordion sections expand above the viewport. */
+.docs-sidebar-nav-scroll {
+  overflow-anchor: none;
+}
+
+/* Main column is layout-only; scroll lives in .docs-main-body-scroll. */
+:host ::ng-deep .docs-shell .docs-main-column.mat-sidenav-content,
+:host ::ng-deep .docs-shell .docs-main-column.mat-drawer-content {
   height: 100%;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+.docs-main-body-scroll {
   scrollbar-gutter: stable;
   scroll-behavior: smooth;
   scroll-padding-top: var(--docs-anchor-scroll-offset);
