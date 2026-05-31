@@ -1,5 +1,7 @@
 # Backend Coding Standards
 
+> **WARNING (dependencies):** After changing `backend/package.json`, run `bun install` in `backend/` and commit `backend/bun.lock`. CI and Docker use `bun install --frozen-lockfile` (Bun 1.3.11). Details: [Deployment.Readme.md — Backend dependencies (Bun)](../Deployment.Readme.md#backend-dependencies-bun--very-important).
+
 ## Architecture and Responsibilities
 - Keep controllers thin: auth, guard usage, request validation, logging, and mapping domain errors to HTTP responses.
 - Keep business logic in services (`*.service.ts`), not in controllers.

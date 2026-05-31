@@ -15,6 +15,55 @@ This guide describes how to deploy infra/app/tools stacks, create secrets, and a
 - Access to the manager node (SSH)
 - A VPN or private network for admin access
 
+## Frontend dependencies (npm) — **VERY IMPORTANT**
+
+> **WARNING — do not skip this.**  
+> The frontend lockfile (`frontend/package-lock.json`) must stay in sync with `frontend/package.json` using the **exact npm version pinned in the repo** (`"packageManager": "npm@10.9.4"` in `frontend/package.json`).  
+> If you update dependencies with a different npm (for example the system default npm 11.x), `npm ci` will fail in **CI**, in the **frontend Docker build** (`frontend/Dockerfile`), and in **docs-summaries** workflows — often with errors like `Missing: @emnapi/core@1.10.0 from lock file`.
+
+**Before any `npm install` in `frontend/`:**
+
+```bash
+corepack enable
+cd frontend && npm install
+```
+
+If Corepack is unavailable, use the pinned npm explicitly:
+
+```bash
+cd frontend && npx -y npm@10.9.4 install
+```
+
+**Rules:**
+
+1. Always commit `frontend/package-lock.json` together with `frontend/package.json` when dependencies change.
+2. After editing the lockfile locally, verify: `cd frontend && npx -y npm@10.9.4 ci` (must exit 0).
+3. Never hand-edit `package-lock.json`.
+
+See also: root `README.md` (local setup) and `frontend/CODING_STANDARDS.md` (dependencies).
+
+## Backend dependencies (Bun) — **VERY IMPORTANT**
+
+> **WARNING — do not skip this.**  
+> The backend lockfile (`backend/bun.lock`) must stay in sync with `backend/package.json`. CI (`backend-tests` in `.github/workflows/ci.yml`), the **backend Docker build** (`backend/Dockerfile`), and local installs all run `bun install --frozen-lockfile`. If you change `package.json` (including `dependencies`, `devDependencies`, or `overrides`) without updating and committing `bun.lock`, installs fail with `lockfile had changes, but lockfile is frozen`.
+
+**After any dependency change in `backend/`:**
+
+```bash
+cd backend && bun install
+```
+
+Use Bun **1.3.11** locally when possible (matches CI `oven-sh/setup-bun` and `oven/bun:1.3.11-slim` in `backend/Dockerfile`).
+
+**Rules:**
+
+1. Always commit `backend/bun.lock` together with `backend/package.json` when dependencies change.
+2. Verify locally: `cd backend && bun install --frozen-lockfile` (must exit 0).
+3. Run tests before pushing: `cd backend && bun run test`.
+4. `backend/package-lock.json` is not used in CI or Docker; do not rely on it instead of `bun.lock`.
+
+See also: root `README.md` (local setup), `backend/CODING_STANDARDS.md` (dependencies), and `AI_CONTEXT.md` (development notes).
+
 ## Files
 - `docker-stack.infra.yml`
 - `docker-stack.app.yml`
