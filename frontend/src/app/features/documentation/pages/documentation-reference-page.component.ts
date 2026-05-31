@@ -49,7 +49,10 @@ export class DocumentationReferencePageComponent implements OnInit, AfterViewIni
 
     if (this.docsScroll.currentFragment()) {
       queueMicrotask(() => this.docsScroll.retryAnchorScrollFromPage());
+      return;
     }
+
+    queueMicrotask(() => this.docsScroll.notifyRouteContentReady());
   }
 
   ngOnInit(): void {

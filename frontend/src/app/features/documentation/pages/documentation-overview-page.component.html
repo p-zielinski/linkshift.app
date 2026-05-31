@@ -3,10 +3,7 @@
     <mat-card
       class="min-w-0 overflow-hidden border border-[rgba(31,24,28,0.14)] bg-[radial-gradient(circle_at_top_right,#fff3f7_0%,#fff_48%,#f7f2f6_100%)] p-5 sm:p-6"
     >
-      <app-markdown-renderer
-        [markdown]="heroMarkdown()"
-        [sourcePath]="pageData.sourcePath"
-      />
+      <app-markdown-renderer [markdown]="heroMarkdown()" [sourcePath]="pageData.sourcePath" />
 
       <div class="mt-4 grid gap-3 sm:grid-cols-3">
         <div class="rounded-xl border border-[rgba(31,24,28,0.1)] bg-white/85 p-3">
@@ -33,10 +30,7 @@
 
     @if (bodyMarkdown()) {
       <mat-card class="min-w-0 overflow-hidden p-5 sm:p-6">
-        <app-markdown-renderer
-          [markdown]="bodyMarkdown()"
-          [sourcePath]="pageData.sourcePath"
-        />
+        <app-markdown-renderer [markdown]="bodyMarkdown()" [sourcePath]="pageData.sourcePath" />
       </mat-card>
     }
   </section>

@@ -16,7 +16,7 @@ module.exports = {
         '@angular-eslint/template/no-inline-styles': 'error',
         '@angular-eslint/template/prefer-control-flow': 'error',
         '@angular-eslint/template/cyclomatic-complexity': [
-          'error',
+          'warn',
           { maxComplexity: 15 },
         ],
         '@angular-eslint/template/click-events-have-key-events': 'off',

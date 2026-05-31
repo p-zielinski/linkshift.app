@@ -1,22 +1,13 @@
 @if (loading) {
-  <div
-    class="flex items-center justify-center text-[12px] text-app-muted"
-    [style.minHeight.px]="chartHeight"
-  >
+  <div class="chart-placeholder flex items-center justify-center text-[12px] text-app-muted">
     Loading analytics...
   </div>
 } @else if (error) {
-  <div
-    class="flex items-center justify-center text-[12px] text-red-600"
-    [style.minHeight.px]="chartHeight"
-  >
+  <div class="chart-placeholder flex items-center justify-center text-[12px] text-red-600">
     {{ error }}
   </div>
 } @else if (entries.length === 0) {
-  <div
-    class="flex items-center justify-center text-[12px] text-app-muted"
-    [style.minHeight.px]="chartHeight"
-  >
+  <div class="chart-placeholder flex items-center justify-center text-[12px] text-app-muted">
     No traffic data yet.
   </div>
 } @else {

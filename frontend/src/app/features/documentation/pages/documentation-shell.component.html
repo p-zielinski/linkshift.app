@@ -30,188 +30,198 @@
         </button>
       </div>
 
-      <div class="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
-      @if (isSmallScreen()) {
+      <div
+        class="docs-sidebar-nav-scroll min-h-0 flex-1 overflow-y-auto px-3 pb-4"
+        (pointerdown)="recordSidebarNavScroll()"
+      >
+        @if (isSmallScreen()) {
+          <div
+            class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted"
+          >
+            Site
+          </div>
+          <mat-nav-list>
+            @for (item of siteLinks; track item.route) {
+              <a
+                mat-list-item
+                class="rounded-lg"
+                [routerLink]="item.route"
+                routerLinkActive="active"
+                (click)="closeDrawerOnMobile()"
+              >
+                {{ item.label }}
+              </a>
+            }
+          </mat-nav-list>
+        }
+
         <div class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted">
-          Site
+          Start
         </div>
         <mat-nav-list>
-          @for (item of siteLinks; track item.route) {
+          @for (item of introLinks; track item.route) {
             <a
               mat-list-item
               class="rounded-lg"
               [routerLink]="item.route"
+              [routerLinkActiveOptions]="{ exact: item.route === '/docs' }"
               routerLinkActive="active"
               (click)="closeDrawerOnMobile()"
             >
               {{ item.label }}
             </a>
           }
-        </mat-nav-list>
-      }
-
-      <div class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted">
-        Start
-      </div>
-      <mat-nav-list>
-        @for (item of introLinks; track item.route) {
-          <a
-            mat-list-item
-            class="rounded-lg"
-            [routerLink]="item.route"
-            [routerLinkActiveOptions]="{ exact: item.route === '/docs' }"
-            routerLinkActive="active"
-            (click)="closeDrawerOnMobile()"
-          >
-            {{ item.label }}
-          </a>
-        }
-        @for (page of docsContent.introPages; track page.slug) {
-          <a
-            mat-list-item
-            class="rounded-lg"
-            [routerLink]="page.route"
-            routerLinkActive="active"
-            (click)="closeDrawerOnMobile()"
-          >
-            {{ page.title }}
-          </a>
-        }
-      </mat-nav-list>
-
-      <div
-        class="mb-2 mt-4 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted"
-      >
-        Guides
-      </div>
-      <mat-nav-list>
-        @for (page of docsContent.guidePages; track page.slug) {
-          <a
-            mat-list-item
-            class="rounded-lg"
-            [routerLink]="'/docs/guides/' + page.slug"
-            routerLinkActive="active"
-            (click)="closeDrawerOnMobile()"
-          >
-            {{ page.title }}
-          </a>
-        }
-      </mat-nav-list>
-
-      <div
-        class="mb-2 mt-4 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted"
-      >
-        Concepts
-      </div>
-      <mat-nav-list>
-        @for (page of docsContent.conceptPages; track page.slug) {
-          <a
-            mat-list-item
-            class="rounded-lg"
-            [routerLink]="'/docs/concepts/' + page.slug"
-            routerLinkActive="active"
-            (click)="closeDrawerOnMobile()"
-          >
-            {{ page.title }}
-          </a>
-        }
-      </mat-nav-list>
-
-      <div
-        class="mb-2 mt-4 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted"
-      >
-        API endpoints
-      </div>
-      @if (openApi.loading()) {
-        <div class="flex items-center px-2 py-2"><mat-spinner diameter="22" /></div>
-      } @else {
-        <mat-accordion displayMode="flat" multi="true" class="grid gap-2">
-          @for (group of openApi.tagGroups(); track group.tag) {
-            <mat-expansion-panel
-              [expanded]="isGroupExpanded(group)"
-              (opened)="onGroupOpened(group.tag)"
-              (closed)="onGroupClosed(group.tag)"
+          @for (page of docsContent.introPages; track page.slug) {
+            <a
+              mat-list-item
+              class="rounded-lg"
+              [routerLink]="page.route"
+              routerLinkActive="active"
+              (click)="closeDrawerOnMobile()"
             >
-              <mat-expansion-panel-header>
-                <mat-panel-title>{{ group.tag }}</mat-panel-title>
-              </mat-expansion-panel-header>
-              <mat-nav-list>
-                @for (endpoint of group.endpoints; track endpoint.id) {
-                  <a
-                    mat-list-item
-                    class="rounded-lg"
-                    [routerLink]="'/docs/api/' + endpoint.id"
-                    routerLinkActive="active"
-                    (click)="onEndpointNavigate(group.tag)"
-                  >
-                    <span class="flex min-w-0 items-center gap-2 text-sm">
-                      <span
-                        class="shrink-0 rounded-full bg-[rgba(192,55,98,0.16)] px-1.5 py-[1px] text-[11px] font-bold text-[#8f2045]"
-                      >
-                        {{ endpoint.method.toUpperCase() }}
-                      </span>
-                      <span class="min-w-0 flex-1 truncate">{{ endpoint.summary }}</span>
-                    </span>
-                  </a>
-                }
-              </mat-nav-list>
-            </mat-expansion-panel>
+              {{ page.title }}
+            </a>
           }
-        </mat-accordion>
-      }
+        </mat-nav-list>
+
+        <div
+          class="mb-2 mt-4 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted"
+        >
+          Guides
+        </div>
+        <mat-nav-list>
+          @for (page of docsContent.guidePages; track page.slug) {
+            <a
+              mat-list-item
+              class="rounded-lg"
+              [routerLink]="'/docs/guides/' + page.slug"
+              routerLinkActive="active"
+              (click)="closeDrawerOnMobile()"
+            >
+              {{ page.title }}
+            </a>
+          }
+        </mat-nav-list>
+
+        <div
+          class="mb-2 mt-4 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted"
+        >
+          Concepts
+        </div>
+        <mat-nav-list>
+          @for (page of docsContent.conceptPages; track page.slug) {
+            <a
+              mat-list-item
+              class="rounded-lg"
+              [routerLink]="'/docs/concepts/' + page.slug"
+              routerLinkActive="active"
+              (click)="closeDrawerOnMobile()"
+            >
+              {{ page.title }}
+            </a>
+          }
+        </mat-nav-list>
+
+        <div
+          class="mb-2 mt-4 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted"
+        >
+          API endpoints
+        </div>
+        @if (openApi.loading()) {
+          <div class="flex items-center px-2 py-2"><mat-spinner diameter="22" /></div>
+        } @else {
+          <mat-accordion displayMode="flat" multi="true" class="grid gap-2">
+            @for (group of openApi.tagGroups(); track group.tag) {
+              <mat-expansion-panel
+                [expanded]="isGroupExpanded(group)"
+                (opened)="onGroupOpened(group.tag)"
+                (closed)="onGroupClosed(group.tag)"
+              >
+                <mat-expansion-panel-header>
+                  <mat-panel-title>{{ group.tag }}</mat-panel-title>
+                </mat-expansion-panel-header>
+                <mat-nav-list>
+                  @for (endpoint of group.endpoints; track endpoint.id) {
+                    <a
+                      mat-list-item
+                      class="rounded-lg"
+                      [routerLink]="'/docs/api/' + endpoint.id"
+                      routerLinkActive="active"
+                      (click)="onEndpointNavigate(group.tag)"
+                    >
+                      <span class="flex min-w-0 items-center gap-2 text-sm">
+                        <span
+                          class="shrink-0 rounded-full bg-[rgba(192,55,98,0.16)] px-1.5 py-[1px] text-[11px] font-bold text-[#8f2045]"
+                        >
+                          {{ endpoint.method.toUpperCase() }}
+                        </span>
+                        <span class="min-w-0 flex-1 truncate">{{ endpoint.summary }}</span>
+                      </span>
+                    </a>
+                  }
+                </mat-nav-list>
+              </mat-expansion-panel>
+            }
+          </mat-accordion>
+        }
       </div>
     </div>
   </mat-sidenav>
 
-  <mat-sidenav-content class="flex h-full min-h-0 flex-col">
-    <div class="flex min-h-0 flex-1 flex-col">
-      <mat-toolbar
-        class="docs-shell-mobile-toolbar sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fff3f6_0%,#fff_55%,#f7edf2_100%)] text-[#241c21] md:hidden"
-      >
-        <div class="mx-auto flex w-full max-w-[1280px] items-center gap-4 px-4 py-2">
-          <div class="inline-flex items-center gap-3">
+  <mat-sidenav-content class="docs-main-column flex h-full min-h-0 flex-col">
+    <div
+      #docsMainBody
+      id="docs-main-body-scroll"
+      class="docs-main-body-scroll min-h-0 flex-1 overflow-y-auto"
+    >
+      <div class="flex min-h-0 flex-col">
+        <mat-toolbar
+          class="docs-shell-mobile-toolbar sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fff3f6_0%,#fff_55%,#f7edf2_100%)] text-[#241c21] md:hidden"
+        >
+          <div class="mx-auto flex w-full max-w-[1280px] items-center gap-4 px-4 py-2">
+            <div class="inline-flex items-center gap-3">
+              <button
+                mat-icon-button
+                type="button"
+                aria-label="Open docs menu"
+                (click)="toggleDrawer()"
+              >
+                <mat-icon>menu</mat-icon>
+              </button>
+              <a
+                class="inline-flex items-center gap-2.5 no-underline text-inherit"
+                routerLink="/home"
+              >
+                <app-logo />
+              </a>
+            </div>
+
+            <span class="flex-1"></span>
+
             <button
               mat-icon-button
               type="button"
-              aria-label="Open docs menu"
-              (click)="toggleDrawer()"
+              class="!text-[var(--app-accent-strong,#8f2045)]"
+              aria-label="Open Ask docs"
+              [attr.aria-expanded]="assistantDrawerOpen()"
+              (click)="toggleAssistantDrawer()"
             >
-              <mat-icon>menu</mat-icon>
+              <mat-icon>auto_awesome</mat-icon>
             </button>
-            <a
-              class="inline-flex items-center gap-2.5 no-underline text-inherit"
-              routerLink="/home"
-            >
-              <app-logo />
-            </a>
+
+            <div class="md:hidden">
+              <a mat-flat-button color="primary" routerLink="/auth">Go to App</a>
+            </div>
           </div>
+        </mat-toolbar>
 
-          <span class="flex-1"></span>
-
-          <button
-            mat-icon-button
-            type="button"
-            class="!text-[var(--app-accent-strong,#8f2045)]"
-            aria-label="Open Ask docs"
-            [attr.aria-expanded]="assistantDrawerOpen()"
-            (click)="toggleAssistantDrawer()"
-          >
-            <mat-icon>auto_awesome</mat-icon>
-          </button>
-
-          <div class="md:hidden">
-            <a mat-flat-button color="primary" routerLink="/auth">Go to App</a>
+        <div class="mx-auto w-full max-w-[1280px] flex-1 p-3 sm:p-4 lg:p-5">
+          <div class="mt-2">
+            <div id="docs-page-top" class="docs-page-top-anchor" aria-hidden="true"></div>
+            <router-outlet />
           </div>
-        </div>
-      </mat-toolbar>
-
-      <div class="mx-auto w-full max-w-[1280px] flex-1 p-3 sm:p-4 lg:p-5">
-        <div class="mt-2">
-          <div id="docs-page-top" class="docs-page-top-anchor" aria-hidden="true"></div>
-          <router-outlet />
         </div>
       </div>
-
     </div>
   </mat-sidenav-content>
 </mat-sidenav-container>

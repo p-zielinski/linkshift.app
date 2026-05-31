@@ -20,6 +20,10 @@ import type { TopRedirectRuleEntry } from '../../../core/models/redirect-rule.mo
   standalone: true,
   imports: [CommonModule, MatButtonModule, NgApexchartsModule],
   templateUrl: './redirect-rules-analytics-results.component.html',
+  styleUrl: './redirect-rules-analytics-results.component.css',
+  host: {
+    '[style.--chart-height.px]': 'chartHeight',
+  },
 })
 export class RedirectRulesAnalyticsResultsComponent {
   @Input() entries: TopRedirectRuleEntry[] = [];

@@ -16,13 +16,13 @@
             <button
               type="button"
               class="docs-assistant__thread-item"
-              [class.docs-assistant__thread-item--active]="
-                session.activeThread()?.id === thread.id
-              "
+              [class.docs-assistant__thread-item--active]="session.activeThread()?.id === thread.id"
               (click)="onSelectThread(thread.id)"
             >
               <span class="docs-assistant__thread-title">{{ thread.title }}</span>
-              <span class="docs-assistant__thread-meta">{{ thread.updatedAt | date: 'short' }}</span>
+              <span class="docs-assistant__thread-meta">{{
+                thread.updatedAt | date: 'short'
+              }}</span>
             </button>
             <button
               mat-icon-button
@@ -48,14 +48,18 @@
     @if (pageContext(); as context) {
       <div class="docs-assistant__context">
         <span class="docs-assistant__context-label">About: {{ context }}</span>
-        <button mat-stroked-button type="button" (click)="onUsePageContext()">Use in question</button>
+        <button mat-stroked-button type="button" (click)="onUsePageContext()">
+          Use in question
+        </button>
       </div>
     }
 
     <div class="docs-assistant__messages" role="log" aria-live="polite" aria-relevant="additions">
       @if (!hasMessages()) {
         <div class="docs-assistant__empty docs-assistant__empty--starters">
-          <p class="docs-assistant__empty-title">Ask a question about redirects, link maps, API keys, or setup</p>
+          <p class="docs-assistant__empty-title">
+            Ask a question about redirects, link maps, API keys, or setup
+          </p>
           <div class="docs-assistant__starters" role="list">
             @for (prompt of starterPrompts; track prompt) {
               <button
@@ -109,26 +113,26 @@
             @if (message.role === 'assistant' && message.logId) {
               <div class="docs-assistant__rating">
                 <span class="text-xs text-app-muted">Helpful?</span>
-                  <button
-                    mat-icon-button
-                    type="button"
-                    aria-label="Helpful"
-                    matTooltip="Helpful"
-                    [class.docs-assistant__rating--active]="message.rating === 1"
-                    (click)="onRate(message, 1)"
-                  >
-                    <mat-icon>thumb_up</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    type="button"
-                    aria-label="Not helpful"
-                    matTooltip="Not helpful"
-                    [class.docs-assistant__rating--active]="message.rating === -1"
-                    (click)="onRate(message, -1)"
-                  >
-                    <mat-icon>thumb_down</mat-icon>
-                  </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  aria-label="Helpful"
+                  matTooltip="Helpful"
+                  [class.docs-assistant__rating--active]="message.rating === 1"
+                  (click)="onRate(message, 1)"
+                >
+                  <mat-icon>thumb_up</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  aria-label="Not helpful"
+                  matTooltip="Not helpful"
+                  [class.docs-assistant__rating--active]="message.rating === -1"
+                  (click)="onRate(message, -1)"
+                >
+                  <mat-icon>thumb_down</mat-icon>
+                </button>
               </div>
             }
           </div>
@@ -163,7 +167,11 @@
       role="search"
       aria-label="Ask docs"
     >
-      <mat-form-field class="docs-assistant__question-field w-full" appearance="outline" subscriptSizing="dynamic">
+      <mat-form-field
+        class="docs-assistant__question-field w-full"
+        appearance="outline"
+        subscriptSizing="dynamic"
+      >
         <mat-label>Question</mat-label>
         <textarea
           #questionInput
