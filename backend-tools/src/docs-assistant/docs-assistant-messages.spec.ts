@@ -13,7 +13,7 @@ describe('docs-assistant-messages', () => {
     const answer = buildUnknownInDocsAnswer();
 
     expect(answer).toBe(
-      `${DOCS_ASSISTANT_UNKNOWN_IN_DOCS_LEAD}\n\nTry rephrasing with a specific feature (redirect rules, link maps, domain groups), an API method and path (for example \`GET /api/v1/redirect-rules\`), or the setup step you are stuck on.`,
+      `${DOCS_ASSISTANT_UNKNOWN_IN_DOCS_LEAD}\n\nTry rephrasing with a specific feature and where you are working (for example redirect rules in the dashboard, or \`POST /api/v1/redirect-rules\` if you are automating), or the exact setup step you are stuck on.`,
     );
   });
 });

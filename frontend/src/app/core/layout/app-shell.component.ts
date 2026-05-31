@@ -10,13 +10,15 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import {
+  NavigationEnd,
   Router,
   RouterLink,
   RouterLinkActive,
   RouterOutlet,
 } from '@angular/router';
 import { BreakpointObserver, LayoutModule } from '@angular/cdk/layout';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { filter, map, startWith } from 'rxjs';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,6 +34,7 @@ import { DEFAULT_LIST_KEY } from '../store/entity/entity-store.utils';
 import { LogoComponent } from '../../shared/components/logo/logo.component';
 import { DocsAssistantComponent } from '../../features/documentation/components/docs-assistant/docs-assistant.component';
 import { DocsAssistantDrawerService } from '../../features/documentation/services/docs-assistant-drawer.service';
+import { resolveDashboardAssistantPageContext } from '../../features/documentation/utils/docs-assistant-page-context.util';
 
 type NavItem = {
   label: string;
@@ -122,6 +125,19 @@ export class AppShellComponent {
   readonly mobileNavOpen = signal(false);
   readonly assistantDrawerOpen = this.assistantDrawer.open;
   readonly assistantDrawerContentMounted = this.assistantDrawer.contentMounted;
+
+  readonly currentRoutePath = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => this.router.url.split('?')[0] ?? this.router.url),
+      startWith(this.router.url.split('?')[0] ?? this.router.url),
+    ),
+    { initialValue: this.router.url.split('?')[0] ?? this.router.url },
+  );
+
+  readonly askDocsPageContext = computed(() =>
+    resolveDashboardAssistantPageContext(this.currentRoutePath()),
+  );
 
   constructor() {
     this.destroyRef.onDestroy(() => {

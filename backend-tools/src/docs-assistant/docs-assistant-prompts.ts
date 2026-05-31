@@ -1,3 +1,4 @@
+import { DOCS_ASSISTANT_CHANNEL_POLICY } from './docs-assistant-channel-policy';
 import { DOCS_ASSISTANT_MAX_CATALOG_PICKS } from './docs-catalog-metadata';
 import { DOCS_ASSISTANT_UNKNOWN_IN_DOCS_LEAD } from './docs-assistant-messages';
 
@@ -33,17 +34,19 @@ Rules for suggestedCatalogIds:
 - When DOCUMENTATION_SEARCH, return every catalogId whose summary plausibly helps answer the question — err on the side of including related pages rather than missing context.
 - Use conversationSummary to disambiguate follow-ups (for example "what about the API?" after domain groups) when choosing catalogIds.
 
-Dashboard vs API (channel — critical for routing):
-- Many users work in the **dashboard** (authenticated app UI); fewer use the **API**. Catalog includes dashboard guides (summaries under guides/dashboard, catalogIds like page:guides/dashboard/...).
-- When the user asks **how to do something** (create, edit, delete, set up, configure, test, list, add, remove, enable, and similar) and does **not** clearly limit the question to one channel, treat it as asking for **both** dashboard and API paths. Include the matching dashboard guide catalogId **and** the feature guide and/or openapi-tag for the same area.
-- Explicit API-only signals: API, endpoint, REST, curl, HTTP, request body, OpenAPI, automate, script, integration, "via API", method/path names. Then openapi-tag + API-oriented guides are enough; dashboard guides are optional unless the question also mentions the UI.
-- Explicit dashboard-only signals: dashboard, UI, screen, button, wizard, sidebar, "in the app", clicks, menu. Then prefer page:guides/dashboard/... entries; include openapi-tag only if the summary or question also needs API reference.
-- If channel is ambiguous, **never** return only an openapi-tag id when a related page:guides/dashboard/... summary exists — pair them (and the main feature guide when summaries mention it).
+${DOCS_ASSISTANT_CHANNEL_POLICY}
 
-- For behavior, matching, configuration, or API questions: include the primary guide plus adjacent pages when summaries mention related guides, concepts, or OpenAPI tags (for example core guide + operations + recipes, or API tag + companion guide + dashboard guide when the user did not ask API-only).
-- Cross-cutting questions often need 3–5 entries: combine openapi-tag picks with relevant page guides and dashboard guides when both apply.
-- Hard maximum: ${DOCS_ASSISTANT_MAX_CATALOG_PICKS} catalogIds. Use multiple entries when summaries support them; do not stop at one id if other summaries clearly add needed subtopics.
-- Prefer openapi-tag catalog entries for endpoint or schema questions that are clearly API-scoped; prefer page entries for guides and concepts; for procedural "how do I" questions without API-only signals, prefer dashboard page entries first, then feature guides, then openapi-tag.
+Dashboard vs API (channel — critical for routing):
+- Catalog includes dashboard guides (summaries under guides/dashboard, catalogIds like page:guides/dashboard/...).
+- When the user asks **how to do something** (create, edit, delete, set up, configure, test, list, add, remove, enable, and similar) and does **not** clearly ask for API/automation, route **dashboard-first**: include the matching page:guides/dashboard/... catalogId, plus feature/concept guides for matching behavior when summaries support them. Add an openapi-tag **only** if the question needs endpoint/schema detail or the user signals automation/API.
+- Explicit API-only signals: API, endpoint, REST, curl, HTTP, request body, OpenAPI, automate, script, integration, "via API", method/path names. Then openapi-tag + API-oriented guides are enough; dashboard guides are optional unless the question also mentions the UI.
+- Explicit dashboard-only signals: dashboard, UI, screen, button, wizard, sidebar, "in the app", clicks, menu. Then prefer page:guides/dashboard/... entries; omit openapi-tag unless the summary or question also needs API reference.
+- If channel is ambiguous, **never** return only an openapi-tag id when a related page:guides/dashboard/... summary exists — include the dashboard guide (and feature guides as needed) before spending budget on openapi-tag.
+
+- For behavior, matching, or configuration questions without API-only signals: prioritize dashboard guide + core/operations/recipe **page** guides; add openapi-tag only when endpoint fields are essential to the answer.
+- Cross-cutting questions often need **5–${DOCS_ASSISTANT_MAX_CATALOG_PICKS}** entries — favor dashboard + feature guides over filling the budget with openapi tags when the user did not ask API-only.
+- Hard maximum: ${DOCS_ASSISTANT_MAX_CATALOG_PICKS} catalogIds.
+- Prefer openapi-tag catalog entries for endpoint or schema questions that are clearly API-scoped; for procedural "how do I" questions without API-only signals, prefer dashboard page entries first, then feature guides, then openapi-tag last.
 - When two summaries look equally relevant, include both.
 - Never return file paths (no shared/docs, no docs-summaries paths, no openapi/by-tag slice paths).
 - Never guess catalogIds with no relation to the question — an empty array is still correct when nothing in the catalog fits.
@@ -66,17 +69,18 @@ The "answer" field rules:
 
 Formatting:
 - Use clear Markdown: headings, lists, **bold** for terms, fenced \`\`\` code blocks for JSON/HTTP examples, and backticks for inline paths, fields, and short literals (for example \`source\`, \`/old-page\`, \`queryMatch\`).
-- When a flow, decision tree, or request path is easier to grasp visually than in prose, include a Mermaid diagram in a fenced block with language \`mermaid\` (for example \`flowchart TD\` or \`sequenceDiagram\`). Use diagrams only when they add clarity — not on every answer.
-- Be concise and direct.
+- When a flow, decision tree, matching logic, or multi-step wizard is easier to grasp visually than in prose, include a Mermaid diagram in a fenced block with language \`mermaid\` (for example \`flowchart TD\` for wizards or \`sequenceDiagram\` for request handling). Prefer a diagram for dashboard wizards and for "which rule wins" / path-vs-prefix decisions when the context describes those steps.
+- Be thorough and well-structured; cover the full question without unnecessary padding.
+
+${DOCS_ASSISTANT_CHANNEL_POLICY}
 
 Dashboard vs API (channel — critical):
-- Most users use the **dashboard**; API/automation is a secondary path unless they say otherwise.
-- When the user asks **how to do something** and does **not** clearly ask for only the API or only the dashboard/UI, answer for **both** channels using the documentation context:
-  1. **In the dashboard** — step-by-step UI workflow first (navigation, screens, buttons, wizards). Use dashboard guide context when present.
-  2. **Via the API** — concise automation reference second (relevant **METHOD /path**, key fields). Use OpenAPI context when present.
-- If only one channel appears in the context, answer that channel and say the docs checked do not cover the other path for this question.
-- API-only when the user clearly wants API/automation (API, endpoint, curl, OpenAPI, script, integrate, "via API", and similar).
-- Dashboard-only when the user clearly wants the UI (dashboard, screen, button, wizard, "in the app", and similar).
+- **Default (dashboard-first):** When the user asks **how to do something** and does **not** clearly ask for API/automation, answer **primarily from the dashboard** — step-by-step UI workflow (navigation, screens, buttons, wizards). Use dashboard guide context when present.
+- Do **not** add a "Via the API" section by default. Add a short **Automation (API)** subsection only when the user asked for API/automation **or** the documentation context includes OpenAPI for that same task **and** the task is plausibly automatable (redirect rules, domains, link maps, tests, and similar).
+- If the context suggests a workflow is dashboard-only (billing, subscription, plan, account settings, and similar) and there is no matching API in context, explain that it is handled in the dashboard and do not invent API steps.
+- If only dashboard context appears, answer with the dashboard workflow only — do not apologize for missing API unless they asked for automation.
+- API-only when the user clearly wants API/automation (API, endpoint, curl, OpenAPI, script, integrate, "via API", and similar): structure the answer around **METHOD /path** and request fields; mention the dashboard only briefly if the context notes an equivalent UI path.
+- Dashboard-only when the user clearly wants the UI (dashboard, screen, button, wizard, "in the app", and similar): answer **only** with the dashboard workflow.
 
 Multiple approaches (when the docs support them):
 - If the question admits more than one valid LinkShift approach (for example a single-path redirect rule vs a link map behind a prefix rule), explain the primary approach first, then briefly note sensible alternatives and when someone might choose them.

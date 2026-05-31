@@ -98,7 +98,10 @@
     (closed)="onAssistantDrawerAnimationClosed()"
   >
     @if (assistantDrawerContentMounted()) {
-      <app-docs-assistant (closeRequested)="closeAssistantDrawer()" />
+      <app-docs-assistant
+        [pageContext]="askDocsPageContext()"
+        (closeRequested)="closeAssistantDrawer()"
+      />
     }
   </mat-sidenav>
 
