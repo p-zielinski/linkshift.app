@@ -62,7 +62,29 @@ Use Bun **1.3.11** locally when possible (matches CI `oven-sh/setup-bun` and `ov
 3. Run tests before pushing: `cd backend && bun run test`.
 4. `backend/package-lock.json` is not used in CI or Docker; do not rely on it instead of `bun.lock`.
 
-See also: root `README.md` (local setup), `backend/CODING_STANDARDS.md` (dependencies), and `AI_CONTEXT.md` (development notes).
+See also: root `README.md` (local setup), `backend/CODING_STANDARDS.md` (dependencies), [Backend-tools dependencies (Bun)](#backend-tools-dependencies-bun--very-important), and `AI_CONTEXT.md` (development notes).
+
+## Backend-tools dependencies (Bun) — **VERY IMPORTANT**
+
+> **WARNING — do not skip this.**  
+> The backend-tools lockfile (`backend-tools/bun.lock`) must stay in sync with `backend-tools/package.json`. The **backend-tools Docker build** (`backend-tools/Dockerfile`, triggered by `.github/workflows/deploy-tools-app.yml`) runs `bun install --frozen-lockfile`. If you change `package.json` without updating and committing `bun.lock`, the tools image build fails with `lockfile had changes, but lockfile is frozen`.
+
+**After any dependency change in `backend-tools/`:**
+
+```bash
+cd backend-tools && bun install
+```
+
+Use Bun **1.3.11** locally when possible (matches `oven/bun:1.3.11-slim` in `backend-tools/Dockerfile`).
+
+**Rules:**
+
+1. Always commit `backend-tools/bun.lock` together with `backend-tools/package.json` when dependencies change.
+2. Verify locally: `cd backend-tools && bun install --frozen-lockfile` (must exit 0).
+3. Run tests before pushing: `cd backend-tools && bun run test`.
+4. `backend-tools/package-lock.json` is not used in CI or Docker; do not rely on it instead of `bun.lock`.
+
+See also: `AI_CONTEXT.md` (development notes).
 
 ## Files
 - `docker-stack.infra.yml`

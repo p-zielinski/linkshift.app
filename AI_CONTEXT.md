@@ -102,6 +102,7 @@ SSR/CSR routing checklist for dashboard pages:
 
 - **Frontend npm (VERY IMPORTANT):** lockfile must be updated with npm **10.9.4** only (`frontend/package.json` → `packageManager`). See [Deployment.Readme.md — Frontend dependencies (npm)](Deployment.Readme.md#frontend-dependencies-npm--very-important).
 - **Backend Bun (VERY IMPORTANT):** after any `backend/package.json` change, run `bun install` in `backend/` and commit `backend/bun.lock`. CI and `backend/Dockerfile` use `bun install --frozen-lockfile` (Bun **1.3.11**). See [Deployment.Readme.md — Backend dependencies (Bun)](Deployment.Readme.md#backend-dependencies-bun--very-important).
+- **Backend-tools Bun (VERY IMPORTANT):** after any `backend-tools/package.json` change, run `bun install` in `backend-tools/` and commit `backend-tools/bun.lock`. `backend-tools/Dockerfile` and `.github/workflows/deploy-tools-app.yml` use `bun install --frozen-lockfile` (Bun **1.3.11**). Verify with `cd backend-tools && bun install --frozen-lockfile` before deploy. See [Deployment.Readme.md — Backend-tools dependencies (Bun)](Deployment.Readme.md#backend-tools-dependencies-bun--very-important).
 - Prisma schema source: `backend/prisma/schema.prisma`
 - Shared Prisma client output: `shared/prisma-client`
 - When schema changes, run backend build/generate to refresh Prisma clients.

@@ -9,9 +9,10 @@ WORKDIR /app
 
 FROM base AS deps
 WORKDIR /app
-COPY backend-tools/package.json ./backend-tools/
+COPY backend-tools/package.json backend-tools/bun.lock* ./backend-tools/
 WORKDIR /app/backend-tools
-RUN --mount=type=cache,target=/root/.bun/install/cache bun install
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+  bun install --frozen-lockfile
 
 FROM base AS build
 WORKDIR /app
@@ -21,7 +22,8 @@ COPY shared ./shared
 COPY backend-tools ./backend-tools
 WORKDIR /app/backend-tools
 RUN bun run build
-RUN --mount=type=cache,target=/root/.bun/install/cache bun install --production
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+  bun install --frozen-lockfile --production
 
 FROM oven/bun:1.3.11-slim AS runner
 USER root
