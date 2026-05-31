@@ -84,15 +84,17 @@ Invitations expire after **30 minutes**. If the invite is invalid, you see **Inv
 
 ## Legal consent
 
-When terms or privacy policy change, LinkShift blocks other authenticated routes until you accept the update.
+When terms or privacy policy change, LinkShift blocks other authenticated routes until you accept the update. The legal basis and process are described in the [Terms of Service](/terms) (**Acceptance**, **Changes to these Terms**) and [Privacy Policy](/privacy) (**Changes to this Privacy Policy**).
 
 1. You are redirected to `/legal/consent` (title **Review updated terms**).
-2. Accept Terms of Service, Privacy Policy, and confirm minimum age.
+2. Accept [Terms of Service](/terms), [Privacy Policy](/privacy), and confirm minimum age.
 3. Select **Continue**.
+
+LinkShift records the version identifier and acceptance timestamps on your account.
 
 You can also open consent from **Profile** via **Review and accept updates** when an update is pending.
 
-If you dismiss the page without accepting, sidebar navigation stays limited until consent is complete.
+Other dashboard routes and sidebar links stay blocked until you select **Continue**. The app shell only allows `/legal/consent` and **Log out** until consent is recorded. Authenticated Management API requests with your user session are also blocked until acceptance is current.
 
 ## End your session
 

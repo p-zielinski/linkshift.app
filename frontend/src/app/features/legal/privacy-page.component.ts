@@ -1,19 +1,20 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { SITE_CONFIG } from '../../core/config/site-config';
 import { SeoService } from '../../core/seo/seo.service';
 
 @Component({
   selector: 'app-privacy-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './privacy-page.component.html',
   styleUrl: './legal-page.component.css',
 })
 export class PrivacyPageComponent implements OnInit {
   private readonly seo = inject(SeoService);
   readonly siteConfig = inject(SITE_CONFIG);
-  readonly updatedAt = '2026-05-30';
+  readonly updatedAt = '2026-05-31';
 
   ngOnInit(): void {
     this.seo.updateTags({

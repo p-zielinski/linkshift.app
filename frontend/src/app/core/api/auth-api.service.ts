@@ -123,6 +123,7 @@ export class AuthApiService {
     return this.http.post<{ user: AuthResponse['user'] }>(
       `${this.apiUrl}/accept-legal`,
       payload,
+      { withCredentials: true },
     );
   }
 }
