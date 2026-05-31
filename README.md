@@ -27,8 +27,13 @@ cp frontend/.env.example frontend/.env
 3) Install dependencies:
 ```bash
 cd backend && bun install
+corepack enable
 cd ../frontend && npm install
 ```
+
+> **VERY IMPORTANT (backend):** after changing `backend/package.json`, run `bun install` in `backend/` and commit `backend/bun.lock`. CI and the backend image use `bun install --frozen-lockfile` (Bun 1.3.11). Details: [Deployment.Readme.md — Backend dependencies (Bun)](Deployment.Readme.md#backend-dependencies-bun--very-important).
+
+> **VERY IMPORTANT (frontend):** use npm **10.9.4** (via Corepack / `packageManager` in `frontend/package.json`) when installing or updating frontend packages. Other npm versions can desync `package-lock.json` and break CI and Docker builds (`npm ci`). Details: [Deployment.Readme.md — Frontend dependencies (npm)](Deployment.Readme.md#frontend-dependencies-npm--very-important).
 
 4) Run backend:
 ```bash
