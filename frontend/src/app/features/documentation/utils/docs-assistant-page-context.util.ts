@@ -1,5 +1,39 @@
 import { DocumentationContentService } from '../services/documentation-content.service';
 
+const DASHBOARD_PAGE_CONTEXT_BY_PATH: Readonly<Record<string, string>> = {
+  '/dashboard': 'Dashboard',
+  '/redirect-rules-analytics': 'Analytics',
+  '/profile': 'Profile',
+  '/organization': 'Organization',
+  '/organization/api-keys': 'Organization API keys',
+  '/domain-groups': 'Domain groups',
+  '/domains': 'Domains',
+  '/subdomains': 'Subdomains',
+  '/redirect-rules': 'Redirect rules',
+  '/link-maps': 'Link maps',
+  '/tests': 'Tests',
+  '/tools': 'Tools',
+  '/tools/qr-code-generator': 'QR code generator',
+  '/tools/redirect-tester': 'Redirect tester',
+  '/legal/consent': 'Legal consent',
+};
+
+/** Human-readable context for authenticated app-shell routes (dashboard, org, domains, …). */
+export function resolveDashboardAssistantPageContext(path: string): string | null {
+  const normalized = path.split('?')[0] ?? path;
+
+  const exact = DASHBOARD_PAGE_CONTEXT_BY_PATH[normalized];
+  if (exact) {
+    return exact;
+  }
+
+  if (/^\/link-maps\/[^/]+$/.test(normalized)) {
+    return 'Link map detail';
+  }
+
+  return null;
+}
+
 export function resolveDocsAssistantPageContext(
   path: string,
   docsContent: DocumentationContentService,

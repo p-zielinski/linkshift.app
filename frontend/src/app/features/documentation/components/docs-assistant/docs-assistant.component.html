@@ -58,7 +58,10 @@
       @if (!hasMessages()) {
         <div class="docs-assistant__empty docs-assistant__empty--starters">
           <p class="docs-assistant__empty-title">
-            Ask a question about redirects, link maps, API keys, or setup
+            Ask about redirects, link maps, API keys, or setup
+          </p>
+          <p class="docs-assistant__empty-hint">
+            Answers focus on the dashboard unless you ask about the API or automation
           </p>
           <div class="docs-assistant__starters" role="list">
             @for (prompt of starterPrompts; track prompt) {

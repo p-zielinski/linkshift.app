@@ -1,5 +1,6 @@
 import type { RouterResult } from './docs-assistant-json.util';
-import { rankCatalogIdsByQuestion } from './docs-catalog-metadata';
+import { enrichCatalogIdsWithDashboardCompanions } from './docs-catalog-companions';
+import { DOCS_ASSISTANT_MAX_CATALOG_PICKS, rankCatalogIdsByQuestion } from './docs-catalog-metadata';
 
 export const DOCS_ASSISTANT_CONVERSATION_DEFAULT_REPLY =
   'Hi — ask me anything about LinkShift documentation.';
@@ -38,12 +39,18 @@ export function resolveCatalogIdsForDocumentationSearch(
   catalog: CatalogPickInput[],
   trimCatalogPicks: (ids: string[]) => string[],
 ): string[] {
+  const validCatalogIds = new Set(catalog.map((entry) => entry.catalogId));
   let catalogIds = trimCatalogPicks(routerSuggestedIds);
   if (catalogIds.length === 0) {
     catalogIds = trimCatalogPicks(rankCatalogIdsByQuestion(question, catalog));
   }
 
-  return catalogIds;
+  return enrichCatalogIdsWithDashboardCompanions(
+    question,
+    catalogIds,
+    validCatalogIds,
+    DOCS_ASSISTANT_MAX_CATALOG_PICKS,
+  );
 }
 
 export function buildNoCatalogMatchResult(routerData: RouterResult): DocsAssistantEarlyExitResult {

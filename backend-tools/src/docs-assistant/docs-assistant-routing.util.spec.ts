@@ -38,6 +38,26 @@ describe('docs-assistant-routing.util', () => {
     expect(result.logId).toBeNull();
   });
 
+  it('prepends dashboard companion when router picks redirect guides without dashboard page', () => {
+    const catalog = [
+      { catalogId: 'page:guides/redirect-rules-core', summary: 'redirect rules matching' },
+      { catalogId: 'page:guides/redirect-rules-operations', summary: 'simulate redirect rules' },
+      {
+        catalogId: 'page:guides/dashboard/redirect-rules-in-dashboard',
+        summary: 'create redirect rules in dashboard wizard',
+      },
+    ];
+
+    const catalogIds = resolveCatalogIdsForDocumentationSearch(
+      'How do I create a redirect rule for one path? In the dashboard',
+      ['page:guides/redirect-rules-core', 'page:guides/redirect-rules-operations'],
+      catalog,
+      (ids) => ids,
+    );
+
+    expect(catalogIds[0]).toBe('page:guides/dashboard/redirect-rules-in-dashboard');
+  });
+
   it('returns empty catalog ids for nonsense questions with no keyword matches', () => {
     const catalog = [
       { catalogId: 'openapi:domain-groups', summary: 'domain groups CRUD endpoints' },
