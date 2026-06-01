@@ -1,0 +1,4 @@
+.env
+deploy/stack.env
+backend/.env
+frontend/.env
