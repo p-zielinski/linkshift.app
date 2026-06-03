@@ -1,4 +1,4 @@
-export const DOCS_ASSISTANT_MAX_CONVERSATION_SUMMARY_CHARS = 2_000;
+export const DOCS_ASSISTANT_MAX_CONVERSATION_SUMMARY_CHARS = 4_000;
 
 export function trimConversationSummary(value: string | null | undefined): string | null {
   const trimmed = value?.trim();
