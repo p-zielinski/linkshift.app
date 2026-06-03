@@ -27,6 +27,9 @@ Use [Redirect rules — simulate](./guides/redirect-rules-operations.md#simulate
 **How do I trace a URL or generate a QR code?**  
 Use **Tools** in the dashboard ([Tools in the dashboard](./guides/dashboard/tools-in-dashboard.md)) or the public marketing tools. Trace is not part of the Management API; each trace call returns one hop (the UI may follow more). See [Public tools API](./guides/public-tools-api.md).
 
+**Where can I check platform status?**  
+Open [status.linkshift.app](https://status.linkshift.app/) for current uptime, incidents, and maintenance. The marketing site footer links to the same page as **Status page**. See [Overview — Platform status](./overview.md#platform-status).
+
 **What happens when no rule matches?**  
 No redirect — visitor gets 404 from LinkShift edge. A rule can match the path but still be skipped (for example link map miss with no fallback); the engine then tries the next rule.
 
@@ -109,6 +112,7 @@ Use this table for **live redirect** symptoms (404, 403, 429, 402). For simulate
 
 | Symptom | Likely cause | What to do |
 |---------|--------------|------------|
+| Redirects fail across many domains at once | Possible platform incident | Check [status.linkshift.app](https://status.linkshift.app/) before changing rules |
 | **404** — no redirect | No rule returned a target | Add catch-all or fix priority; check soft-delete / `isBlocked` |
 | **404** after link map prefix match | Map miss, no `fallbackDestination`, no lower rule | Set map fallback or a second rule on same prefix |
 | **403** | Resolved `http(s)://` host on platform blacklist | Change destination host; root-relative `/path` skips blacklist |
