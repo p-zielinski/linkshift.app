@@ -12,24 +12,21 @@ const PAGES = [
     sourcePath: 'shared/docs/pages/guides/getting-started.md',
     route: '/docs/guides/getting-started',
   },
-  {
-    sourcePath: 'shared/docs/pages/intro/what-is-linkshift.md',
-    route: '/docs/intro/what-is-linkshift',
-  },
 ];
 
 describe('docs-markdown-links.util', () => {
   const lookup = buildDocRouteLookup(PAGES);
 
   it('resolves relative links from overview', () => {
-    const input = 'Read [intro](./intro/what-is-linkshift.md) and [start](./guides/getting-started.md).';
+    const input =
+      'Read [platform](./overview.md#what-is-linkshiftapp) and [start](./guides/getting-started.md).';
     const output = normalizeDocsMarkdownLinks(
       input,
       lookup,
       'shared/docs/pages/overview.md',
     );
 
-    expect(output).toContain('](/docs/intro/what-is-linkshift)');
+    expect(output).toContain('](/docs#what-is-linkshiftapp)');
     expect(output).toContain('](/docs/guides/getting-started)');
   });
 

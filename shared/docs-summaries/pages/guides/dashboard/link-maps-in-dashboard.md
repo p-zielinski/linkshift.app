@@ -1,67 +1,67 @@
 ---
 source: shared/docs/pages/guides/dashboard/link-maps-in-dashboard.md
-generatedAt: 2026-05-30T07:00:07.448Z
+generatedAt: 2026-06-03T16:57:59.358Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for users who want to create and manage link maps in the dashboard without using the API.
+This document is for users managing link maps in the dashboard, explaining how to create, edit, and import link maps and their entries.
 
 ## What this doc covers
-- **Before you start**: Requirements for creating link maps, including domain groups and redirect rules.
-- **List link maps**: Steps to view existing link maps in the dashboard.
-- **Create a link map**: Instructions for adding a new link map and its settings.
-- **Map detail page**: Overview of the map detail page and its functionalities.
-- **Edit map settings**: How to edit or delete link maps.
+- **List link maps**: Instructions for viewing link maps in the sidebar.
+- **Create a link map**: Steps to add a new link map with required settings.
+- **Map detail page**: Overview of the functionalities available on the map detail page.
+- **Edit map settings**: How to edit settings and delete a link map.
 - **Add an entry**: Steps to add entries to a link map.
 - **Import entries (CSV)**: Instructions for bulk importing entries from a CSV file.
-- **Rollback imported entries**: Process for rolling back entries after a bulk import.
+- **Rollback imported entries**: Process for rolling back entries added by a bulk import.
 - **Delete entries**: Steps to delete selected entries from a link map.
-- **Search and paginate**: How to search for entries and navigate through pages of results.
-- **What you should see**: Expected outcomes after creating or modifying link maps.
-- **Automate instead**: Links to API methods for automating link map management.
+- **Search and paginate**: Methods for searching and paginating through entries.
 
 ## Key workflows and rules
-1. **List link maps**:
-   - Navigate to **Link Maps** (`/link-maps`).
-   - Select a **Domain group** (required).
-   - Click on a map to view its details.
+### List link maps
+1. Select **Link Maps** in the sidebar.
+2. Choose a **Domain group** (required).
+3. Open a map by selecting its row.
 
-2. **Create a link map**:
-   - Click **Add link map**.
-   - Fill in **Link map settings**: Name, Parent redirect rule, Query match mode, Case sensitivity, Fallback behavior.
-   - Save the map.
+### Create a link map
+1. Select **Add link map**.
+2. Set **Name**, **Parent redirect rule**, **Query match mode**, **Case sensitivity**, and **Fallback behavior** in the **Details** step.
+3. Save the link map.
 
-3. **Add an entry**:
-   - On the map detail page, click **Add entry**.
-   - Fill in **Entry details**: Key and destination.
-   - Save the entry.
+### Add an entry
+1. Select **Add entry**.
+2. Complete the **Entry** step with **key** and **destination**.
+3. Save the entry.
 
-4. **Import entries (CSV)**:
-   - Click **Import entries**.
-   - Paste or upload a CSV file (up to **500 rows**).
-   - Click **Import entries** to complete the import.
+### Import entries (CSV)
+1. Select **Import entries**.
+2. Paste or upload a CSV file (up to **500** rows).
+3. Select **Import entries** or **Close** after reviewing.
 
-5. **Rollback imported entries**:
-   - After an import, review the summary.
-   - Click **Rollback imported entries** and confirm.
+### Rollback imported entries
+1. Review the import summary after a bulk import.
+2. Select **Rollback imported entries** to remove the rows from that import.
+3. Confirm in the dialog.
 
-6. **Delete entries**:
-   - Select entries in the table.
-   - Click **Delete selected (N)** and confirm.
+### Delete entries
+1. Select rows in the table.
+2. Select **Delete selected (N)** and confirm.
 
 ## Limits and constraints
-- A **Domain group** and at least one **redirect rule** are required to create a link map.
-- The CSV import can handle up to **500 rows** per import.
-- The table paginator allows viewing **20, 50, or 100 entries** per page.
-- Selection of entries can span multiple pages until cleared.
+- **Domain group** must be selected to enable **Add link map**.
+- Bulk import allows up to **500** rows per import.
+- Rollback only removes keys added by the last bulk import; it does not affect redirect rules.
 
 ## Related docs and API areas
-- [Redirect rules in the dashboard](./redirect-rules-in-dashboard.md)
-- [Redirect rules — link maps](../redirect-rules-link-maps.md)
-- [Link map entries (API)](../link-map-entries.md)
-- API methods:
-  - `GET` / `POST` / `PUT` / `DELETE` `/api/v1/link-maps`
-  - `GET` / `POST` / `PUT` / `DELETE` `/api/v1/link-map-entries`
+- [Link maps](../link-maps.md) for CRUD and bulk operations.
+- [Link map entries](../link-map-entries.md) for API operations related to link map entries.
+- [Redirect rules in the dashboard](./redirect-rules-in-dashboard.md) for managing redirect rules.
+- [Redirect rules — link maps](../redirect-rules-link-maps.md) for specific link map redirect rules.
+- Management API endpoints:
+  - `GET /api/v1/link-maps`
+  - `POST /api/v1/link-maps`
+  - `PUT /api/v1/link-maps`
+  - `DELETE /api/v1/link-maps`
   - `POST /api/v1/link-map-entries/import`
-  - `DELETE /api/v1/link-map-entries` (bulk rollback by entry IDs)
+  - `DELETE /api/v1/link-map-entries` (bulk delete by entry IDs).

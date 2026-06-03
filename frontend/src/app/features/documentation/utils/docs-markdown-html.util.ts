@@ -5,6 +5,7 @@ import {
   buildDocRouteLookup,
   normalizeDocsMarkdownLinks,
 } from './docs-markdown-links.util';
+import { stripHiddenOnPurposeMarkdown } from './docs-markdown-strip.util';
 import { DOCUMENTATION_MARKDOWN_PAGES } from '../generated/documentation.generated';
 
 marked.setOptions({
@@ -17,18 +18,57 @@ const DOC_ROUTE_LOOKUP = buildDocRouteLookup(DOCUMENTATION_MARKDOWN_PAGES);
 
 const HEADING_WITHOUT_ID_PATTERN = /<h([1-6])([^>]*)>([\s\S]*?)<\/h\1>/gi;
 
+const CUSTOM_DIRECTIVE_BLOCK_RE =
+  /^:::(warning|success|error|info|ai-hidden|ai-only)\s*\n([\s\S]*?)^:::\s*$/gm;
+
+const INFOBOX_TYPES = new Set(['warning', 'success', 'error', 'info']);
+const AI_HIDDEN_TYPES = new Set(['ai-hidden', 'ai-only']);
+
 export function buildDocsMarkdownHtml(
   markdown: string,
   sourcePath?: string,
 ): string {
+  const publicMarkdown = stripHiddenOnPurposeMarkdown(markdown);
   const normalizedMarkdown = normalizeDocsMarkdownLinks(
-    markdown,
+    publicMarkdown,
     DOC_ROUTE_LOOKUP,
     sourcePath,
   );
-  const rawHtml = marked.parse(normalizedMarkdown) as string;
+  const withDirectives = preprocessCustomDirectiveBlocks(normalizedMarkdown);
+  const rawHtml = marked.parse(withDirectives) as string;
   const withMermaid = transformMermaidBlocks(rawHtml);
   return injectHeadingIdsInHtml(withMermaid);
+}
+
+/**
+ * Converts author directive blocks (`:::warning`, `:::ai-hidden`, etc.) to HTML
+ * before the main markdown pass so inner content still parses as markdown.
+ */
+export function preprocessCustomDirectiveBlocks(markdown: string): string {
+  return markdown.replace(
+    CUSTOM_DIRECTIVE_BLOCK_RE,
+    (match, type: string, body: string) => {
+      const innerHtml = marked.parse(body.trim()) as string;
+
+      if (AI_HIDDEN_TYPES.has(type)) {
+        return wrapAiHiddenBlock(innerHtml, type);
+      }
+
+      if (INFOBOX_TYPES.has(type)) {
+        return wrapInfoboxBlock(innerHtml, type);
+      }
+
+      return match;
+    },
+  );
+}
+
+function wrapInfoboxBlock(innerHtml: string, type: string): string {
+  return `\n\n<aside class="docs-infobox docs-infobox--${type}" role="note">${innerHtml}</aside>\n\n`;
+}
+
+function wrapAiHiddenBlock(innerHtml: string, type: string): string {
+  return `\n\n<div class="docs-ai-hidden" data-docs-ai-block="${type}" aria-hidden="true">${innerHtml}</div>\n\n`;
 }
 
 /**

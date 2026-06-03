@@ -16,7 +16,17 @@ export const DOCUMENTATION_CHILD_ROUTES: Routes = [
         children: [
           { path: '', pathMatch: 'full', component: DocumentationOverviewPageComponent },
           { path: 'reference', component: DocumentationReferencePageComponent },
+          {
+            path: 'overview-faq',
+            component: DocumentationMarkdownPageComponent,
+            data: { documentationSlug: 'overview-faq' },
+          },
           { path: 'assistant', redirectTo: '', pathMatch: 'full' },
+          {
+            path: 'intro/what-is-linkshift',
+            redirectTo: '',
+            pathMatch: 'full',
+          },
           { path: 'intro/:slug', component: DocumentationMarkdownPageComponent },
           { path: 'guides/:slug', component: DocumentationMarkdownPageComponent },
           { path: 'concepts/:slug', component: DocumentationMarkdownPageComponent },

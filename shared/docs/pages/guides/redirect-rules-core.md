@@ -10,41 +10,24 @@ Base path: `/api/v1/redirect-rules`
 
 ---
 
-## How matching works
-
-How requests are evaluated, rate-limited, and cached on the edge before a rule returns a redirect target.
-
 ## How routing works
 
-Every request to a domain or LinkShift subdomain in your organization hits a **domain group**. That group owns an ordered list of redirect rules.
+Every request to a domain or LinkShift subdomain in your organization hits a **domain group**. Requests are rate-limited and access-checked on the edge before a rule returns a redirect target. That group owns an ordered list of redirect rules evaluated in **`priority` desc → `createdAt` desc → `id` desc** order.
 
-```
-Request arrives
-    → Organization redirect rate limit (redirectionLimitPerMinute) → 429 if exceeded
-    → Organization redirect access (checkRedirectionAccess) → 402 if suspended or over plan limits
-    → Optional: GET /robots.txt from domain group policy (not a redirect rule; still counts toward rate limit)
-    → Load domain group + active, non-deleted, non-blocked rules (priority desc, then newest first)
-    → For each rule in order:
-         → Does source match path/query/method?
-         → If linkMapId: extract key → lookup in link map
-              → Miss (no entry, no fallback) → try next rule
-              → Hit → use static entry or map fallback URL
-         → Else resolve rule destination ($N → placeholders → conditionals)
-         → If target is absolute URL and host is on blacklist → 403
-         → If blacklist check fails (infrastructure) → 503, no redirect
-         → Else redirect with statusCode
-    → No rule produced a target → 404 (no redirect)
-```
+Pipeline (rate limit, access check, `robots.txt`, rule loop, link map lookup, destination resolution, blacklist): [Redirect engine concepts — live redirect pipeline](../concepts/redirect-engine-conditionals.md#live-redirect-pipeline-end-to-end). Hub diagram: [Docs overview — request flow](../overview.md#request-flow-live-redirect).
 
-Full pipeline and destination resolution order: [Redirect engine concepts — live redirect pipeline](../concepts/redirect-engine-conditionals.md#live-redirect-pipeline-end-to-end).
+:::ai-only
+Live redirect order: org rate limit (429) → checkRedirectionAccess (402) → optional GET /robots.txt → load rules priority desc, createdAt desc, id desc → per rule: match source/method → linkMapId lookup or resolve destination ($N, placeholders, conditionals) → blacklist on absolute URL (403/503) → redirect or next rule → 404 if no target.
+:::
 
 **Visual overview:** [Routing decision flow (Mermaid)](../concepts/redirect-engine-conditionals.md#routing-decision-flow-diagram) and [queryMatch decision tree](../concepts/redirect-engine-conditionals.md#choosing-querymatch-rule-vs-link-map).
 
 **First rule that produces a redirect wins.** A rule can match the request (path, method, etc.) but still be skipped — for example when a link map lookup returns no entry and no `fallbackDestination`. In that case the engine tries the **next** rule.
 
-Soft-deleted rules (`deletedAt` set) are excluded from live routing, simulate, and **`GET /api/v1/redirect-rules` list** (the list API always filters `deletedAt: null`). Use `GET /api/v1/redirect-rules/:id` only if you still have the rule ID after delete — otherwise treat deleted rules as gone from management views.
+Deleted and blocked rules behave differently:
 
-Rules with `isBlocked: true` are skipped entirely at runtime (but may still appear on GET/list). See [Blocked rules](#blocked-rules-isblocked).
+- **Soft-deleted** (`deletedAt` set) — excluded from live routing, simulate, and list API (`GET /api/v1/redirect-rules` always filters them out)
+- **Blocked** (`isBlocked: true`) — skipped at runtime but may still appear on GET/list; see [Blocked rules](#blocked-rules-isblocked)
 
 Public redirect traffic is also subject to **organization redirect rate limits** (plan-based, per minute). This is separate from API key rate limits — see [Getting started — redirect rate limits](../guides/getting-started.md#redirect-rate-limits-edge-traffic).
 
@@ -53,6 +36,10 @@ After you change rules or link maps, edge behavior updates when [redirect and li
 ---
 
 ## Organization redirect rate limits (edge traffic)
+
+:::warning
+Every **live** request to your domains counts against `redirectionLimitPerMinute` — including `GET /robots.txt` and requests that never match a rule. Over limit → **`429`** with no redirect; suspended org → **`402`**. Simulate and redirect tests skip the rate limit but still run access checks.
+:::
 
 Every **live** request to a custom domain or LinkShift subdomain in your organization counts against `redirectionLimitPerMinute` from the active plan — including traffic that never reaches redirect rules.
 
@@ -89,17 +76,13 @@ LinkShift caches routing data on the edge to keep redirects fast. Under normal o
 
 Simulate and redirect tests **read current database state** for rules and maps (they do not use edge redirect/link-map caches), but they still run `checkRedirectionAccess` — see [Simulate vs live redirect](./redirect-rules-operations.md#simulate-vs-live-redirect).
 
-Rule and link map changes propagate through the platform cache. Under normal operation, updates apply on the next request; if cache invalidation does not run, allow up to **5 minutes** before live traffic consistently reflects your edits.
-
-More detail on link map resolution cache: [Link map concepts — cache model](../concepts/link-map-concepts.md#cache-model).
+Link map resolution cache: [Link map concepts — cache model](../concepts/link-map-concepts.md#cache-model).
 
 ---
 
-## Rule fields reference
+## Rule fields
 
 Field catalog, source types, and matching modes — use this section when you need exact API shapes and validation rules.
-
-## Rule fields
 
 | Field | Purpose | Default |
 |-------|---------|---------|
@@ -217,15 +200,16 @@ With `queryMatch: ignore`, regex runs against path only. Otherwise it runs again
 
 #### Plain path or regex?
 
-If `source` ends with `/` followed by **only** valid RegExp flag letters (`d`, `g`, `i`, `m`, `s`, `u`, `v`, `y`), the engine treats it as **regex**, not a literal path.
+If `source` looks like `/pattern/flags`, the engine may treat it as **regex** (for example `/campaign/i` is not a literal path).
 
-| `source` | Result |
-|----------|--------|
-| `/v2/go` | Plain path (safe for link map prefixes) |
-| `/campaign/i` | Regex `campaign`, case-insensitive — **not** literal `/campaign/i` |
-| `/^\\/blog\\/(.+)$/` | Regex (recommended form) |
+| `source` | Interpreted as |
+|----------|----------------|
+| `/^\\/blog\\/(.+)$/` | Regex (intended) |
+| `/v2/go` | Plain prefix path |
+| `/campaign/i` | **Regex** — not literal `/campaign/i` |
+| `/api/v1/g` | **Regex** — not literal path |
 
-Details: [Redirect engine concepts — plain path vs regex](../concepts/redirect-engine-edge-cases.md#plain-path-vs-regex--do-not-confuse-them).
+See [Redirect engine concepts — plain path vs regex](../concepts/redirect-engine-edge-cases.md#plain-path-vs-regex--do-not-confuse-them).
 
 ### 4. Wildcard catch-all
 

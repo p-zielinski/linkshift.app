@@ -22,6 +22,10 @@ Examples:
 
 Capture groups populate `$0` (full match), `$1`, `$2`, … in destination **before** placeholder resolution. Validation counts **capturing** groups only (`(?:…)` non-capturing groups are not counted toward `$N` limits).
 
+:::error
+**`$N` capture substitution requires a regex `source`** (`/pattern/flags`). Plain path, wildcard, and link map rules return **`400`** if `destination` contains `$0`, `$1`, …
+:::
+
 **`$N` only on regex `source`:** Substitution runs only when `source` is stored as `/pattern/flags`. On a **plain path** or wildcard rule, any `$N` in `destination` (including `$0`) returns `400` validation — use a regex `source` when you need capture substitution.
 
 **Missing or non-participating `$N` at runtime:**
@@ -289,7 +293,7 @@ The rule **still wins**: the edge calls `res.redirect(statusCode, "")`, which br
 
 ## Related guides
 
-- [What is LinkShift.app?](../intro/what-is-linkshift.md)
+- [Docs overview](../overview.md#what-is-linkshiftapp)
 - [Redirect rules guide](../guides/redirect-rules.md) — [routing decision flow (diagram)](./redirect-engine-conditionals.md#routing-decision-flow-diagram)
 - [Link map concepts](./link-map-concepts.md)
 - [Redirect tests guide](../guides/redirect-tests.md)

@@ -10,7 +10,7 @@ Base path: `/api/v1/link-map-entries`
 
 ## In the dashboard
 
-On a link map detail page (`/link-maps/:id`), use **Add entry**, **Import entries**, **Rollback imported entries** (after a bulk import), or **Delete selected** for entry CRUD, import, and rollback. See [Link maps in the dashboard](./dashboard/link-maps-in-dashboard.md).
+On a link map detail page, use **Add entry**, **Import entries**, **Rollback imported entries** (after a bulk import), or **Delete selected** for entry CRUD, import, and rollback. See [Link maps in the dashboard](./dashboard/link-maps-in-dashboard.md).
 
 ---
 
@@ -27,6 +27,10 @@ On a link map detail page (`/link-maps/:id`), use **Add entry**, **Import entrie
 ---
 
 ## Destinations are static URLs
+
+:::warning
+Link map entry and `fallbackDestination` URLs are returned **as stored** — no `{placeholders}`, ternaries, or rule-level `$N` substitution. Use redirect rule `destination` for dynamic routing, or one entry per static variant.
+:::
 
 Link map entry `destination` and map `fallbackDestination` are returned **as stored**. The engine does **not** apply:
 
@@ -150,7 +154,9 @@ GET /api/v1/link-map-entries?linkMapId=lmap_abc123&limit=50&search=summer
 
 `POST /api/v1/link-map-entries/import` — upsert up to **500 entries** per request.
 
-> **Note:** The public import endpoint is capped at **500** entries per call (`ImportLinkMapEntriesSchema`). Older internal bulk-upsert shapes in the codebase may allow up to **1000** rows — use **`POST /api/v1/link-map-entries/import`** for API-key workflows, not legacy upsert endpoints.
+:::info
+The public import endpoint caps at **500** entries per call (`ImportLinkMapEntriesSchema`). For API-key workflows, use **`POST /api/v1/link-map-entries/import`** — not legacy bulk-upsert shapes that may allow up to **1000** rows internally.
+:::
 
 ```json
 {
