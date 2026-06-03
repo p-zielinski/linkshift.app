@@ -1,17 +1,16 @@
 # Link maps in the dashboard
 
-Create link maps, manage entries on the detail page, and import keys in bulk—without using the API first.
+Create link maps, manage entries on the detail page, and import keys in bulk — without using the API first.
 
-## Before you start
-
-- A domain group and at least one redirect rule that can host a link map (see [Redirect rules in the dashboard](./redirect-rules-in-dashboard.md)).
-- For engine behavior (query modes, fallbacks, key extraction), see [Link maps](../link-maps.md) and [Link map concepts](../../concepts/link-map-concepts.md).
+:::info
+You need a **domain group** selected in the filter and a **parent redirect rule** before **Add link map** is enabled. Engine behavior (query modes, fallbacks, key extraction): [Link maps](../link-maps.md).
+:::
 
 ## List link maps
 
-1. In the sidebar, select **Link Maps** (`/link-maps`).
+1. In the sidebar, select **Link Maps**.
 2. Choose a **Domain group** in the filter (required — **Add link map** stays disabled until you do).
-3. Open a map by selecting its row (navigates to `/link-maps/:id`).
+3. Open a map by selecting its row to open the map detail page.
 
 The list has no table paginator; all maps for the selected group appear in one table.
 
@@ -26,7 +25,7 @@ The list has no table paginator; all maps for the selected group appear in one t
 
 Entries are managed on the map detail page, not in this wizard.
 
-## Map detail page (`/link-maps/:id`)
+## Map detail page
 
 Use **Back to list** to return to **Link Maps**. The header shows the map name (or **Link map** as a fallback).
 
@@ -47,6 +46,10 @@ Select **Edit settings** to reopen **Link map settings** (**Details** step). Del
 3. Select **Import entries** to run the import, or **Close** after reviewing the result.
 
 ### Rollback imported entries
+
+:::warning
+**Rollback imported entries** removes keys added by that bulk import from the map. It does not change redirect rules. Confirm the import summary before you roll back.
+:::
 
 After a bulk import, when the result dialog offers **Rollback imported entries**:
 
@@ -73,11 +76,11 @@ Use **Search by key or destination**. Change pages with the table paginator (20,
 
 ## Automate instead
 
-See [Link maps](../link-maps.md) and [Link map entries](../link-map-entries.md) for:
+See [Link maps](../link-maps.md) and [Link map entries](../link-map-entries.md) for CRUD, CSV import, and bulk delete.
 
-- `GET` / `POST` / `PUT` / `DELETE` `/api/v1/link-maps`
-- `GET` / `POST` / `PUT` / `DELETE` `/api/v1/link-map-entries`
-- `POST /api/v1/link-map-entries/import` and `DELETE /api/v1/link-map-entries` (bulk rollback by entry IDs)
+:::ai-only
+Management API: GET/POST/PUT/DELETE `/api/v1/link-maps` and `/api/v1/link-map-entries`; POST `/api/v1/link-map-entries/import`; bulk DELETE `/api/v1/link-map-entries` by entry IDs.
+:::
 
 ## Related
 

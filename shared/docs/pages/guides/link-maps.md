@@ -25,7 +25,9 @@ In the sidebar, open **Link Maps** and select **Add link map**, then manage entr
 
 Link maps are ideal when **path prefix is fixed** but **suffix keys change often**.
 
-**Important:** Entry `destination` values are **static** URLs. The redirect engine does not expand `{placeholders}` or evaluate ternaries inside link map rows — only redirect rule `destination` fields support that. See [Link map entries — static destinations](./link-map-entries.md#destinations-are-static-urls).
+:::warning
+Entry `destination` values are **static** URLs only. The engine does not expand `{placeholders}` or evaluate ternaries inside link map rows — use redirect rule `destination` for dynamic routing. See [Link map entries — static destinations](./link-map-entries.md#destinations-are-static-urls).
+:::
 
 ---
 
@@ -159,7 +161,7 @@ Query handling for keys happens at the **link map** level via map's `queryMatch`
 
 ### Two rules on the same prefix
 
-Avoid two active rules with the same `source` prefix and different `linkMapId` values unless you intend overlapping behavior. The engine evaluates rules by **`priority` desc**, then **`createdAt` desc**, then **`id` desc** — the **first rule that produces a redirect target** wins. A higher-priority link map rule consumes all matching traffic; a lower-priority rule on `/go` never runs its lookup for those requests.
+Avoid two active rules with the same `source` prefix and different `linkMapId` values unless you intend overlapping behavior. The **first rule that produces a redirect target** wins — see [Redirect rules — how routing works](./redirect-rules-core.md#how-routing-works). A higher-priority link map rule consumes all matching traffic; a lower-priority rule on `/go` never runs its lookup for those requests.
 
 Use distinct prefixes (`/go`, `/p`) or different priorities with non-overlapping `matchMethod` / paths instead of duplicating the same prefix.
 

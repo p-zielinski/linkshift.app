@@ -55,77 +55,83 @@
           </mat-nav-list>
         }
 
-        <div class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted">
-          Start
-        </div>
         <mat-nav-list>
-          @for (item of introLinks; track item.route) {
-            <a
-              mat-list-item
-              class="rounded-lg"
-              [routerLink]="item.route"
-              [routerLinkActiveOptions]="{ exact: item.route === '/docs' }"
-              routerLinkActive="active"
-              (click)="closeDrawerOnMobile()"
-            >
-              {{ item.label }}
-            </a>
-          }
-          @for (page of docsContent.introPages; track page.slug) {
-            <a
-              mat-list-item
-              class="rounded-lg"
-              [routerLink]="page.route"
-              routerLinkActive="active"
-              (click)="closeDrawerOnMobile()"
-            >
-              {{ page.title }}
-            </a>
+          <a
+            mat-list-item
+            class="rounded-lg"
+            routerLink="/docs"
+            [routerLinkActiveOptions]="{ exact: true }"
+            routerLinkActive="active"
+            (click)="closeDrawerOnMobile()"
+          >
+            Overview
+          </a>
+          @if (startNavGroup; as start) {
+            @for (page of start.pages; track page.slug) {
+              <a
+                mat-list-item
+                class="rounded-lg"
+                [routerLink]="page.route"
+                routerLinkActive="active"
+                (click)="closeDrawerOnMobile()"
+              >
+                {{ page.title }}
+              </a>
+            }
           }
         </mat-nav-list>
+
+        <mat-accordion
+          displayMode="flat"
+          multi="true"
+          class="docs-sidebar-section-accordion grid gap-2"
+        >
+          @for (group of sidebarNavGroups; track group.id) {
+            <mat-expansion-panel
+              [expanded]="isNavGroupExpanded(group)"
+              (opened)="onNavGroupOpened(group.id)"
+              (closed)="onNavGroupClosed(group.id)"
+            >
+              <mat-expansion-panel-header>
+                <mat-panel-title>{{ group.label }}</mat-panel-title>
+              </mat-expansion-panel-header>
+              <mat-nav-list class="docs-sidebar-panel-nav">
+                @for (page of group.pages; track page.slug) {
+                  <a
+                    mat-list-item
+                    class="rounded-lg"
+                    [routerLink]="page.route"
+                    routerLinkActive="active"
+                    (click)="onNavPageNavigate(group.id)"
+                  >
+                    {{ page.title }}
+                  </a>
+                }
+              </mat-nav-list>
+            </mat-expansion-panel>
+          }
+        </mat-accordion>
+
+        @if (apiReferenceNavGroup; as apiRef) {
+          <mat-nav-list>
+            @for (page of apiRef.pages; track page.slug) {
+              <a
+                mat-list-item
+                class="rounded-lg mt-3"
+                [routerLink]="page.route"
+                routerLinkActive="active"
+                (click)="closeDrawerOnMobile()"
+              >
+                {{ page.title }}
+              </a>
+            }
+          </mat-nav-list>
+        }
 
         <div
           class="mb-2 mt-4 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted"
         >
-          Guides
-        </div>
-        <mat-nav-list>
-          @for (page of docsContent.guidePages; track page.slug) {
-            <a
-              mat-list-item
-              class="rounded-lg"
-              [routerLink]="'/docs/guides/' + page.slug"
-              routerLinkActive="active"
-              (click)="closeDrawerOnMobile()"
-            >
-              {{ page.title }}
-            </a>
-          }
-        </mat-nav-list>
-
-        <div
-          class="mb-2 mt-4 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted"
-        >
-          Concepts
-        </div>
-        <mat-nav-list>
-          @for (page of docsContent.conceptPages; track page.slug) {
-            <a
-              mat-list-item
-              class="rounded-lg"
-              [routerLink]="'/docs/concepts/' + page.slug"
-              routerLinkActive="active"
-              (click)="closeDrawerOnMobile()"
-            >
-              {{ page.title }}
-            </a>
-          }
-        </mat-nav-list>
-
-        <div
-          class="mb-2 mt-4 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted"
-        >
-          API endpoints
+          Endpoints
         </div>
         @if (openApi.loading()) {
           <div class="flex items-center px-2 py-2"><mat-spinner diameter="22" /></div>
@@ -133,14 +139,14 @@
           <mat-accordion displayMode="flat" multi="true" class="grid gap-2">
             @for (group of openApi.tagGroups(); track group.tag) {
               <mat-expansion-panel
-                [expanded]="isGroupExpanded(group)"
-                (opened)="onGroupOpened(group.tag)"
-                (closed)="onGroupClosed(group.tag)"
+                [expanded]="isEndpointGroupExpanded(group)"
+                (opened)="onEndpointGroupOpened(group.tag)"
+                (closed)="onEndpointGroupClosed(group.tag)"
               >
                 <mat-expansion-panel-header>
                   <mat-panel-title>{{ group.tag }}</mat-panel-title>
                 </mat-expansion-panel-header>
-                <mat-nav-list>
+                <mat-nav-list class="docs-sidebar-panel-nav">
                   @for (endpoint of group.endpoints; track endpoint.id) {
                     <a
                       mat-list-item

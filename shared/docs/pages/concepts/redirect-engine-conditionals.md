@@ -53,7 +53,9 @@ Request
 
 Root-relative targets (`/path`) skip domain blacklist (no host to check). See [Destination domain blacklist](../concepts/redirect-engine-edge-cases.md#destination-domain-blacklist-runtime).
 
-Simulate follows matching and destination resolution but **does not** enforce redirect rate limits. Domain blacklist checks are **opt-in** via `checkDestinationBlacklist: true` on `POST /api/v1/redirect-rules/simulate` (default `false`). When enabled, absolute targets use the same blacklist gate as live traffic; results keep `matched: true` and set `statusCode` to **403** or **503** with `blacklistBlocked` / `blacklistCheckFailed` as appropriate. It **does** call `checkRedirectionAccess` — a suspended organization or edge paywall can return **`402`** on the whole simulate request before any entry runs. See [Redirect rules — simulate vs live](../guides/redirect-rules-operations.md#simulate-vs-live-redirect).
+:::info
+**Simulate vs live:** matching and destination resolution match live traffic; redirect **rate limits** do not apply. Blacklist checks are **opt-in** (`checkDestinationBlacklist: true`, default `false`). **`checkRedirectionAccess` always runs** — suspended orgs can get **`402`** on the whole request. See [Simulate vs live redirect](../guides/redirect-rules-operations.md#simulate-vs-live-redirect).
+:::
 
 ### Routing decision flow (diagram)
 

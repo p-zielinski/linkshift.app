@@ -90,15 +90,22 @@ export class DocumentationOverviewPageComponent implements OnInit, AfterViewInit
 }
 
 function splitOverviewSections(markdown: string): { hero: string; body: string } {
-  const marker = '\n## What LinkShift provides';
-  const markerIndex = markdown.indexOf(marker);
+  const markers = [
+    '\n## Tutorial — Your first redirect in 5 minutes',
+    '\n## What LinkShift provides',
+  ];
 
-  if (markerIndex === -1) {
-    return { hero: markdown, body: '' };
+  for (const marker of markers) {
+    const markerIndex = markdown.indexOf(marker);
+    if (markerIndex === -1) {
+      continue;
+    }
+
+    return {
+      hero: markdown.slice(0, markerIndex).trim(),
+      body: markdown.slice(markerIndex + 1).trim(),
+    };
   }
 
-  return {
-    hero: markdown.slice(0, markerIndex).trim(),
-    body: markdown.slice(markerIndex + 1).trim(),
-  };
+  return { hero: markdown, body: '' };
 }

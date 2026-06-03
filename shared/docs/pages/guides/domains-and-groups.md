@@ -29,7 +29,16 @@ Organization
 
 A visitor hitting `links.example.com/go/summer` triggers rules on the domain group attached to `links.example.com`.
 
-**Before redirect rules:** After the organization redirect rate limit check, `GET /robots.txt` may be served from the domain group `robotsPolicy` (not from redirect rules). All other paths go through the rule list. `robots.txt` requests still count toward `redirectionLimitPerMinute`.
+:::info
+Before redirect rules run, the edge applies organization **rate limits** and **access checks**, and may serve **`robots.txt`** from the domain group policy. The first rule that **returns a target URL** wins — a matching `source` alone is not enough (link map miss with no fallback skips to the next rule).
+:::
+
+Before redirect rules run:
+
+- Organization redirect rate limit check applies first
+- `GET /robots.txt` may be served from the domain group `robotsPolicy` (not from redirect rules)
+- All other paths go through the rule list
+- `robots.txt` requests still count toward `redirectionLimitPerMinute`
 
 **First redirect wins:** The first rule that **returns a target URL** wins (not merely the first matching `source`). Link map miss with no fallback skips to the next rule; no rule producing a target → `404`. See [Redirect rules — how routing works](./redirect-rules-core.md#how-routing-works) and the [routing decision flow diagram](../concepts/redirect-engine-conditionals.md#routing-decision-flow-diagram).
 
@@ -204,7 +213,7 @@ GET /api/v1/organization/usage
 
 Returns plan usage: domain counts, rule counts, link map entries, etc. Use before bulk imports to avoid limit errors.
 
-**In the dashboard:** the home **Dashboard** page (`/dashboard`) shows the same meters (domain groups, domains, rules, link maps, tests, seats, API keys, redirection rate, analytics retention). See [Dashboard overview — Dashboard home](./dashboard/dashboard-overview.md#dashboard-home-dashboard).
+**In the dashboard:** open **Dashboard** in the sidebar for the same meters (domain groups, domains, rules, link maps, tests, seats, API keys, redirection rate, analytics retention). See [Dashboard overview — Dashboard home](./dashboard/dashboard-overview.md#dashboard-home).
 
 ---
 

@@ -1,4 +1,4 @@
-# FAQ and troubleshooting — index
+# FAQ and troubleshooting
 
 Use this page to find answers fast. Content lives in three focused guides so details stay accurate and linkable.
 
@@ -58,6 +58,6 @@ Syntax limits and quick reference: [Quick reference card](../concepts/redirect-e
 
 ## Related
 
-- [What is LinkShift.app?](../intro/what-is-linkshift.md) — platform overview and request flow diagram  
+- [Docs overview](../overview.md#what-is-linkshiftapp) — platform overview and request flow diagram  
 - [Redirect rules guide](./redirect-rules.md) — main routing index  
 - [API reference](../reference.md) — endpoints and [engine limits](../reference.md#engine-limits-at-a-glance)  

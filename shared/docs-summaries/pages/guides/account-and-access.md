@@ -1,63 +1,70 @@
 ---
 source: shared/docs/pages/guides/account-and-access.md
-generatedAt: 2026-05-31T12:10:10.508Z
+generatedAt: 2026-06-03T16:57:08.368Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for users of LinkShift and explains how to manage account access, including sign-in, registration, email verification, password reset, and legal consent.
+This document is for users of LinkShift and explains the processes for account management, including signing in, registration, email verification, password reset, accepting team invites, and legal consent.
 
 ## What this doc covers
-- **Before you start**: Overview of account flows and programmatic access.
-- **Sign in or register**: Steps to log in or create an account at `/auth`.
-- **Verify your email**: Process for verifying email addresses after registration or changes.
-- **Change your email**: Instructions for updating your email address.
-- **Reset your password**: Steps to request and set a new password.
-- **Accept an invitation**: How to accept team invites and create an account.
-- **Legal consent**: Requirements for accepting updated terms and privacy policies.
-- **End your session**: Logging out of the dashboard.
+- **Sign in or register**: Instructions for logging in or creating a new account.
+- **Verify your email**: Steps to verify your email address after registration or change.
+- **Change your email**: Process for updating your email address.
+- **Reset your password**: Instructions for resetting a forgotten password.
+- **Accept an invitation**: Steps for accepting team invitations from organization owners.
+- **Legal consent**: Process for accepting updated terms and privacy policies.
+- **End your session**: How to log out of your account.
 
 ## Key workflows and rules
-### Sign in or Register
-1. Navigate to `/auth`.
-2. Use the **Login** tab to enter your **Email** and **Password**.
-3. Use the **Register** tab to create an account with:
-   - **Email**
-   - **Password**
-   - **Confirm password**
-   - **Organization name** (optional)
-   - Accept Terms of Service and Privacy Policy.
-   - Choose a plan and billing interval (if available).
+### Sign in or register
+1. **Sign in**:
+   - Enter **Email** and **Password**.
+   - Click **Sign in**.
+2. **Register**:
+   - Enter **Email**, **Password**, **Confirm password**, and **Organization name** (optional).
+   - Choose a plan and billing interval.
+   - Accept Terms of Service, Privacy Policy, and age confirmation.
+   - Click **Create account**.
+
+### Verify your email
+1. Open the verification link from your email.
+2. Wait for the verification process.
+3. If successful, you will see **Email verified** and can go to login.
+
+### Change your email
+1. Sign in and go to **Profile**.
+2. Enter **New email**.
+3. If current email is **Verified**, send a verification code, enter it, and confirm.
+4. If **Unverified**, update email and send verification.
+
+### Reset your password
+1. Click **Forgot password?** on the **Login** tab.
+2. Enter **Email** and select **Send reset link**.
+3. Use the link from your email to set a new password.
+
+### Accept an invitation
+1. Open the invite link from your email.
+2. Complete the setup by entering **Password** and confirming.
+3. Accept Terms of Service, Privacy Policy, and age confirmation.
 4. Click **Create account**.
 
-### Verify Your Email
-1. Click the verification link sent to your email, which routes to `/verify-email`.
-2. If successful, you will see **Email verified** and can proceed to login.
+### Legal consent
+1. You will be redirected to **Review updated terms** if terms change.
+2. Accept the updated Terms of Service and Privacy Policy.
+3. Click **Continue** to unblock other routes.
 
-### Change Your Email
-1. Sign in and go to `/profile`.
-2. Enter **New email** and follow the verification process based on your current email status.
-
-### Reset Your Password
-1. Go to `/reset-password` and enter your **Email**.
-2. Click **Send reset link** and follow the instructions in the email to set a new password.
-
-### Accept an Invitation
-1. Open the invite link from your email, which routes to `/invite`.
-2. Complete the setup by entering a **Password**, accepting terms, and clicking **Create account**.
-
-### Legal Consent
-1. If terms change, you will be redirected to `/legal/consent`.
-2. Accept the updated terms and confirm your age to continue using the dashboard.
+### End your session
+- Click **Log out** in the dashboard sidebar footer to return to **Access Control**.
 
 ## Limits and constraints
-- Registration may be closed temporarily, displaying **Private testing in progress**.
-- Invitations expire after **30 minutes**.
-- Legal consent must be accepted to access other authenticated routes.
-- Authenticated Management API requests are blocked until legal consent is current.
+- **Invitations** expire after **30 minutes**.
+- If registration is closed, the page displays **Private testing in progress**.
+- Authenticated routes are blocked until legal consent is accepted.
+- No in-dashboard password change; use the reset flow instead.
 
 ## Related docs and API areas
-- **Dashboard overview**: [Dashboard overview](./dashboard/dashboard-overview.md)
-- **Organization and API keys in the dashboard**: [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md)
-- **Getting started**: [Getting started](./getting-started.md)
-- **Billing and plans in the dashboard**: [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md)
+- [Getting started](./getting-started.md) — for obtaining Management API keys after sign-in.
+- [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md) — for invites and API keys.
+- [Dashboard overview](./dashboard/dashboard-overview.md) — for navigating the dashboard shell.
+- [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md) — for managing subscriptions and upgrades.

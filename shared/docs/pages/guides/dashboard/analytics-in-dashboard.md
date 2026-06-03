@@ -2,14 +2,15 @@
 
 View redirect traffic for a time window, filter by domain group, and open rule details from analytics results.
 
-## Before you start
+You need at least one domain group with rules receiving traffic. Analytics retention depends on your plan — the dashboard shows **Current plan retention days** at the top of the page.
 
-- At least one domain group with rules receiving traffic.
-- Analytics retention depends on your plan—the dashboard shows **Current plan retention days** at the top of the page.
+:::info
+**Analytics** needs at least one domain group; without one, the app redirects you to **Dashboard**. Data older than **Current plan retention days** may not appear even if you pick a wider custom range.
+:::
 
 ## Open analytics
 
-In the sidebar, select **Analytics** (`/redirect-rules-analytics`). The nav item is available before you create a domain group, but the route requires at least one group — without one, you are redirected to **Dashboard**.
+In the sidebar, select **Analytics**. The nav item is available before you create a domain group, but the page requires at least one group — without one, you are redirected to **Dashboard**.
 
 The page title is **Redirect rules analytics** with subtitle *Traffic distribution for the selected time window.*
 
@@ -52,9 +53,11 @@ Select a rule row to open **Rule analytics details** (*Full rule information wit
 
 ## Automate instead
 
-Use `GET /api/v1/redirect-rules/analytics` for programmatic traffic reports — see [Redirect rules — operations](../redirect-rules-operations.md#analytics). For simulate, use `POST /api/v1/redirect-rules/simulate` in the same guide.
+Use `GET /api/v1/redirect-rules/analytics` for programmatic traffic reports — see [Redirect rules — operations](../redirect-rules-operations.md#analytics).
 
-**Time windows:** **Quick ranges** here (Last 3/7/14/30 days) are calendar-style day counts in the UI. The API preset `range` values (`day`, `week`, `month`) use **UTC hourly** rolling buckets (24 / 168 / 720 hours), not calendar months. To mirror a dashboard quick range or custom picker in code, pass matching `start` and `end` (both required, UTC, floored to the hour) instead of relying on presets alone.
+:::ai-only
+Dashboard quick ranges (Last 3/7/14/30 days) use calendar-style day counts in the UI. API preset `range` values (`day`, `week`, `month`) use UTC hourly rolling buckets (24 / 168 / 720 hours), not calendar months. To mirror a dashboard quick range or custom picker in code, pass matching `start` and `end` (both required, UTC, floored to the hour) instead of relying on presets alone. Simulate: POST /api/v1/redirect-rules/simulate in the same guide.
+:::
 
 ## Related
 

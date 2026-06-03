@@ -24,6 +24,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DocumentationOpenApiService } from '../services/documentation-openapi.service';
 import { DocumentationContentService } from '../services/documentation-content.service';
 import { DocumentationScrollService } from '../services/documentation-scroll.service';
+import { DocumentationSidebarNavGroup } from '../utils/documentation-sidebar-groups.util';
 import { OpenApiTagGroup } from '../models/openapi.types';
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
 import { DocsAssistantDrawerService } from '../services/docs-assistant-drawer.service';
@@ -65,8 +66,21 @@ export class DocumentationShellComponent implements AfterViewInit {
   readonly isMobile = signal(false);
   readonly isSmallScreen = signal(false);
   readonly mobileDrawerOpen = signal(false);
-  readonly manuallyExpandedGroups = signal<string[]>([]);
+  readonly manuallyExpandedEndpointGroups = signal<string[]>([]);
+  readonly manuallyExpandedNavGroups = signal<string[]>([]);
   readonly assistantDrawerOpen = this.assistantDrawer.open;
+
+  readonly startNavGroup = this.docsContent.sidebarNavGroups.find(
+    (group) => group.id === 'start',
+  );
+
+  readonly sidebarNavGroups = this.docsContent.sidebarNavGroups.filter(
+    (group) => group.id !== 'api-reference' && group.id !== 'start',
+  );
+
+  readonly apiReferenceNavGroup = this.docsContent.sidebarNavGroups.find(
+    (group) => group.id === 'api-reference',
+  );
 
   @ViewChild('docsMainBody') private docsMainBodyRef?: ElementRef<HTMLElement>;
 
@@ -94,11 +108,6 @@ export class DocumentationShellComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.docsScroll.registerMainBodyScroll(this.docsMainBodyRef?.nativeElement ?? null);
   }
-
-  readonly introLinks = [
-    { label: 'Overview', route: '/docs' },
-    { label: 'API reference', route: '/docs/reference' },
-  ];
 
   readonly currentRoutePath = toSignal(
     this.router.events.pipe(
@@ -129,21 +138,48 @@ export class DocumentationShellComponent implements AfterViewInit {
     }
   }
 
-  isGroupExpanded(group: OpenApiTagGroup): boolean {
+  isNavGroupExpanded(group: DocumentationSidebarNavGroup): boolean {
+    const activePath = this.currentRoutePath();
+    const isActiveGroup = group.pages.some((page) => page.route === activePath);
+
+    return isActiveGroup || this.manuallyExpandedNavGroups().includes(group.id);
+  }
+
+  onNavGroupOpened(groupId: string): void {
+    if (this.manuallyExpandedNavGroups().includes(groupId)) {
+      return;
+    }
+
+    this.manuallyExpandedNavGroups.update((groups) => [...groups, groupId]);
+    this.docsScroll.restoreSidebarNavScrollIfPending();
+  }
+
+  onNavGroupClosed(groupId: string): void {
+    this.manuallyExpandedNavGroups.update((groups) =>
+      groups.filter((entry) => entry !== groupId),
+    );
+  }
+
+  onNavPageNavigate(groupId: string): void {
+    this.onNavGroupOpened(groupId);
+    this.closeDrawerOnMobile();
+  }
+
+  isEndpointGroupExpanded(group: OpenApiTagGroup): boolean {
     const activePath = this.currentRoutePath();
     const isActiveGroup = group.endpoints.some(
       (endpoint) => `/docs/api/${endpoint.id}` === activePath,
     );
 
-    return isActiveGroup || this.manuallyExpandedGroups().includes(group.tag);
+    return isActiveGroup || this.manuallyExpandedEndpointGroups().includes(group.tag);
   }
 
-  onGroupOpened(tag: string): void {
-    if (this.manuallyExpandedGroups().includes(tag)) {
+  onEndpointGroupOpened(tag: string): void {
+    if (this.manuallyExpandedEndpointGroups().includes(tag)) {
       return;
     }
 
-    this.manuallyExpandedGroups.update((groups) => [...groups, tag]);
+    this.manuallyExpandedEndpointGroups.update((groups) => [...groups, tag]);
     this.docsScroll.restoreSidebarNavScrollIfPending();
   }
 
@@ -152,12 +188,14 @@ export class DocumentationShellComponent implements AfterViewInit {
     this.docsScroll.recordSidebarNavScroll();
   }
 
-  onGroupClosed(tag: string): void {
-    this.manuallyExpandedGroups.update((groups) => groups.filter((entry) => entry !== tag));
+  onEndpointGroupClosed(tag: string): void {
+    this.manuallyExpandedEndpointGroups.update((groups) =>
+      groups.filter((entry) => entry !== tag),
+    );
   }
 
   onEndpointNavigate(tag: string): void {
-    this.onGroupOpened(tag);
+    this.onEndpointGroupOpened(tag);
     this.closeDrawerOnMobile();
   }
 

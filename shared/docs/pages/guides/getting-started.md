@@ -1,6 +1,8 @@
 # Getting started
 
-This guide explains how to use LinkShift programmatically with organization API keys.
+Use this guide to call the LinkShift **Management API** with an organization API key — create domain groups, rules, and link maps from scripts or CI.
+
+Account sign-in, billing, and API key creation happen in the dashboard first; this page picks up at authenticated API calls.
 
 ---
 
@@ -12,7 +14,7 @@ Send your API key with this header:
 X-API-Key: <your_api_key>
 ```
 
-User sign-in, registration, email verification, password reset, and team invite acceptance are **web app flows** (`/auth`, `/invite`, and related routes). They are not part of the Management API. See [Account and access](./account-and-access.md).
+User sign-in, registration, email verification, password reset, and team invite acceptance are **web app flows** (not the Management API). See [Account and access](./account-and-access.md).
 
 Subscription changes, Paddle portal access, and cancellation are also **dashboard-only** — see [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md). QR and redirect trace use the separate [Public tools API](./public-tools-api.md), not `X-API-Key`.
 
@@ -21,7 +23,7 @@ Subscription changes, Paddle portal access, and cancellation are also **dashboar
 API keys are created in the dashboard, not via the Management API. One-time setup (~2 minutes); the rest of the checklist stays in API docs below.
 
 1. Sign in and open the dashboard.
-2. Sidebar **Organization** → **Manage API keys** (`/organization/api-keys`).
+2. In the sidebar, open **Organization**, then select **Manage API keys**.
 3. Select **Create API key**.
 4. In the dialog (**Create API key**), set **Key name**, and optionally **Never expires** or **Expires at**.
 5. After save, copy the secret from the one-time reveal dialog — it may not appear again.
@@ -37,10 +39,14 @@ Optional detail: [Organization and API keys in the dashboard](./dashboard/organi
 Use this sequence when you automate routing with the Management API. API keys are created in the dashboard only; steps 2–5 use the Management API.
 
 1. Create an API key in the dashboard (same steps as [Create an API key](#create-an-api-key) above): **Organization** → **Manage API keys** → **Create API key** → copy the one-time secret
-2. `POST /api/v1/domain-groups` — [Domains and domain groups — Domain groups](./domains-and-groups.md#domain-groups)
-3. `POST /api/v1/subdomains` or `POST /api/v1/domains` — [Domains](./domains-and-groups.md#domains) or [LinkShift subdomains](./domains-and-groups.md#linkshift-subdomains)
-4. `POST /api/v1/redirect-rules` — [Redirect rules — matching and destinations](./redirect-rules-core.md#rule-fields)
-5. `POST /api/v1/redirect-rules/simulate` — [Redirect rules — simulate before rollout](./redirect-rules-operations.md#simulate-before-rollout)
+2. Create a domain group — [Domains and domain groups — Domain groups](./domains-and-groups.md#domain-groups)
+3. Add a subdomain or custom domain — [Domains](./domains-and-groups.md#domains) or [LinkShift subdomains](./domains-and-groups.md#linkshift-subdomains)
+4. Create a redirect rule — [Redirect rules — matching and destinations](./redirect-rules-core.md#rule-fields)
+5. Run simulate before rollout — [Redirect rules — simulate](./redirect-rules-operations.md#simulate-before-rollout)
+
+:::ai-only
+Checklist endpoints: POST `/api/v1/domain-groups`, POST `/api/v1/subdomains` or POST `/api/v1/domains`, POST `/api/v1/redirect-rules`, POST `/api/v1/redirect-rules/simulate`. Dashboard API keys: `/organization/api-keys`.
+:::
 
 ---
 
@@ -55,65 +61,40 @@ Use this sequence when you automate routing with the Management API. API keys ar
 
 ### Free plan paywall
 
-- Free organizations can create API keys in the dashboard.
-- Any API-key-authenticated call on Free plan returns `402 Payment Required`.
+:::warning
+On the **FREE** plan, every Management API call authenticated with an API key returns **`402 Payment Required`**. You can still create keys in the dashboard; upgrade before automating resources.
+:::
 
 ### Per-key rate limits
 
-Management API calls are rate-limited **per API key** according to your organization’s plan. When exceeded, the API returns **`429 Too Many Requests`**.
+Management API calls are rate-limited **per API key** according to your organization's plan. When you exceed the limit, the API returns **`429 Too Many Requests`**.
 
-| Plan | Behavior |
-|------|----------|
-| Free | Blocked by paywall (`402`) |
-| Paid | Plan-based per-key limit — see `GET /api/v1/organization/usage` and your subscription limits |
+- **Free plan:** blocked by paywall (`402`) before rate limits apply
+- **Paid plans:** per-key limit — see `GET /api/v1/organization/usage` and your subscription limits
 
-Exact thresholds can change with plan tier; do not hard-code them in integrations — handle `429` with backoff.
+Exact thresholds can change with plan tier. Handle `429` with backoff instead of hard-coding limits in integrations.
 
-This is separate from **redirect runtime rate limiting** on public redirect traffic (organization-level limits on the edge). Simulate and redirect-test fixtures do not consume redirect rate limits.
+:::ai-only
+Per-key rate limits table: Free → 402 paywall; Paid → plan-based per-key limit from GET /api/v1/organization/usage. Separate from redirect runtime rate limiting on public redirect traffic (organization-level limits on the edge). Simulate and redirect-test fixtures do not consume redirect rate limits.
+:::
 
 ### Redirect rate limits (edge traffic)
 
-Applied to **live redirect requests** (visitors hitting your domains or LinkShift subdomains), not to Management API calls.
+Applied to **live redirect requests** (visitors hitting your domains or LinkShift subdomains), not to Management API calls. Simulate and redirect-test fixtures do not consume this limit; simulate still runs organization access checks (`402` when suspended).
 
-| Topic | Detail |
-|-------|--------|
-| Limit field | Plan `redirectionLimitPerMinute` (per organization) |
-| Bucket | UTC calendar minute |
-| On exceed | **`429 Too Many Requests`** — `Organization rate limit exceeded`; no redirect |
-| When checked | Before `robots.txt` and before redirect rules |
-| Not counted | `POST /api/v1/redirect-rules/simulate`, redirect test fixtures, API key CRUD |
-| Simulate vs live | Simulate skips this limit but still runs `checkRedirectionAccess` (can return **`402`**) |
-
-See [Redirect rules — organization redirect rate limits](./redirect-rules-core.md#organization-redirect-rate-limits-edge-traffic) and [propagation and caching](./redirect-rules-core.md#propagation-and-caching).
+Full behavior table: [Redirect rules — organization redirect rate limits](./redirect-rules-core.md#organization-redirect-rate-limits-edge-traffic). Cache propagation: [propagation and caching](./redirect-rules-core.md#propagation-and-caching).
 
 ---
 
 ## Routing documentation — start here
 
-LinkShift routing is more than CRUD endpoints. Read these in order:
+:::info
+The Management API covers CRUD; **routing behavior** lives in separate guides. Start with [Redirect rules](./redirect-rules.md) (matching, link maps, simulate, recipes), then [Redirect engine concepts](../concepts/redirect-engine-concepts.md) for placeholders and conditionals.
 
-1. **[What is LinkShift.app?](../intro/what-is-linkshift.md)** — platform overview and rules engine
-2. **[Redirect rules](./redirect-rules.md)** — matching, destinations, priorities, link map integration, recipes
-3. **[Redirect engine concepts](../concepts/redirect-engine-concepts.md)** — placeholders, modifiers, conditional logic
-4. **[Link maps](./link-maps.md)** — short links at scale
-5. **[Link map entries](./link-map-entries.md)** — bulk import and key format
-6. **[Redirect tests](./redirect-tests.md)** — CI regression fixtures for routing (`/api/v1/redirect-tests` + simulate)
-
-> **Not the same doc:** Internal API key rate-limit and paywall test plans are not published here. Use the [redirect tests guide](./redirect-tests.md) for routing CI and regression fixtures.
-
-Infrastructure and topology:
-
-- **[Domains and domain groups](./domains-and-groups.md)** — where rules attach
-
-Concept deep dives:
-
-- **[Link map concepts](../concepts/link-map-concepts.md)** — normalization, cache, resolution
-
-Limits cheat sheet (simulate batch size, analytics window, nesting depth): **[API reference — engine limits](../reference.md#engine-limits-at-a-glance)**.
-
-Routing decision index (plain path vs regex vs link map vs wildcard): **[API reference — routing decision index](../reference.md#routing-decision-index)**.
-
-When redirects fail in production (404, 403, 429, blocked rules): **[FAQ and troubleshooting](./faq.md)** → [troubleshooting matrix](../overview-faq.md#troubleshooting-matrix-live-redirects) and [Redirect rules — blocked rules](./redirect-rules-core.md#blocked-rules-isblocked) (`isBlocked`, ongoing safety monitoring).
+- [Domains and domain groups](./domains-and-groups.md) — where rules attach
+- [API reference — engine limits](../reference.md#engine-limits-at-a-glance) · [routing decision index](../reference.md#routing-decision-index)
+- [FAQ and troubleshooting](./faq.md) — [troubleshooting matrix](../overview-faq.md#troubleshooting-matrix-live-redirects)
+:::
 
 ---
 

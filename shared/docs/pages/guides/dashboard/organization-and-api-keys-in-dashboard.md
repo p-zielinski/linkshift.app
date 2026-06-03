@@ -2,12 +2,9 @@
 
 Invite teammates, review seat usage, and create organization API keys for the Management API.
 
-## Before you start
+Sign in as a member of the organization. **Send invite** is available only to organization **owners** with a free seat.
 
-- Sign in as a member of the organization.
-- **Send invite** is available only to organization **owners** with a free seat.
-
-## Organization (`/organization`)
+## Organization
 
 Open **Organization** in the sidebar.
 
@@ -30,20 +27,27 @@ Invitations expire after 30 minutes (shown on the page). Non-owners see: **Only 
 
 ### API keys summary
 
-The **API keys** card shows quota and rate (**calls/min per key**). Select **Manage API keys** to open `/organization/api-keys`.
+The **API keys** card shows quota and rate (**calls/min per key**). Select **Manage API keys** to open the API keys page.
 
 On-page policy:
 
-- Key management is available on all plans.
-- **API usage requires a paid plan** (Free organizations receive `402 Payment Required` on API calls—see [Getting started](../getting-started.md#free-plan-paywall)).
+:::warning
+**API usage requires a paid plan.** Free organizations receive **`402 Payment Required`** on every Management API call — see [Getting started — Free plan paywall](../getting-started.md#free-plan-paywall). Key creation in the dashboard still works on Free.
+:::
 
-## API keys (`/organization/api-keys`)
+## API keys
+
+On the API keys page (**Organization** → **Manage API keys**):
 
 ### Create a key
 
 1. Select **Create API key**.
 2. In the dialog (**Create API key**), set **Key name**, and optionally **Never expires** or **Expires at**.
 3. After save, copy the secret from the one-time reveal dialog — it may not appear again.
+
+:::warning
+The API key secret is shown **once** after create. Copy it before closing the reveal dialog — you cannot retrieve it later.
+:::
 
 Use row actions to **Edit API key** (same fields) or delete.
 
@@ -53,7 +57,7 @@ The page shows **API keys** (created vs allowed), **Rate limit** (calls per minu
 
 ### Integration links
 
-- **Go to documentation** — opens `/docs`
+- **Go to documentation** — opens the docs site
 - **Download OpenAPI spec** — saves the public contract
 
 ### Delete a key
@@ -67,7 +71,11 @@ In the table, use the delete action (**Delete API key**), confirm **Delete** in 
 
 ## Automate instead
 
-API key lifecycle (`/api/v1/api-keys`) is dashboard-only. Resource management uses keys documented in [Getting started](../getting-started.md).
+API key lifecycle is **dashboard-only** (not the Management API). Resource management uses keys documented in [Getting started](../getting-started.md).
+
+:::ai-only
+Dashboard-only: `/api/v1/api-keys` lifecycle. Redirect resources use X-API-Key per Getting started.
+:::
 
 ## Related
 

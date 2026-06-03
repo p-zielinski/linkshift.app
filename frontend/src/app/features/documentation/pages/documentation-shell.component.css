@@ -76,6 +76,25 @@
   border: 1px solid rgba(31, 24, 28, 0.1);
 }
 
+:host ::ng-deep .docs-sidebar-section-accordion {
+  margin-top: 0.5rem;
+}
+
+:host ::ng-deep .docs-sidebar-section-accordion .mat-expansion-panel-header {
+  padding: 0 12px;
+  min-height: 44px;
+}
+
+:host ::ng-deep .docs-sidebar-section-accordion .mat-expansion-panel-header-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--app-text, #241c21);
+}
+
+:host ::ng-deep .docs-sidebar .docs-sidebar-panel-nav.mat-mdc-nav-list {
+  margin: -10px 0;
+}
+
 .docs-sidebar-ask {
   display: flex;
   align-items: flex-start;
