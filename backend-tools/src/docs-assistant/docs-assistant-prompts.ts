@@ -53,7 +53,7 @@ Dashboard vs API (channel — critical for routing):
 
 Rules for conversationSummary (hidden from the user; used on the next turn only):
 - When intent is DOCUMENTATION_SEARCH: return null (the answer stage will update the summary).
-- When intent is CONVERSATION or OUT_OF_SCOPE: return an updated summary (about 200–400 words, English). Merge the prior conversationSummary with this turn: topics already discussed, LinkShift features mentioned, and that this turn was small talk or off-topic. Do not invent technical answers from documentation.
+- When intent is CONVERSATION or OUT_OF_SCOPE: return an updated summary (about 400–800 words, English). Merge the prior conversationSummary with this turn: topics already discussed, LinkShift features mentioned, and that this turn was small talk or off-topic. Do not invent technical answers from documentation.
 - When DOCUMENTATION_SEARCH but you must clarify scope in directReply with no catalog search: still return null for conversationSummary.`;
 
 export const GENERATOR_SYSTEM_PROMPT = `You are the LinkShift documentation expert assistant.
@@ -104,7 +104,7 @@ Citation rules (critical):
 - Use only examples (URLs, paths, JSON snippets) that appear in the documentation context — do not invent illustrative paths or payloads.
 
 The "conversationSummary" field rules (not shown to the user):
-- About 200–400 words, English. Update the prior conversationSummary with this turn: main topics, LinkShift features or API areas discussed, decisions or approaches explained, and open follow-ups.
+- About 400–800 words, English. Update the prior conversationSummary with this turn: main topics, LinkShift features or API areas discussed, decisions or approaches explained, and open follow-ups.
 - Do not paste the full answer; capture facts needed so a follow-up question can be understood without re-reading the answer.
 - Do not add claims that are not supported by this turn's documentation context or the prior summary.
 - If there was no prior summary, start a new one from this turn only.`;

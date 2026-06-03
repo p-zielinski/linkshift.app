@@ -141,6 +141,7 @@ Use this **index** when you know what you need — lookup and deep links, not a 
 | **Invited to a team?** | [Account and access — Accept an invitation](./guides/account-and-access.md#accept-an-invitation) |
 | [Billing and plans in the dashboard](./guides/billing-and-plans-in-dashboard.md) | Usage meters, upgrade, Paddle portal, cancel |
 | [Public tools API](./guides/public-tools-api.md) | QR and redirect trace (not Management API) |
+| [Platform status](#platform-status) | Uptime, incidents, and maintenance at status.linkshift.app |
 
 ### Dashboard (authenticated app)
 
@@ -185,6 +186,14 @@ Task guides for the sidebar UI — start at [Dashboard overview](./guides/dashbo
 One-page limits and syntax: [Redirect engine concepts — quick reference](./concepts/redirect-engine-edge-cases.md#quick-reference-card).
 
 **Routing decision index** (which `source` / link map / regex to use): [API reference — routing decision index](./reference.md#routing-decision-index).
+
+---
+
+## Platform status
+
+Check uptime, incident history, and scheduled maintenance on the public status page: [status.linkshift.app](https://status.linkshift.app/).
+
+The marketing site footer also links to it as **Status page**.
 
 ---
 

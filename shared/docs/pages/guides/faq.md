@@ -12,6 +12,7 @@ Use this page to find answers fast. Content lives in three focused guides so det
 | **Invited to a team?** (accept invite, verify email, owner unblock) | [Account and access — Accept an invitation](./account-and-access.md#accept-an-invitation) |
 | **Billing** (upgrade, Paddle portal, usage meters) | [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md) |
 | **Public tools** (QR, redirect trace API) | [Public tools API](./public-tools-api.md) |
+| **Platform status** (uptime, incidents, maintenance) | [Overview — Platform status](../overview.md#platform-status) |
 | **Dashboard UI** (sidebar tasks, wizards, **Run tests**, analytics filters) | [Dashboard overview](./dashboard/dashboard-overview.md) and task guides under [Overview — Dashboard map](../overview.md#dashboard-authenticated-app) |
 | **Quick routing Q&A** (short links, query match, 403/429/503, simulate, blocked rules) | [Overview FAQ](../overview-faq.md) |
 | **How-To recipes** (A/B tests, User-Agent, regex migration, anti-patterns) | [Redirect rules — recipes](./redirect-rules-recipes.md#how-to-cookbook) |
@@ -24,6 +25,7 @@ Use this page to find answers fast. Content lives in three focused guides so det
 [Overview FAQ](../overview-faq.md) covers:
 
 - Short links, `queryMatch`, fragments, device/time routing  
+- Platform status at [status.linkshift.app](https://status.linkshift.app/)  
 - Link map misses, `isBlocked`, blacklist **403** / **503**, redirect **429**  
 - Simulate **402** / **400**, unregistered subdomains, `/campaign/i` regex footgun  
 - **[Troubleshooting matrix](../overview-faq.md#troubleshooting-matrix-live-redirects)** — symptom → cause → fix for live traffic  
