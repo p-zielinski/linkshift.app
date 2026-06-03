@@ -1,43 +1,48 @@
 ---
 source: shared/docs/pages/guides/billing-and-plans-in-dashboard.md
-generatedAt: 2026-05-30T06:59:27.876Z
+generatedAt: 2026-06-03T16:57:15.274Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for users of the LinkShift dashboard, explaining how to view plan usage, upgrade subscriptions, access the Paddle customer portal, and cancel subscriptions.
+This document is for users managing billing and subscription plans within the LinkShift dashboard, explaining how to view usage, upgrade plans, and manage subscriptions.
 
 ## What this doc covers
-- **Before you start**: Instructions for signing in and limitations of billing actions.
-- **Where to see usage and limits**: Overview of dashboard blocks showing session details, organization profile, subscription snapshot, and usage limits.
-- **Upgrade your plan**: Steps to upgrade the subscription plan through the dashboard.
-- **Manage or cancel subscription**: Actions available for managing or canceling subscriptions for non-free plans.
-- **Plan behavior (qualitative)**: Descriptions of behaviors associated with different plan types (FREE, Paid, UNMETERED).
-- **No Management API for billing**: Clarification that billing actions are not available via the Management API.
+- Overview of billing actions available in the dashboard.
+- Details on where to see usage and limits.
+- Steps to upgrade your plan.
+- Instructions for managing or canceling subscriptions.
+- Qualitative behavior of different plan types.
+- Clarification that billing actions are dashboard-only and not available via the Management API.
 
 ## Key workflows and rules
-### Upgrade your plan
-1. Navigate to `/dashboard` and select **Upgrade**.
-2. A dialog titled **Change your subscription** will appear.
-3. Choose a plan and complete the checkout process.
+### Viewing Usage and Limits
+1. Sign in and open the **Dashboard**.
+2. Review the following blocks:
+   - **Session details**: Displays email, role, and **User ID**.
+   - **Organization profile**: Shows organization name and **Organization ID**.
+   - **Subscription snapshot**: Includes plan, status, amount/currency, and active dates.
+   - **Subscription limits and analytics retention**: Compares usage vs limits for various resources.
 
-### Manage or cancel subscription
-- **Manage subscription**: Opens the Paddle customer portal for payment methods and invoices.
-- **Cancel subscription**: Triggers a confirmation dialog titled **Cancel subscription**, then proceeds through the Paddle portal flow.
+### Upgrading Your Plan
+1. On the **Dashboard**, click **Upgrade**.
+2. In the dialog titled **Change your subscription**, select a plan.
+3. Complete the checkout process if billing is enabled.
 
-### Plan behavior
-- **FREE Plan**: Usage meters apply; no options to manage or cancel subscriptions; API may return `402 Payment Required` for certain calls.
-- **Paid Plans**: Options to upgrade, manage, and cancel subscriptions available.
-- **UNMETERED Plan**: No upgrade option; limits are based on unmetered caps.
+### Managing or Canceling Subscription
+- If on a paid plan:
+  - Click **Manage subscription** to access the Paddle customer portal.
+  - Click **Cancel subscription** to confirm cancellation through the Paddle portal.
 
 ## Limits and constraints
-- Billing actions are **dashboard-only** and not available in the Management API.
-- Usage quotas can be viewed via `GET /api/v1/organization/usage`.
-- The **Upgrade** option is hidden for organizations on the **UNMETERED** plan.
-- If the organization exceeds limits or is suspended, a suspension banner will appear on the dashboard.
+- Billing actions are only available in the dashboard, not through the Management API.
+- If the organization exceeds limits or is suspended, a suspension banner appears, and redirects or API calls may fail with `402` or `429` errors.
+- The **FREE** plan does not allow for **Manage subscription** or **Cancel subscription** actions, and API calls may return `402 Payment Required`.
+- The document advises against relying on it for current pricing; users should check the checkout and portal screens for accurate amounts.
 
 ## Related docs and API areas
-- **Dashboard overview**: [Dashboard overview](./dashboard/dashboard-overview.md)
-- **Domains and domain groups**: [Domains and domain groups](./domains-and-groups.md)
-- **Getting started**: [Getting started](./getting-started.md)
-- **Organization and API keys in the dashboard**: [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md)
+- [Domains and domain groups](./domains-and-groups.md) — for usage API and routing limits.
+- [Getting started](./getting-started.md) — for API key scope and Free plan paywall.
+- [Dashboard overview](./dashboard/dashboard-overview.md) — for navigation and onboarding.
+- [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md) — for seat limits and upgrading to invite more teammates.
+- `GET /api/v1/organization/usage` — for programmatic quota checks.

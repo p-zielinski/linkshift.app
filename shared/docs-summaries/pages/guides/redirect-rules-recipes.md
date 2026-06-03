@@ -1,93 +1,74 @@
 ---
 source: shared/docs/pages/guides/redirect-rules-recipes.md
-generatedAt: 2026-05-30T07:03:00.386Z
+generatedAt: 2026-06-03T17:00:15.548Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for developers implementing redirect rules in LinkShift and provides recipes, anti-patterns, and related API endpoints.
+This document is for developers and engineers looking to implement and troubleshoot redirect rules in LinkShift, providing recipes and anti-patterns for effective routing.
 
 ## What this doc covers
-- **How-To cookbook**
-  - Creating short links
-  - Handling trailing slashes in `source`
-  - Redirecting only GET requests
-  - Running A/B tests
-  - Routing by User-Agent
-  - Routing by browser language
-  - Routing by date or time
-  - Handling link map key misses
-  - Migrating blogs with regex
-  - Stripping `www` to the apex domain
-- **Recipe book — common scenarios**
-  - Migrating blog posts with regex
-  - Stripping www to apex
-  - Same-host path redirect
-  - Campaign short links at scale
-  - A/B test landing page
-  - Routing by User-Agent (Chrome detection)
-  - Scheduled launch
-  - Preserving query params in redirect
-- **Anti-patterns**
-  - Common mistakes and better approaches
-- **API endpoints**
-  - List, get, create, update, delete redirect rules
-  - Traffic analytics and simulation
+- **How-To cookbook**: Quick answers to common routing questions.
+- **Recipe book**: Common scenarios for implementing redirect rules.
+- **Anti-patterns**: Common mistakes and better approaches.
+- **API endpoints**: Details on available API methods for managing redirect rules.
 
 ## Key workflows and rules
-1. **Creating Short Links**
-   - Create a link map with entries.
-   - Create a redirect rule with `source`, `pathMatch`, `queryMatch`, `linkMapId`, and `destination`.
-   - Verify using the simulate endpoint.
+1. **Creating Short Links**:
+   - Create a link map with entries (`key` → `https://…` URL).
+   - Create a redirect rule with `source: "/go"`, `pathMatch: "prefix"`, `queryMatch: "ignore"`, `linkMapId`, `destination: null`.
+   - Verify with a simulation for path `/go/your-key`.
 
-2. **Handling Trailing Slashes**
-   - Be aware of asymmetric matching with trailing slashes in `source`.
-
-3. **Redirecting Only GET Requests**
+2. **Redirecting Only GET Requests**:
    - Set `matchMethod: ["GET"]` on the rule.
 
-4. **Running A/B Tests**
-   - Use a ternary with `random()` in `destination`.
+3. **Running A/B Tests**:
+   - Use a ternary in `destination` with `random()`, e.g., `random(0,100) < 50 ? https://example.com/a : https://example.com/b`.
 
-5. **Routing by User-Agent**
-   - Use `~=` or `includes` in a ternary for user-agent detection.
+4. **Routing by User-Agent**:
+   - Use `~=` or `includes` in a ternary to check the `{user-agent}`.
 
-6. **Routing by Browser Language**
-   - Use `{accept-language.primary}` in a ternary.
+5. **Routing by Browser Language**:
+   - Use `{accept-language.primary}` in a ternary to determine the destination based on the request's `Accept-Language` header.
 
-7. **Routing by Date or Time**
-   - Use `time()` and `datetime()` in conditions.
+6. **Routing by Date or Time**:
+   - Use `time()` and `datetime()` in the condition to check the current date/time.
 
-8. **Handling Link Map Key Misses**
-   - If a key is not found, the rule does not redirect; the engine tries the next rule.
+7. **Handling Missing Link Map Keys**:
+   - If a key is not found, the rule does not redirect; the engine tries the next rule by priority.
 
-9. **Migrating Blogs with Regex**
-   - Use regex in `source` for URL transformations.
+8. **Migrating Blogs with Regex**:
+   - Use regex in `source` to match and redirect, e.g., `source: "/^\\/blog\\/(.+)$/"`.
 
-10. **Stripping `www` to Apex Domain**
-    - Use regex to redirect to the apex domain.
+9. **Stripping `www` to Apex Domain**:
+   - Use regex to redirect from `www` to the apex domain while preserving query parameters.
 
 ## Limits and constraints
-- **API Rate Limits**: Not specified in the source.
-- **Field Limits**: 
-  - `limit` query parameter can be between 1–100 (default 20).
-- **Auth Requirements**: Not specified in the source.
-- **Gotchas**:
-  - Trailing slashes in `source` can lead to unexpected matches.
-  - Wildcard `source` cannot be used with `linkMapId`.
-  - Regex `source` must not include the `g` flag.
+- **API Limits**:
+  - `limit` for listing rules is between 1–100 (default is 20).
+- **Field Requirements**:
+  - `domainGroupId` is required for API requests.
+  - `destination` must start with `http://`, `https://`, or `/`.
+- **Regex Constraints**:
+  - Regex `source` must not use the `g` flag.
+  - `$0` or `$1` in `destination` requires a regex `source`.
+- **Query Matching**:
+  - Wildcard `source` with `queryMatch: "exact"` ignores query gating.
+- **Non-Deterministic A/B Tests**:
+  - Avoid using `random()` as a hard CI gate due to non-deterministic behavior.
 
 ## Related docs and API areas
-- [Redirect engine concepts](../concepts/redirect-engine-concepts.md) — for placeholders, modifiers, and limits.
-- [Link maps](./link-maps.md) — for creating and managing keyed destination tables.
-- [Link map entries](./link-map-entries.md) — for bulk import and entry management.
-- [Redirect tests](./redirect-tests.md) — for CI regression testing.
-- [Domains and domain groups](./domains-and-groups.md) — for understanding where rules attach.
 - **API Endpoints**:
-  - `GET /api/v1/redirect-rules`
-  - `GET /api/v1/redirect-rules/:id`
-  - `POST /api/v1/redirect-rules`
-  - `PUT /api/v1/redirect-rules/:id`
-  - `DELETE /api/v1/redirect-rules/:id`
-  - `GET /api/v1/redirect-rules/analytics`
-  - `POST /api/v1/redirect-rules/simulate`
+  - `GET /api/v1/redirect-rules`: List rules.
+  - `GET /api/v1/redirect-rules/:id`: Get a specific rule.
+  - `POST /api/v1/redirect-rules`: Create a new rule.
+  - `PUT /api/v1/redirect-rules/:id`: Update an existing rule.
+  - `DELETE /api/v1/redirect-rules/:id`: Soft-delete a rule.
+  - `GET /api/v1/redirect-rules/analytics`: Get traffic analytics.
+  - `POST /api/v1/redirect-rules/simulate`: Batch simulation of redirect rules.
+- **Related Guides**:
+  - [Redirect engine concepts](../concepts/redirect-engine-concepts.md)
+  - [Link maps](./link-maps.md)
+  - [Link map entries](./link-map-entries.md)
+  - [Redirect tests](./redirect-tests.md)
+  - [Domains and domain groups](./domains-and-groups.md)

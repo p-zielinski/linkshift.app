@@ -1,6 +1,6 @@
-# LinkShift docs — common questions and troubleshooting
+# Troubleshooting
 
-Quick routing answers and a live-redirect troubleshooting matrix. Hub: [FAQ and troubleshooting index](./guides/faq.md). For step-by-step guides, see the [documentation map](./overview.md#documentation-map).
+Quick routing answers and a live-redirect troubleshooting matrix. For step-by-step guides, see the [documentation map](./overview.md#documentation-map). Hub index: [FAQ and troubleshooting](./guides/faq.md).
 
 
 ---
@@ -22,16 +22,16 @@ No. Fragments are not sent to the server, so `{path}` and `{query.*}` never see 
 Use conditional destination syntax. See [Redirect engine concepts](./concepts/redirect-engine-conditionals.md#conditional-routing-syntax).
 
 **How do I test before deploy?**  
-`POST /api/v1/redirect-rules/simulate`. See [Redirect rules — simulate](./guides/redirect-rules-operations.md#simulate-before-rollout).
+Use [Redirect rules — simulate](./guides/redirect-rules-operations.md#simulate-before-rollout) (`POST /api/v1/redirect-rules/simulate` in the Management API).
 
 **How do I trace a URL or generate a QR code?**  
-Use **Tools** in the dashboard ([Tools in the dashboard](./guides/dashboard/tools-in-dashboard.md)) or the public `/redirect-tester` and `/qr-code-generator` routes. Trace is not part of the Management API; each trace call returns one hop (the UI may follow more). Endpoint details: [Public tools API](./guides/public-tools-api.md).
+Use **Tools** in the dashboard ([Tools in the dashboard](./guides/dashboard/tools-in-dashboard.md)) or the public marketing tools. Trace is not part of the Management API; each trace call returns one hop (the UI may follow more). See [Public tools API](./guides/public-tools-api.md).
 
 **What happens when no rule matches?**  
 No redirect — visitor gets 404 from LinkShift edge. A rule can match the path but still be skipped (for example link map miss with no fallback); the engine then tries the next rule.
 
 **What does “first matching rule” mean?**  
-The first rule that **returns a redirect target** wins, not merely the first rule whose `source` matches.
+The first rule that **returns a redirect target** wins, not merely the first rule whose `source` matches. Details: [Redirect rules — how routing works](./guides/redirect-rules-core.md#how-routing-works).
 
 **What if I use `source` `/long/` on a link map rule?**  
 See [How-To — `/long/` trailing slash](./guides/redirect-rules-recipes.md#what-if-i-set-source-to-long).
@@ -40,22 +40,22 @@ See [How-To — `/long/` trailing slash](./guides/redirect-rules-recipes.md#what
 No — entry destinations are static URLs. Use redirect rule `destination` for dynamic logic, or multiple entries.
 
 **Why was my rule blocked (`isBlocked`)?**  
-Create/update scans destinations for unsafe URLs. The platform also runs **ongoing automated safety monitoring** on redirect destinations; unsafe targets can set `isBlocked: true` and notify the organization owner. Link map rules (`destination: null`) are not blocked on the rule record itself — entry URLs are checked on map writes. Clear with any successful `PUT` after fixing URLs. See [Redirect rules — blocked rules](./guides/redirect-rules-core.md#blocked-rules-isblocked).
+Destination safety scans on write and ongoing monitoring can block rules with unsafe absolute URLs. Link map rules use entry validation instead. See [Redirect rules — blocked rules](./guides/redirect-rules-core.md#blocked-rules-isblocked).
 
 **Can I route on cookies or `Accept-Language`?**  
 Use `{accept-language}` and `{accept-language.primary}` for browser language — see [Redirect engine concepts — request metadata](./concepts/redirect-engine-variables.md#request-metadata). Cookie-based routing is **not** supported (no `{cookie.*}` or generic `{header.*}` placeholders).
 
 **Why 403 instead of redirect?**  
-Resolved **absolute** target (`http://` / `https://`) host may be on platform blacklist. Root-relative `/path` targets skip blacklist. See [Redirect engine concepts](./concepts/redirect-engine-edge-cases.md#destination-domain-blacklist-runtime).
+Absolute target host may be on the platform blacklist. See [Redirect engine — blacklist runtime](./concepts/redirect-engine-edge-cases.md#destination-domain-blacklist-runtime).
 
 **Why 503 instead of redirect?**  
-Blacklist verification failed (infrastructure error). Live traffic is fail-closed — no redirect until checks work again.
+Blacklist check failed (infrastructure). Traffic is fail-closed until checks recover. Same guide link as above.
 
 **Why 429 on my short links?**  
-Organization redirect rate limit (`redirectionLimitPerMinute`) exceeded for the current minute. API simulate does not count toward this limit. The limit is checked **before** `robots.txt` and redirect rules.
+Organization redirect rate limit exceeded for the current minute. See [Redirect rules — organization redirect rate limits](./guides/redirect-rules-core.md#organization-redirect-rate-limits-edge-traffic).
 
 **When do rule or link map changes go live?**  
-Normally immediately after a successful API write (edge cache invalidation). Stale routing can persist up to **5 minutes** only if cache invalidation fails. See [Redirect rules — propagation and caching](./guides/redirect-rules-core.md#propagation-and-caching).
+Usually on the next request after a successful write; allow up to **5 minutes** if cache invalidation fails. See [Redirect rules — propagation and caching](./guides/redirect-rules-core.md#propagation-and-caching).
 
 **Why does simulate return 402?**  
 `POST /api/v1/redirect-rules/simulate` calls the same organization access check as live redirects (`checkRedirectionAccess`). Suspended organizations or edge paywall states fail the **entire** simulate request before any entry runs. See [Redirect rules — simulate vs live](./guides/redirect-rules-operations.md#simulate-vs-live-redirect).
@@ -103,13 +103,17 @@ See [Redirect engine concepts — Advanced engineering FAQ](./concepts/redirect-
 
 ## Troubleshooting matrix (live redirects)
 
+:::info
+Use this table for **live redirect** symptoms (404, 403, 429, 402). For simulate-only mismatches, see the last rows and [Simulate vs live](./guides/redirect-rules-operations.md#simulate-vs-live-redirect).
+:::
+
 | Symptom | Likely cause | What to do |
 |---------|--------------|------------|
 | **404** — no redirect | No rule returned a target | Add catch-all or fix priority; check soft-delete / `isBlocked` |
 | **404** after link map prefix match | Map miss, no `fallbackDestination`, no lower rule | Set map fallback or a second rule on same prefix |
 | **403** | Resolved `http(s)://` host on platform blacklist | Change destination host; root-relative `/path` skips blacklist |
 | **503** | Blacklist check infrastructure error (fail-closed) | Retry; no redirect until check succeeds |
-| **429** | Organization `redirectionLimitPerMinute` exceeded | Check [usage](./guides/getting-started.md); simulate does not hit this limit |
+| **429** | Organization `redirectionLimitPerMinute` exceeded | See [Redirect rules — organization redirect rate limits](./guides/redirect-rules-core.md#organization-redirect-rate-limits-edge-traffic); simulate does not hit this limit |
 | **402** | Organization redirect access suspended / plan limit | Fix billing; simulate also returns 402 for whole batch |
 | Rule “exists” but never runs | `isBlocked: true` or wrong domain group / hostname | `PUT` to unblock after fixing URLs; verify domain on group |
 | Rule blocked again after `PUT` | Automated safety monitoring found unsafe URL in `destination` | Remove or fix URLs in destination branches |

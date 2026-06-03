@@ -1,53 +1,55 @@
 ---
 source: shared/docs/pages/concepts/redirect-engine-edge-cases.md
-generatedAt: 2026-05-30T06:59:06.182Z
+generatedAt: 2026-06-03T16:56:47.013Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for developers working with the LinkShift redirect engine, explaining regex and wildcard sources, link map key extraction, edge cases, and validation rules.
+This document is for developers working with the Redirect Engine in LinkShift, explaining regex sources, wildcard sources, link map key extraction, edge cases, and validation rules.
 
 ## What this doc covers
-- **Regex sources**: Explanation of regex patterns, valid flags, and examples.
-- **Wildcard source (`*`)**: Details on matching all requests and limitations.
-- **Regex and plain path**: Differences in fields applicable to regex vs plain path sources.
-- **Link map key extraction**: How to extract keys from link map rules.
+- **Regex sources**: Definition, valid flags, examples, and capture group behavior.
+- **Wildcard source**: Behavior and limitations of using `*` as a source.
+- **Regex and plain path**: Differences in applicable fields and rules.
+- **Link map key extraction**: How keys are extracted from link map rules.
 - **Rule processing edge cases**: Handling malformed rules, blocked rules, and blacklist checks.
-- **Validation summary**: Checks performed during rule creation and updates.
-- **Quick reference card**: Summary of source types, matching methods, placeholders, and more.
-- **Advanced engineering FAQ**: Answers to common edge cases and behaviors.
+- **Validation summary**: Detailed checks performed on source and destination during create/update.
+- **Quick reference card**: Summary of source types, matching methods, and placeholders.
+- **Advanced engineering FAQ**: Common edge cases and behaviors in production.
 
 ## Key workflows and rules
 1. **Regex Sources**:
    - Store as string: `/pattern/flags`.
-   - Valid flags include `d`, `g`, `i`, `m`, `s`, `u`, `v`, `y`.
-   - Capture groups populate `$0`, `$1`, etc., before placeholder resolution.
-   - Validation checks for the number of capturing groups and proper regex syntax.
-   
+   - Valid flags: `d`, `g`, `i`, `m`, `s`, `u`, `v`, `y`.
+   - Capture groups populate `$0`, `$1`, etc. in the destination before placeholder resolution.
+   - Validation errors return `400` if `$N` is used incorrectly.
+
 2. **Wildcard Source**:
-   - Matches all requests with `source: "*"`; `pathMatch` and `queryMatch` are ignored.
+   - Matches all requests; `pathMatch` and `queryMatch` are ignored.
    - Cannot be combined with `linkMapId`.
 
 3. **Link Map Key Extraction**:
-   - Extracts keyPath from the request path after matching the rule.
-   - The rule must match first before key extraction occurs.
+   - Extracted key is derived from the request path after matching the rule.
+   - Trailing slashes affect matching behavior.
 
-4. **Rule Processing**:
-   - Malformed rules are skipped during processing.
-   - Rules marked as `isBlocked` are excluded from matching.
-   - Blacklist checks occur after a target is resolved, returning `403 Forbidden` if blocked.
+4. **Blocked Rules**:
+   - Rules with `isBlocked: true` are excluded from matching.
+   - Ongoing safety checks may block rules if unsafe URLs are detected.
 
-5. **Validation Summary**:
-   - Validates source and destination length (max 16,384 characters).
-   - Checks for valid regex, placeholders, and URL structure.
-   - Ensures `linkMapId` rules have `destination: null`.
+5. **Destination Domain Blacklist**:
+   - Redirects may be blocked with a `403 Forbidden` if the destination host is blacklisted.
+
+6. **Validation Summary**:
+   - Source and destination length must not exceed 16,384 characters.
+   - Regex must be compilable; capture group count must match `$N` usage.
+   - Placeholders and conditionals must follow specific syntax and limits.
 
 ## Limits and constraints
 - **Character Limits**: Source and destination strings are limited to 16,384 characters.
-- **Regex Validation**: Must be compilable and adhere to capturing group limits.
-- **Destination Requirements**: Must start with `http://`, `https://`, or `/`.
-- **Link Map Rules**: `destination` must be `null` for link map rules; any other value returns `400`.
-- **Empty Targets**: API validation requires non-empty destinations; empty targets lead to broken redirects.
+- **Capture Groups**: Only capturing groups are counted; non-capturing groups do not contribute.
+- **Destination Validation**: Must start with `http://`, `https://`, or `/`.
+- **Link Map Rules**: Must have `destination: null` and cannot use regex sources.
+- **Empty Destinations**: Cannot create/update rules with an empty destination string.
 - **Blacklist Checks**: Only absolute URLs are checked against the blacklist; root-relative paths are skipped.
 
 ## Related docs and API areas

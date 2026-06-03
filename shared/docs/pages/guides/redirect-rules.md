@@ -18,7 +18,8 @@ In the sidebar, open **Redirect Rules** and select **Add rule** to walk through 
 
 ## Recommended reading order (conditional routing)
 
-Use this path when destinations use placeholders or conditionals:
+:::info
+When destinations use placeholders or conditionals, read in this order before editing production rules:
 
 1. [Redirect engine concepts](../concepts/redirect-engine-concepts.md)
 2. [Engine — variables](../concepts/redirect-engine-variables.md)
@@ -26,6 +27,7 @@ Use this path when destinations use placeholders or conditionals:
 4. [Redirect rules — recipes](./redirect-rules-recipes.md)
 5. [Redirect rules — matching](./redirect-rules-core.md) (field reference)
 6. [Redirect rules — simulate](./redirect-rules-operations.md)
+:::
 
 ---
 

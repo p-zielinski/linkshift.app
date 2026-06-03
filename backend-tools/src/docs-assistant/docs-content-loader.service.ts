@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import type { DocsCatalogEntry, DocsContentSource } from './docs-catalog.service';
 import { buildOpenApiContextPreamble, sectionTitleForSource } from './docs-catalog-metadata';
 import { buildOpenApiOutline } from './docs-openapi-outline';
+import { stripHiddenOnPurposeMarkdown } from './docs-markdown-strip.util';
 import { resolveDocsOpenApiRoot, resolveDocsPagesRoot } from './shared-paths';
 
 @Injectable()
@@ -39,7 +40,7 @@ export class DocsContentLoaderService {
         return null;
       }
 
-      const content = readFileSync(absolutePath, 'utf8');
+      const content = stripHiddenOnPurposeMarkdown(readFileSync(absolutePath, 'utf8'));
       return [`## ${sectionTitle}`, content].join('\n');
     }
 

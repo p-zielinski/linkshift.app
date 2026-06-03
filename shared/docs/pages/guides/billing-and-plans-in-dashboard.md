@@ -2,11 +2,7 @@
 
 View plan usage, upgrade, open the Paddle customer portal, or cancel subscription from the home dashboard.
 
-## Before you start
-
-- Sign in and open **Dashboard** (`/dashboard`).
-- Billing actions are **dashboard-only**. They are not in the Management API OpenAPI (`linkshift-api-keys`).
-- Usage quotas also appear in `GET /api/v1/organization/usage` where documented — see [Domains and domain groups — usage](./domains-and-groups.md#get-usage-summary).
+Sign in and open **Dashboard** in the sidebar. Billing actions are dashboard-only (not in the Management API). Usage quotas also appear in `GET /api/v1/organization/usage` — see [Domains and domain groups — usage](./domains-and-groups.md#get-usage-summary).
 
 ## Where to see usage and limits
 
@@ -21,17 +17,21 @@ On **Dashboard** (*Operational overview for the active organization.*):
 
 When a meter is at capacity, the card may show **Limit reached** and **Upgrade plan to increase this limit.**
 
+:::warning
+At plan capacity or when the organization is suspended, redirects and API calls may fail (`402`, `429`, or blocked sidebar actions) until you upgrade or reduce usage. Fix billing on **Dashboard** before high-traffic launches.
+:::
+
 If the organization is over limits or suspended, a suspension banner appears at the top of the page.
 
 Engine-level caps (for example per-group domain limits) are described in [Domains and domain groups](./domains-and-groups.md) — the dashboard meters reflect your organization's plan assignment.
 
 ## Upgrade your plan
 
-1. On `/dashboard`, select **Upgrade**.
+1. On **Dashboard**, select **Upgrade**.
 2. The dialog title is **Change your subscription**.
 3. Choose a plan and complete checkout when billing is enabled for your organization.
 
-**Upgrade** is hidden when your plan is **UNMETERED** (no subscription change through this dialog).
+If you do not see **Upgrade**, your organization may already be on a plan that does not use self-serve checkout through this dialog. Use **Manage subscription** when it is available, or contact support for billing questions.
 
 After checkout, a status dialog may open from the Paddle flow (not a separate dashboard button).
 
@@ -48,15 +48,24 @@ When your plan is not **FREE**:
 
 ## Plan behavior (qualitative)
 
-| Plan | Typical dashboard behavior |
-|------|----------------------------|
-| **FREE** | Usage meters and limits apply; no **Manage subscription** or **Cancel subscription**; API calls may return `402 Payment Required` on the Free paywall — see [Getting started](./getting-started.md#free-plan-paywall) |
-| Paid plans | **Upgrade**, **Manage subscription**, and **Cancel subscription** follow Paddle setup; exact prices and tiers depend on your checkout configuration |
-| **UNMETERED** | **Upgrade** is not offered; limits use unmetered caps in the UI |
+- **Free** — usage meters apply; no **Manage subscription** or **Cancel subscription**; API calls may return `402 Payment Required` ([Getting started — Free plan paywall](./getting-started.md#free-plan-paywall))
+- **Paid plans** — **Upgrade**, **Manage subscription**, and **Cancel subscription** follow Paddle setup; exact prices depend on checkout configuration
 
 Do not rely on this page for dollar amounts or SKU lists — use the checkout and portal screens for current pricing.
 
+:::hidden-on-purpose
+Internal plan tiers (not for public docs or Ask docs):
+
+- **UNMETERED** — **Upgrade** is not offered; limits use unmetered caps in the UI
+
+Plan behavior table (qualitative): FREE → usage meters, no Manage/Cancel subscription, API 402 paywall; Paid → Upgrade/Manage/Cancel via Paddle; UNMETERED → no Upgrade, unmetered caps in UI.
+:::
+
 ## No Management API for billing
+
+:::info
+Subscription changes, Paddle portal access, and cancellation are **dashboard-only** — they are not in `linkshift-api-keys.openapi.yaml`. Use `GET /api/v1/organization/usage` for programmatic quota checks.
+:::
 
 Subscription changes, Paddle portal access, and cancellation are not exposed as Management API endpoints in `linkshift-api-keys.openapi.yaml`.
 

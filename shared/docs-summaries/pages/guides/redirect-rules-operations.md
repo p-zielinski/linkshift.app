@@ -1,54 +1,63 @@
 ---
 source: shared/docs/pages/guides/redirect-rules-operations.md
-generatedAt: 2026-05-30T07:02:44.195Z
+generatedAt: 2026-06-03T17:00:02.245Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for developers and administrators using LinkShift, explaining how to validate redirect rules, simulate their behavior before rollout, and analyze redirect rule performance.
+This document is for users of LinkShift who need to validate redirect rules, simulate their behavior before rollout, and analyze redirect rule performance.
 
 ## What this doc covers
-- **In the dashboard**: Simulate and fetch expected results, and access analytics.
-- **Validation**: Rules validation checks during creation and updates.
-- **Simulate before rollout**: Using the `POST /api/v1/redirect-rules/simulate` endpoint to evaluate rules against sample requests.
-- **Analytics**: Using the `GET /api/v1/redirect-rules/analytics` endpoint to retrieve hit counts per rule.
+- **In the dashboard**
+  - Simulate and fetch expected results using the redirect test wizard.
+  - Access analytics through the sidebar for quick ranges and rule drill-down.
+  
+- **Validation**
+  - Rules validation on create/update with specific checks for source, capture groups, destination, recursion depth, link map rules, destination safety, plain path vs regex, and multiline destination.
+  - Common errors and their causes.
+
+- **Simulate before rollout**
+  - Usage of `POST /api/v1/redirect-rules/simulate` to evaluate sample requests against live rules.
+  - Batch behavior and HTTPS-only requirements.
+  - Response structure and fields for simulation results.
+  - Query merging for path and query parameters.
+  - Handling of link map misses in simulation.
+
+- **Analytics**
+  - Usage of `GET /api/v1/redirect-rules/analytics` to retrieve hit counts per rule.
+  - Query parameters for analytics requests and their constraints.
+  - Response structure including hits, top link map keys, and top request variants.
 
 ## Key workflows and rules
-### Validation
-1. **Source**: Must be non-empty, max 16,384 chars, and valid regex.
-2. **Capture groups**: Must exist in the source regex.
-3. **Destination**: Must be a valid URL structure, max 16,384 chars.
-4. **Recursion depth**: Conditional nesting must not exceed 32 levels.
-5. **Link map rules**: Must not have a non-null `destination` when `linkMapId` is provided.
-6. **Destination safety**: URLs are scanned for unsafe targets.
-7. **Multiline destination**: Newlines are allowed in JSON strings.
-8. **Common errors**: Includes specific error messages for validation failures.
+1. **Validation Workflow**
+   - Create or update a redirect rule.
+   - The system validates the rule and returns `400 Bad Request` for any invalid rules.
+   - Common validation checks include ensuring the source is non-empty and valid regex, capturing groups exist, and the destination is a valid URL.
 
-### Simulate before rollout
-- **Endpoint**: `POST /api/v1/redirect-rules/simulate`
-- **Request body**: Up to 100 entries, each containing `domainGroupId`, `hostname`, `path`, `method`, `query`, and `userAgent`.
-- **Response**: Each entry returns `matched`, `statusCode`, `target`, and `linkMapKey`.
-- **Batch behavior**: Each entry is evaluated independently.
-- **Domain blacklist**: Use `"checkDestinationBlacklist": true` to mirror live behavior.
+2. **Simulate Workflow**
+   - Send a `POST` request to `/api/v1/redirect-rules/simulate` with up to 100 entries.
+   - Each entry is evaluated independently against current live rules.
+   - The response includes fields such as `matched`, `statusCode`, `target`, and `linkMapKey`.
+   - Use `checkDestinationBlacklist` to run destination blacklist checks.
 
-### Analytics
-- **Endpoint**: `GET /api/v1/redirect-rules/analytics`
-- **Query parameters**: 
-  - `limit` (1–50, default 50)
-  - `range` (day, week, month)
-  - `start` and `end` for custom time windows (both required).
-- **Response**: Includes `hits`, `topLinkMapKeys`, and `topRequestVariants`.
+3. **Analytics Workflow**
+   - Send a `GET` request to `/api/v1/redirect-rules/analytics` with optional parameters to filter results.
+   - Analyze the response for total hits and top link map keys or request variants.
 
 ## Limits and constraints
-- **Validation limits**:
-  - Source and destination max length: 16,384 chars.
-  - Recursion depth: ≤ 32 levels.
-  - Up to 100 entries per simulation request.
-  - `userAgent` limited to 512 characters.
-- **Analytics limits**:
-  - Time window cannot exceed 31 days.
-  - `start` must be before `end`.
-- **Common validation errors**: Specific error messages for incorrect configurations.
+- **Validation Limits:**
+  - Source and destination fields can be a maximum of 16,384 characters.
+  - Recursion depth for conditional nesting is limited to 32 levels.
+  - Up to 6 methods allowed in `matchMethod`.
+
+- **Simulate Request Limits:**
+  - Up to 100 entries per request.
+  - `userAgent` is limited to 512 characters.
+  
+- **Analytics Query Limits:**
+  - `limit` parameter can range from 1 to 50 (default is 50).
+  - The time span between `start` and `end` cannot exceed 31 days.
+  - Both `start` and `end` must be provided together; providing only one results in a `400` error.
 
 ## Related docs and API areas
 - [Redirect rules guide](./redirect-rules.md)

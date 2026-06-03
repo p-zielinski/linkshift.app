@@ -350,6 +350,16 @@
   padding: 0.75rem;
 }
 
+:host ::ng-deep .docs-assistant__markdown .docs-markdown.markdown-body .docs-ai-hidden {
+  display: none;
+}
+
+:host ::ng-deep .docs-assistant__markdown .docs-markdown.markdown-body .docs-infobox {
+  margin: 0.65em 0;
+  padding: 0.65rem 0.85rem;
+  font-size: inherit;
+}
+
 .docs-assistant__sources {
   margin-top: 10px;
   padding-top: 10px;

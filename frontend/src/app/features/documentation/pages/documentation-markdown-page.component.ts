@@ -76,6 +76,11 @@ export class DocumentationMarkdownPageComponent implements OnInit, AfterViewInit
   }
 
   private readSlugFromRoute(): string {
+    const dataSlug = this.route.snapshot.data['documentationSlug'];
+    if (typeof dataSlug === 'string' && dataSlug.length > 0) {
+      return dataSlug;
+    }
+
     return this.route.snapshot.paramMap.get('slug') ?? '';
   }
 

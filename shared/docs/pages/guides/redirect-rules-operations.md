@@ -58,7 +58,9 @@ Common errors:
 
 `POST /api/v1/redirect-rules/simulate` evaluates sample requests against **current live rules** without affecting production traffic.
 
-Simulate does **not** apply organization redirect rate limits (`429`). Domain blacklist checks are **off by default**; pass `"checkDestinationBlacklist": true` on the request body to mirror live **403** / **503** behavior for absolute `http://` / `https://` targets (see [Simulate vs live redirect](#simulate-vs-live-redirect)). It **does** call `checkRedirectionAccess` — the whole request can return **`402 Payment Required`** when the organization cannot use redirects on the edge (same as live traffic).
+:::warning
+Simulate skips redirect **rate limits** (`429`) and runs **blacklist checks only when** `checkDestinationBlacklist: true` (default `false`). It **does** call `checkRedirectionAccess` — a suspended org or edge paywall can return **`402`** for the **entire** batch before any entry runs. See [Simulate vs live redirect](#simulate-vs-live-redirect).
+:::
 
 **Batch behavior:** Each object in `entries` is evaluated **independently** (the API processes them concurrently). Order of objects in the request does not affect results. **Within one entry**, rules run in `priority` desc, then `createdAt` desc, then `id` desc — same as live traffic.
 

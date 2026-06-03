@@ -2,14 +2,13 @@
 
 Define redirect tests, run pending cases for a domain group, and read pass/fail status from the Tests page or the Redirect Rules summary card.
 
-## Before you start
-
-- At least one domain group with redirect rules you want to validate.
-- For fixture design and CI patterns, see [Redirect tests](../redirect-tests.md).
+:::info
+You need at least one **domain group** with redirect rules. **Run tests** executes pending cases for the selected group in the current session only. Fixture design and CI: [Redirect tests](../redirect-tests.md).
+:::
 
 ## Open tests
 
-1. In the sidebar, select **Tests** (`/tests`). The page title is **Tests** (*Validate redirect outcomes without leaving the dashboard.*).
+1. In the sidebar, select **Tests**. The page title is **Tests** (*Validate redirect outcomes without leaving the dashboard.*).
 2. Choose a **Domain group** in the filter (with one group, the filter selects it automatically) and optionally search by path or query.
 
 The tests table uses a fixed page size of **100** rows per page (no other page-size options).
@@ -57,14 +56,11 @@ The **Tests** table and the **Redirect tests** card use status such as pass rate
 
 ## Automate instead
 
-Redirect test fixtures use the Management API on `/api/v1/redirect-tests`:
+Redirect test fixtures are managed through the Management API. See [Redirect tests](../redirect-tests.md) for fields, simulate pairing, and CI patterns.
 
-- `POST /api/v1/redirect-tests` — create
-- `GET /api/v1/redirect-tests` — list
-- `PUT /api/v1/redirect-tests/{id}` — update
-- `DELETE /api/v1/redirect-tests/{id}` — delete
-
-See [Redirect tests](../redirect-tests.md) for fields, simulate pairing, and CI patterns.
+:::ai-only
+Management API: POST/GET `/api/v1/redirect-tests`; PUT/DELETE `/api/v1/redirect-tests/{id}`.
+:::
 
 ## Related
 

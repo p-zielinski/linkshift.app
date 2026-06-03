@@ -1,12 +1,4 @@
 pages:
-  - slug: what-is-linkshift
-    category: intro
-    source: pages/intro/what-is-linkshift.md
-    route: /docs/intro/what-is-linkshift
-    description: >-
-      What LinkShift.app is — programmable redirects, link maps, rules engine,
-      and where to start in the docs.
-
   - slug: overview
     category: meta
     source: pages/overview.md
@@ -35,8 +27,8 @@ pages:
     source: pages/guides/faq.md
     route: /docs/guides/faq
     description: >-
-      FAQ index — links to overview FAQ, How-To cookbook, advanced engine FAQ,
-      and troubleshooting matrix.
+      FAQ and troubleshooting — links to overview FAQ, How-To cookbook,
+      advanced engine FAQ, and troubleshooting matrix.
 
   - slug: getting-started
     category: guide
