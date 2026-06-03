@@ -67,6 +67,10 @@ flowchart TD
 
 ### Engine limits (at a glance)
 
+:::info
+Hard caps for validation and API query params — full routing behavior is in [Redirect engine concepts](./concepts/redirect-engine-concepts.md) and [Redirect rules — matching](./guides/redirect-rules-core.md).
+:::
+
 | Limit | Value |
 |-------|-------|
 | `source` / `destination` length | 16,384 chars each |

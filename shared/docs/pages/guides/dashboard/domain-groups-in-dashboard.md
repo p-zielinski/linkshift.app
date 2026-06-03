@@ -1,15 +1,10 @@
 # Domain groups in the dashboard
 
-Create and manage domain groups—the containers that hold domains, subdomains, redirect rules, link maps, and tests.
-
-## Before you start
-
-- Sign in to the dashboard.
-- You do not need an existing domain group to open **Domain Groups**.
+Create and manage domain groups — the containers that hold domains, subdomains, redirect rules, link maps, and tests. Sign in to the dashboard; you do not need an existing group to open **Domain Groups**.
 
 ## List domain groups
 
-1. In the sidebar, select **Domain Groups** (`/domain-groups`). The page title is **Domain Groups**.
+1. In the sidebar, select **Domain Groups**. The page title is **Domain Groups**.
 2. Review the table: group name, domain count, and row actions.
 
 Use the table footer to change page size (10, 20, or 50) or move between pages.
@@ -34,6 +29,10 @@ Use the table footer to change page size (10, 20, or 50) or move between pages.
 
 ## Delete a domain group
 
+:::warning
+Deleting a domain group is **permanent** and removes tied domains, rules, link maps, and tests. Review **Domains**, **Redirect Rules**, and **Link Maps** before you confirm **Delete domain group**.
+:::
+
 1. In the table row, open the delete action.
 2. Confirm in the dialog titled **Delete domain group** (permanent delete).
 
@@ -48,7 +47,11 @@ Removing a group affects domains and redirect resources tied to it. Review depen
 
 ## Automate instead
 
-Domain groups are available via the Management API. See [Domains and domain groups](../domains-and-groups.md#domain-groups) for `GET` / `POST` / `PUT` / `DELETE` on `/api/v1/domain-groups`.
+Domain groups are available via the Management API. See [Domains and domain groups — Domain groups](../domains-and-groups.md#domain-groups).
+
+:::ai-only
+Management API: GET/POST/PUT/DELETE `/api/v1/domain-groups`.
+:::
 
 ## Related
 

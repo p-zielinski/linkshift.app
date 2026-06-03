@@ -2,14 +2,13 @@
 
 Create and maintain redirect rules from the dashboard, filter by domain group, and run redirect tests from the rules page summary.
 
-## Before you start
-
-- At least one domain group with a domain or subdomain attached.
-- For matching behavior (path, query, link maps, destinations), read [Redirect rules](../redirect-rules.md) and [Matching and destinations](../redirect-rules-core.md)—this guide covers the UI flow only.
+:::info
+You need at least one **domain group** with a **domain or subdomain** attached before rules can run on live traffic. Matching behavior (path, query, link maps, destinations) is in [Redirect rules](../redirect-rules.md) — this page is UI flow only.
+:::
 
 ## Open redirect rules
 
-1. In the sidebar, select **Redirect Rules** (`/redirect-rules`). The page title is **Redirect Rules**.
+1. In the sidebar, select **Redirect Rules**. The page title is **Redirect Rules**.
 2. Choose a **Domain group** in the filter (selection persists across visits). When your organization has only one group, the filter selects it automatically.
 3. Optionally use search to narrow the table.
 
@@ -43,7 +42,12 @@ A static destination URL is enough for most first rules. Variable tokens (for ex
 
 ## After you save a new rule
 
-Saving a **new** rule closes the rule wizard and opens the redirect test wizard with fields prefilled. Complete that wizard with **Create**, then use **Run tests** on **Redirect Rules** or **Tests** to execute pending cases. For **Fetch expected result**, result dialogs, and the standalone test flow, see [Tests in the dashboard](./tests-in-dashboard.md).
+Saving a **new** rule closes the rule wizard and opens the redirect test wizard with fields prefilled.
+
+1. Complete that wizard with **Create**
+2. Select **Run tests** on **Redirect Rules** or **Tests** to execute pending cases
+
+For **Fetch expected result**, result dialogs, and the standalone test flow, see [Tests in the dashboard](./tests-in-dashboard.md).
 
 ## Redirect tests card
 
@@ -61,10 +65,11 @@ The same **Run tests** flow is available on the **Tests** page — see [Tests in
 
 ## Automate instead
 
-See [Redirect rules (API index)](../redirect-rules.md) and [Matching and destinations](../redirect-rules-core.md) for rule fields and:
+See [Redirect rules (API index)](../redirect-rules.md), [Matching and destinations](../redirect-rules-core.md), and [Validation, simulate, and analytics](../redirect-rules-operations.md) for rule fields, CRUD, and simulate before rollout.
 
-- `GET` / `POST` / `PUT` / `DELETE` `/api/v1/redirect-rules`
-- `POST /api/v1/redirect-rules/simulate` — validate before rollout
+:::ai-only
+Management API: GET/POST/PUT/DELETE `/api/v1/redirect-rules`; POST `/api/v1/redirect-rules/simulate` for pre-rollout validation.
+:::
 
 ## Related
 

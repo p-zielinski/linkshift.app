@@ -1,47 +1,47 @@
 ---
 source: shared/docs/pages/guides/dashboard/dashboard-overview.md
-generatedAt: 2026-05-30T06:59:41.684Z
+generatedAt: 2026-06-03T16:57:34.078Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for LinkShift users and explains how to navigate the app shell, utilize redirect features, and monitor plan usage on the dashboard.
+This document is for LinkShift users and explains how to navigate the app shell, utilize redirect features, and monitor plan usage on the home dashboard.
 
 ## What this doc covers
-- **Before you start**: Requirements for using the LinkShift app.
-- **Account access**: Overview of account-related tasks and links to guides.
-- **App shell layout**: Description of the app shell components and sidebar navigation.
-- **Dashboard home (`/dashboard`)**: Details on the dashboard's summary features and usage meters.
-- **First-run onboarding**: Steps in the onboarding wizard for new users.
-- **Profile (`/profile`)**: Managing account email and verification status.
+- **Account access**: Overview of sign-in, registration, email verification, team invites, password reset, and legal consent.
+- **App shell layout**: Description of the app shell components, including sidebar navigation and the Ask docs feature.
+- **Dashboard home**: Details on the dashboard's summary view, including plan status and usage meters.
+- **First-run onboarding**: Steps for the onboarding wizard that may appear after signup.
+- **Profile management**: Instructions for managing account email and verification status.
 
 ## Key workflows and rules
-1. **Creating a Domain Group**:
-   - Navigate to **Domain Groups** → **Add group** to create a domain group.
-   - Sidebar items related to domains and redirects remain disabled until at least one domain group is created.
+1. **Sign-in and account management**:
+   - Access account management tasks through the web app, not the Management API.
+   - For tasks like email verification and password reset, refer to the [Account and access](../account-and-access.md) guide.
 
-2. **Using the Ask Docs Feature**:
-   - Select **Ask docs** in the sidebar.
-   - Type a task question (e.g., “create a redirect rule”).
-   - Open linked guides from the response or browse the full documentation via **Docs**.
+2. **Sidebar navigation**:
+   - Access various sections via the sidebar, which includes Dashboard, Analytics, Profile, Organization, Domain Groups, and more.
+   - Items like Domains, Subdomains, Redirect Rules, and Link Maps require at least one domain group to be created.
 
-3. **Onboarding Wizard**:
-   - Automatically opens after signup unless skipped.
-   - Steps include:
-     1. Welcome
-     2. Domains
-     3. Rules
-     4. Next steps
-   - Options to confirm and continue or skip for now.
+3. **Creating a domain group**:
+   - Navigate to **Domain Groups** → **Add group** to create a domain group, which unlocks additional sidebar features.
 
-4. **Profile Management**:
-   - Access the **Profile** section to manage email verification and change email.
-   - Resend verification email if the account is unverified.
+4. **Using Ask docs**:
+   - Type a task question in the Ask docs feature to receive linked guides from the documentation.
+
+5. **Dashboard usage**:
+   - The dashboard summarizes organization details, including current plan, usage meters, and options to manage subscriptions.
+
+6. **First-run onboarding**:
+   - The onboarding wizard provides steps to set up domains and redirect rules, which can be skipped or completed later.
+
+7. **Profile management**:
+   - Manage your email verification status and change your email through the Profile section.
 
 ## Limits and constraints
-- Redirect-heavy sidebar items are disabled until at least one domain group is created.
-- Usage meters on the dashboard reflect limits based on the user's subscription plan; when at capacity, a card may display **Limit reached**.
-- The exact limits for usage depend on the user's plan, which can be checked programmatically via `GET /api/v1/organization/usage`.
+- Redirect-heavy sidebar items remain disabled until at least one domain group is created.
+- Exact usage limits depend on the user's subscription plan; when a meter reaches capacity, it may display a "Limit reached" message.
+- Password reset must be done outside the dashboard through the sign-in flow.
 
 ## Related docs and API areas
 - [Account and access](../account-and-access.md)
@@ -49,4 +49,4 @@ This document is for LinkShift users and explains how to navigate the app shell,
 - [Domain groups in the dashboard](./domain-groups-in-dashboard.md)
 - [Domains and subdomains in the dashboard](./domains-and-subdomains-in-dashboard.md)
 - [Getting started (API)](../getting-started.md)
-- [What is LinkShift.app?](../../intro/what-is-linkshift.md)
+- API endpoint for usage: `GET /api/v1/organization/usage`

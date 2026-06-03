@@ -12,6 +12,7 @@ import {
   input,
   untracked,
   viewChild,
+  ViewEncapsulation,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import mermaid from 'mermaid';
@@ -40,6 +41,7 @@ mermaid.initialize({
     data-theme="light"
   ></article>`,
   styleUrl: './markdown-renderer.component.css',
+  encapsulation: ViewEncapsulation.None,
 })
 export class MarkdownRendererComponent {
   private readonly platformId = inject(PLATFORM_ID);

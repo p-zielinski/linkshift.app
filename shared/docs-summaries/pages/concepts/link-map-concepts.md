@@ -1,6 +1,6 @@
 ---
 source: shared/docs/pages/concepts/link-map-concepts.md
-generatedAt: 2026-05-30T06:58:44.096Z
+generatedAt: 2026-06-03T16:56:24.472Z
 model: gpt-4o-mini
 ---
 
@@ -10,55 +10,47 @@ This document is for developers and operators who need to understand link maps, 
 ## What this doc covers
 - **What link maps are**: Explanation of link maps as keyed routing tables for redirect rules.
 - **Why they exist**: Benefits of using link maps, including scalability and operational efficiency.
-- **Data model**: Detailed structure of link maps and link map entries, including fields and their purposes.
+- **Data model**: Structure of link maps and link map entries, including fields and their purposes.
 - **Integration with redirect rules**: How link maps work with redirect rules, including configuration layers and requirements.
 - **Key normalization rules**: Rules for normalizing keys during creation, updates, and imports.
-- **Query matching modes**: Different modes for matching query parameters during link resolution.
-- **Resolution flow**: Step-by-step process for resolving link map entries.
+- **Query matching modes**: Different modes for matching queries against link map entries.
+- **Resolution flow**: Steps taken to resolve a link map entry based on incoming requests.
 - **Safety and security**: Validation processes for URLs and error handling.
-- **Cache model**: Explanation of caching behavior for link maps.
-- **Operational constraints**: Limitations on maps and entries, including update rules.
-- **Error semantics**: Meaning of different HTTP status codes related to link maps.
-- **Choosing `queryMatch`**: Guidelines for selecting the appropriate query matching strategy.
-- **Practical examples**: Examples of link maps with different query matching strategies.
+- **Cache model**: How link map contexts are cached and the behavior of cache events.
+- **Operational constraints**: Limitations on maps and entries based on organizational plans.
+- **Error semantics**: Meaning of various HTTP status codes related to link maps.
+- **Choosing `queryMatch`**: Guidance on selecting the appropriate query matching strategy.
+- **Practical examples**: Use cases demonstrating different query matching strategies.
 - **Related guides**: Links to additional documentation for further reading.
 
 ## Key workflows and rules
-1. **Link Map Creation**: 
+1. **Link Map Creation**:
    - Define a link map with fields like `id`, `name`, `domainGroupId`, `caseSensitive`, `queryMatch`, and `fallbackDestination`.
-   - Ensure uniqueness with `@@unique([linkMapId, keyNormalized])`.
+   - Ensure uniqueness of keys with `@@unique([linkMapId, keyNormalized])`.
 
 2. **Redirect Rule Configuration**:
-   - Set `pathMatch: prefix` and `queryMatch: ignore` when using `linkMapId`.
-   - Ensure the source path is a plain path (e.g., `/go`).
+   - Set `pathMatch: prefix`, `queryMatch: ignore`, and `destination: null` when using `linkMapId`.
+   - Extract key from the request path after matching the redirect rule.
 
 3. **Key Extraction**:
-   - Extract key from the request path after confirming the redirect rule matches.
+   - For a request path like `/go/summer/extra`, the key extracted is `summer/extra`.
 
-4. **Link Map Resolution**:
-   - Normalize incoming `keyPath` and query.
-   - Apply `queryMatch` strategy to determine the destination URL.
-
-5. **Handling Misses**:
+4. **Entry Resolution**:
+   - Depending on `queryMatch` mode (`ignore`, `exact`, or `subset`), resolve the destination URL.
    - If no entry matches and no `fallbackDestination` is set, the rule does not redirect.
 
+5. **Key Normalization**:
+   - Normalize keys by trimming whitespace, handling leading slashes, and applying case sensitivity rules.
+
 6. **Cache Management**:
-   - Cache link map context per `linkMapId` with a TTL of up to 5 minutes.
-   - Invalidate cache immediately upon successful mutations.
+   - Cache link map contexts per `linkMapId` with a TTL of up to 5 minutes for positive cache and 1 minute for negative cache.
 
 ## Limits and constraints
-- **Operational Constraints**:
-  - Map and entry counts are limited by the organization plan.
-  - Cannot delete a map that is referenced by active redirect rules.
-  - Changing `caseSensitive` from `true` to `false` is not allowed.
-
-- **Field Limits**:
-  - Entries must belong to a map in the same organization (via domain group).
-
-- **Error Handling**:
-  - `404` for inaccessible maps or entries.
-  - `400` for duplicate keys or invalid formats.
-  - `500` for safety scanner failures.
+- **Map and Entry Limits**: Limited by the organization plan.
+- **Deletion Restrictions**: Cannot delete a map referenced by active redirect rules.
+- **Case Sensitivity**: Cannot change `caseSensitive` from `true` to `false` after creation.
+- **Entry Ownership**: Entries must belong to a map within the same organization (via domain group).
+- **Cache Invalidation**: Changes to maps or entries invalidate the cache immediately for that `linkMapId`.
 
 ## Related docs and API areas
 - [Link maps guide](../guides/link-maps.md)

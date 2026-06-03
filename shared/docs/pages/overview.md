@@ -4,25 +4,103 @@ Use this documentation to configure redirect routing, manage domains and link ma
 
 This page is the docs **hub** — follow the tutorial steps first, then use the map below when you know what you need.
 
-**New here?** Read [What is LinkShift.app?](./intro/what-is-linkshift.md) for a business-technical overview of the platform and rules engine.
+---
+
+## What is LinkShift.app?
+
+LinkShift.app is a programmable redirect platform. You define **where traffic should go** with redirect rules — and optional **link maps** when you need thousands of short keys — instead of hard-coding URLs in your app or CDN.
+
+On each visit, a **rules engine** on the edge decides the outcome:
+
+- Match path, query, HTTP method, or regex
+- Resolve a dynamic destination (placeholders and conditionals), or look up a key in a link map
+- Return a single HTTP redirect — or no redirect if nothing matches
+
+The same engine powers live traffic, batch simulation, redirect tests, and analytics.
 
 ---
 
-## What LinkShift provides
+## Request flow (live redirect)
 
-LinkShift is a redirect management platform. You define **where incoming traffic should go** using redirect rules, optionally backed by link maps for thousands of short keys.
+```mermaid
+flowchart TD
+  REQ[Incoming HTTP request] --> RL[Org redirect rate limit]
+  RL --> ACC[Organization access check]
+  ACC --> ROB{robots.txt path?}
+  ROB -->|Yes| RT[Serve robots policy]
+  ROB -->|No| SORT["Rules sorted: priority ↓, createdAt ↓, id ↓"]
+  SORT --> LOOP{Next rule}
+  LOOP -->|matchMethod or source mismatch| LOOP
+  LOOP -->|link map miss, no fallback| LOOP
+  LOOP -->|target resolved| DEST["Placeholders, modifiers, ternaries"]
+  DEST --> BL{Absolute https URL?}
+  BL -->|Yes| SAFE[Destination blacklist]
+  BL -->|No| REDIR["Redirect 301 / 302 / 307 / 308"]
+  SAFE --> REDIR
+  LOOP -->|no rule returns target| N404[404 — no redirect]
+```
 
-Core capabilities:
+Step-by-step narrative and simulate differences: [Redirect engine — live pipeline](./concepts/redirect-engine-conditionals.md#live-redirect-pipeline-end-to-end).
 
-- **Domain groups** — organize domains, subdomains, and rules together
-- **Redirect rules** — path/query/regex matching, dynamic destinations, conditional routing
-- **Link maps** — scalable key → destination tables behind a single prefix rule
-- **Simulation and tests** — validate routing before and after deploys
-- **Analytics** — see which rules and link map keys get traffic
+---
+
+## What you get
+
+| Capability | What it means for you |
+|------------|------------------------|
+| **Redirect rules** | Path, query, regex, and wildcard matching; priorities; `301`/`302`/`307`/`308` |
+| **Dynamic destinations** | Placeholders (`{path}`, `{query.*}`, `{domain.*}`, …), 12 text/numeric modifiers, nested conditionals, `time()` / `random()` |
+| **Link maps** | One prefix rule + a table of keys → static HTTPS URLs (short links at scale) |
+| **Domains and groups** | Custom domains, LinkShift subdomains, robots policy, organization scoping |
+| **Simulation and tests** | `POST /redirect-rules/simulate` (up to 100 entries) and stored redirect tests for CI |
+| **Analytics** | Traffic per rule, link map key, and top request variants |
+| **Safety** | Destination scanning on write, ongoing automated monitoring, platform blacklist on absolute targets |
+
+LinkShift is **multi-tenant**: API keys and redirect traffic belong to an **organization**. Domain groups bundle domains, subdomains, and rules so production and staging stay isolated.
+
+---
+
+## How a redirect is decided
+
+Each request follows this order:
+
+1. Rate limit and organization access check
+2. Rules sorted by **`priority`** (highest first), then **`createdAt`** (newer wins ties), then **`id`**
+3. First rule that **returns a redirect target** wins
+
+A rule can match the path but still be skipped — for example when a link map lookup misses and the map has no `fallbackDestination`. The engine then tries the next rule.
+
+Detail: [Redirect rules — how routing works](./guides/redirect-rules-core.md#how-routing-works) · [Redirect engine — live pipeline](./concepts/redirect-engine-conditionals.md#live-redirect-pipeline-end-to-end).
+
+---
+
+## Who this documentation is for
+
+| Reader | Start here |
+|--------|------------|
+| **Dashboard operator** | [Dashboard overview](./guides/dashboard/dashboard-overview.md) → task guides by area (domain groups, rules, link maps, tests, analytics) |
+| **Account admin** (sign-in, invites, billing meters) | [Account and access](./guides/account-and-access.md) · [Billing and plans in the dashboard](./guides/billing-and-plans-in-dashboard.md) · [Organization and API keys](./guides/dashboard/organization-and-api-keys-in-dashboard.md) |
+| **New developer** | [Getting started](./guides/getting-started.md) → [Redirect rules](./guides/redirect-rules.md) → [Redirect engine concepts](./concepts/redirect-engine-concepts.md) |
+| **API integrator** | [API reference](./reference.md) and OpenAPI pages under `/docs/api/…` |
+| **Short-link operator** | [Link maps](./guides/link-maps.md) + [Link map entries](./guides/link-map-entries.md) |
+| **CI owner** | [Redirect tests](./guides/redirect-tests.md) + simulate with optional `checkDestinationBlacklist` |
+
+---
+
+## What LinkShift is not
+
+- **Not a CDN or origin host** — it issues HTTP redirects (and serves `robots.txt` per domain group policy); your apps stay on your infrastructure.
+- **Not a full edge compute platform** — no arbitrary JavaScript at the edge; routing logic uses the built-in template and conditional language.
+- **Not cookie or generic header routing** — use `{user-agent}`, `{accept-language}`, `{ip}`, path, and query; `{geo.country}` is planned, not shipped.
+- **Not a redirect chain follower on live traffic** — each visit gets **one** redirect response from LinkShift; the browser or client follows further hops separately.
 
 ---
 
 ## Tutorial — Your first redirect in 5 minutes
+
+:::info
+New to LinkShift? Start here — dashboard steps take about five minutes; the API checklist is linked below if you automate instead.
+:::
 
 ### In the dashboard
 
@@ -36,46 +114,13 @@ Point DNS at LinkShift when you are ready for live traffic.
 
 ### Automate instead
 
-1. Authenticate — all API calls use header `X-API-Key: <your_key>`. See [Getting started](./guides/getting-started.md).
-2. Create domain group + domain:
+Follow the [Getting started — API automation checklist](./guides/getting-started.md#api-automation-checklist): API key, domain group, domain, redirect rule, then simulate.
 
-```json
-POST /api/v1/domain-groups
-{ "name": "Production", "robotsPolicy": "NONE" }
+For routing patterns and copy-paste examples, see [Redirect rules — recipes](./guides/redirect-rules-recipes.md).
 
-POST /api/v1/domains
-{ "name": "links.example.com", "domainGroupId": "dmg_xxx" }
-```
-
-3. Create redirect rule:
-
-```json
-POST /api/v1/redirect-rules
-{
-  "domainGroupId": "dmg_xxx",
-  "source": "/old-page",
-  "destination": "https://example.com/new-page",
-  "statusCode": 301,
-  "queryMatch": "ignore"
-}
-```
-
-4. Verify with simulate:
-
-```json
-POST /api/v1/redirect-rules/simulate
-{
-  "entries": [
-    {
-      "domainGroupId": "dmg_xxx",
-      "path": "/old-page",
-      "hostname": "links.example.com"
-    }
-  ]
-}
-```
-
-Expected: `matched: true`, `target: https://example.com/new-page`.
+:::ai-only
+Tutorial API sequence: POST `/api/v1/domain-groups`, POST `/api/v1/domains`, POST `/api/v1/redirect-rules` (example source `/old-page`, destination `https://example.com/new-page`, statusCode 301, queryMatch ignore), POST `/api/v1/redirect-rules/simulate` with domainGroupId, path `/old-page`, hostname `links.example.com`. Expected simulate: matched true, target https://example.com/new-page.
+:::
 
 ---
 
@@ -87,7 +132,6 @@ Use this **index** when you know what you need — lookup and deep links, not a 
 
 | Guide | When to read |
 |-------|--------------|
-| [What is LinkShift.app?](./intro/what-is-linkshift.md) | Platform purpose, engine capabilities, who each doc is for |
 | [Getting started](./guides/getting-started.md) | API keys, auth, plans, errors |
 | [Redirect rules](./guides/redirect-rules.md) | **Main routing guide** — index to matching, link maps, simulate, recipes |
 | [FAQ and troubleshooting](./guides/faq.md) | Index to overview FAQ, recipes, and engine edge-case FAQ |

@@ -1,25 +1,23 @@
 # Tools in the dashboard
 
-Use QR generation and redirect tracing inside the authenticated shell—the same utilities as the public site, without leaving your session.
+Use QR generation and redirect tracing inside the authenticated shell — the same utilities as the public site, without leaving your session. Sign in only; Tools do not require a domain group.
 
-## Before you start
-
-- Sign in (Tools do not require a domain group).
-
-## Tools hub (`/tools`)
+## Tools hub
 
 In the sidebar, select **Tools**.
 
 The page title is **Tools** with subtitle *Operational utilities for diagnosing redirects and generating share-ready QR assets.* Two cards are available:
 
-| Tool | Route | Action |
-|------|-------|--------|
-| QR Code Generator | `/tools/qr-code-generator` | **Open tool** |
-| Redirect Tester | `/tools/redirect-tester` | **Open tool** |
+| Tool | Action |
+|------|--------|
+| **QR Code Generator** | **Open tool** |
+| **Redirect Tester** | **Open tool** |
 
-Public equivalents (marketing shell) live at `/qr-code-generator` and `/redirect-tester` if you are not signed in.
+Signed-out visitors can use the same tools from the marketing site (public URLs differ from the dashboard shell). For API details, see [Public tools API](../public-tools-api.md).
 
-These tools are **not** in the Management API OpenAPI (`linkshift-api-keys`). They use the separate public tools service. Each trace request returns **one hop**; the UI follows chains client-side with hop limits and loop detection. See [Public tools API](../public-tools-api.md) and [Redirect engine — edge cases](../../concepts/redirect-engine-edge-cases.md#advanced-engineering-faq).
+:::ai-only
+Dashboard: Tools `/tools`, QR `/tools/qr-code-generator`, Redirect Tester `/tools/redirect-tester`. Public marketing: `/qr-code-generator`, `/redirect-tester`. These tools are not in the Management API OpenAPI (`linkshift-api-keys`). They use the separate public tools service. Each trace request returns one hop; the UI follows chains client-side with hop limits and loop detection. See Public tools API and Redirect engine edge cases — advanced engineering FAQ.
+:::
 
 ## QR Code Generator
 

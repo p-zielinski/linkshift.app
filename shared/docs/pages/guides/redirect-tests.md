@@ -23,7 +23,9 @@ A redirect test is a fixture:
 | `requestData` | Optional method, headers, IP, User-Agent, etc. |
 | `expectedResult` | Expected `matched`, `statusCode`, `target` |
 
-Tests are **stored expectations**. Simulation is **live evaluation** against current rules. Your CI compares the two.
+:::info
+Redirect tests are **stored expectations**; `POST /redirect-rules/simulate` is **live evaluation** against current rules. In CI, run simulate (or the test runner) and compare to each fixture's `expectedResult`.
+:::
 
 ---
 

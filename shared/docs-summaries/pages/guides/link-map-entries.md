@@ -1,95 +1,95 @@
 ---
 source: shared/docs/pages/guides/link-map-entries.md
-generatedAt: 2026-05-30T07:01:44.413Z
+generatedAt: 2026-06-03T16:59:13.641Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for developers and administrators managing link maps, explaining how to create, update, delete, and import link map entries.
+This document is for developers and administrators managing link map entries, explaining how to perform CRUD operations, bulk imports, and key format rules.
 
 ## What this doc covers
 - Overview of link map entries and their structure
-- CRUD operations for single entries
-- Bulk import and delete operations
+- CRUD operations for link map entries
+- Bulk import and rollback of entries
 - Key format rules and validation
-- Operational workflows for managing campaigns
+- Operational workflows for campaigns
 - Safety validation for destinations
 - Error reference for common issues
 
 ## Key workflows and rules
 ### Single Entry CRUD
-- **Create Entry**: 
-  ```json
-  POST /api/v1/link-map-entries
-  {
-    "linkMapId": "lmap_abc123",
-    "key": "summer",
-    "destination": "https://shop.example.com/summer-sale"
-  }
-  ```
-- **Update Entry**: 
-  ```json
-  PUT /api/v1/link-map-entries/:id
-  {
-    "destination": "https://shop.example.com/summer-extended"
-  }
-  ```
-  or change the key:
-  ```json
-  PUT /api/v1/link-map-entries/:id
-  {
-    "key": "summer-2025",
-    "destination": "https://shop.example.com/summer-2025"
-  }
-  ```
-- **Delete Entry**: 
-  ```
-  DELETE /api/v1/link-map-entries/:id
-  ```
+1. **Create Entry**
+   - Endpoint: `POST /api/v1/link-map-entries`
+   - Request Body:
+     ```json
+     {
+       "linkMapId": "lmap_abc123",
+       "key": "summer",
+       "destination": "https://shop.example.com/summer-sale"
+     }
+     ```
 
-### Bulk Operations
-- **Bulk Import**: 
+2. **Update Entry**
+   - Endpoint: `PUT /api/v1/link-map-entries/:id`
+   - Request Body:
+     ```json
+     {
+       "destination": "https://shop.example.com/summer-extended"
+     }
+     ```
+   - To change the key:
+     ```json
+     {
+       "key": "summer-2025",
+       "destination": "https://shop.example.com/summer-2025"
+     }
+     ```
+
+3. **Delete Entry**
+   - Endpoint: `DELETE /api/v1/link-map-entries/:id`
+
+### Bulk Import
+- Endpoint: `POST /api/v1/link-map-entries/import`
+- Upsert up to **500 entries** per request.
+- Request Body Example:
   ```json
-  POST /api/v1/link-map-entries/import
   {
     "linkMapId": "lmap_abc123",
     "entries": [
       {
         "key": "summer",
         "destination": "https://shop.example.com/summer"
-      },
-      {
-        "key": "winter",
-        "destination": "https://shop.example.com/winter"
       }
     ]
   }
   ```
-  Up to **500 entries** can be imported per request.
-  
-- **Bulk Delete (Rollback)**: 
+
+### Bulk Delete (Rollback)
+- Endpoint: `DELETE /api/v1/link-map-entries`
+- Request Body:
   ```json
-  DELETE /api/v1/link-map-entries
   {
     "linkMapId": "lmap_abc123",
-    "entryIds": ["lentry_1", "lentry_2"]
+    "entryIds": ["lentry_1", "lentry_2", "lentry_3"]
   }
   ```
-  Up to **1,000 entryIds** can be deleted per request.
+- Up to **1,000** `entryIds` per request.
 
-### Campaign Management
+### Launch Campaign Workflow
 1. Create a map with `fallbackDestination`.
 2. Import entries via `/import`.
-3. Attach a redirect rule.
+3. Attach redirect rule with prefix.
 4. Simulate on sample URLs.
-5. Monitor analytics for performance.
+5. Monitor analytics.
 
 ## Limits and constraints
-- **Key Length**: Maximum of **1,024 characters**.
-- **Destination Length**: Maximum of **16,384 characters**.
+- **Key Length**: Maximum of **1,024** characters.
+- **Destination Length**: Maximum of **16,384** characters.
 - **Bulk Import Limit**: Up to **500 entries** per request.
-- **Bulk Delete Limit**: Up to **1,000 entryIds** per request.
-- **Key Format**: Must not contain spaces, `%`, `#`, or be a full URL. Must be a path or path+query.
+- **Bulk Delete Limit**: Up to **1,000 entry IDs** per request.
+- **Key Format Rules**:
+  - Must not contain spaces, `%`, `#`, or full URLs.
+  - Must be a path or path+query, not a full URL.
 - **Safety Validation**: Every destination must start with `http://` or `https://` and pass a safety scanner.
 
 ## Related docs and API areas
@@ -97,4 +97,4 @@ This document is for developers and administrators managing link maps, explainin
 - [Link maps in the dashboard](./dashboard/link-maps-in-dashboard.md)
 - [Redirect rules](./redirect-rules.md)
 - [Simulate before rollout](./redirect-rules-operations.md#simulate-before-rollout)
-- [Analytics for link maps](./redirect-rules-operations.md#analytics)
+- [Analytics](./redirect-rules-operations.md#analytics)

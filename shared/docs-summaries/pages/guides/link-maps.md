@@ -1,63 +1,82 @@
 ---
 source: shared/docs/pages/guides/link-maps.md
-generatedAt: 2026-05-30T07:01:55.285Z
+generatedAt: 2026-06-03T16:59:23.195Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for users managing link maps in LinkShift, explaining how to create and utilize link maps for efficient URL redirection.
+This document is for developers and administrators who need to understand how to implement and manage link maps for URL redirection in the LinkShift platform.
 
 ## What this doc covers
-- Overview of link maps as keyed lookup tables.
-- Dashboard navigation for managing link maps.
+- Overview of link maps as keyed lookup tables for URL redirection.
+- Dashboard management for link maps.
 - Scenarios for using link maps versus traditional redirect rules.
-- Step-by-step end-to-end workflow for creating link maps and entries.
-- Key extraction methods from request paths.
-- Query matching strategies for link map entries.
-- Case sensitivity settings and their implications.
+- End-to-end workflow for creating link maps and adding entries.
+- Key extraction methods for link map lookups.
+- Query matching strategies for link maps.
+- Case sensitivity settings for link map keys.
+- Handling requests that hit only the prefix of a link map.
 - Fallback destination behavior when no entry matches.
-- Examples of use cases for different query match strategies.
-- API endpoints for managing link maps.
+- Examples of use cases for link maps.
+- API endpoints related to link maps.
+- Constraints and limits on link maps.
 
 ## Key workflows and rules
-1. **Create Link Map**
-   - Endpoint: `POST /api/v1/link-maps`
-   - Required fields: 
-     - `name`: Name of the link map.
-     - `domainGroupId`: ID of the domain group.
-     - `queryMatch`: Matching strategy (default is `ignore`).
-     - `caseSensitive`: Boolean for case sensitivity (default is `false`).
-     - `fallbackDestination`: Optional URL for unmatched entries.
-   - Important: Changing `caseSensitive` from `true` to `false` is not allowed.
+### Step 1 — Create link map
+- **Endpoint:** `POST /api/v1/link-maps`
+- **Request Body:**
+  ```json
+  {
+    "name": "Summer campaign",
+    "domainGroupId": "dmg_prod",
+    "queryMatch": "ignore",
+    "caseSensitive": false,
+    "fallbackDestination": "https://example.com/link-expired"
+  }
+  ```
+- **Fields:**
+  - `queryMatch`: Determines how entries match request queries.
+  - `caseSensitive`: Normalization of keys (default is `false`).
+  - `fallbackDestination`: URL used when no entry matches (recommended).
 
-2. **Add Entries**
-   - Endpoint: `POST /api/v1/link-map-entries`
-   - Required fields:
-     - `linkMapId`: ID of the link map.
-     - `key`: The suffix key for the entry.
-     - `destination`: The static URL for the entry.
-   - Bulk import allowed via `POST /api/v1/link-map-entries/import` (up to 500 entries).
+### Step 2 — Add entries
+- **Endpoint:** `POST /api/v1/link-map-entries`
+- **Request Body:**
+  ```json
+  {
+    "linkMapId": "lmap_abc123",
+    "key": "summer",
+    "destination": "https://shop.example.com/summer-sale"
+  }
+  ```
+- **Bulk Import:** Up to **500** entries via `POST /api/v1/link-map-entries/import`.
 
-3. **Create Redirect Rule**
-   - Endpoint: `POST /api/v1/redirect-rules`
-   - Required fields:
-     - `domainGroupId`: ID of the domain group.
-     - `source`: Path prefix for the rule.
-     - `pathMatch`: Must be `prefix`.
-     - `queryMatch`: Must be `ignore`.
-     - `linkMapId`: ID of the link map.
-     - `statusCode`: HTTP status code for the redirect.
-     - `priority`: Rule priority.
+### Step 3 — Create redirect rule
+- **Endpoint:** `POST /api/v1/redirect-rules`
+- **Request Body:**
+  ```json
+  {
+    "domainGroupId": "dmg_prod",
+    "source": "/go",
+    "pathMatch": "prefix",
+    "queryMatch": "ignore",
+    "linkMapId": "lmap_abc123",
+    "destination": null,
+    "statusCode": 302,
+    "priority": 100
+  }
+  ```
 
-4. **Testing Redirects**
-   - Use `GET` requests to test the redirect behavior and verify entries.
+### Step 4 — Test
+- **Example Request:** `GET https://links.example.com/go/summer?utm=email`
+- **Expected Outcome:** Redirects to `https://shop.example.com/summer-sale`.
 
 ## Limits and constraints
-- Organization-scoped maps based on domain group ownership.
-- Plan limits apply to the number of maps and total entries.
-- Cannot delete a map that is referenced by active redirect rules.
-- Destinations must be valid URLs (`http://` or `https://`); unsafe URLs return a `400 Bad Request`.
-- Cache behavior: Successful loads are cached for up to 5 minutes; mutations invalidate the cache immediately.
+- **Organization Scope:** Maps are scoped to domain groups.
+- **Plan Limits:** Apply to the number of maps and total entries.
+- **Deletion Restrictions:** Cannot delete a map referenced by active redirect rules.
+- **URL Safety Checks:** Destinations must be valid URLs (`http://` or `https://`).
+- **Cache Behavior:** Link map data is cached for up to 5 minutes; negative cache for deleted maps lasts up to 60 seconds.
 
 ## Related docs and API areas
 - [Redirect rules](./redirect-rules.md)
@@ -65,7 +84,8 @@ This document is for users managing link maps in LinkShift, explaining how to cr
 - [Link map concepts](../concepts/link-map-concepts.md)
 - [Redirect engine concepts](../concepts/redirect-engine-concepts.md)
 - API endpoints:
-  - `GET /api/v1/link-maps?domainGroupId=...`: List all maps in the group.
-  - `GET /api/v1/link-maps/:id`: Get a specific map.
-  - `PUT /api/v1/link-maps/:id`: Update a map.
-  - `DELETE /api/v1/link-maps/:id`: Delete a map.
+  - `GET /api/v1/link-maps?domainGroupId=...`
+  - `GET /api/v1/link-maps/:id`
+  - `POST /api/v1/link-maps`
+  - `PUT /api/v1/link-maps/:id`
+  - `DELETE /api/v1/link-maps/:id`

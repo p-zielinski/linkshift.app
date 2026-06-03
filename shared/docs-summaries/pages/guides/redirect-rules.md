@@ -1,6 +1,6 @@
 ---
 source: shared/docs/pages/guides/redirect-rules.md
-generatedAt: 2026-05-30T07:03:08.287Z
+generatedAt: 2026-06-03T17:00:21.526Z
 model: gpt-4o-mini
 ---
 
@@ -11,7 +11,7 @@ This document is for users of LinkShift who need guidance on creating and managi
 - Overview of redirect rules and their purpose in routing.
 - Instructions for accessing and using the Redirect Rules feature in the dashboard.
 - Recommended reading order for understanding conditional routing and related concepts.
-- Links to specific guides covering various aspects of redirect rules:
+- Links to specific guides on various aspects of redirect rules:
   - Matching and destinations
   - Link maps and redirect rules
   - Validation, simulation, and analytics
@@ -21,21 +21,19 @@ This document is for users of LinkShift who need guidance on creating and managi
 
 ## Key workflows and rules
 1. **Accessing Redirect Rules**: 
-   - Open the LinkShift dashboard.
-   - Navigate to the sidebar and select **Redirect Rules**.
-   - Click on **Add rule** to initiate the rule creation wizard, which includes steps for defining scope, matching criteria, destination, and status.
-
-2. **Recommended Reading Order for Conditional Routing**:
-   - Start with [Redirect engine concepts](../concepts/redirect-engine-concepts.md).
-   - Proceed to [Engine — variables](../concepts/redirect-engine-variables.md).
-   - Continue with [Engine — conditionals](../concepts/redirect-engine-conditionals.md).
-   - Follow up with [Redirect rules — recipes](./redirect-rules-recipes.md).
-   - Review [Redirect rules — matching](./redirect-rules-core.md) for field references.
-   - Finally, check [Redirect rules — simulate](./redirect-rules-operations.md) for simulation guidance.
+   - Open the sidebar in the dashboard, select **Redirect Rules**, and click **Add rule** to start the wizard.
+2. **Recommended Reading Order**: 
+   - Before editing production rules that involve placeholders or conditionals, follow this order:
+     1. Redirect engine concepts
+     2. Engine — variables
+     3. Engine — conditionals
+     4. Redirect rules — recipes
+     5. Redirect rules — matching
+     6. Redirect rules — simulate
 
 ## Limits and constraints
-- The document does not specify explicit quotas or limits for redirect rules.
-- Users should refer to the linked guides for details on rate limits, caching, and validation rules.
+- The document references rate limits and caching but does not specify exact quotas or limits.
+- For detailed field references and matching criteria, users are directed to the "Matching and destinations" guide.
 
 ## Related docs and API areas
 - [Redirect engine concepts](../concepts/redirect-engine-concepts.md)
