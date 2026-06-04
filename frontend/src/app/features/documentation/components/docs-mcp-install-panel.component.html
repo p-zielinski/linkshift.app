@@ -1,0 +1,16 @@
+<mat-card class="border border-[rgba(31,24,28,0.14)] bg-[#fff] p-5 sm:p-6">
+  <h2 class="text-lg font-semibold">Add LinkShift MCP in Cursor</h2>
+  <p class="mt-2 text-sm text-app-muted">
+    Connect Cursor to read-only docs tools plus public redirect trace and QR on this environment.
+  </p>
+  <p class="mt-2 break-all font-mono text-xs text-app-muted">{{ mcpUrl() }}</p>
+
+  <div class="mt-4 flex flex-wrap gap-2">
+    <a mat-flat-button color="primary" [href]="cursorInstallHref()">Add to Cursor</a>
+    <button mat-stroked-button type="button" (click)="copyMcpConfig()">Copy MCP config</button>
+  </div>
+
+  <p class="mt-4 text-sm text-app-muted">
+    MCP is public on this environment. Requests are limited per IP, like redirect trace and QR.
+  </p>
+</mat-card>

@@ -52,6 +52,7 @@ Public marketing tools are served by a dedicated service:
   - `GET /trace` (single-step alias)
   - `POST /api/v1/public/docs/search` — docs assistant (Turnstile + rate limits)
   - `POST /api/v1/public/docs/rate` — thumbs up/down on answers
+  - `POST /api/v1/public/mcp` — MCP Streamable HTTP (read-only docs tools + `trace_redirect` + `generate_qr_code`; public, per-IP rate limit `MCP_RATE_LIMIT_PER_MINUTE` only)
 - Redirect trace behavior:
   - One API call returns one hop (`maxRedirects: 0`)
   - Frontend decides whether to continue and applies hop limit/loop detection

@@ -68,11 +68,13 @@ $theme: mat.m2-define-light-theme(
     system-ui,
     -apple-system,
     sans-serif;
-  --app-background: #fdf6f8;
+  --app-background: #f8f7f8;
   --app-surface: #ffffff;
   --app-border: rgba(28, 20, 24, 0.18);
   --app-accent: #c03762;
   --app-accent-strong: #8f2045;
+  --app-cta: #1f181c;
+  --app-cta-hover: #2d2429;
   --app-accent-soft: rgba(192, 55, 98, 0.16);
   --app-text: #1f181c;
   --app-muted: #4a3b42;
@@ -127,7 +129,7 @@ $theme: mat.m2-define-light-theme(
 
 body {
   margin: 0;
-  background: radial-gradient(circle at top left, #fff0f5 0%, #f9f3f6 45%, #f4eef2 100%);
+  background: radial-gradient(circle at top left, #fafafa 0%, #f8f7f8 45%, #f3f2f3 100%);
   color: var(--app-text);
 }
 
@@ -267,6 +269,31 @@ body {
 .mat-mdc-icon-button.mat-primary {
   --mdc-text-button-label-text-color: var(--app-accent-strong);
   --mdc-icon-button-icon-color: var(--app-accent-strong);
+}
+
+.mat-mdc-button-base.app-cta-button {
+  --mdc-filled-button-container-color: var(--app-cta);
+  --mdc-filled-button-label-text-color: #ffffff;
+  --mdc-protected-button-container-color: var(--app-cta);
+  --mdc-protected-button-label-text-color: #ffffff;
+  --mat-mdc-button-persistent-ripple-color: rgba(255, 255, 255, 0.24);
+  --mat-mdc-button-ripple-color: rgba(255, 255, 255, 0.3);
+}
+
+.mat-mdc-unelevated-button.app-cta-button:not(:disabled):not(.mat-mdc-button-disabled),
+.mat-mdc-raised-button.app-cta-button:not(:disabled):not(.mat-mdc-button-disabled) {
+  background-color: var(--app-cta) !important;
+  color: #ffffff !important;
+}
+
+.mat-mdc-unelevated-button.app-cta-button:not(:disabled):not(.mat-mdc-button-disabled):hover,
+.mat-mdc-raised-button.app-cta-button:not(:disabled):not(.mat-mdc-button-disabled):hover {
+  background-color: var(--app-cta-hover) !important;
+}
+
+.mat-mdc-outlined-button.app-neutral-stroked-button {
+  --mdc-outlined-button-label-text-color: var(--app-text);
+  --mdc-outlined-button-outline-color: rgba(31, 24, 28, 0.28);
 }
 
 @media (max-width: 1023px) {

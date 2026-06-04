@@ -27,6 +27,22 @@ describe('buildDocumentationSidebarNavGroups', () => {
     );
   });
 
+  it('groups public tools and docs MCP separately from Management API routing', () => {
+    const groups = buildDocumentationSidebarNavGroups(DOCUMENTATION_MARKDOWN_PAGES);
+    const publicTools = groups.find((group) => group.id === 'public-tools');
+    const routingApi = groups.find((group) => group.id === 'routing-api');
+
+    expect(publicTools?.pages.map((page) => page.slug)).toEqual([
+      'public-tools-api',
+      'linkshift-mcp',
+    ]);
+    expect(routingApi?.pages.map((page) => page.slug)).toEqual([
+      'domains-and-groups',
+      'redirect-rules',
+      'link-maps',
+    ]);
+  });
+
   it('keeps redirect engine depth guides together', () => {
     const groups = buildDocumentationSidebarNavGroups(DOCUMENTATION_MARKDOWN_PAGES);
     const redirectEngine = groups.find((group) => group.id === 'redirect-engine');

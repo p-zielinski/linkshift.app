@@ -23,7 +23,7 @@
   <mat-sidenav-content class="flex min-h-0 flex-col">
     @if (!isMobile()) {
       <mat-toolbar
-        class="docs-site-toolbar sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fff3f6_0%,#fff_55%,#f7edf2_100%)] text-[#241c21]"
+        class="docs-site-toolbar sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fafafa_0%,#fff_55%,#f5f4f6_100%)] text-[#241c21]"
       >
         <div class="mx-auto flex w-full max-w-[1280px] flex-wrap items-center gap-4 px-4 py-2">
           <a class="inline-flex items-center gap-2.5 no-underline text-inherit" routerLink="/home">
@@ -32,7 +32,7 @@
 
           <span class="flex-1"></span>
 
-          <nav class="inline-flex items-center gap-1">
+          <nav class="hidden items-center gap-1 md:inline-flex">
             <a
               mat-button
               class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
@@ -77,14 +77,16 @@
             >
           </nav>
 
-          <div class="inline-flex items-center gap-2">
+          <div class="hidden items-center gap-2 md:inline-flex">
             <a
               mat-button
               class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
               routerLink="/auth"
               >Sign in</a
             >
-            <a mat-flat-button color="primary" routerLink="/auth">Start now</a>
+            <a mat-flat-button color="primary" class="app-cta-button" routerLink="/auth"
+              >Start now</a
+            >
           </div>
         </div>
       </mat-toolbar>

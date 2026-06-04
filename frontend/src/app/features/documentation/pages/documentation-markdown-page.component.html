@@ -23,6 +23,10 @@
       <p class="mt-2 text-app-muted">{{ pageData.description }}</p>
     </mat-card>
 
+    @if (pageSlug() === 'linkshift-mcp') {
+      <app-docs-mcp-install-panel />
+    }
+
     <mat-card class="min-w-0 overflow-hidden p-5 sm:p-6">
       <app-markdown-renderer [markdown]="pageData.markdown" [sourcePath]="pageData.sourcePath" />
     </mat-card>

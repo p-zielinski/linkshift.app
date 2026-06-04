@@ -491,7 +491,7 @@ paths:
   /api/v1/redirect-rules:
     get:
       tags: [Redirect Rules]
-      summary: List redirect rules (cursor)
+      summary: List redirect rules
       description: |
         Lists redirect rules for one `domainGroupId`, highest `priority` first.
         Page with `limit` (default 20, max 100) and `startAfterId` from `moreStartingAfterId` on the previous response.
@@ -753,7 +753,7 @@ paths:
   /api/v1/redirect-tests:
     get:
       tags: [Redirect Tests]
-      summary: List redirect tests (cursor)
+      summary: List redirect tests
       description: |
         Lists stored CI/regression fixtures for one `domainGroupId`.
         Default `limit` is 100 (max 100). Use `startAfterId` from `moreStartingAfterId` to walk pages.
@@ -1055,7 +1055,7 @@ paths:
   /api/v1/link-map-entries:
     get:
       tags: [Link Map Entries]
-      summary: List link map entries (cursor)
+      summary: List link map entries
       description: |
         Pages keys inside one `linkMapId` (default `limit` 20, max 100).
         Response uses `hasMore` / `moreStartingAfterId` (no `dataType` field). Optional `search` scans keys and destinations (max 1024 chars).
