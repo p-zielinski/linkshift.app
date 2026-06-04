@@ -31,7 +31,7 @@
 .docs-sidebar {
   width: 340px;
   border-right: 1px solid rgba(31, 24, 28, 0.1);
-  background: linear-gradient(180deg, #fff7fa 0%, #fff 100%);
+  background: linear-gradient(180deg, #fafafa 0%, #fff 100%);
 }
 
 :host ::ng-deep .docs-sidebar.mat-drawer {

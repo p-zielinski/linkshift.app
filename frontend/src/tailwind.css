@@ -3,7 +3,9 @@
 @source "./src/**/*.{html,ts}";
 
 @theme {
-  --color-app-background: #fdf6f8;
+  --color-app-background: #f8f7f8;
+  --color-app-cta: #1f181c;
+  --color-app-cta-hover: #2d2429;
   --color-app-surface: #ffffff;
   --color-app-border: rgba(28, 20, 24, 0.18);
   --color-app-border-soft: rgba(216, 76, 119, 0.18);
@@ -18,7 +20,7 @@
   --color-app-ink-strong: #3a2a31;
   --color-app-ink-muted: #6c5a62;
   --color-app-outline: #b7a3ad;
-  --color-app-shell-start: #fff2f6;
-  --color-app-shell-mid: #f9f1f4;
-  --color-app-shell-end: #f4eef2;
+  --color-app-shell-start: #fafafa;
+  --color-app-shell-mid: #f8f7f8;
+  --color-app-shell-end: #f3f2f3;
 }

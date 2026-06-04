@@ -7,7 +7,7 @@
     (openedChange)="onSidenavOpenedChange($event)"
   >
     <div
-      class="flex h-full flex-col bg-[linear-gradient(160deg,#fff0f5_0%,#fff_55%,#f7edf2_100%)] px-4 py-5"
+      class="flex h-full flex-col bg-[linear-gradient(160deg,#fafafa_0%,#fff_55%,#f5f4f6_100%)] px-4 py-5"
     >
       <a
         class="mb-4 inline-flex items-center gap-2.5 no-underline text-inherit"
@@ -81,7 +81,14 @@
           (click)="onNavigate()"
           >Sign in</a
         >
-        <a mat-flat-button color="primary" routerLink="/auth" (click)="onNavigate()">Start now</a>
+        <a
+          mat-flat-button
+          color="primary"
+          class="app-cta-button"
+          routerLink="/auth"
+          (click)="onNavigate()"
+          >Start now</a
+        >
       </div>
     </div>
   </mat-sidenav>
@@ -89,7 +96,7 @@
   <mat-sidenav-content class="block h-full">
     <div class="flex min-h-screen flex-col">
       <mat-toolbar
-        class="sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fff3f6_0%,#fff_55%,#f7edf2_100%)] text-[#241c21]"
+        class="sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fafafa_0%,#fff_55%,#f5f4f6_100%)] text-[#241c21]"
       >
         <div class="mx-auto flex w-full max-w-[1280px] flex-wrap items-center gap-4 px-4 py-2">
           <div class="inline-flex items-center gap-3">
@@ -168,7 +175,9 @@
               routerLink="/auth"
               >Sign in</a
             >
-            <a mat-flat-button color="primary" routerLink="/auth">Start now</a>
+            <a mat-flat-button color="primary" class="app-cta-button" routerLink="/auth"
+              >Start now</a
+            >
           </div>
         </div>
       </mat-toolbar>

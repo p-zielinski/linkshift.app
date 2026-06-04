@@ -8,12 +8,16 @@
       <p class="hero-subtitle">{{ subtitle() }}</p>
 
       <div class="hero-actions">
-        <a mat-flat-button color="primary" [routerLink]="primaryCtaLink()">
+        <a mat-flat-button color="primary" class="app-cta-button" [routerLink]="primaryCtaLink()">
           <mat-icon>bolt</mat-icon>
           <span>{{ primaryCtaLabel() }}</span>
         </a>
         @if (secondaryCtaLabel() && secondaryCtaLink()) {
-          <a mat-stroked-button [routerLink]="secondaryCtaLink()">
+          <a
+            mat-stroked-button
+            class="app-neutral-stroked-button"
+            [routerLink]="secondaryCtaLink()"
+          >
             <mat-icon>info</mat-icon>
             <span>{{ secondaryCtaLabel() }}</span>
           </a>

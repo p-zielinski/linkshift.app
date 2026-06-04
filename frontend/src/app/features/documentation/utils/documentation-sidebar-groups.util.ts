@@ -8,12 +8,13 @@ export type DocumentationSidebarNavGroup = {
 
 const START_GUIDE_SLUGS = new Set(['getting-started', 'account-and-access', 'faq']);
 
-const API_INTEGRATION_GUIDE_SLUGS = new Set([
-  'public-tools-api',
+const ROUTING_API_GUIDE_SLUGS = new Set([
   'domains-and-groups',
   'redirect-rules',
   'link-maps',
 ]);
+
+const PUBLIC_TOOLS_GUIDE_SLUGS = new Set(['public-tools-api', 'linkshift-mcp']);
 
 const REDIRECT_ENGINE_GUIDE_SLUGS = new Set([
   'redirect-rules-core',
@@ -86,8 +87,12 @@ export function buildDocumentationSidebarNavGroups(
 
   const dashboardPages = takeGuides(guides, assigned, isDashboardGuide);
 
-  const apiIntegrationPages = takeGuides(guides, assigned, (slug) =>
-    API_INTEGRATION_GUIDE_SLUGS.has(slug),
+  const routingApiPages = takeGuides(guides, assigned, (slug) =>
+    ROUTING_API_GUIDE_SLUGS.has(slug),
+  );
+
+  const publicToolsPages = takeGuides(guides, assigned, (slug) =>
+    PUBLIC_TOOLS_GUIDE_SLUGS.has(slug),
   );
 
   const redirectEnginePages = takeGuides(guides, assigned, (slug) =>
@@ -99,7 +104,8 @@ export function buildDocumentationSidebarNavGroups(
   const groups: DocumentationSidebarNavGroup[] = [
     { id: 'start', label: 'Start', pages: startPages },
     { id: 'dashboard', label: 'Dashboard', pages: dashboardPages },
-    { id: 'api-integration', label: 'API & integration', pages: apiIntegrationPages },
+    { id: 'routing-api', label: 'Routing & Management API', pages: routingApiPages },
+    { id: 'public-tools', label: 'Public tools', pages: publicToolsPages },
     { id: 'redirect-engine', label: 'Redirect engine', pages: redirectEnginePages },
     { id: 'concepts', label: 'Concepts', pages: concepts },
     {

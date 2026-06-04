@@ -9,6 +9,7 @@ import { QrCodeRateLimitService } from '../qr-code/qr-code-rate-limit.service';
 import { QrCodeService } from '../qr-code/qr-code.service';
 import { RedirectTraceRateLimitService } from '../redirect-trace/redirect-trace-rate-limit.service';
 import { RedirectTraceService } from '../redirect-trace/redirect-trace.service';
+import { extractClientIp } from '../utils/client-ip.util';
 
 @Controller('api/v1/public')
 export class PublicToolsController {
@@ -28,7 +29,7 @@ export class PublicToolsController {
     @Query(new ZodPipe(qrCodeSchemas.GenerateQrCodeQuerySchema))
     query: qrCodeSchemas.GenerateQrCodeQueryDto,
   ) {
-    const clientIp = this.extractClientIp(request);
+    const clientIp = extractClientIp(request);
     await this.qrCodeRateLimitService.check(clientIp);
 
     this.logger.log('Public QR code generation requested', {
@@ -60,7 +61,7 @@ export class PublicToolsController {
     @Query(new ZodPipe(redirectTraceSchemas.RedirectTraceQuerySchema))
     query: redirectTraceSchemas.RedirectTraceQueryDto,
   ) {
-    const clientIp = this.extractClientIp(request);
+    const clientIp = extractClientIp(request);
     await this.redirectTraceRateLimitService.check(clientIp);
 
     this.logger.log('Public redirect trace step requested', {
@@ -77,20 +78,5 @@ export class PublicToolsController {
     response.setHeader('Expires', '0');
 
     response.json(step);
-  }
-
-  private extractClientIp(request: Request): string | null {
-    const value = request.ip?.trim();
-    if (value) {
-      return value;
-    }
-
-    const forwarded = request.headers['x-forwarded-for'];
-    if (typeof forwarded === 'string') {
-      const [first] = forwarded.split(',');
-      return first?.trim() || null;
-    }
-
-    return null;
   }
 }
