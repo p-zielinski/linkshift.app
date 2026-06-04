@@ -6,6 +6,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ThrottlerModule } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { DocsAssistantController } from './api/docs-assistant.controller';
+import { McpController } from './mcp/mcp.controller';
 import { PublicToolsController } from './api/public-tools.controller';
 import { TraceController } from './api/trace.controller';
 import { AppController } from './app.controller';
@@ -18,6 +19,9 @@ import { QrCodeService } from './qr-code/qr-code.service';
 import { QrCodeRateLimitService } from './qr-code/qr-code-rate-limit.service';
 import { RedirectTraceService } from './redirect-trace/redirect-trace.service';
 import { RedirectTraceRateLimitService } from './redirect-trace/redirect-trace-rate-limit.service';
+import { McpDocsCatalogSearchService } from './mcp/mcp-docs-catalog-search.service';
+import { McpHttpService } from './mcp/mcp-http.service';
+import { McpRateLimitService } from './mcp/mcp-rate-limit.service';
 import { TurnstileGuard } from './security/turnstile.guard';
 import { createRequestId } from './utils';
 
@@ -87,7 +91,13 @@ import { createRequestId } from './utils';
     }),
     RedisModule,
   ],
-  controllers: [AppController, PublicToolsController, TraceController, DocsAssistantController],
+  controllers: [
+    AppController,
+    PublicToolsController,
+    TraceController,
+    DocsAssistantController,
+    McpController,
+  ],
   providers: [
     QrCodeService,
     QrCodeRateLimitService,
@@ -97,6 +107,9 @@ import { createRequestId } from './utils';
     DocsContentLoaderService,
     DocsAssistantService,
     DocsAssistantRateLimitService,
+    McpRateLimitService,
+    McpHttpService,
+    McpDocsCatalogSearchService,
     TurnstileGuard,
   ],
 })

@@ -62,6 +62,14 @@ pages:
       Public QR and single-hop redirect trace endpoints — separate from the
       Management API; security and dashboard tools cross-links.
 
+  - slug: linkshift-mcp
+    category: guide
+    source: pages/guides/linkshift-mcp.md
+    route: /docs/guides/linkshift-mcp
+    description: >-
+      Read-only docs MCP for AI clients — catalog search and page load, plus
+      public trace and QR; not Management API or Ask docs LLM; Cursor setup.
+
   - slug: domains-and-groups
     category: guide
     source: pages/guides/domains-and-groups.md

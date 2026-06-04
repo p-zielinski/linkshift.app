@@ -84,11 +84,11 @@
         <div class="flex items-center">
           @if (actionMode() === 'link') {
             @if (plan.featured) {
-              <a mat-flat-button color="primary" [routerLink]="plan.ctaLink">
+              <a mat-flat-button color="primary" class="app-cta-button" [routerLink]="plan.ctaLink">
                 {{ plan.ctaLabel }}
               </a>
             } @else {
-              <a mat-stroked-button [routerLink]="plan.ctaLink">
+              <a mat-stroked-button class="app-neutral-stroked-button" [routerLink]="plan.ctaLink">
                 {{ plan.ctaLabel }}
               </a>
             }
@@ -109,6 +109,7 @@
               <button
                 mat-flat-button
                 [color]="plan.featured ? 'primary' : undefined"
+                [class.app-cta-button]="plan.featured"
                 type="button"
                 (click)="selectPlan(plan.key)"
               >

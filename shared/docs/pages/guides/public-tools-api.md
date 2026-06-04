@@ -24,6 +24,7 @@ Base path on the public tools service:
 | `GET` | `/api/v1/public/qr-code` | Generate a QR image (query parameters for URL, format, size, optional download) |
 | `GET` | `/api/v1/public/trace` | Trace a single redirect hop for a URL (optional User-Agent) |
 | `GET` | `/trace` | Alias for single-hop trace (same behavior as `/api/v1/public/trace`) |
+| `POST` | `/api/v1/public/mcp` | Read-only docs MCP for AI clients (catalog search, page load, trace, QR) — see [LinkShift docs MCP](./linkshift-mcp.md) |
 
 These paths are **not** listed in the Management API OpenAPI spec (`linkshift-api-keys`).
 
@@ -37,7 +38,7 @@ These paths are **not** listed in the Management API OpenAPI spec (`linkshift-ap
 ## Security and limits
 
 :::warning
-Trace and QR endpoints apply **SSRF guards** and **per-IP rate limits** (defaults below). Do not use the service to probe internal networks; contact support if you need higher throughput.
+Trace, QR, and MCP apply **SSRF guards** (where URLs are fetched) and **per-IP rate limits** (defaults below). Do not use the service to probe internal networks; contact support if you need higher throughput.
 :::
 
 - **SSRF guard** — trace and related logic block localhost and private IP ranges so the service cannot be used to probe internal networks.
@@ -48,6 +49,7 @@ Trace and QR endpoints apply **SSRF guards** and **per-IP rate limits** (default
 |-----------------|-------------------------------------|-------|
 | QR (`/api/v1/public/qr-code`) | 600 | Configurable per deployment |
 | Trace (`/api/v1/public/trace`, `/trace`) | 240 | Configurable per deployment |
+| MCP (`POST /api/v1/public/mcp`) | 180 | Configurable per deployment (`MCP_RATE_LIMIT_PER_MINUTE`) |
 
 Rate limiting requires Redis. If Redis is unavailable, rate limiting may be skipped temporarily until Redis recovers. Contact support if you need higher throughput.
 
@@ -71,9 +73,20 @@ Details: [Tools in the dashboard](./dashboard/tools-in-dashboard.md).
 
 These pages call the same public tools endpoints through the configured tools API base URL.
 
+## Docs MCP (read-only)
+
+AI clients can search and load documentation pages over MCP (Streamable HTTP), plus call single-hop trace and QR generation. There is no `docs_ask` on MCP — no server-side LLM. The browser **Ask docs** assistant is separate.
+
+See [LinkShift docs MCP](./linkshift-mcp.md) for the endpoint URL, tools, rate limits, and Cursor configuration.
+
+## Documentation assistant
+
+The in-browser **Ask docs** assistant (dashboard and docs site) calls `POST /api/v1/public/docs/search` with a Turnstile token. That flow streams search status and returns an answer from the docs catalog. MCP exposes `docs_search_catalog` and `docs_get_page` instead — no Turnstile and no server-side LLM on the MCP path.
+
 ## Related
 
 - [Tools in the dashboard](./dashboard/tools-in-dashboard.md) — authenticated tools hub
 - [Redirect engine — edge cases](../concepts/redirect-engine-edge-cases.md#advanced-engineering-faq) — loops and multi-hop behavior
 - [Overview FAQ](../overview-faq.md) — trace and QR in common questions
+- [LinkShift docs MCP](./linkshift-mcp.md) — read-only docs MCP endpoint and Cursor setup
 - [Getting started](./getting-started.md) — Management API (separate product surface)

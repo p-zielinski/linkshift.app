@@ -6,6 +6,7 @@ import { ZodPipe } from '../pipes/zod.pipe';
 import * as redirectTraceSchemas from '../zod-schemas/redirect-trace.schemas';
 import { RedirectTraceRateLimitService } from '../redirect-trace/redirect-trace-rate-limit.service';
 import { RedirectTraceService } from '../redirect-trace/redirect-trace.service';
+import { extractClientIp } from '../utils/client-ip.util';
 
 @Controller()
 export class TraceController {
@@ -23,7 +24,7 @@ export class TraceController {
     @Query(new ZodPipe(redirectTraceSchemas.RedirectTraceQuerySchema))
     query: redirectTraceSchemas.RedirectTraceQueryDto,
   ) {
-    const clientIp = this.extractClientIp(request);
+    const clientIp = extractClientIp(request);
     await this.redirectTraceRateLimitService.check(clientIp);
 
     this.logger.log('Public redirect trace step requested (root route)', {
@@ -40,20 +41,5 @@ export class TraceController {
     response.setHeader('Expires', '0');
 
     response.json(step);
-  }
-
-  private extractClientIp(request: Request): string | null {
-    const value = request.ip?.trim();
-    if (value) {
-      return value;
-    }
-
-    const forwarded = request.headers['x-forwarded-for'];
-    if (typeof forwarded === 'string') {
-      const [first] = forwarded.split(',');
-      return first?.trim() || null;
-    }
-
-    return null;
   }
 }

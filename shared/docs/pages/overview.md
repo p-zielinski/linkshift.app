@@ -141,6 +141,7 @@ Use this **index** when you know what you need — lookup and deep links, not a 
 | **Invited to a team?** | [Account and access — Accept an invitation](./guides/account-and-access.md#accept-an-invitation) |
 | [Billing and plans in the dashboard](./guides/billing-and-plans-in-dashboard.md) | Usage meters, upgrade, Paddle portal, cancel |
 | [Public tools API](./guides/public-tools-api.md) | QR and redirect trace (not Management API) |
+| [LinkShift docs MCP](./guides/linkshift-mcp.md) | Read-only docs catalog for AI clients (Cursor); not Management API |
 | [Platform status](#platform-status) | Uptime, incidents, and maintenance at status.linkshift.app |
 
 ### Dashboard (authenticated app)

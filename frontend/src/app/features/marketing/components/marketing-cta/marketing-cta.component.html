@@ -7,12 +7,12 @@
     }
   </div>
   <div class="cta-actions">
-    <a mat-flat-button color="primary" [routerLink]="primaryLink()">
+    <a mat-flat-button color="primary" class="app-cta-button" [routerLink]="primaryLink()">
       <mat-icon>rocket_launch</mat-icon>
       <span>{{ primaryLabel() }}</span>
     </a>
     @if (secondaryLabel() && secondaryLink()) {
-      <a mat-stroked-button [routerLink]="secondaryLink()">
+      <a mat-stroked-button class="app-neutral-stroked-button" [routerLink]="secondaryLink()">
         <mat-icon>contact_support</mat-icon>
         <span>{{ secondaryLabel() }}</span>
       </a>
