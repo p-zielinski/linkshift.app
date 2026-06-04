@@ -1,6 +1,6 @@
 ---
 source: shared/docs/pages/overview.md
-generatedAt: 2026-06-03T21:35:20.788Z
+generatedAt: 2026-06-04T19:33:49.802Z
 model: gpt-4o-mini
 ---
 
@@ -8,43 +8,45 @@ model: gpt-4o-mini
 This documentation is for users of LinkShift.app, explaining how to configure redirect routing, manage domains and link maps, and inspect API contracts.
 
 ## What this doc covers
-- Overview of LinkShift.app as a programmable redirect platform
+- Overview of LinkShift.app and its capabilities
 - Request flow for live redirects
-- Capabilities of LinkShift, including redirect rules, dynamic destinations, link maps, domains, simulation, analytics, and safety features
-- Step-by-step tutorial for creating a redirect
-- Documentation map for further reading
+- How a redirect is decided
+- User roles and starting points for different readers
+- Tutorial for creating a redirect in the dashboard
+- Documentation map for navigating various guides and resources
 
 ## Key workflows and rules
-1. **Request Processing Flow**:
-   - Incoming HTTP request is checked against the organization redirect rate limit.
+1. **Request Flow for Live Redirects**:
+   - Incoming HTTP request is checked against the organization’s redirect rate limit.
    - Organization access is verified.
    - If the request path matches `robots.txt`, the policy is served.
-   - Rules are sorted by priority, creation date, and ID.
-   - The first rule that returns a redirect target is executed.
+   - Redirect rules are sorted by priority, creation date, and ID.
+   - The first rule that returns a redirect target is applied.
    - If no rules match, a 404 response is returned.
 
-2. **Creating a Redirect**:
+2. **Creating a Redirect in the Dashboard**:
    - Sign in to the dashboard.
    - Create a domain group.
    - Add a domain or subdomain.
-   - Create a redirect rule specifying the source path and destination URL.
-   - Validate the redirect using test features.
+   - Create a redirect rule for a specific path to a new URL.
+   - Validate the redirect using tests.
 
-3. **API Automation**:
-   - Use the API to create domain groups, domains, and redirect rules programmatically.
-   - Simulate redirects to ensure correct behavior.
+3. **Automating Redirect Creation**:
+   - Use the API to create domain groups, domains, and redirect rules.
+   - Simulate redirects to ensure correctness.
 
 ## Limits and constraints
-- **Redirect Rules**: Supports path, query, regex, and wildcard matching with priorities.
-- **Dynamic Destinations**: Supports placeholders, 12 text/numeric modifiers, and nested conditionals.
-- **Link Maps**: Can handle one prefix rule with a table of keys for static HTTPS URLs.
-- **Rate Limits**: Each organization has a redirect rate limit.
-- **Multi-Tenancy**: API keys and redirect traffic are scoped to organizations.
-- **Simulation Limits**: Up to 100 entries can be simulated at once.
+- **Redirect Rules**: Support for path, query, regex, and wildcard matching; can return HTTP status codes `301`, `302`, `307`, or `308`.
+- **Dynamic Destinations**: Up to 12 text/numeric modifiers and nested conditionals can be used.
+- **Link Maps**: One prefix rule can be defined with a table of keys for static HTTPS URLs.
+- **Rate Limits**: Each organization has a redirect rate limit that must be adhered to.
+- **Multi-Tenant Architecture**: API keys and redirect traffic are scoped to individual organizations.
 
 ## Related docs and API areas
-- **Redirect Rules**: [Redirect rules](./guides/redirect-rules.md) - Main routing guide.
-- **Dashboard Overview**: [Dashboard overview](./guides/dashboard/dashboard-overview.md) - Navigation and limits.
-- **API Reference**: [API reference](./reference.md) - Endpoint index and routing cheat sheet.
-- **Redirect Tests**: [Redirect tests](./guides/redirect-tests.md) - CI regression testing.
-- **Link Maps**: [Link maps](./guides/link-maps.md) - Managing short links at scale.
+- [Dashboard Overview](./guides/dashboard/dashboard-overview.md)
+- [Redirect Rules](./guides/redirect-rules.md)
+- [Getting Started](./guides/getting-started.md)
+- [Redirect Tests](./guides/redirect-tests.md)
+- [API Reference](./reference.md)
+- [Redirect Engine Concepts](./concepts/redirect-engine-concepts.md)
+- [Link Maps](./guides/link-maps.md)
