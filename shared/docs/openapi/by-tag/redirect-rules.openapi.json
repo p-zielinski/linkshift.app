@@ -29,7 +29,7 @@
         "tags": [
           "Redirect Rules"
         ],
-        "summary": "List redirect rules (cursor)",
+        "summary": "List redirect rules",
         "description": "Lists redirect rules for one `domainGroupId`, highest `priority` first.\nPage with `limit` (default 20, max 100) and `startAfterId` from `moreStartingAfterId` on the previous response.\nOptional `search` filters source/destination text. Returns 400 when query params are invalid.\n",
         "operationId": "listRedirectRules",
         "parameters": [

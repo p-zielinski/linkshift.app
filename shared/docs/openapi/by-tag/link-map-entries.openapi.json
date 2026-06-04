@@ -29,7 +29,7 @@
         "tags": [
           "Link Map Entries"
         ],
-        "summary": "List link map entries (cursor)",
+        "summary": "List link map entries",
         "description": "Pages keys inside one `linkMapId` (default `limit` 20, max 100).\nResponse uses `hasMore` / `moreStartingAfterId` (no `dataType` field). Optional `search` scans keys and destinations (max 1024 chars).\n",
         "operationId": "listLinkMapEntries",
         "parameters": [
