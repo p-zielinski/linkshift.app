@@ -17,6 +17,7 @@ import { SeoService } from '../../../core/seo/seo.service';
 import { SITE_CONFIG } from '../../../core/config/site-config';
 import { DocumentationContentService } from '../services/documentation-content.service';
 import { DocumentationScrollService } from '../services/documentation-scroll.service';
+import { DocsMcpInstallPanelComponent } from '../components/docs-mcp-install-panel.component';
 import { MarkdownRendererComponent } from '../components/markdown-renderer.component';
 
 @Component({
@@ -27,6 +28,7 @@ import { MarkdownRendererComponent } from '../components/markdown-renderer.compo
     RouterLink,
     MatCardModule,
     MatButtonModule,
+    DocsMcpInstallPanelComponent,
     MarkdownRendererComponent,
   ],
   templateUrl: './documentation-markdown-page.component.html',

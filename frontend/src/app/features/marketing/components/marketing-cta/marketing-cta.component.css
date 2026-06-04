@@ -4,8 +4,8 @@
   gap: 20px;
   padding: 28px;
   border-radius: 24px;
-  background: linear-gradient(120deg, rgba(216, 76, 119, 0.12), rgba(255, 255, 255, 0.9));
-  border: 1px solid rgba(216, 76, 119, 0.18);
+  background: linear-gradient(120deg, rgba(248, 247, 248, 0.95), rgba(255, 255, 255, 0.98));
+  border: 1px solid rgba(31, 24, 28, 0.1);
   box-shadow: 0 24px 40px rgba(25, 18, 22, 0.1);
 }
 

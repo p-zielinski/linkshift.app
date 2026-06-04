@@ -16,7 +16,7 @@ X-API-Key: <your_api_key>
 
 User sign-in, registration, email verification, password reset, and team invite acceptance are **web app flows** (not the Management API). See [Account and access](./account-and-access.md).
 
-Subscription changes, Paddle portal access, and cancellation are also **dashboard-only** — see [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md). QR and redirect trace use the separate [Public tools API](./public-tools-api.md), not `X-API-Key`.
+Subscription changes, Paddle portal access, and cancellation are also **dashboard-only** — see [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md). QR and redirect trace use the separate [Public tools API](./public-tools-api.md), not `X-API-Key`; for read-only docs MCP in clients such as Cursor, see [LinkShift docs MCP](./linkshift-mcp.md).
 
 ### Create an API key
 
