@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -42,6 +42,7 @@ export type ApiKeyDialogResult = {
     FormField,
   ],
   templateUrl: './api-key-form-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApiKeyFormDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<ApiKeyFormDialogComponent>);
@@ -64,7 +65,12 @@ export class ApiKeyFormDialogComponent {
 
   readonly isEdit = computed(() => !!this.data.apiKey);
   readonly title = computed(() => (this.isEdit() ? 'Edit API key' : 'Create API key'));
-  readonly submitLabel = computed(() => (this.isEdit() ? 'Save changes' : 'Create key'));
+  readonly submitLabel = computed(() => {
+    if (this.saving()) {
+      return this.isEdit() ? 'Saving…' : 'Creating…';
+    }
+    return this.isEdit() ? 'Save changes' : 'Create key';
+  });
 
   readonly nameError = computed(() => this.getFieldError(this.keyForm.name()));
   readonly hasExpirationWarning = computed(() => this.model().neverExpires);
@@ -144,7 +150,7 @@ export class ApiKeyFormDialogComponent {
         } as ApiKeyDialogResult);
       }
     } catch (error) {
-      this.submitError.set(extractErrorMessage(error, 'Unable to save API key.'));
+      this.submitError.set(extractErrorMessage(error, "Couldn't save API key."));
     } finally {
       this.saving.set(false);
     }

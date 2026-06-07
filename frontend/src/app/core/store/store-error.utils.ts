@@ -1,4 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+export interface StoreErrorNotifier {
+  lastError: () => string | null;
+  clearError: () => void;
+}
 
 const normalizeMessage = (value: unknown): string | null => {
   if (typeof value === 'string') {
@@ -34,4 +40,13 @@ export const extractErrorMessage = (error: unknown, fallback: string): string =>
   }
 
   return fallback;
+};
+
+export const notifyStoreError = (
+  snackBar: MatSnackBar,
+  store: StoreErrorNotifier,
+  fallback = "Couldn't save. Try again."
+): void => {
+  snackBar.open(store.lastError() ?? fallback, 'Dismiss', { duration: 5000 });
+  store.clearError();
 };

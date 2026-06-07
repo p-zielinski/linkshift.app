@@ -104,11 +104,22 @@ New to LinkShift? Start here — dashboard steps take about five minutes; the AP
 
 ### In the dashboard
 
-1. Sign in and open the dashboard. See [Dashboard overview](./guides/dashboard/dashboard-overview.md) for navigation and limits.
-2. Create a **domain group** — [Domain groups in the dashboard](./guides/dashboard/domain-groups-in-dashboard.md).
-3. Add a **domain** or subdomain in that group — [Domains and subdomains in the dashboard](./guides/dashboard/domains-and-subdomains-in-dashboard.md).
-4. Create a **redirect rule** for `/old-page` → your new URL — [Redirect rules in the dashboard](./guides/dashboard/redirect-rules-in-dashboard.md).
-5. Validate with **Run tests** or **Fetch expected result** — [Tests in the dashboard](./guides/dashboard/tests-in-dashboard.md).
+Sign in and see [Dashboard overview](./guides/dashboard/dashboard-overview.md) for **Campaign** vs **Advanced** navigation.
+
+**Campaign view (default)** — short links on your domain:
+
+1. Open **Overview** (`/overview`) or **Links** and complete **Connect your domain** (creates a workspace and host).
+2. Select **Create link** on **Links** (provisions routing when needed).
+3. Open **Analytics** or **Tools** → **Redirect tester** to validate traffic.
+
+**Advanced view** — full routing stack:
+
+1. Create a **domain group** — [Domain groups in the dashboard](./guides/dashboard/domain-groups-in-dashboard.md).
+2. Add a **domain** or subdomain in that group — [Domains and subdomains in the dashboard](./guides/dashboard/domains-and-subdomains-in-dashboard.md).
+3. Create a **redirect rule** for `/old-page` → your new URL — [Redirect rules in the dashboard](./guides/dashboard/redirect-rules-in-dashboard.md).
+4. Validate with **Run tests** or **Fetch expected result** — [Tests in the dashboard](./guides/dashboard/tests-in-dashboard.md).
+
+For plan limits, billing, and account shortcuts, see [Settings in the dashboard](./guides/dashboard/settings-in-dashboard.md) (**Settings** in Campaign, **Plan and account** in Advanced).
 
 Point DNS at LinkShift when you are ready for live traffic.
 
@@ -146,19 +157,7 @@ Use this **index** when you know what you need — lookup and deep links, not a 
 
 ### Dashboard (authenticated app)
 
-Task guides for the sidebar UI — start at [Dashboard overview](./guides/dashboard/dashboard-overview.md):
-
-| Guide | When to read |
-|-------|--------------|
-| [Dashboard overview](./guides/dashboard/dashboard-overview.md) | Shell, nav, profile, billing summary, docs assistant |
-| [Domain groups](./guides/dashboard/domain-groups-in-dashboard.md) | Create and manage domain groups |
-| [Domains and subdomains](./guides/dashboard/domains-and-subdomains-in-dashboard.md) | Custom domains and LinkShift subdomains |
-| [Redirect rules](./guides/dashboard/redirect-rules-in-dashboard.md) | Rule wizard, table, redirect tests card |
-| [Link maps](./guides/dashboard/link-maps-in-dashboard.md) | Maps, entries, CSV import |
-| [Tests](./guides/dashboard/tests-in-dashboard.md) | Redirect test fixtures and **Run tests** |
-| [Analytics](./guides/dashboard/analytics-in-dashboard.md) | Traffic chart and rule drill-down |
-| [Organization and API keys](./guides/dashboard/organization-and-api-keys-in-dashboard.md) | Members, invites, API keys |
-| [Tools](./guides/dashboard/tools-in-dashboard.md) | QR generator and redirect tester (signed in) |
+Task guides for the sidebar UI — start at [Dashboard overview](./guides/dashboard/dashboard-overview.md) for Campaign vs Advanced navigation and links to each area (links, settings, routing, tests, analytics, organization, tools).
 
 ### Routing depth
 
@@ -202,10 +201,6 @@ The marketing site footer also links to it as **Status page**.
 
 Quick answers and a live-redirect symptom matrix: [FAQ index](./guides/faq.md) · [Overview FAQ](./overview-faq.md).
 
-## How this docs section is built
-
-- OpenAPI 3.1 as source of truth for endpoint pages
-- Markdown guides for routing concepts and workflows
-- Schema tree for request/response inspection
-- Built-in Try me with session-level API key persistence
-- Guides synced from the published markdown source on each docs deploy
+:::ai-only
+Docs site build: OpenAPI 3.1 source of truth for endpoint pages; markdown guides for concepts and workflows; schema tree for request/response inspection; Try me with session-level API key persistence; guides synced from shared/docs on deploy.
+:::

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
@@ -17,6 +17,7 @@ import type { ApiKey } from '../../../../core/models/api-key.model';
     MatTooltipModule,
   ],
   templateUrl: './organization-api-keys-table.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrganizationApiKeysTableComponent {
   readonly keys = input<ApiKey[]>([]);
@@ -33,5 +34,9 @@ export class OrganizationApiKeysTableComponent {
 
   onDelete(key: ApiKey): void {
     this.delete.emit(key);
+  }
+
+  trackRow(_index: number, key: ApiKey): string {
+    return key.id;
   }
 }

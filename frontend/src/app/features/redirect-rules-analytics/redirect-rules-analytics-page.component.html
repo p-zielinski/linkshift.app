@@ -1,49 +1,86 @@
-<div class="flex min-h-[calc(100vh-48px)] flex-col">
-  <app-page-header
-    title="Redirect rules analytics"
-    subtitle="Traffic distribution for the selected time window."
-  />
-
-  <div class="mb-4 rounded-[18px] border border-app-border-soft bg-app-surface p-4">
-    <div class="mb-4 flex items-center justify-between rounded-[12px] bg-app-accent-soft px-3 py-2">
-      <span class="text-[12px] uppercase tracking-[0.12em] text-app-muted">
-        Current plan retention days
-      </span>
-      <span class="text-[16px] font-semibold text-app-foreground">
-        {{ analyticsRetentionDays() }}
-      </span>
+<app-resource-page-shell
+  title="Redirect rules analytics"
+  subtitle="Traffic distribution for the selected time window."
+  [bodyScroll]="false"
+>
+  @if (!hasDomainGroups()) {
+    <div
+      class="flex min-h-0 flex-1 flex-col items-center justify-start rounded-[18px] border border-app-border-soft bg-app-surface p-8 text-center"
+    >
+      <p class="m-0 text-sm font-medium text-app-foreground">Add a site to see analytics</p>
+      <p class="mt-2 max-w-md text-[13px] text-app-muted">
+        Add a site first. Analytics appear after traffic hits your redirect rules.
+      </p>
+      <button
+        mat-flat-button
+        color="primary"
+        class="mt-4"
+        type="button"
+        (click)="openAdvancedOnboarding()"
+      >
+        Add site
+      </button>
     </div>
+  } @else if (!hasConnectedHosts()) {
+    <div
+      class="flex min-h-0 flex-1 flex-col items-center justify-start rounded-[18px] border border-app-border-soft bg-app-surface p-8 text-center"
+    >
+      <p class="m-0 text-sm font-medium text-app-foreground">Add host to see analytics</p>
+      <p class="mt-2 max-w-md text-[13px] text-app-muted">
+        Add subdomain or custom domain on your site first
+      </p>
+      <button
+        mat-flat-button
+        color="primary"
+        class="mt-4"
+        type="button"
+        (click)="openAdvancedOnboarding()"
+      >
+        Add host
+      </button>
+    </div>
+  } @else {
+    <div class="mb-4 shrink-0 rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+      <div
+        class="mb-4 flex items-center justify-between rounded-[12px] bg-app-accent-soft px-3 py-2"
+      >
+        <div>
+          <span class="text-[12px] uppercase tracking-[0.12em] text-app-muted">
+            Click data retention
+          </span>
+          <div class="mt-0.5 text-[11px] text-app-muted">Based on your plan</div>
+        </div>
+        <span class="text-[16px] font-semibold text-app-foreground">
+          {{ analyticsRetentionDays() }}
+        </span>
+      </div>
 
-    <div class="mb-4 grid gap-4">
-      <app-domain-group-select
-        [groups]="domainGroups()"
-        [formField]="filterForm.domainGroupId"
-        [includeAllOption]="true"
+      <app-redirect-rules-analytics-filters
+        [quickRanges]="quickRanges"
+        [rangeStart]="rangeStart()"
+        [rangeEnd]="rangeEnd()"
+        (quickRangeSelected)="setQuickRange($event)"
+        (rangeStartChange)="onRangeStartChange($event)"
+        (rangeEndChange)="onRangeEndChange($event)"
+        (applyRange)="applyCustomRange()"
       />
     </div>
 
-    <app-redirect-rules-analytics-filters
-      [quickRanges]="quickRanges"
-      [rangeStart]="rangeStart()"
-      [rangeEnd]="rangeEnd()"
-      (quickRangeSelected)="setQuickRange($event)"
-      (rangeStartChange)="onRangeStartChange($event)"
-      (rangeEndChange)="onRangeEndChange($event)"
-      (applyRange)="applyCustomRange()"
-    />
-  </div>
-
-  <div
-    class="flex min-h-0 flex-1 flex-col rounded-[18px] border border-app-border-soft bg-app-surface p-4"
-  >
-    <app-redirect-rules-analytics-results
-      [entries]="topRules()"
-      [loading]="topRulesLoading()"
-      [error]="topRulesError()"
-      [chartSeries]="chartSeries()"
-      [chartOptions]="chartOptions()"
-      [chartHeight]="chartHeight"
-      (openDetails)="openRuleDetails($event)"
-    />
-  </div>
-</div>
+    <div
+      class="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-[18px] border border-app-border-soft bg-app-surface p-4"
+    >
+      <app-redirect-rules-analytics-results
+        [entries]="topRules()"
+        [loading]="topRulesLoading()"
+        [error]="topRulesError()"
+        [chartSeries]="chartSeries()"
+        [chartOptions]="chartOptions()"
+        [chartHeight]="chartHeight"
+        [highlightedRuleId]="highlightedRuleId()"
+        [highlightedLinkKey]="highlightedLinkKey()"
+        (openDetails)="openRuleDetails($event)"
+        (retry)="retryLoadAnalytics()"
+      />
+    </div>
+  }
+</app-resource-page-shell>

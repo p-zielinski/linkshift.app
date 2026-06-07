@@ -24,7 +24,23 @@ describe('docs-assistant-page-context.util', () => {
 
     it('returns null for routes outside the dashboard shell', () => {
       expect(resolveDashboardAssistantPageContext('/docs/guides/foo')).toBeNull();
-      expect(resolveDashboardAssistantPageContext('/home')).toBeNull();
+    });
+
+    it('maps campaign dashboard routes', () => {
+      expect(resolveDashboardAssistantPageContext('/overview')).toBe('Overview');
+      expect(resolveDashboardAssistantPageContext('/home')).toBe('Overview');
+      expect(resolveDashboardAssistantPageContext('/links')).toBe('Links');
+      expect(resolveDashboardAssistantPageContext('/settings')).toBe('Settings');
+      expect(resolveDashboardAssistantPageContext('/analytics')).toBe('Analytics');
+    });
+
+    it('maps links query flows for the assistant', () => {
+      expect(resolveDashboardAssistantPageContext('/links?openCreate=1')).toBe(
+        'Links — create link',
+      );
+      expect(resolveDashboardAssistantPageContext('/links?openConnectDomain=1')).toBe(
+        'Links — connect domain',
+      );
     });
   });
 

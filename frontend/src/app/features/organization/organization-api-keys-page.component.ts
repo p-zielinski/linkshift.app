@@ -1,4 +1,5 @@
-import { Component, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, PLATFORM_ID, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,7 +14,7 @@ import { DEFAULT_LIST_KEY } from '../../core/store/entity/entity-store.utils';
 import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
 import { AuthStore } from '../../core/store/auth.store';
 import { APP_CONFIG } from '../../core/config/app-runtime-config';
-import { OrganizationConfiguration, OrganizationPlan } from '@shared/models/organization-config.model';
+import { resolveOrganizationConfig } from '../../core/utils/organization-config.util';
 import type { ApiKey } from '../../core/models/api-key.model';
 import {
   ApiKeyDialogData,
@@ -25,7 +26,6 @@ import {
   ApiKeyCreatedDialogComponent,
   ApiKeyCreatedDialogData,
 } from './api-key-created-dialog.component';
-import { UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -44,6 +44,7 @@ import { RouterLink } from '@angular/router';
     RouterLink,
   ],
   templateUrl: './organization-api-keys-page.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrganizationApiKeysPageComponent {
   private readonly apiKeyStore = inject(ApiKeyStore);
@@ -53,20 +54,16 @@ export class OrganizationApiKeysPageComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly shownStoreErrorSequence = signal(0);
 
   readonly keys = this.apiKeyStore.selectList();
   readonly loading = computed(() => this.apiKeyStore.isLoading()[DEFAULT_LIST_KEY] ?? false);
 
-  readonly config = computed(() => {
-    const org = this.authStore.organization();
-    const orgConfig = OrganizationConfiguration.fromJson(org?.configuration ?? {});
-    if (orgConfig.activeSubscription.plan === OrganizationPlan.UNMETERED) {
-      orgConfig.activeSubscription.limits = UNMETERED_PLAN_LIMITS;
-    }
-    return orgConfig;
-  });
+  readonly config = computed(() =>
+    resolveOrganizationConfig(this.authStore.organization()?.configuration),
+  );
   readonly limits = computed(() => this.config().activeSubscription.limits);
   readonly usage = computed(() => this.usageStore.usage());
 
@@ -142,7 +139,7 @@ export class OrganizationApiKeysPageComponent {
       maxWidth: '94vw',
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (!result?.saved) {
         return;
       }
@@ -170,7 +167,7 @@ export class OrganizationApiKeysPageComponent {
       data: { apiKey },
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (!result?.saved) {
         return;
       }
@@ -192,7 +189,7 @@ export class OrganizationApiKeysPageComponent {
       },
     });
 
-    dialogRef.afterClosed().subscribe((confirmed) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed) => {
       if (!confirmed) {
         return;
       }

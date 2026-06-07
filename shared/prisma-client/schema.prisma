@@ -260,8 +260,10 @@ model LinkMapEntry {
   linkMap LinkMap @relation(fields: [linkMapId], references: [id], onDelete: Cascade)
 
   @@unique([linkMapId, keyNormalized])
-  @@index([linkMapId])
-  @@index([deletedAt])
+  // PERF-001: per-map list + cursor pagination (linkMapId filter, ORDER BY updatedAt DESC, id DESC)
+  @@index([linkMapId, updatedAt(sort: Desc), id(sort: Desc)])
+  // PERF-001: org-wide list via LinkMap join (deletedAt IS NULL, ORDER BY updatedAt DESC, id DESC)
+  @@index([deletedAt, updatedAt(sort: Desc), id(sort: Desc)])
 }
 
 model RedirectRuleHitBreakdownHourly {

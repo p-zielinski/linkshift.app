@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
@@ -14,7 +14,8 @@ export type RedirectTestResultDialogData = {
   selector: 'app-redirect-test-result-dialog',
   standalone: true,
   imports: [CommonModule, MatDialogModule, MatButtonModule],
-  templateUrl: './redirect-test-result-dialog.component.html'
+  templateUrl: './redirect-test-result-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RedirectTestResultDialogComponent {
   readonly data = inject<RedirectTestResultDialogData>(MAT_DIALOG_DATA);

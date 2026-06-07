@@ -1,104 +1,80 @@
-<table mat-table [dataSource]="groups()" class="min-w-[720px] w-full mat-elevation-z0">
+<table
+  mat-table
+  [dataSource]="rowViewModels()"
+  [trackBy]="trackRow"
+  aria-label="Domain groups"
+  class="table-fixed min-w-[720px] w-full mat-elevation-z0"
+>
   <ng-container matColumnDef="name">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[150px] max-w-[250px] truncate"
-    >
-      Name
-    </th>
-    <td mat-cell *matCellDef="let group" class="py-3 min-w-[150px] max-w-[250px] truncate">
-      {{ group.name }}
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[200px] truncate">Name</th>
+    <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0" [matTooltip]="row.group.name">
+      {{ row.group.name }}
     </td>
   </ng-container>
 
   <ng-container matColumnDef="id">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[150px] max-w-[250px] truncate"
-    >
-      Id
-    </th>
-    <td mat-cell *matCellDef="let group" class="py-3 min-w-[150px] max-w-[250px] truncate">
-      <app-resource-pill [label]="group.id" [tooltip]="'Domain group ID: ' + group.id" />
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[128px] truncate">Id</th>
+    <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0">
+      <app-resource-pill [label]="row.group.id" [tooltip]="'Domain group ID: ' + row.group.id" />
     </td>
   </ng-container>
 
   <ng-container matColumnDef="robots">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[150px] max-w-[250px] truncate"
-    >
-      Robots.txt
-    </th>
-    <td mat-cell *matCellDef="let group" class="py-3 min-w-[150px] max-w-[250px] truncate">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[144px] truncate">Robots.txt</th>
+    <td mat-cell *matCellDef="let row" class="py-3 w-[144px]">
       <span
         class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[12px]"
-        [ngClass]="
-          robotsPolicyActive(group.robotsPolicy)
-            ? 'bg-green-50 text-green-700'
-            : 'bg-app-muted/10 text-app-muted'
-        "
+        [ngClass]="row.robotsClass"
       >
-        {{ robotsPolicyLabel(group.robotsPolicy) }}
+        {{ row.robotsLabel }}
       </span>
     </td>
   </ng-container>
 
   <ng-container matColumnDef="domains">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[150px] max-w-[250px] truncate"
-    >
-      Domains
-    </th>
-    <td mat-cell *matCellDef="let group" class="py-3 min-w-[150px] max-w-[250px] truncate">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[88px] truncate">Domains</th>
+    <td mat-cell *matCellDef="let row" class="py-3 w-[88px]">
       <span
         class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[12px] text-app-muted"
-        [matTooltip]="domainCount(group.id) + ' domains linked'"
+        [matTooltip]="row.domainCountTooltip"
       >
-        {{ domainCount(group.id) }}
+        {{ row.domainCount }}
       </span>
     </td>
   </ng-container>
 
   <ng-container matColumnDef="createdAt">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[150px] max-w-[250px] truncate"
-    >
-      Created at
-    </th>
-    <td
-      mat-cell
-      *matCellDef="let group"
-      class="py-3 min-w-[150px] max-w-[250px] truncate text-[13px] text-app-muted"
-    >
-      {{ group.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[156px] truncate">Created at</th>
+    <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0 text-[13px] text-app-muted">
+      {{ row.group.createdAt | date: 'yyyy-MM-dd HH:mm' }}
     </td>
   </ng-container>
 
   <ng-container matColumnDef="actions">
-    <th mat-header-cell *matHeaderCellDef class="min-w-[150px] max-w-[250px] truncate"></th>
-    <td mat-cell *matCellDef="let group" class="py-3 min-w-[150px] max-w-[250px] truncate">
+    <th mat-header-cell *matHeaderCellDef class="w-[100px]"></th>
+    <td mat-cell *matCellDef="let row" class="py-3 w-[100px]">
       <div class="flex items-center gap-1">
-        <button mat-icon-button matTooltip="Edit domain group" (click)="onEdit(group)">
+        <button
+          mat-icon-button
+          type="button"
+          matTooltip="Edit domain group"
+          [attr.aria-label]="'Edit domain group ' + row.group.name"
+          (click)="onEdit(row.group)"
+        >
           <mat-icon>edit</mat-icon>
         </button>
         <span
           class="inline-flex"
-          [matTooltip]="deleteTooltip(group.id)"
-          [matTooltipDisabled]="canDelete(group.id)"
+          [matTooltip]="row.deleteTooltip"
+          [matTooltipDisabled]="row.canDelete"
         >
           <button
             mat-icon-button
+            type="button"
             color="warn"
-            [disabled]="!canDelete(group.id)"
-            (click)="onDelete(group.id)"
+            [disabled]="!row.canDelete"
+            [attr.aria-label]="'Delete domain group ' + row.group.name"
+            (click)="onDelete(row.group.id)"
           >
             <mat-icon>delete</mat-icon>
           </button>
@@ -110,11 +86,19 @@
   <tr mat-header-row *matHeaderRowDef="columns"></tr>
   <tr mat-row *matRowDef="let row; columns: columns"></tr>
   <tr class="mat-row" *matNoDataRow>
-    <td
-      class="mat-cell px-0 py-6 text-center text-[13px] text-app-muted"
-      [attr.colspan]="columns.length"
-    >
-      No domain groups found
+    <td class="mat-cell px-0 py-8 text-center" [attr.colspan]="columns.length">
+      @if (loading()) {
+        <p class="m-0 text-[13px] text-app-muted">Loading domain groups…</p>
+      } @else {
+        <p class="m-0 text-sm font-medium text-app-foreground">No domain groups yet</p>
+        <p class="mt-1 text-[13px] text-app-muted">
+          Create a group to organize domains and redirect rules
+        </p>
+        <button mat-flat-button color="primary" class="mt-4" (click)="onCreate()">
+          <mat-icon>add</mat-icon>
+          Add group
+        </button>
+      }
     </td>
   </tr>
 </table>

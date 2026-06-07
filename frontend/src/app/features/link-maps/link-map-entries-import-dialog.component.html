@@ -1,6 +1,6 @@
 <app-wizard
   title="Import entries"
-  subtitle="Run a bulk import and optionally rollback successful rows."
+  subtitle="Run a bulk import and optionally roll back imported rows."
   [steps]="steps()"
   [saveLabel]="saveLabel()"
   [saveDisabled]="saveDisabled()"
@@ -10,7 +10,7 @@
   <ng-template wizardStepSummary="import">
     @if (result(); as result) {
       <div class="text-xs text-app-muted">
-        {{ result.importedCount }} imported / {{ result.failedCount }} failed
+        {{ result.importedCount }} imported / {{ result.failedCount }} not imported
       </div>
     } @else {
       <div class="text-xs text-app-muted">Paste rows</div>
@@ -31,10 +31,13 @@
           <mat-hint>Accepted separators: <code>-></code>, comma, or whitespace.</mat-hint>
         </mat-form-field>
       } @else {
-        <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm">
+        <div
+          class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm"
+          aria-live="polite"
+        >
           <div class="font-semibold text-app-foreground">Import result</div>
           <div class="mt-1 text-app-muted">
-            Imported: <strong>{{ result()?.importedCount }}</strong> | Failed:
+            Imported: <strong>{{ result()?.importedCount }}</strong> | Not imported:
             <strong>{{ result()?.failedCount }}</strong>
           </div>
           @if (rolledBack()) {

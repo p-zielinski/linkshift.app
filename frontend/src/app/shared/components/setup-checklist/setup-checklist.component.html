@@ -1,0 +1,55 @@
+@if (!dismissed()) {
+  <app-resource-card>
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <h2 class="m-0 text-base font-semibold text-app-foreground">Setup checklist</h2>
+        <p class="mt-1 text-[13px] text-app-muted">
+          {{ completedCount() }} of {{ totalCount() }} complete — finish these to get your first
+          links live
+        </p>
+      </div>
+      <button
+        mat-button
+        type="button"
+        class="shrink-0 text-app-muted"
+        (click)="dismiss()"
+        aria-label="Dismiss setup checklist"
+      >
+        Dismiss
+      </button>
+    </div>
+
+    <ul class="mt-4 flex flex-col gap-2 p-0">
+      @for (item of itemViews(); track item.id) {
+        <li
+          class="flex items-center gap-3 rounded-xl border border-app-border-soft bg-app-surface px-3 py-2"
+        >
+          <mat-checkbox
+            [checked]="item.checked"
+            [disabled]="item.autoCompleted"
+            (change)="onCheckedChange(item.id, $event.checked)"
+            [attr.aria-label]="item.label"
+          />
+          <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+            <a
+              class="text-sm font-medium text-app-foreground hover:underline"
+              [routerLink]="item.routerLink"
+              [queryParams]="item.queryParams"
+            >
+              {{ item.label }}
+            </a>
+            @if (item.autoCompleted) {
+              <span class="text-xs text-app-muted">Completed automatically</span>
+            }
+          </div>
+          <mat-icon class="text-[18px] text-app-muted" aria-hidden="true">chevron_right</mat-icon>
+        </li>
+      }
+    </ul>
+  </app-resource-card>
+} @else {
+  <button mat-stroked-button type="button" (click)="reopen()">
+    <mat-icon class="mr-1 text-[18px]">checklist</mat-icon>
+    Show setup checklist
+  </button>
+}

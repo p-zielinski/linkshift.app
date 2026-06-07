@@ -1,0 +1,237 @@
+<form class="h-full" (submit)="$event.preventDefault()" (keydown.enter)="$event.preventDefault()">
+  <app-wizard
+    [title]="wizardTitle()"
+    [subtitle]="wizardSubtitle()"
+    [steps]="steps()"
+    [saveLabel]="saveLabel()"
+    [saveDisabled]="saveDisabled()"
+    [hideSave]="hideWizardSave()"
+    [cancelLabel]="cancelLabel()"
+    (save)="onSave()"
+    (cancel)="onCancel()"
+    (stepChange)="onStepChange($event)"
+  >
+    <ng-template wizardStepSummary="site">
+      <div class="text-xs text-app-muted">{{ siteSummaryLabel() }}</div>
+    </ng-template>
+
+    <ng-template wizardStepSummary="host">
+      <div class="text-xs text-app-muted">
+        @if (model().hostKind === 'subdomain') {
+          {{ subdomainPreviewHost() || 'LinkShift subdomain' }}
+        } @else {
+          {{ model().customDomainName.trim() || 'Your domain' }}
+        }
+      </div>
+    </ng-template>
+
+    <ng-template wizardStepSummary="done">
+      <div class="text-xs text-app-muted">
+        @if (provisioned()) {
+          @if (isCustomDomainConnected()) {
+            DNS setup: {{ connectedHost() }}
+          } @else {
+            {{ connectedHost() }}
+          }
+        } @else {
+          Connect host first
+        }
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="site">
+      <div class="grid max-w-lg gap-4">
+        @if (hasExistingSites()) {
+          <mat-button-toggle-group
+            class="w-full"
+            [value]="model().workspaceMode"
+            (change)="setWorkspaceMode($event.value)"
+          >
+            <mat-button-toggle class="flex-1" value="existing">Existing site</mat-button-toggle>
+            <mat-button-toggle class="flex-1" value="new">New site</mat-button-toggle>
+          </mat-button-toggle-group>
+
+          @if (model().workspaceMode === 'existing') {
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Site</mat-label>
+              <mat-select [formField]="connectForm.selectedDomainGroupId">
+                @for (group of domainGroups; track group.id) {
+                  <mat-option [value]="group.id">{{ group.name }}</mat-option>
+                }
+              </mat-select>
+              <mat-hint>Short links will use hosts on this site</mat-hint>
+              @if (selectedSiteError(); as error) {
+                <mat-error>{{ error }}</mat-error>
+              }
+            </mat-form-field>
+          } @else {
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Site name</mat-label>
+              <input matInput type="text" [formField]="connectForm.workspaceName" />
+              <mat-hint>e.g. Summer campaign. Leave blank to use “My site”</mat-hint>
+              @if (workspaceNameError(); as error) {
+                <mat-error>{{ error }}</mat-error>
+              }
+            </mat-form-field>
+          }
+        } @else {
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Site name</mat-label>
+            <input matInput type="text" [formField]="connectForm.workspaceName" />
+            <mat-hint>e.g. Summer campaign. Leave blank to use “My site”</mat-hint>
+            @if (workspaceNameError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="host">
+      <div class="grid max-w-lg gap-4">
+        @if (isAddHostMode() && existingWorkspaceDisplayName()) {
+          <div
+            class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm"
+          >
+            <span class="text-app-muted">Site:</span>
+            <span class="font-medium text-app-foreground">{{
+              existingWorkspaceDisplayName()
+            }}</span>
+          </div>
+        } @else if (!isAddHostMode()) {
+          <div
+            class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm"
+          >
+            <span class="text-app-muted">Site:</span>
+            <span class="font-medium text-app-foreground">{{ siteSummaryLabel() }}</span>
+          </div>
+        }
+
+        <mat-button-toggle-group
+          class="w-full"
+          [value]="model().hostKind"
+          (change)="setHostKind($event.value)"
+        >
+          <mat-button-toggle class="flex-1" value="subdomain"
+            >LinkShift subdomain</mat-button-toggle
+          >
+          <mat-button-toggle class="flex-1" value="custom-domain">Your domain</mat-button-toggle>
+        </mat-button-toggle-group>
+
+        @if (model().hostKind === 'subdomain') {
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Subdomain</mat-label>
+            <input matInput type="text" [formField]="connectForm.subdomainName" />
+            <mat-hint>e.g. launch. Short URLs use {{ dialogData.subdomainBaseHost }}</mat-hint>
+            @if (subdomainError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+
+          @if (subdomainPreviewHost()) {
+            <div
+              class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm"
+            >
+              <span class="text-app-muted">Host preview:</span>
+              <span class="font-medium text-app-foreground">{{ subdomainPreviewHost() }}</span>
+            </div>
+          }
+        } @else {
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Domain</mat-label>
+            <input matInput type="text" [formField]="connectForm.customDomainName" />
+            <mat-hint>e.g. links.example.com. Point DNS to LinkShift after you save</mat-hint>
+            @if (customDomainError(); as error) {
+              <mat-error>{{ error }}</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        @if (submitError(); as error) {
+          <div
+            class="rounded-[12px] border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+            role="alert"
+          >
+            {{ error }}
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="done">
+      <div class="grid max-w-lg gap-4">
+        @if (isCustomDomainConnected()) {
+          <div class="flex items-start gap-3">
+            <mat-icon class="text-app-accent-strong">dns</mat-icon>
+            <div>
+              <p class="m-0 font-medium text-app-foreground">
+                Configure DNS for
+                <span class="font-medium">{{ connectedHost() }}</span>
+              </p>
+              <p class="mt-2 m-0 text-sm text-app-muted">
+                Point your domain to the target IP below and wait for DNS propagation before short
+                links work.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="rounded-[12px] border border-app-border-soft bg-app-surface-alt px-3 py-3 text-sm"
+          >
+            @if (hasTargetIp()) {
+              <div class="text-xs uppercase tracking-wide text-app-muted">Target IP</div>
+              <div class="mt-2 font-semibold">{{ targetIp() }}</div>
+              <div class="mt-3 text-app-muted">
+                Create an <strong>A</strong> record for your domain pointing to this IP.
+              </div>
+            } @else {
+              <div class="text-app-muted">
+                Target IP is not configured. Contact support to get the correct address.
+              </div>
+            }
+          </div>
+
+          <div
+            class="rounded-[12px] border border-app-border-soft bg-app-surface-alt px-3 py-3 text-sm text-app-muted"
+          >
+            If you use Cloudflare, keep the record in <strong>DNS-only</strong> mode. Do not enable
+            the proxy (orange cloud), otherwise redirects can break.
+          </div>
+
+          <div
+            class="rounded-[12px] border border-app-border-soft bg-app-surface-alt px-3 py-3 text-sm text-app-muted"
+          >
+            <strong>Note:</strong> Global DNS propagation may take up to 2 hours (typically under 30
+            minutes). Once completed, a secure SSL certificate will be automatically provisioned for
+            your domain.
+          </div>
+        } @else {
+          <div
+            class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-3 text-sm"
+          >
+            <p class="m-0 font-medium text-app-foreground">Host connected</p>
+            <p class="mt-2 m-0 text-app-muted">
+              Short links can use
+              <span class="font-medium text-app-foreground">{{ connectedHost() }}</span>
+            </p>
+          </div>
+        }
+
+        <div class="flex flex-wrap gap-2">
+          @if (isCustomDomainConnected()) {
+            <p class="m-0 w-full text-[13px] text-app-muted">
+              After DNS propagates, create short links from Overview or Links
+            </p>
+            <button mat-flat-button color="primary" type="button" (click)="finish()">Done</button>
+          } @else {
+            <button mat-flat-button color="primary" type="button" (click)="createFirstLink()">
+              <mat-icon>add_link</mat-icon>
+              Create first link
+            </button>
+            <button mat-stroked-button type="button" (click)="finish()">Done</button>
+          }
+        </div>
+      </div>
+    </ng-template>
+  </app-wizard>
+</form>

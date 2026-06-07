@@ -1,18 +1,25 @@
 <div class="page-background flex min-h-screen items-center justify-center p-8">
   <mat-card
-    class="auth-card h-[700px] w-[min(520px,96vw)] overflow-hidden overflow-y-auto rounded-[24px] bg-app-surface p-7 shadow-[0_30px_60px_rgba(32,24,28,0.18)]"
+    class="auth-card max-h-[calc(100dvh-2rem)] w-[min(520px,96vw)] overflow-y-auto rounded-[24px] bg-app-surface p-7 shadow-[0_30px_60px_rgba(32,24,28,0.18)]"
   >
     <div class="mb-0 flex flex-col gap-2">
       <div class="flex items-center justify-between gap-3">
-        <h1 class="m-0 text-[28px] font-semibold">Access Control</h1>
-        <button mat-stroked-button class="h-9" type="button" routerLink="/">
-          <mat-icon>arrow_back</mat-icon>
-          <span>Home</span>
-        </button>
+        <h1 class="m-0 text-[28px] font-semibold">Sign in</h1>
+        @if (isAuthenticated()) {
+          <button mat-stroked-button class="h-9" type="button" (click)="goToApp()">
+            <mat-icon>open_in_new</mat-icon>
+            <span>Go to app</span>
+          </button>
+        } @else {
+          <button mat-stroked-button class="h-9" type="button" routerLink="/">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Back to site</span>
+          </button>
+        }
       </div>
       <div class="flex items-center justify-between gap-4">
         <p class="m-0 text-[13px] text-app-muted">
-          Authenticate to manage domains and redirect rules.
+          Sign in to manage short links and your account.
         </p>
         <div
           class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[11px] text-app-muted"
@@ -57,7 +64,7 @@
                 [disabled]="loginForm().submitting()"
               >
                 <mat-icon>login</mat-icon>
-                <span>Sign in</span>
+                <span>{{ loginForm().submitting() ? 'Signing in…' : 'Sign in' }}</span>
               </button>
             </div>
           </form>
@@ -166,7 +173,9 @@
                 [disabled]="registerForm().submitting()"
               >
                 <mat-icon>person_add</mat-icon>
-                <span>Create account</span>
+                <span>{{
+                  registerForm().submitting() ? 'Creating account…' : 'Create account'
+                }}</span>
               </button>
             </div>
           </form>
@@ -181,13 +190,13 @@
               Private testing in progress
             </div>
             <div>
-              Registration and sign-in are temporarily closed while we finalize testing. Please
-              check back in a few days or contact us for access.
+              Registration and sign-in are temporarily closed during private testing. Check back
+              soon or use the contact form to request access.
             </div>
             <div class="mt-2 flex flex-wrap gap-2">
               <button mat-flat-button color="primary" type="button" routerLink="/contact">
                 <mat-icon>contact_support</mat-icon>
-                <span>Contact us</span>
+                <span>Request access</span>
               </button>
             </div>
           </div>

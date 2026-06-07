@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -79,6 +79,7 @@ export type LinkMapEntryDialogResult = {
   ],
   templateUrl: './link-map-entry-form-dialog.component.html',
   styleUrl: './link-map-entry-form-dialog.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkMapEntryFormDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<LinkMapEntryFormDialogComponent>);
@@ -187,7 +188,7 @@ export class LinkMapEntryFormDialogComponent {
 
       this.dialogRef.close({ saved: true } as LinkMapEntryDialogResult);
     } catch (error) {
-      this.submitError.set(extractErrorMessage(error, 'Unable to save entry.'));
+      this.submitError.set(extractErrorMessage(error, "Couldn't save entry."));
     } finally {
       this.saving.set(false);
     }

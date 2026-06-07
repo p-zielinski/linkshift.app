@@ -1,0 +1,41 @@
+<button
+  mat-stroked-button
+  type="button"
+  class="workspace-switcher !h-9 !max-w-[220px] !rounded-full !border-app-border-soft !px-3 !text-[13px] !font-medium !text-app-foreground"
+  #workspaceMenuTrigger="matMenuTrigger"
+  [matMenuTriggerFor]="workspaceMenu"
+  [attr.aria-label]="triggerAriaLabel()"
+  [attr.aria-expanded]="workspaceMenuTrigger.menuOpen"
+  aria-haspopup="menu"
+>
+  <mat-icon class="!mr-1.5 !h-[18px] !w-[18px] !text-[18px] text-app-muted">layers</mat-icon>
+  <span class="min-w-0 truncate">{{ selectedLabel() }}</span>
+  <mat-icon class="!ml-1 !h-[18px] !w-[18px] !text-[18px] text-app-muted">expand_more</mat-icon>
+</button>
+
+<mat-menu #workspaceMenu="matMenu" class="workspace-switcher-menu">
+  @if (includeAllOption() && groups().length > 1) {
+    <button
+      mat-menu-item
+      type="button"
+      role="menuitemradio"
+      [class.bg-app-accent-soft]="!selectedId()"
+      [attr.aria-checked]="!selectedId()"
+      (click)="select('')"
+    >
+      {{ allOptionLabel() }}
+    </button>
+  }
+  @for (group of groups(); track group.id) {
+    <button
+      mat-menu-item
+      type="button"
+      role="menuitemradio"
+      [class.bg-app-accent-soft]="selectedId() === group.id"
+      [attr.aria-checked]="selectedId() === group.id"
+      (click)="select(group.id)"
+    >
+      {{ group.name }}
+    </button>
+  }
+</mat-menu>

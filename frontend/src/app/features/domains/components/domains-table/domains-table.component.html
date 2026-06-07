@@ -1,75 +1,58 @@
-<table mat-table [dataSource]="domains()" class="min-w-[720px] w-full mat-elevation-z0">
+<table
+  mat-table
+  [dataSource]="rowViewModels()"
+  [trackBy]="trackRow"
+  aria-label="Domains"
+  class="table-fixed min-w-[720px] w-full mat-elevation-z0"
+>
   <ng-container matColumnDef="name">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[150px] max-w-[250px] truncate"
-    >
-      Name
-    </th>
-    <td mat-cell *matCellDef="let domain" class="py-3 min-w-[150px] max-w-[250px] truncate">
-      {{ domain.name }}
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[200px] truncate">Name</th>
+    <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0" [matTooltip]="row.domain.name">
+      {{ row.domain.name }}
     </td>
   </ng-container>
 
   <ng-container matColumnDef="id">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[150px] max-w-[250px] truncate"
-    >
-      Id
-    </th>
-    <td mat-cell *matCellDef="let domain" class="py-3 min-w-[150px] max-w-[250px] truncate">
-      <app-resource-pill [label]="domain.id" [tooltip]="'Domain ID: ' + domain.id" />
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[128px] truncate">Id</th>
+    <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0">
+      <app-resource-pill [label]="row.domain.id" [tooltip]="'Domain ID: ' + row.domain.id" />
     </td>
   </ng-container>
 
   <ng-container matColumnDef="group">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[150px] max-w-[250px] truncate"
-    >
-      Domain group
-    </th>
-    <td mat-cell *matCellDef="let domain" class="py-3 min-w-[150px] max-w-[250px] truncate">
-      <app-resource-pill
-        [label]="groupLabel(domain.domainGroupId)"
-        [tooltip]="groupTooltip(domain.domainGroupId)"
-      />
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[160px] truncate">Domain group</th>
+    <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0">
+      <app-resource-pill [label]="row.groupLabel" [tooltip]="row.groupTooltip" />
     </td>
   </ng-container>
 
   <ng-container matColumnDef="createdAt">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[150px] max-w-[250px] truncate"
-    >
-      Created at
-    </th>
-    <td
-      mat-cell
-      *matCellDef="let domain"
-      class="py-3 min-w-[150px] max-w-[250px] truncate text-[13px] text-app-muted"
-    >
-      {{ domain.createdAt | date: 'yyyy-MM-dd HH:mm' }}
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[156px] truncate">Created at</th>
+    <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0 text-[13px] text-app-muted">
+      {{ row.domain.createdAt | date: 'yyyy-MM-dd HH:mm' }}
     </td>
   </ng-container>
 
   <ng-container matColumnDef="actions">
-    <th mat-header-cell *matHeaderCellDef class="min-w-[150px] max-w-[250px] truncate"></th>
-    <td mat-cell *matCellDef="let domain" class="py-3 min-w-[150px] max-w-[250px] truncate">
+    <th mat-header-cell *matHeaderCellDef class="w-[100px]"></th>
+    <td mat-cell *matCellDef="let row" class="py-3 w-[100px]">
       <div class="flex items-center gap-1">
-        <button mat-icon-button matTooltip="Edit domain" (click)="onEdit(domain)">
+        <button
+          mat-icon-button
+          type="button"
+          matTooltip="Edit domain"
+          [attr.aria-label]="'Edit domain ' + row.domain.name"
+          (click)="onEdit(row.domain)"
+        >
           <mat-icon>edit</mat-icon>
         </button>
         <button
           mat-icon-button
+          type="button"
           color="warn"
           matTooltip="Delete domain"
-          (click)="onDelete(domain.id)"
+          [attr.aria-label]="'Delete domain ' + row.domain.name"
+          (click)="onDelete(row.domain.id)"
         >
           <mat-icon>delete</mat-icon>
         </button>
@@ -80,11 +63,22 @@
   <tr mat-header-row *matHeaderRowDef="columns"></tr>
   <tr mat-row *matRowDef="let row; columns: columns"></tr>
   <tr class="mat-row" *matNoDataRow>
-    <td
-      class="mat-cell px-0 py-6 text-center text-[13px] text-app-muted"
-      [attr.colspan]="columns.length"
-    >
-      No domains found
+    <td class="mat-cell px-0 py-8 text-center" [attr.colspan]="columns.length">
+      @if (loading()) {
+        <p class="m-0 text-[13px] text-app-muted">Loading domains…</p>
+      } @else if (workspaceFilterActive() && (totalUnfilteredCount() ?? 0) > 0) {
+        <p class="m-0 text-sm font-medium text-app-foreground">No domains in this site</p>
+        <p class="mt-1 text-[13px] text-app-muted">
+          {{ switchSiteOrAllSitesCopy }}
+        </p>
+      } @else {
+        <p class="m-0 text-sm font-medium text-app-foreground">No domains yet</p>
+        <p class="mt-1 text-[13px] text-app-muted">Add a hostname to use for redirect routing</p>
+        <button mat-flat-button color="primary" class="mt-4" (click)="onCreate()">
+          <mat-icon>add</mat-icon>
+          Add domain
+        </button>
+      }
     </td>
   </tr>
 </table>

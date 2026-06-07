@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -81,7 +81,8 @@ export type RedirectTestDialogData = {
     WizardStepSummaryDirective
   ],
   templateUrl: './redirect-test-form-dialog.component.html',
-  styleUrl: './redirect-test-form-dialog.component.css'
+  styleUrl: './redirect-test-form-dialog.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RedirectTestFormDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<RedirectTestFormDialogComponent>);
@@ -100,6 +101,12 @@ export class RedirectTestFormDialogComponent {
   readonly isEdit = !!this.test;
   readonly dialogTitle = this.isEdit ? 'Edit redirect test' : 'Create redirect test';
   readonly submitLabel = this.isEdit ? 'Save' : 'Create';
+  readonly effectiveSubmitLabel = computed(() => {
+    if (this.pendingSubmit() || this.form().submitting()) {
+      return this.isEdit ? 'Saving…' : 'Creating…';
+    }
+    return this.submitLabel;
+  });
   readonly statusCodeOptions = STATUS_CODE_OPTIONS;
   readonly methodOptions = METHOD_OPTIONS;
   private readonly initialPathState = splitPathWithQuery(this.test?.pathWithQuery ?? '');
@@ -395,7 +402,7 @@ export class RedirectTestFormDialogComponent {
       const response = await firstValueFrom(this.redirectRulesApi.simulate([entry]));
       const result = response?.results?.[0];
       if (!result) {
-        throw new Error('Simulation failed to return a result.');
+        throw new Error("Simulation didn't return a result.");
       }
 
       const expectedStatusCode = result.statusCode;
@@ -412,7 +419,7 @@ export class RedirectTestFormDialogComponent {
       });
       this.lastSimulationKey.set(this.simulationKey());
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Simulation failed.';
+      const message = error instanceof Error ? error.message : "Couldn't run simulation.";
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });
     } finally {
       this.simulating.set(false);

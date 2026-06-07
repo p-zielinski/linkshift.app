@@ -5,15 +5,8 @@
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  /* <768px: in-drawer toolbar + small gap (site shell hides top toolbar) */
-  --docs-anchor-scroll-offset: calc((4.75rem + 10px) / 2);
-}
-
-@media (min-width: 768px) {
-  :host {
-    /* ≥768px: sticky site toolbar above drawer (fallback when JS has not run yet) */
-    --docs-anchor-scroll-offset: calc((5.5rem + 1rem) / 3);
-  }
+  /* Sticky site toolbar above drawer (fallback when JS has not run yet). */
+  --docs-anchor-scroll-offset: calc((5.5rem + 1rem) / 3);
 }
 
 .docs-shell {
@@ -22,10 +15,6 @@
   min-height: 0;
   width: 100%;
   overflow: hidden;
-}
-
-:host-context(.docs-site-shell--assistant-open) ::ng-deep .docs-shell-mobile-toolbar.mat-toolbar {
-  z-index: 0;
 }
 
 .docs-sidebar {

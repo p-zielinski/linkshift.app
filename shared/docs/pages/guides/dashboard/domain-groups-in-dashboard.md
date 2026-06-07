@@ -1,13 +1,15 @@
 # Domain groups in the dashboard
 
+**Advanced** view only. Open **Domain Groups** from the sidebar under **Routing**.
+
+In **Campaign** view, visiting `/domain-groups` redirects to **Settings** → **Domains & hosts** (`/settings#hosts`).
+
 Create and manage domain groups — the containers that hold domains, subdomains, redirect rules, link maps, and tests. Sign in to the dashboard; you do not need an existing group to open **Domain Groups**.
 
 ## List domain groups
 
-1. In the sidebar, select **Domain Groups**. The page title is **Domain Groups**.
-2. Review the table: group name, domain count, and row actions.
-
-Use the table footer to change page size (10, 20, or 50) or move between pages.
+1. In the sidebar, select **Domain Groups**.
+2. Review the table — name, ID, robots policy, domain count, and row actions. Use the footer paginator to change pages.
 
 ## Create a domain group
 
@@ -36,14 +38,9 @@ Deleting a domain group is **permanent** and removes tied domains, rules, link m
 1. In the table row, open the delete action.
 2. Confirm in the dialog titled **Delete domain group** (permanent delete).
 
-Removing a group affects domains and redirect resources tied to it. Review dependents under **Domains**, **Redirect Rules**, and **Link Maps** first.
+## Next steps
 
-## What you should see
-
-- The new group appears in the table with an updated domain count after you attach hosts.
-- Sidebar items that required a domain group (for example **Redirect Rules**) become enabled.
-
-**Next in the dashboard:** attach at least one domain or subdomain in that group ([Domains and subdomains in the dashboard](./domains-and-subdomains-in-dashboard.md)), then create a redirect rule ([Redirect rules in the dashboard](./redirect-rules-in-dashboard.md)).
+Attach at least one domain or subdomain in the group ([Domains and subdomains in the dashboard](./domains-and-subdomains-in-dashboard.md)), then create a redirect rule ([Redirect rules in the dashboard](./redirect-rules-in-dashboard.md)).
 
 ## Automate instead
 

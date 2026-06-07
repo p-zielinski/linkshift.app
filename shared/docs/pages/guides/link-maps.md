@@ -144,7 +144,7 @@ Key:            docs/api/v2
 | `/long/` | `/long` only | **No** | — (same asymmetric rule as `/go/`) |
 | `/long/` | `/long/abc` | Yes | `abc` |
 
-Prefer `/go` without a trailing slash unless you require `/go/…` paths only. Covered by `redirect.service.spec.ts` (`/long/` vs bare `/long`).
+Prefer `/go` without a trailing slash unless you require `/go/…` paths only.
 
 
 **Rule-side constraints** (enforced by API):

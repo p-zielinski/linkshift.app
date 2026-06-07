@@ -3,7 +3,7 @@
     [title]="dialogTitle"
     subtitle="Add or update a subdomain used on the LinkShift base host."
     [steps]="steps()"
-    [saveLabel]="submitLabel"
+    [saveLabel]="effectiveSubmitLabel()"
     [saveDisabled]="subdomainForm().submitting() || !canSubmit()"
     (save)="onSubmit()"
     (cancel)="onCancel()"

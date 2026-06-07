@@ -1,6 +1,7 @@
 <app-resource-page-shell
   title="Domain Groups"
   subtitle="Maintain grouping layers for domain routing rules."
+  [bodyScroll]="false"
 >
   <div page-actions>
     <button mat-flat-button color="primary" (click)="openCreateDialog()">
@@ -15,6 +16,8 @@
         [groups]="pagedGroups()"
         [domainCounts]="domainCounts()"
         [domainsLoaded]="domainsLoaded()"
+        [loading]="loading()"
+        (create)="openCreateDialog()"
         (edit)="openEditDialog($event)"
         (delete)="confirmDelete($event)"
       />
@@ -25,6 +28,7 @@
         [showCurrentPage]="true"
         [currentPage]="page()"
         [hasNextPage]="hasNextPage()"
+        [isLoading]="loading()"
         [pageLimitOptions]="pageLimitOptions"
         [pageLimit]="pageLimit()"
         (currentPageChange)="onPageChange($event)"

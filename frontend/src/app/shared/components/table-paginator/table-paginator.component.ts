@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, computed, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,7 +17,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatSelectModule,
     MatTooltipModule
   ],
-  templateUrl: './table-paginator.component.html'
+  templateUrl: './table-paginator.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TablePaginatorComponent {
   readonly position = input<'start' | 'center' | 'end'>('center');
@@ -32,23 +33,20 @@ export class TablePaginatorComponent {
   @Output() currentPageChange = new EventEmitter<number>();
   @Output() pageLimitChange = new EventEmitter<number>();
 
-  get canGoPrevious(): boolean {
-    return this.currentPage() > 1 && !this.isLoading();
-  }
-
-  get canGoNext(): boolean {
-    return (this.hasNextPage() || this.hasMore()) && !this.isLoading();
-  }
+  readonly canGoPrevious = computed(() => this.currentPage() > 1 && !this.isLoading());
+  readonly canGoNext = computed(
+    () => (this.hasNextPage() || this.hasMore()) && !this.isLoading(),
+  );
 
   onPreviousPage(): void {
-    if (!this.canGoPrevious) {
+    if (!this.canGoPrevious()) {
       return;
     }
     this.currentPageChange.emit(this.currentPage() - 1);
   }
 
   onNextPage(): void {
-    if (!this.canGoNext) {
+    if (!this.canGoNext()) {
       return;
     }
     this.currentPageChange.emit(this.currentPage() + 1);

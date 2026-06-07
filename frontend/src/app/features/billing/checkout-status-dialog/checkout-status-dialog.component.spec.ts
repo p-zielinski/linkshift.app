@@ -32,8 +32,7 @@ class MockBillingApiService {
 }
 
 describe('CheckoutStatusDialogComponent', () => {
-  it('stops polling after a terminal status', async () => {
-    vi.useFakeTimers();
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [CheckoutStatusDialogComponent],
       providers: [
@@ -44,7 +43,10 @@ describe('CheckoutStatusDialogComponent', () => {
         { provide: MatDialogRef, useValue: { close: () => {} } },
       ],
     });
+  });
 
+  it('stops polling after a terminal status', async () => {
+    vi.useFakeTimers();
     const fixture = TestBed.createComponent(CheckoutStatusDialogComponent);
     const component = fixture.componentInstance;
     const api = TestBed.inject(BillingApiService) as unknown as MockBillingApiService;
@@ -62,5 +64,34 @@ describe('CheckoutStatusDialogComponent', () => {
     await vi.advanceTimersByTimeAsync(6000);
     expect(api.callCount).toBe(2);
     vi.useRealTimers();
+  });
+
+  it('shows status message and plan in the default view', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(CheckoutStatusDialogComponent);
+
+    fixture.detectChanges();
+    await vi.advanceTimersByTimeAsync(3000);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.textContent).toContain('Payment confirmed. Your subscription is now active.');
+    expect(element.textContent).toContain('Plan: Pro');
+    expect(element.querySelector('mat-expansion-panel')).toBeTruthy();
+    expect(element.querySelector('mat-expansion-panel')?.classList.contains('mat-expanded')).toBe(
+      false,
+    );
+    vi.useRealTimers();
+  });
+
+  it('keeps session ID inside the details disclosure', () => {
+    const fixture = TestBed.createComponent(CheckoutStatusDialogComponent);
+
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const detailsPanel = element.querySelector('mat-expansion-panel');
+    expect(detailsPanel?.textContent).toContain('Session ID');
+    expect(detailsPanel?.textContent).toContain('chk_1');
   });
 });

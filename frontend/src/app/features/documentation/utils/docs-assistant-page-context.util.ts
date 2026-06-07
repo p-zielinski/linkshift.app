@@ -2,6 +2,11 @@ import { DocumentationContentService } from '../services/documentation-content.s
 
 const DASHBOARD_PAGE_CONTEXT_BY_PATH: Readonly<Record<string, string>> = {
   '/dashboard': 'Dashboard',
+  '/overview': 'Overview',
+  '/home': 'Overview',
+  '/links': 'Links',
+  '/settings': 'Settings',
+  '/analytics': 'Analytics',
   '/redirect-rules-analytics': 'Analytics',
   '/profile': 'Profile',
   '/organization': 'Organization',
@@ -18,9 +23,29 @@ const DASHBOARD_PAGE_CONTEXT_BY_PATH: Readonly<Record<string, string>> = {
   '/legal/consent': 'Legal consent',
 };
 
+function parseDashboardPath(pathOrUrl: string): { path: string; query: URLSearchParams } {
+  const [pathPart, queryPart] = pathOrUrl.split('?');
+  const path = pathPart ?? pathOrUrl;
+  return { path, query: new URLSearchParams(queryPart ?? '') };
+}
+
+function resolveLinksAssistantContext(query: URLSearchParams): string {
+  if (query.get('openConnectDomain') === '1') {
+    return 'Links — connect domain';
+  }
+  if (query.get('openCreate') === '1') {
+    return 'Links — create link';
+  }
+  return 'Links';
+}
+
 /** Human-readable context for authenticated app-shell routes (dashboard, org, domains, …). */
-export function resolveDashboardAssistantPageContext(path: string): string | null {
-  const normalized = path.split('?')[0] ?? path;
+export function resolveDashboardAssistantPageContext(pathOrUrl: string): string | null {
+  const { path: normalized, query } = parseDashboardPath(pathOrUrl);
+
+  if (normalized === '/links') {
+    return resolveLinksAssistantContext(query);
+  }
 
   const exact = DASHBOARD_PAGE_CONTEXT_BY_PATH[normalized];
   if (exact) {

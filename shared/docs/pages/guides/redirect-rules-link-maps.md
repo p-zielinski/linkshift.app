@@ -122,7 +122,7 @@ When `linkMapId` is set:
 |-------|----------|
 | Stored `destination` | Always `null` in the database |
 | Request body | Omit `destination` or send JSON `null`. Any other value (including `""`) returns **`400`** on create and update |
-| API destination validation | Runs on internal stub `https://linkmap.local` plus your `source` — **not** on ternaries/placeholders you might use on non–link-map rules |
+| API destination validation | Validates `source` path matching only — **not** conditional or placeholder destinations on the rule |
 | Safety scan on create/update | **Not** applied to rule `destination` (it is null). Entry and `fallbackDestination` URLs are scanned on link map writes |
 | Runtime vs API | API persists `destination: null` only. The edge never evaluates a rule-level `destination` when `linkMapId` is set — only map entry / `fallbackDestination` URLs |
 

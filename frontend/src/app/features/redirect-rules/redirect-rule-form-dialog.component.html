@@ -3,12 +3,13 @@
     [title]="dialogTitle()"
     [subtitle]="subtitle"
     [steps]="steps()"
-    [saveLabel]="submitLabel"
+    [saveLabel]="effectiveSubmitLabel()"
     [saveDisabled]="submitDisabled()"
     [saveTooltip]="submitTooltip()"
     [saveTooltipDisabled]="!submitTooltip()"
     (save)="onSubmit()"
     (cancel)="onCancel()"
+    (stepChange)="onStepChange($event)"
   >
     <ng-template wizardStepSummary="scope">
       <div class="text-xs text-app-muted">Priority {{ ruleModel().priority }}</div>
@@ -41,11 +42,11 @@
 
     <ng-template wizardStep="scope">
       <div class="grid gap-4">
-        <input type="hidden" [formField]="field('domainGroupId')" />
+        <input type="hidden" [formField]="domainGroupIdField" />
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Priority</mat-label>
-          <input matInput type="number" [formField]="field('priority')" />
+          <input matInput type="number" [formField]="priorityField" />
           <mat-hint>Higher priority rules are evaluated first (0-1000).</mat-hint>
           @if (priorityError(); as error) {
             <mat-error>{{ error }}</mat-error>
@@ -58,7 +59,7 @@
       <div class="grid gap-4">
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Source</mat-label>
-          <input matInput type="text" [formField]="field('source')" />
+          <input matInput type="text" [formField]="sourceField" />
           <mat-hint
             >Use an exact path, <code>/pattern/flags</code> regex, or <code>*</code>.</mat-hint
           >
@@ -69,7 +70,7 @@
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Request method</mat-label>
-          <mat-select [formField]="field('matchMethod')" multiple>
+          <mat-select [formField]="matchMethodField" multiple>
             @for (method of matchMethodOptions; track method) {
               <mat-option [value]="method">
                 {{ method }}
@@ -91,7 +92,7 @@
             [attr.aria-disabled]="isLinkMapRule() ? true : null"
           >
             <mat-label>Path match</mat-label>
-            <mat-select [formField]="field('pathMatch')">
+            <mat-select [formField]="pathMatchField">
               @for (option of pathMatchOptions; track option) {
                 <mat-option [value]="option">
                   {{ option === 'prefix' ? 'Prefix (example /v1/* when /v1)' : 'Exact' }}
@@ -112,7 +113,7 @@
             [attr.aria-disabled]="isLinkMapRule() ? true : null"
           >
             <mat-label>Query match</mat-label>
-            <mat-select [formField]="field('queryMatch')">
+            <mat-select [formField]="queryMatchField">
               @for (option of queryMatchOptions; track option) {
                 <mat-option [value]="option">
                   {{
@@ -170,7 +171,7 @@
             </div>
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Link map</mat-label>
-              <mat-select [formField]="field('linkMapId')">
+              <mat-select [formField]="linkMapIdField">
                 <mat-option [value]="null">None</mat-option>
                 @for (map of linkMaps(); track map.id) {
                   <mat-option [value]="map.id">
@@ -183,14 +184,14 @@
               >
             </mat-form-field>
             @if (linkMapsLoading()) {
-              <div class="text-[11px]">Loading maps...</div>
+              <div class="text-[11px]">Loading maps…</div>
             }
             @if (linkMapsError()) {
               <div class="text-app-danger">{{ linkMapsError() }}</div>
             }
             @if (usageError()) {
               <div class="text-app-danger">
-                Unable to load usage limits. Link map creation is disabled.
+                Couldn't load usage limits. Link map creation is disabled.
               </div>
             }
             @if (linkMapLimitReached()) {
@@ -198,11 +199,11 @@
                 Link map limit reached. Remove a map or upgrade to add more.
               </div>
             }
-            @if (selectedLinkMap(); as map) {
+            @if (selectedLinkMapDetails(); as details) {
               <div class="grid gap-1 text-[11px] text-app-muted">
-                <div>Map query: {{ formatQueryMatch(map.queryMatch) }}</div>
-                <div>Case sensitive: {{ map.caseSensitive ? 'yes' : 'no' }}</div>
-                <div>Fallback: {{ map.fallbackDestination || 'none' }}</div>
+                <div>Map query: {{ details.queryMatchLabel }}</div>
+                <div>Case sensitive: {{ details.caseSensitiveLabel }}</div>
+                <div>Fallback: {{ details.fallbackLabel }}</div>
               </div>
             }
             @if (linkMapSourceIssue()) {
@@ -316,7 +317,7 @@
         @if (!isLinkMapRule()) {
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Destination</mat-label>
-            <input matInput type="text" [formField]="field('destination')" />
+            <input matInput type="text" [formField]="destinationField" />
             <mat-hint> Must start with <code>http://</code> or <code>https://</code>. </mat-hint>
             @if (destinationError(); as error) {
               <mat-error>{{ error }}</mat-error>
@@ -467,7 +468,7 @@
 
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Status code</mat-label>
-          <mat-select [formField]="field('statusCode')">
+          <mat-select [formField]="statusCodeField">
             @for (code of statusCodeOptions(); track code) {
               <mat-option [value]="code.toString()">{{ code }}</mat-option>
             }
@@ -504,15 +505,15 @@
             </div>
             <div class="flex flex-wrap items-center justify-between gap-2">
               <span class="text-app-muted">Request method</span>
-              <span>{{ formatMatchMethods(ruleModel().matchMethod) }}</span>
+              <span>{{ reviewSummaryLabels().matchMethods }}</span>
             </div>
             <div class="flex flex-wrap items-center justify-between gap-2">
               <span class="text-app-muted">Path match</span>
-              <span>{{ formatPathMatch(ruleModel().pathMatch) }}</span>
+              <span>{{ reviewSummaryLabels().pathMatch }}</span>
             </div>
             <div class="flex flex-wrap items-center justify-between gap-2">
               <span class="text-app-muted">Query match</span>
-              <span>{{ formatQueryMatch(ruleModel().queryMatch) }}</span>
+              <span>{{ reviewSummaryLabels().queryMatch }}</span>
             </div>
             <div class="flex flex-wrap items-center justify-between gap-2">
               <span class="text-app-muted">Link map</span>

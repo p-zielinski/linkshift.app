@@ -1,6 +1,7 @@
 <app-resource-page-shell
   title="Link Maps"
   subtitle="Create reusable short-link maps for each domain group."
+  [bodyScroll]="false"
 >
   <div page-actions>
     <button
@@ -14,28 +15,37 @@
     </button>
   </div>
 
-  <app-resource-card>
-    <div class="grid gap-4 md:grid-cols-[minmax(220px,1fr)_2fr]">
-      <app-domain-group-select [groups]="domainGroups()" [formField]="filterForm.domainGroupId" />
-
-      <div
-        class="rounded-[14px] border border-app-border-soft bg-app-surface p-3 text-[12px] text-app-muted"
-      >
-        Link maps turn short keys into full destinations. Use a redirect rule with path prefix (for
-        example <code>/short</code>) to route to a chosen map.
-      </div>
+  <app-resource-card class="shrink-0">
+    <div
+      class="rounded-[14px] border border-app-border-soft bg-app-surface p-3 text-[12px] text-app-muted"
+    >
+      Link maps turn short keys into full destinations. Use a redirect rule with path prefix (for
+      example <code>/short</code>) to route to a chosen map.
     </div>
   </app-resource-card>
 
-  <app-resource-table-card className="flex min-h-0 flex-1 flex-col">
+  <app-resource-table-card className="flex min-h-0 flex-1 flex-col" [showFooter]="true">
     <div table-content>
       <app-link-maps-table
-        [maps]="linkMaps()"
+        [maps]="pagedLinkMaps()"
         [activeGroupId]="activeGroupId()"
         [loading]="loading()"
         (manage)="openManagePage($event)"
         (edit)="openEditDialog($event)"
         (delete)="deleteMap($event)"
+      />
+    </div>
+    <div table-footer>
+      <app-table-paginator
+        position="center"
+        [showCurrentPage]="true"
+        [currentPage]="page()"
+        [hasNextPage]="hasNextPage()"
+        [isLoading]="loading()"
+        [pageLimitOptions]="pageLimitOptions"
+        [pageLimit]="pageLimit()"
+        (currentPageChange)="onPageChange($event)"
+        (pageLimitChange)="onPageLimitChange($event)"
       />
     </div>
   </app-resource-table-card>

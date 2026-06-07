@@ -1,9 +1,27 @@
-<div class="flex min-h-[calc(100vh-48px)] flex-col">
-  <app-page-header [title]="title()" [subtitle]="subtitle()">
-    <ng-content select="[page-actions]" />
-  </app-page-header>
+<div class="flex min-h-0 flex-1 flex-col overflow-hidden">
+  <header class="shrink-0 pb-4">
+    <app-page-header [title]="title()" [subtitle]="subtitle()">
+      @if (pageWorkspace.active() && workspaceBinding(); as workspace) {
+        <app-workspace-switcher
+          workspace
+          [label]="workspace.label()"
+          [groups]="workspace.groups()"
+          [selectedId]="workspace.selectedId()"
+          [includeAllOption]="workspace.allowAllSites()"
+          [allOptionLabel]="workspace.allOptionLabel()"
+          (selectedIdChange)="onWorkspaceChange($event)"
+        />
+      }
+      <ng-content select="[page-actions]" />
+    </app-page-header>
+  </header>
 
-  <div class="flex min-h-0 flex-1 flex-col gap-4" [ngClass]="contentClass()">
+  <div
+    class="flex min-h-0 flex-1 flex-col items-stretch justify-start gap-4"
+    [class.overflow-y-auto]="bodyScroll()"
+    [class.overflow-hidden]="!bodyScroll()"
+    [ngClass]="contentClass()"
+  >
     <ng-content />
   </div>
 </div>

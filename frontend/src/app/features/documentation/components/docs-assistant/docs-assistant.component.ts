@@ -1,5 +1,6 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
@@ -23,8 +24,20 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MarkdownRendererComponent } from '../markdown-renderer.component';
 import { DocsAssistantSessionService } from '../../services/docs-assistant-session.service';
 import { DocsAssistantDrawerService } from '../../services/docs-assistant-drawer.service';
-import { parseDocsAssistantSource } from '../../utils/docs-assistant-source.util';
+import {
+  parseDocsAssistantSource,
+  type DocsAssistantSourceLink,
+} from '../../utils/docs-assistant-source.util';
 import type { DocsAssistantMessage } from '../../services/docs-assistant-history.storage';
+
+type DocsAssistantParsedSource = {
+  source: string;
+  parsed: DocsAssistantSourceLink;
+};
+
+type DocsAssistantMessageView = DocsAssistantMessage & {
+  parsedSources: DocsAssistantParsedSource[];
+};
 
 const STARTER_PROMPTS = [
   'How do I create a redirect rule for one path?',
@@ -53,6 +66,7 @@ const STARTER_PROMPTS = [
   ],
   templateUrl: './docs-assistant.component.html',
   styleUrl: './docs-assistant.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DocsAssistantComponent {
   readonly pageContext = input<string | null>(null);
@@ -73,15 +87,26 @@ export class DocsAssistantComponent {
   readonly showHistory = signal(false);
   readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  readonly activeMessages = computed(() => this.session.activeThread()?.messages ?? []);
-  readonly hasMessages = computed(() => this.activeMessages().length > 0);
+  readonly messageViews = computed((): DocsAssistantMessageView[] => {
+    const messages = this.session.activeThread()?.messages ?? [];
+
+    return messages.map((message) => ({
+      ...message,
+      parsedSources: (message.sources ?? []).map((source) => ({
+        source,
+        parsed: parseDocsAssistantSource(source),
+      })),
+    }));
+  });
+
+  readonly hasMessages = computed(() => this.messageViews().length > 0);
 
   @ViewChild('messagesEnd') private messagesEndRef?: ElementRef<HTMLDivElement>;
   @ViewChild('questionInput') private questionInputRef?: ElementRef<HTMLTextAreaElement>;
 
   constructor() {
     effect(() => {
-      this.activeMessages();
+      this.messageViews();
       this.session.isSearching();
       this.session.searchStage();
       this.session.searchElapsedSeconds();
@@ -95,10 +120,6 @@ export class DocsAssistantComponent {
 
       this.focusComposer();
     });
-  }
-
-  parseSource(source: string) {
-    return parseDocsAssistantSource(source);
   }
 
   onClose(): void {

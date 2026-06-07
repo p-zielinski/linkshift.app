@@ -1,18 +1,32 @@
 # Link maps in the dashboard
 
+**Advanced** view only. Open **Link Maps** from the sidebar under **Routing**.
+
 Create link maps, manage entries on the detail page, and import keys in bulk — without using the API first.
 
 :::info
-You need a **domain group** selected in the filter and a **parent redirect rule** before **Add link map** is enabled. Engine behavior (query modes, fallbacks, key extraction): [Link maps](../link-maps.md).
+You need a **site** selected in the page header **Site** menu and a **parent redirect rule** before **Add link map** is enabled. Engine behavior (query modes, fallbacks, key extraction): [Link maps](../link-maps.md).
 :::
 
 ## List link maps
 
 1. In the sidebar, select **Link Maps**.
-2. Choose a **Domain group** in the filter (required — **Add link map** stays disabled until you do).
-3. Open a map by selecting its row to open the map detail page.
+2. Choose a **Site** in the page header menu (required — **Add link map** stays disabled until you do).
+3. Select **Manage entries** (row action) to open the map detail page.
 
-The list has no table paginator; all maps for the selected group appear in one table.
+An info banner above the table explains that link maps turn short keys into destinations and that a redirect rule with a path prefix (for example `/short`) routes to a chosen map.
+
+The table shows name, entry count, query match mode, case sensitivity, fallback URL, and row actions (**Manage entries**, **Edit link map**, **Delete link map** — delete stays disabled while a parent rule references the map). Use the footer paginator to change pages.
+
+### Table empty states
+
+| State | What you see |
+|-------|----------------|
+| No site selected | *Choose a site in the page header Site menu to view link maps.* |
+| Site selected, loading | **Loading link maps…** |
+| Site selected, no maps | **No link maps found.** |
+
+**All sites** is not available on this page — pick one site in the page header **Site** menu.
 
 ## Create a link map
 
@@ -54,8 +68,8 @@ Select **Edit settings** to reopen **Link map settings** (**Details** step). Del
 After a bulk import, when the result dialog offers **Rollback imported entries**:
 
 1. Review the import summary in **Bulk import entries**.
-2. Select **Rollback imported entries** to remove the rows from that import (button availability depends on import outcome).
-3. Confirm in the dialog. This removes the imported keys from the map; it does not change redirect rules.
+2. Select **Rollback imported entries** (availability depends on import outcome).
+3. Confirm in the dialog.
 
 For API-side rollback by entry IDs, see [Link map entries — bulk delete (rollback)](../link-map-entries.md#bulk-delete-rollback).
 
@@ -66,13 +80,7 @@ For API-side rollback by entry IDs, see [Link map entries — bulk delete (rollb
 
 ### Search and paginate
 
-Use **Search by key or destination**. Change pages with the table paginator (20, 50, or 100 per page); selected rows stay selected across pages until you clear them.
-
-## What you should see
-
-- The map in the list with the correct domain group.
-- On the detail page, new or imported entries in the table.
-- Short-link behavior on live traffic once the parent rule and DNS are in place (validate with [Tests in the dashboard](./tests-in-dashboard.md)).
+Use **Search by key or destination**. Selected rows stay selected across paginator pages until you clear them.
 
 ## Automate instead
 

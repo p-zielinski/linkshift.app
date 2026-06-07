@@ -296,6 +296,31 @@ body {
   --mdc-outlined-button-outline-color: rgba(31, 24, 28, 0.28);
 }
 
+.app-shell .mat-drawer-content {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* See app-page-host-layout.contract.ts — routed components are outlet siblings, not children. */
+.app-page-host > router-outlet {
+  display: none;
+}
+
+.app-page-host > :not(router-outlet) {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-page-host app-resource-page-shell {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
 @media (max-width: 1023px) {
   /* Prevent SSR side drawer flash on narrow screens before hydration. */
   .app-shell .mat-drawer.mat-drawer-side {
@@ -313,4 +338,17 @@ body {
   border-radius: 16px !important;
   border: 1px solid rgba(31, 24, 28, 0.14);
   background: linear-gradient(170deg, #fff7fa 0%, #fff 45%, #f8f2f6 100%);
+}
+
+.wizard-dialog-compact {
+  app-wizard,
+  app-wizard .wizard-shell,
+  form.h-full {
+    height: auto !important;
+  }
+
+  app-wizard .flex.min-h-0.flex-1 {
+    flex: 0 1 auto;
+    min-height: auto;
+  }
 }

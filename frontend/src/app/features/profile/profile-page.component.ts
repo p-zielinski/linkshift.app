@@ -1,4 +1,4 @@
-import { Component, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -12,7 +12,8 @@ import { applyZodField } from '../../core/forms/zod-validators';
 import { EMAIL_MAX_LENGTH } from '../../core/forms/validation.constants';
 import { AuthStore } from '../../core/store/auth.store';
 import { AuthApiService } from '../../core/api/auth-api.service';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
+import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
 import { firstValueFrom } from 'rxjs';
 import { SITE_CONFIG } from '../../core/config/site-config';
 import { needsLegalConsent } from '../../core/legal/legal-consent.utils';
@@ -34,10 +35,12 @@ const emailSchema = z
     MatInputModule,
     MatSnackBarModule,
     FormField,
-    PageHeaderComponent,
+    ResourceCardComponent,
+    ResourcePageShellComponent,
   ],
   templateUrl: './profile-page.component.html',
   styleUrl: './profile-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfilePageComponent {
   private readonly authStore = inject(AuthStore);
@@ -89,7 +92,7 @@ export class ProfilePageComponent {
         this.snackBar.open('Verification email sent.', 'Dismiss', { duration: 3000 });
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to resend verification.';
+      const message = error instanceof Error ? error.message : "Couldn't resend verification.";
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });
     } finally {
       this.busy.set(false);
@@ -124,7 +127,7 @@ export class ProfilePageComponent {
         duration: 4000,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Email update failed.';
+      const message = error instanceof Error ? error.message : "Couldn't update email. Try again.";
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });
     } finally {
       this.busy.set(false);
@@ -150,11 +153,12 @@ export class ProfilePageComponent {
       await firstValueFrom(this.authApi.confirmEmailChange({ code }));
       const newEmail = this.emailFormModel().newEmail.trim();
       this.authStore.updateUser({ email: newEmail, emailVerifiedAt: new Date().toISOString() });
-      this.snackBar.open('Email updated successfully.', 'Dismiss', { duration: 4000 });
+      this.snackBar.open('Email updated.', 'Dismiss', { duration: 4000 });
       this.changeCodeSent.set(false);
       this.emailFormModel.set({ newEmail: '', code: '' });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Email confirmation failed.';
+      const message =
+        error instanceof Error ? error.message : "Couldn't confirm email change. Try again.";
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });
     } finally {
       this.busy.set(false);

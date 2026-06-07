@@ -2,10 +2,10 @@
   <mat-sidenav
     class="docs-sidebar"
     [mode]="isMobile() ? 'over' : 'side'"
-    [opened]="!isMobile() || mobileDrawerOpen()"
+    [opened]="!isMobile() || docsNavDrawerOpen()"
     [fixedInViewport]="isMobile()"
     [fixedTopGap]="0"
-    (openedChange)="mobileDrawerOpen.set($event)"
+    (openedChange)="onDocsNavDrawerOpenedChange($event)"
   >
     <div class="docs-sidebar-layout flex min-h-0 flex-col">
       <div class="shrink-0 p-4">
@@ -34,14 +34,14 @@
         class="docs-sidebar-nav-scroll min-h-0 flex-1 overflow-y-auto px-3 pb-4"
         (pointerdown)="recordSidebarNavScroll()"
       >
-        @if (isSmallScreen()) {
+        @if (isMobile()) {
           <div
             class="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-app-muted"
           >
             Site
           </div>
           <mat-nav-list>
-            @for (item of siteLinks; track item.route) {
+            @for (item of siteLinks(); track item.label) {
               <a
                 mat-list-item
                 class="rounded-lg"
@@ -88,7 +88,7 @@
         >
           @for (group of sidebarNavGroups; track group.id) {
             <mat-expansion-panel
-              [expanded]="isNavGroupExpanded(group)"
+              [expanded]="navGroupExpansion()[group.id]"
               (opened)="onNavGroupOpened(group.id)"
               (closed)="onNavGroupClosed(group.id)"
             >
@@ -139,7 +139,7 @@
           <mat-accordion displayMode="flat" multi="true" class="grid gap-2">
             @for (group of openApi.tagGroups(); track group.tag) {
               <mat-expansion-panel
-                [expanded]="isEndpointGroupExpanded(group)"
+                [expanded]="endpointGroupExpansion()[group.tag]"
                 (opened)="onEndpointGroupOpened(group.tag)"
                 (closed)="onEndpointGroupClosed(group.tag)"
               >
@@ -180,52 +180,10 @@
       id="docs-main-body-scroll"
       class="docs-main-body-scroll min-h-0 flex-1 overflow-y-auto"
     >
-      <div class="flex min-h-0 flex-col">
-        <mat-toolbar
-          class="docs-shell-mobile-toolbar sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fafafa_0%,#fff_55%,#f5f4f6_100%)] text-[#241c21] md:hidden"
-        >
-          <div class="mx-auto flex w-full max-w-[1280px] items-center gap-4 px-4 py-2">
-            <div class="inline-flex items-center gap-3">
-              <button
-                mat-icon-button
-                type="button"
-                aria-label="Open docs menu"
-                (click)="toggleDrawer()"
-              >
-                <mat-icon>menu</mat-icon>
-              </button>
-              <a
-                class="inline-flex items-center gap-2.5 no-underline text-inherit"
-                routerLink="/home"
-              >
-                <app-logo />
-              </a>
-            </div>
-
-            <span class="flex-1"></span>
-
-            <button
-              mat-icon-button
-              type="button"
-              class="!text-[var(--app-accent-strong,#8f2045)]"
-              aria-label="Open Ask docs"
-              [attr.aria-expanded]="assistantDrawerOpen()"
-              (click)="toggleAssistantDrawer()"
-            >
-              <mat-icon>auto_awesome</mat-icon>
-            </button>
-
-            <div class="md:hidden">
-              <a mat-flat-button color="primary" routerLink="/auth">Go to App</a>
-            </div>
-          </div>
-        </mat-toolbar>
-
-        <div class="mx-auto w-full max-w-[1280px] flex-1 p-3 sm:p-4 lg:p-5">
-          <div class="mt-2">
-            <div id="docs-page-top" class="docs-page-top-anchor" aria-hidden="true"></div>
-            <router-outlet />
-          </div>
+      <div class="mx-auto w-full max-w-[1280px] flex-1 p-3 sm:p-4 lg:p-5">
+        <div class="mt-2">
+          <div id="docs-page-top" class="docs-page-top-anchor" aria-hidden="true"></div>
+          <router-outlet />
         </div>
       </div>
     </div>

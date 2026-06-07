@@ -3,10 +3,11 @@
     [title]="dialogTitle"
     subtitle="Organize domains into a routing group."
     [steps]="steps()"
-    [saveLabel]="submitLabel"
-    [saveDisabled]="groupForm().submitting() || !canSubmit()"
+    [saveLabel]="effectiveSubmitLabel()"
+    [saveDisabled]="submitDisabled()"
     (save)="onSubmit()"
     (cancel)="onCancel()"
+    (stepChange)="onStepChange($event)"
   >
     <ng-template wizardStepSummary="details">
       <div class="text-xs text-app-muted">{{ groupModel().name || 'Unnamed group' }}</div>

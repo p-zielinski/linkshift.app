@@ -1,19 +1,19 @@
-<div class="flex min-h-[calc(100vh-48px)] flex-col gap-4">
-  <app-page-header
-    title="Redirect Tester"
-    subtitle="Trace each redirect hop to detect loops, invalid targets, and inconsistent edge behavior."
-  >
+<app-resource-page-shell
+  title="Redirect Tester"
+  subtitle="Trace each redirect hop to detect loops, invalid targets, and inconsistent edge behavior."
+>
+  <div page-actions>
     <a mat-stroked-button color="primary" routerLink="/tools">View all tools</a>
-  </app-page-header>
+  </div>
 
-  <mat-card class="rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+  <app-resource-card>
     <div class="text-sm font-semibold text-app-foreground">Quick workflow</div>
     <ol class="mt-2 list-decimal space-y-1 pl-5 text-[13px] text-app-muted">
       <li>Enter a URL, domain, or path.</li>
       <li>Select a User-Agent profile (or set a custom value).</li>
       <li>Run trace and inspect status, headers, and final destination.</li>
     </ol>
-  </mat-card>
+  </app-resource-card>
 
-  <app-redirect-trace-tester-tool />
-</div>
+  <app-redirect-trace-tester-tool (traceCompleted)="onRedirectTraceCompleted()" />
+</app-resource-page-shell>

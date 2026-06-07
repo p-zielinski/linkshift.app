@@ -144,8 +144,8 @@ pages:
     source: pages/guides/dashboard/dashboard-overview.md
     route: /docs/guides/dashboard-overview
     description: >-
-      Dashboard app shell, sidebar, Ask docs assistant, domain-group gate, home
-      usage, profile email, and billing summary.
+      Dashboard app shell, Campaign and Advanced views, Need help? and Ask docs,
+      page header Site filter, domain-group gate, plan usage, profile, and billing.
 
   - slug: domain-groups-in-dashboard
     category: guide
@@ -168,6 +168,13 @@ pages:
     description: >-
       Redirect rule wizard, post-save test chain, filters, and Run tests summary card.
 
+  - slug: links-in-dashboard
+    category: guide
+    source: pages/guides/dashboard/links-in-dashboard.md
+    route: /docs/guides/links-in-dashboard
+    description: >-
+      Create, search, and manage short links — Site filter, empty states, and row actions.
+
   - slug: link-maps-in-dashboard
     category: guide
     source: pages/guides/dashboard/link-maps-in-dashboard.md
@@ -187,7 +194,7 @@ pages:
     source: pages/guides/dashboard/analytics-in-dashboard.md
     route: /docs/guides/analytics-in-dashboard
     description: >-
-      Redirect rules analytics — domain group filter, time ranges, chart, and top rules.
+      Analytics — Site filter, time ranges, chart, top rules, and Campaign link performance.
 
   - slug: organization-and-api-keys-in-dashboard
     category: guide
@@ -201,7 +208,14 @@ pages:
     source: pages/guides/dashboard/tools-in-dashboard.md
     route: /docs/guides/tools-in-dashboard
     description: >-
-      Dashboard QR Code Generator and Redirect Tester tools inside the authenticated shell.
+      Dashboard QR and redirect tools — Campaign QR & Tools vs Advanced Tools copy and routes.
+
+  - slug: settings-in-dashboard
+    category: guide
+    source: pages/guides/dashboard/settings-in-dashboard.md
+    route: /docs/guides/settings-in-dashboard
+    description: >-
+      Campaign Settings — plan usage tiles, domains and hosts, team, billing, and Advanced switch.
 
   - slug: link-map-concepts
     category: concept

@@ -32,6 +32,7 @@ import { APP_CONFIG } from '../../core/config/app-runtime-config';
 import { formatLimitSummary } from '../../core/utils/plan-limits';
 import { BillingPlanPrice } from '../../core/api/billing-api.service';
 import { PaddleCheckoutFlowService } from '../../core/billing/paddle-checkout-flow.service';
+import { DashboardModeService } from '../../core/layout/dashboard-mode.service';
 
 @Component({
   selector: 'app-auth-page',
@@ -58,6 +59,7 @@ export class AuthPageComponent {
   readonly authStore = inject(AuthStore);
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
+  private readonly dashboardMode = inject(DashboardModeService);
   readonly siteConfig = inject(SITE_CONFIG);
   private readonly billingPlansStore = inject(BillingPlansStore);
   private readonly appConfig = inject(APP_CONFIG);
@@ -133,6 +135,7 @@ export class AuthPageComponent {
   readonly canAccessAuth = computed(
     () => !this.authGateEnabled() || this.registerReady(),
   );
+  readonly isAuthenticated = computed(() => this.authStore.isAuthenticated());
 
   private readonly pricingByPlan = computed(() => {
     const map = new Map<string, BillingPlanPrice>();
@@ -146,7 +149,7 @@ export class AuthPageComponent {
     const interval = this.registerModel().billingInterval ?? 'MONTHLY';
     const limits = this.billingPlansStore.limits();
     const summaryFor = (plan: OrganizationPlan) =>
-      limits?.[plan] ? formatLimitSummary(limits[plan]!) : 'Limits loading...';
+      limits?.[plan] ? formatLimitSummary(limits[plan]!) : 'Limits loading…';
     return [
       {
         id: OrganizationPlan.FREE,
@@ -169,6 +172,10 @@ export class AuthPageComponent {
     ];
   });
 
+  goToApp(): void {
+    void this.router.navigateByUrl(this.dashboardMode.defaultLandingPath());
+  }
+
   constructor() {
     if (this.authGateEnabled()) {
       this.registerReady.set(false);
@@ -185,7 +192,7 @@ export class AuthPageComponent {
       if (!error) {
         return;
       }
-      const message = error.trim() || 'Something went wrong. Please try again.';
+      const message = error.trim() || "Couldn't sign in. Try again.";
       this.snackBar.open(message, 'Dismiss', {
         duration: 5000,
         horizontalPosition: 'center',
@@ -201,7 +208,7 @@ export class AuthPageComponent {
     await submit(this.loginForm, async (formValue) => {
       try {
         await firstValueFrom(this.authStore.login(formValue().value()));
-        await this.router.navigateByUrl('/dashboard');
+        await this.router.navigateByUrl(this.dashboardMode.defaultLandingPath());
       } catch {
         return undefined;
       }
@@ -247,7 +254,7 @@ export class AuthPageComponent {
             });
 
             if (checkoutResult.status === 'completed') {
-              this.snackBar.open('Payment received. We are confirming plan activation.', 'Dismiss', {
+              this.snackBar.open('Payment received. Confirming plan activation.', 'Dismiss', {
                 duration: 5000,
                 horizontalPosition: 'center',
                 verticalPosition: 'bottom',
@@ -264,7 +271,7 @@ export class AuthPageComponent {
             const message =
               checkoutError instanceof Error
                 ? checkoutError.message
-                : 'Unable to open checkout overlay. You can retry from dashboard.';
+                : "Couldn't open checkout. Retry from the dashboard after sign-in.";
             this.snackBar.open(message, 'Dismiss', {
               duration: 6000,
               horizontalPosition: 'center',
@@ -276,7 +283,7 @@ export class AuthPageComponent {
       }
 
       try {
-        await this.router.navigateByUrl('/dashboard');
+        await this.router.navigateByUrl(this.dashboardMode.defaultLandingPath());
       } catch {
         return undefined;
       }
@@ -303,7 +310,7 @@ export class AuthPageComponent {
   ): string {
     const pricing = this.getPlanPrice(plan, interval);
     if (!pricing) {
-      return 'Contact us';
+      return 'Contact support';
     }
     const normalized =
       Math.round(pricing.amount) === pricing.amount

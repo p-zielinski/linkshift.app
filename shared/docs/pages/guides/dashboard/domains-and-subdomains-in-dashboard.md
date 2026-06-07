@@ -1,5 +1,7 @@
 # Domains and subdomains in the dashboard
 
+**Advanced** view only. **Domains** and **Subdomains** are not available in **Campaign** view — visiting those routes redirects you to **Settings** → **Domains & hosts** (`/settings#hosts`). In **Campaign**, manage hosts from **Settings** or the connect-domain wizard.
+
 Attach custom domains and LinkShift starter subdomains to a domain group so redirect rules can run on those hosts.
 
 :::info
@@ -8,15 +10,15 @@ You need at least one domain group first — see [Domain groups in the dashboard
 
 ## Domains
 
-In the sidebar, select **Domains**. The page title is **Domains** (*Registered hostnames available for redirect routing.*).
+In the sidebar, select **Domains**.
 
 Custom domains are fully qualified hostnames (for example `links.example.com`) bound to one domain group.
 
 ### List and filter
 
 1. Select **Domains** in the sidebar.
-2. Use the **Domain group** filter (and **All domain groups** when you have more than one).
-3. Search or paginate the table as needed.
+2. Use the **Site** menu in the page header to pick one site at a time (**All sites** is not available on this page in **Advanced** view).
+3. Use the footer paginator to change pages.
 
 ### Domain setup help
 
@@ -35,16 +37,25 @@ Follow any DNS or verification steps shown in the UI or your provider; the dashb
 - **Edit** — opens the same **Details** wizard.
 - **Delete** — confirm in the dialog titled **Delete domain** (permanent removal from the group).
 
+### Table empty states
+
+| State | What you see |
+|-------|----------------|
+| Loading | **Loading domains…** |
+| No domains in org | **No domains yet** with **Add domain** |
+| Site selected, no domains here but other sites have domains | **No domains in this site** — switch site in the page header **Site** menu |
+
 ## Subdomains
 
-In the sidebar, select **Subdomains**. The page title is **Subdomains** (*LinkShift-hosted subdomains mapped to your domain groups.*).
+In the sidebar, select **Subdomains**.
 
-Starter subdomains use your organization’s LinkShift host pattern. The **Base Routing Host** card shows the base host and how names resolve as `{name}.{base}`.
+Starter subdomains use your organization’s LinkShift host pattern. The **Base Routing Host** card shows the base host, notes that dynamically created subdomains resolve under that host, and the resolution format `{name}.{base}`.
 
 ### List and filter
 
 1. Select **Subdomains** in the sidebar.
-2. Choose a **Domain group** in the filter (required — there is no **All domain groups** option on this page).
+2. Use the **Site** menu in the page header to pick one site at a time (**All sites** is not available on this page in **Advanced** view).
+3. Use the footer paginator to change pages.
 
 ### Create a subdomain
 
@@ -58,19 +69,24 @@ The table shows the full host (for example `campaign.linkshift.app`).
 
 Use row actions the same way as on **Domains**. Delete confirms in a dialog titled **Delete subdomain**.
 
-## What you should see
+### Table empty states
 
-- New rows in the **Domains** or **Subdomains** table tied to the chosen domain group.
-- Hostnames available when you create redirect rules and tests for that group.
+| State | What you see |
+|-------|----------------|
+| Loading | **Loading subdomains…** |
+| No subdomains in org | **No subdomains yet** with **Add subdomain** |
+| Site selected, no subdomains here but other sites have subdomains | **No subdomains in this site** — switch site in the page header **Site** menu |
 
-**Next in the dashboard:** create a redirect rule for those hosts ([Redirect rules in the dashboard](./redirect-rules-in-dashboard.md)), then validate with **Run tests** or **Fetch expected result** ([Tests in the dashboard](./tests-in-dashboard.md)).
+## Next steps
+
+Create a redirect rule for those hosts ([Redirect rules in the dashboard](./redirect-rules-in-dashboard.md)), then validate with **Run tests** or **Fetch expected result** ([Tests in the dashboard](./tests-in-dashboard.md)).
 
 ## Automate instead
 
 See [Domains and domain groups (API)](../domains-and-groups.md) for custom domains and LinkShift subdomains.
 
 :::ai-only
-Management API: GET/POST/PUT/DELETE `/api/v1/domains` and `/api/v1/subdomains`.
+Management API: GET/POST/PUT/DELETE `/api/v1/domains` and `/api/v1/subdomains`. Domains/Subdomains empty states may quote *choose All sites* in shared copy even though All sites is Links-only — switch site in the header menu instead.
 :::
 
 ## Related

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -112,6 +112,7 @@ export type LinkMapDialogResult = {
   ],
   templateUrl: './link-map-form-dialog.component.html',
   styleUrl: './link-map-form-dialog.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkMapFormDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<LinkMapFormDialogComponent>);
@@ -290,7 +291,7 @@ export class LinkMapFormDialogComponent {
         name: saved.name,
       } as LinkMapDialogResult);
     } catch (error: unknown) {
-      this.submitError.set(extractErrorMessage(error, 'Unable to save link map settings.'));
+      this.submitError.set(extractErrorMessage(error, "Couldn't save link map settings."));
     } finally {
       this.saving.set(false);
     }

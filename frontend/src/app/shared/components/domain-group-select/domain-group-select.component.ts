@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { FormField, type FieldTree } from '@angular/forms/signals';
@@ -11,7 +11,8 @@ type DomainGroupOption = Pick<DomainGroup, 'id' | 'name'>;
   selector: 'app-domain-group-select',
   standalone: true,
   imports: [CommonModule, MatFormFieldModule, MatSelectModule, FormField],
-  templateUrl: './domain-group-select.component.html'
+  templateUrl: './domain-group-select.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DomainGroupSelectComponent {
   readonly label = input('Domain group');
