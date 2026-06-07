@@ -1,0 +1,84 @@
+<form class="h-full" (submit)="$event.preventDefault()" (keydown.enter)="$event.preventDefault()">
+  <app-wizard
+    title="Edit short link"
+    subtitle="Update where the link goes and the link path."
+    [steps]="steps()"
+    [saveLabel]="saveLabel()"
+    [saveDisabled]="!canSave() || pending()"
+    [saveTooltip]="saveTooltip()"
+    [saveTooltipDisabled]="!saveTooltip()"
+    (save)="onSave()"
+    (cancel)="onCancel()"
+  >
+    <ng-template wizardStepSummary="details">
+      <div class="text-xs text-app-muted truncate">{{ shortPath }}</div>
+      <div class="text-[11px] text-app-muted truncate">
+        {{ destinationValue() || 'Set destination' }}
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="details">
+      <div class="grid gap-4">
+        <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-4">
+          <div class="text-sm font-semibold text-app-foreground">Short path</div>
+          <div class="mt-2 break-all text-sm font-medium text-app-foreground">{{ shortPath }}</div>
+          @if (shortUrls.length) {
+            <div class="mt-4 text-[13px] text-app-muted">Full URLs (one per host)</div>
+            <ul class="m-0 mt-2 list-none space-y-2 p-0">
+              @for (url of shortUrls; track url) {
+                <li class="break-all text-sm font-medium text-app-foreground">{{ url }}</li>
+              }
+            </ul>
+            <p class="m-0 mt-3 text-[13px] text-app-muted">
+              Routing is shared across every host on this site. Any listed URL serves the same path.
+            </p>
+          }
+        </div>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Link path</mat-label>
+          <input matInput type="text" [formField]="editForm.key" />
+          <mat-hint>e.g. summer-sale. Use lowercase letters, numbers, and hyphens</mat-hint>
+          @if (!keyValid() && editForm.key().touched()) {
+            <mat-error>Use lowercase letters, numbers, and hyphens only</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Destination URL</mat-label>
+          <input matInput type="url" [formField]="editForm.destination" />
+          <mat-hint
+            >e.g. https://example.com/landing. Destination must start with https://</mat-hint
+          >
+          @if (!destinationValid() && editForm.destination().touched()) {
+            <mat-error>Use valid https URL</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="flex justify-end">
+          <button
+            mat-button
+            type="button"
+            class="!text-app-muted"
+            [matTooltip]="advancedOptionsTooltip"
+            matTooltipPosition="above"
+            (click)="openAdvancedOptions()"
+          >
+            Open in advanced
+          </button>
+        </div>
+      </div>
+    </ng-template>
+
+    @if (submitError(); as error) {
+      <div wizard-alert class="mt-4">
+        <div
+          class="rounded-[12px] border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+          role="alert"
+        >
+          {{ error }}
+        </div>
+      </div>
+    }
+  </app-wizard>
+</form>

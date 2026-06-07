@@ -1,6 +1,7 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   OnDestroy,
@@ -14,7 +15,6 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -33,13 +33,13 @@ import { QrCodeApiService, QrCodeAssetFormat } from '../../../../core/api/qr-cod
     CommonModule,
     ReactiveFormsModule,
     MatButtonModule,
-    MatCardModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
   ],
   templateUrl: './qr-code-generator-tool.component.html',
   styleUrl: './qr-code-generator-tool.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QrCodeGeneratorToolComponent implements OnInit, OnDestroy {
   private readonly qrCodeApi = inject(QrCodeApiService);
@@ -250,24 +250,24 @@ export class QrCodeGeneratorToolComponent implements OnInit, OnDestroy {
 
   private async resolveTraceWarning(error: unknown): Promise<string> {
     if (!(error instanceof HttpErrorResponse)) {
-      return 'Redirect destination check failed. QR code is still generated.';
+      return "Couldn't verify destination. QR code is still generated.";
     }
 
     const details = await this.extractDetails(error.error);
     if (details) {
-      return `Redirect destination check failed: ${details}`;
+      return `Couldn't verify destination: ${details}`;
     }
 
     if (error.status === 429) {
       return 'Redirect destination check rate-limited. QR code is still generated.';
     }
 
-    return 'Redirect destination check failed. QR code is still generated.';
+    return "Couldn't verify destination. QR code is still generated.";
   }
 
   private async resolveErrorMessage(error: unknown): Promise<string> {
     if (!(error instanceof HttpErrorResponse)) {
-      return 'Failed to generate QR code. Please try again later.';
+      return "Couldn't generate QR code. Try again in a moment.";
     }
 
     const details = await this.extractDetails(error.error);
@@ -276,13 +276,13 @@ export class QrCodeGeneratorToolComponent implements OnInit, OnDestroy {
     }
 
     if (error.status === 429) {
-      return 'Too many requests. Please wait a moment and try again.';
+      return 'Too many requests. Wait a moment and try again.';
     }
     if (error.status === 400) {
       return 'Invalid URL. Use a complete address with http:// or https://.';
     }
 
-    return 'Failed to generate QR code. Please try again later.';
+    return "Couldn't generate QR code. Try again in a moment.";
   }
 
   private async extractDetails(payload: unknown): Promise<string | null> {

@@ -26,37 +26,32 @@ import { VideoHolderComponent } from '../../../../shared/components/video-holder
 
 const WORKFLOW_STEPS = [
   {
-    icon: 'south_east',
-    title: 'Model migration rules',
-    description:
-      'Use exact paths, wildcard *, or /pattern/flags regex rules to move legacy URLs without losing intent.',
-  },
-  {
     icon: 'link',
-    title: 'Launch branded shortlinks',
+    title: 'Create short links',
     description:
-      'Attach a link map to a prefix rule and publish short keys on your own domain for campaigns.',
+      'Publish branded short keys on your own domain and send traffic to campaign destinations in a few clicks.',
   },
   {
     icon: 'monitoring',
-    title: 'Track traffic quickly',
+    title: 'Review link analytics',
     description:
-      'Review hits, top short keys, and top request variants in redirect analytics as traffic comes in.',
+      'Track clicks, top short keys, and top request variants as traffic comes in.',
   },
   {
-    icon: 'api',
-    title: 'Automate with API keys',
+    icon: 'qr_code_2',
+    title: 'Share QR codes',
     description:
-      'Use organization-scoped API keys to manage domains, rules, link maps, and tests from your own workflows.',
+      'Generate share-ready QR assets from any short link or URL without leaving the app.',
+  },
+  {
+    icon: 'south_east',
+    title: 'Migrate URLs safely',
+    description:
+      'Use exact paths, wildcard *, or /pattern/flags regex rules to move legacy URLs without losing SEO intent.',
   },
 ];
 
 const FEATURES: MarketingFeature[] = [
-  {
-    icon: 'trending_up',
-    title: 'SEO-safe migration control',
-    description: 'Preserve path structure with exact, wildcard, or regex-based redirect mappings.',
-  },
   {
     icon: 'link',
     title: 'Branded shortlinks',
@@ -66,6 +61,16 @@ const FEATURES: MarketingFeature[] = [
     icon: 'monitoring',
     title: 'Built-in analytics',
     description: 'Track redirect hits, top link-map keys, and top request variants per rule.',
+  },
+  {
+    icon: 'qr_code_2',
+    title: 'QR generator',
+    description: 'Build share-ready QR codes from short links or any URL in the tools workspace.',
+  },
+  {
+    icon: 'trending_up',
+    title: 'SEO-safe migration control',
+    description: 'Preserve path structure with exact, wildcard, or regex-based redirect mappings.',
   },
   {
     icon: 'api',
@@ -207,24 +212,24 @@ export class HomePageComponent implements OnInit {
   readonly modelCards = MODEL_CARDS;
 
   readonly heroHighlights = [
-    'SEO-preserving URL migrations',
     'Branded shortlinks on your own domain',
+    'Link analytics with top keys and variants',
+    'QR generator for share-ready assets',
+    'SEO-preserving URL migrations',
     'Regex sources with capture groups',
     'Exact, prefix, and query matching',
-    'Link maps with analytics visibility',
-    'Robots.txt templates or custom group-level content',
     'Organization-scoped API keys for automation',
     'Automatic SSL certificate provisioning',
   ];
 
   ngOnInit(): void {
     this.seo.updateTags({
-      title: `${this.siteConfig.name} | SEO-preserving redirects and branded shortlinks`,
+      title: `${this.siteConfig.name} | Branded short links, QR codes, and redirect analytics`,
       description:
-        'Protect SEO during migrations and run branded shortlinks on your own domains with regex-ready redirects, link maps, analytics, domain grouping, and automatic SSL.',
-      canonicalPath: '/home',
+        'Create branded short links on your own domain, track clicks and top keys, share QR codes, and protect SEO during migrations with regex-ready redirects and automatic SSL.',
+      canonicalPath: '/',
       keywords:
-        'SEO migration redirects, branded shortlinks, regex redirects, link maps, redirect analytics, domain groups, automatic SSL, redirect management',
+        'branded shortlinks, link analytics, QR code generator, SEO migration redirects, regex redirects, link maps, domain groups, automatic SSL, redirect management',
     });
   }
 }

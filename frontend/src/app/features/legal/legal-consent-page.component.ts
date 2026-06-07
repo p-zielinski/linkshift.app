@@ -1,39 +1,43 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
 import { form, validate, FormField } from '@angular/forms/signals';
+import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
+import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
 import { SITE_CONFIG } from '../../core/config/site-config';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { AuthStore } from '../../core/store/auth.store';
 import { mapAuthUser } from '../../core/legal/map-auth-user';
 import { needsLegalConsent } from '../../core/legal/legal-consent.utils';
 import { firstValueFrom } from 'rxjs';
+import { DashboardModeService } from '../../core/layout/dashboard-mode.service';
 
 @Component({
   selector: 'app-legal-consent-page',
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
     MatCheckboxModule,
     MatButtonModule,
     MatSnackBarModule,
     RouterLink,
-    FormField
+    FormField,
+    ResourcePageShellComponent,
+    ResourceCardComponent,
   ],
   templateUrl: './legal-consent-page.component.html',
-  styleUrl: './legal-consent-page.component.css'
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LegalConsentPageComponent {
   private readonly authApi = inject(AuthApiService);
   private readonly authStore = inject(AuthStore);
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
+  private readonly dashboardMode = inject(DashboardModeService);
   readonly siteConfig = inject(SITE_CONFIG);
 
   readonly busy = signal(false);
@@ -111,9 +115,9 @@ export class LegalConsentPageComponent {
         return;
       }
 
-      await this.router.navigateByUrl('/dashboard', { replaceUrl: true });
+      await this.router.navigateByUrl(this.dashboardMode.defaultLandingPath(), { replaceUrl: true });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Consent update failed.';
+      const message = error instanceof Error ? error.message : "Couldn't update consent. Try again.";
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });
     } finally {
       this.busy.set(false);

@@ -1,16 +1,192 @@
-<div class="flex min-h-[calc(100vh-48px)] flex-col gap-4">
-  <app-page-header
-    title="Organization"
-    subtitle="Invite teammates and manage access to your workspace."
-  />
+<app-resource-page-shell
+  title="Organization"
+  subtitle="Invite teammates and manage access to your workspace."
+  [bodyScroll]="false"
+>
+  <section
+    class="shrink-0 rounded-[18px] border border-app-border-soft bg-app-surface p-4"
+    aria-label="Plan and usage"
+  >
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <div class="text-sm font-semibold text-app-foreground">Plan and usage</div>
+        <p class="mt-1 text-[12px] text-app-muted">
+          Key limits for your workspace.
+          @if (usageDestination().fragment) {
+            Open Settings for the full limits breakdown.
+          } @else {
+            Open the dashboard for the full limits breakdown.
+          }
+        </p>
+      </div>
+      <a
+        mat-stroked-button
+        [routerLink]="usageDestination().path"
+        [fragment]="usageDestination().fragment ?? undefined"
+      >
+        View full usage
+      </a>
+    </div>
 
-  <div class="grid gap-4 lg:grid-cols-[minmax(260px,1fr)_2fr]">
+    @if (usageLoading()) {
+      <div class="mt-4 text-[12px] text-app-muted">Loading usage…</div>
+    } @else if (usageError()) {
+      <div class="mt-4 text-[13px] text-app-muted">
+        <p class="m-0 text-red-600">Couldn't load usage. Try again or refresh the page.</p>
+        <button
+          mat-stroked-button
+          type="button"
+          color="primary"
+          class="mt-3"
+          (click)="retryLoadUsage()"
+        >
+          Try again
+        </button>
+      </div>
+    } @else {
+      <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        @let domainReached = domainLimitReached();
+        <div
+          class="rounded-2xl p-4"
+          [class.bg-app-accent-soft]="!domainReached"
+          [class.bg-red-50]="domainReached"
+        >
+          <div class="text-[22px] font-semibold" [class.text-red-700]="domainReached">
+            {{ usage()?.domains ?? '-' }} / {{ limits().maxTotalDomains }}
+          </div>
+          <div
+            class="text-[13px]"
+            [class.text-red-600]="domainReached"
+            [class.text-app-muted]="!domainReached"
+          >
+            Domains
+          </div>
+          @if (domainReached) {
+            <div
+              class="mt-3 inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-red-700"
+            >
+              Limit reached
+            </div>
+            <button
+              type="button"
+              class="mt-1 block text-left text-[12px] text-red-600 underline hover:text-red-700"
+              (click)="openUpgradeDialog()"
+            >
+              Upgrade plan to increase this limit.
+            </button>
+          }
+        </div>
+        @let ruleReached = ruleLimitReached();
+        <div
+          class="rounded-2xl p-4"
+          [class.bg-app-accent-soft]="!ruleReached"
+          [class.bg-red-50]="ruleReached"
+        >
+          <div class="text-[22px] font-semibold" [class.text-red-700]="ruleReached">
+            {{ usage()?.rules ?? '-' }} / {{ limits().maxTotalRules }}
+          </div>
+          <div
+            class="text-[13px]"
+            [class.text-red-600]="ruleReached"
+            [class.text-app-muted]="!ruleReached"
+          >
+            Rules
+          </div>
+          @if (ruleReached) {
+            <div
+              class="mt-3 inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-red-700"
+            >
+              Limit reached
+            </div>
+            <button
+              type="button"
+              class="mt-1 block text-left text-[12px] text-red-600 underline hover:text-red-700"
+              (click)="openUpgradeDialog()"
+            >
+              Upgrade plan to increase this limit.
+            </button>
+          }
+        </div>
+        @let userReached = userLimitReached();
+        <div
+          class="rounded-2xl p-4"
+          [class.bg-app-accent-soft]="!userReached"
+          [class.bg-red-50]="userReached"
+        >
+          <div class="text-[22px] font-semibold" [class.text-red-700]="userReached">
+            {{ usage()?.users ?? '-' }} / {{ limits().maxUsers }}
+          </div>
+          <div
+            class="text-[13px]"
+            [class.text-red-600]="userReached"
+            [class.text-app-muted]="!userReached"
+          >
+            Active users
+          </div>
+          @if (userReached) {
+            <div
+              class="mt-3 inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-red-700"
+            >
+              Limit reached
+            </div>
+            <button
+              type="button"
+              class="mt-1 block text-left text-[12px] text-red-600 underline hover:text-red-700"
+              (click)="openUpgradeDialog()"
+            >
+              Upgrade plan to increase this limit.
+            </button>
+          }
+        </div>
+        @let linkMapReached = linkMapLimitReached();
+        <div
+          class="rounded-2xl p-4"
+          [class.bg-app-accent-soft]="!linkMapReached"
+          [class.bg-red-50]="linkMapReached"
+        >
+          <div class="text-[22px] font-semibold" [class.text-red-700]="linkMapReached">
+            {{ usage()?.linkMaps ?? '-' }} / {{ limits().maxLinkMaps }}
+          </div>
+          <div
+            class="text-[13px]"
+            [class.text-red-600]="linkMapReached"
+            [class.text-app-muted]="!linkMapReached"
+          >
+            Link maps
+          </div>
+          @if (linkMapReached) {
+            <div
+              class="mt-3 inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-red-700"
+            >
+              Limit reached
+            </div>
+            <button
+              type="button"
+              class="mt-1 block text-left text-[12px] text-red-600 underline hover:text-red-700"
+              (click)="openUpgradeDialog()"
+            >
+              Upgrade plan to increase this limit.
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </section>
+
+  <div class="grid shrink-0 gap-4 lg:grid-cols-[minmax(260px,1fr)_2fr]">
     <div class="rounded-[18px] border border-app-border-soft bg-app-surface p-4">
       <div class="text-sm font-semibold text-app-foreground">Team seats</div>
       <p class="mt-1 text-[12px] text-app-muted">
         Active users: {{ activeUsers() }} / {{ maxUsers() }}
       </p>
-      <div class="mt-3 h-[8px] overflow-hidden rounded-full bg-app-muted/10">
+      <div
+        class="mt-3 h-[8px] overflow-hidden rounded-full bg-app-muted/10"
+        role="progressbar"
+        [attr.aria-valuenow]="seatProgressAriaValueNow()"
+        aria-valuemin="0"
+        [attr.aria-valuemax]="seatProgressAriaValueMax()"
+        [attr.aria-label]="seatProgressAriaLabel()"
+      >
         <div class="seat-progress h-full rounded-full transition-all"></div>
       </div>
       <p class="mt-2 text-[11px] text-app-muted">
@@ -62,7 +238,7 @@
             (click)="sendInvite()"
             [disabled]="inviteDisabled()"
           >
-            Send invite
+            {{ inviteBusy() ? 'Sending invite…' : 'Send invite' }}
           </button>
         </span>
       </div>
@@ -78,52 +254,64 @@
     </div>
   </div>
 
-  <div
-    class="flex min-h-0 flex-1 flex-col rounded-[18px] border border-app-border-soft bg-app-surface p-4"
-  >
-    <div class="min-h-0 flex-1 overflow-auto">
-      <table mat-table [dataSource]="members()" class="min-w-[720px] w-full mat-elevation-z0">
+  <app-resource-table-card className="flex min-h-0 flex-1 flex-col">
+    <div table-content>
+      <table
+        mat-table
+        [dataSource]="memberRowViews()"
+        [trackBy]="trackRow"
+        aria-label="Organization members"
+        class="table-fixed min-w-[720px] w-full mat-elevation-z0"
+      >
         <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[240px]">Email</th>
-          <td mat-cell *matCellDef="let member" class="py-3 min-w-[240px]">
-            {{ member.email }}
+          <th mat-header-cell *matHeaderCellDef class="font-semibold truncate">Email</th>
+          <td
+            mat-cell
+            *matCellDef="let row"
+            class="py-3 truncate max-w-0"
+            [matTooltip]="row.member.email"
+          >
+            {{ row.member.email }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="role">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[120px]">Role</th>
-          <td mat-cell *matCellDef="let member" class="py-3 min-w-[120px]">
-            {{ member.isOwner ? 'Owner' : 'Member' }}
+          <th mat-header-cell *matHeaderCellDef class="font-semibold w-[100px] truncate">Role</th>
+          <td mat-cell *matCellDef="let row" class="py-3 w-[100px]">
+            {{ row.member.isOwner ? 'Owner' : 'Member' }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[120px]">Status</th>
-          <td mat-cell *matCellDef="let member" class="py-3 min-w-[120px]">
-            <span [class]="statusClass(member)">{{ statusLabel(member) }}</span>
+          <th mat-header-cell *matHeaderCellDef class="font-semibold w-[112px] truncate">Status</th>
+          <td mat-cell *matCellDef="let row" class="py-3 w-[112px]">
+            <span [class]="row.statusClass">{{ row.statusLabel }}</span>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="verified">
-          <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[140px]">
+          <th mat-header-cell *matHeaderCellDef class="font-semibold w-[132px] truncate">
             Email verified
           </th>
-          <td mat-cell *matCellDef="let member" class="py-3 min-w-[140px]">
-            {{ member.emailVerifiedAt ? 'Yes' : 'No' }}
+          <td mat-cell *matCellDef="let row" class="py-3 w-[132px]">
+            {{ row.member.emailVerifiedAt ? 'Yes' : 'No' }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="actions" stickyEnd>
-          <th mat-header-cell *matHeaderCellDef class="min-w-[140px]"></th>
-          <td mat-cell *matCellDef="let member" class="py-3 min-w-[140px]">
-            @if (isOwner() && !member.isOwner) {
+          <th mat-header-cell *matHeaderCellDef class="w-[124px]"></th>
+          <td mat-cell *matCellDef="let row" class="py-3 w-[124px]">
+            @if (isOwner() && !row.member.isOwner) {
               <button
                 mat-stroked-button
                 type="button"
                 color="primary"
-                (click)="toggleBlocked(member.id, !member.isBlocked)"
+                [attr.aria-label]="
+                  (row.member.isBlocked ? 'Unblock' : 'Block') + ' ' + row.member.email
+                "
+                (click)="toggleBlocked(row.member.id, !row.member.isBlocked)"
               >
-                {{ member.isBlocked ? 'Unblock' : 'Block' }}
+                {{ row.member.isBlocked ? 'Unblock' : 'Block' }}
               </button>
             }
           </td>
@@ -137,7 +325,18 @@
             [attr.colspan]="columns.length"
           >
             @if (loading()) {
-              Loading members...
+              Loading members…
+            } @else if (error()) {
+              <p class="m-0">Couldn't load members. Try again or refresh the page.</p>
+              <button
+                mat-stroked-button
+                type="button"
+                color="primary"
+                class="mt-3"
+                (click)="retryLoadMembers()"
+              >
+                Try again
+              </button>
             } @else {
               No members found.
             }
@@ -145,5 +344,5 @@
         </tr>
       </table>
     </div>
-  </div>
-</div>
+  </app-resource-table-card>
+</app-resource-page-shell>

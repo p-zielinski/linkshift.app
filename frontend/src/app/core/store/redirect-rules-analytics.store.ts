@@ -55,7 +55,7 @@ export const RedirectRulesAnalyticsStore = signalStore(
     };
 
     const setFailure = (key: string, error: unknown) => {
-      const message = extractErrorMessage(error, 'Unable to load analytics.');
+      const message = extractErrorMessage(error, "Couldn't load analytics.");
       patchState(store, (state) => ({
         results: { ...state.results, [key]: [] },
         errors: { ...state.errors, [key]: message },

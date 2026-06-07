@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { extractErrorMessage } from './store-error.utils';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { extractErrorMessage, notifyStoreError } from './store-error.utils';
 
 describe('extractErrorMessage', () => {
   it('prefers details from HttpErrorResponse', () => {
@@ -30,5 +31,41 @@ describe('extractErrorMessage', () => {
     const error = { message: '   ' };
 
     expect(extractErrorMessage(error, 'Fallback')).toBe('Fallback');
+  });
+});
+
+describe('notifyStoreError', () => {
+  it('shows store error and clears it', () => {
+    const snackBar = {
+      open: vi.fn(),
+    } as unknown as MatSnackBar;
+    const store = {
+      lastError: vi.fn(() => 'Domain name is taken'),
+      clearError: vi.fn(),
+    };
+
+    notifyStoreError(snackBar, store);
+
+    expect(snackBar.open).toHaveBeenCalledWith('Domain name is taken', 'Dismiss', {
+      duration: 5000,
+    });
+    expect(store.clearError).toHaveBeenCalled();
+  });
+
+  it('uses fallback when store has no error message', () => {
+    const snackBar = {
+      open: vi.fn(),
+    } as unknown as MatSnackBar;
+    const store = {
+      lastError: vi.fn(() => null),
+      clearError: vi.fn(),
+    };
+
+    notifyStoreError(snackBar, store, "Couldn't save domain. Try again.");
+
+    expect(snackBar.open).toHaveBeenCalledWith("Couldn't save domain. Try again.", 'Dismiss', {
+      duration: 5000,
+    });
+    expect(store.clearError).toHaveBeenCalled();
   });
 });

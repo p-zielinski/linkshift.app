@@ -104,11 +104,20 @@ New to LinkShift? Start here — dashboard steps take about five minutes; the AP
 
 ### In the dashboard
 
-1. Sign in and open the dashboard. See [Dashboard overview](./guides/dashboard/dashboard-overview.md) for navigation and limits.
-2. Create a **domain group** — [Domain groups in the dashboard](./guides/dashboard/domain-groups-in-dashboard.md).
-3. Add a **domain** or subdomain in that group — [Domains and subdomains in the dashboard](./guides/dashboard/domains-and-subdomains-in-dashboard.md).
-4. Create a **redirect rule** for `/old-page` → your new URL — [Redirect rules in the dashboard](./guides/dashboard/redirect-rules-in-dashboard.md).
-5. Validate with **Run tests** or **Fetch expected result** — [Tests in the dashboard](./guides/dashboard/tests-in-dashboard.md).
+Sign in and see [Dashboard overview](./guides/dashboard/dashboard-overview.md) for **Campaign** vs **Advanced** navigation.
+
+**Campaign view (default)** — short links on your domain:
+
+1. Open **Overview** (`/overview`) or **Links** and complete **Connect your domain** (creates a workspace and host).
+2. Select **Create link** on **Links** (provisions routing when needed).
+3. Open **Analytics** or **Tools** → **Redirect tester** to validate traffic.
+
+**Advanced view** — full routing stack:
+
+1. Create a **domain group** — [Domain groups in the dashboard](./guides/dashboard/domain-groups-in-dashboard.md).
+2. Add a **domain** or subdomain in that group — [Domains and subdomains in the dashboard](./guides/dashboard/domains-and-subdomains-in-dashboard.md).
+3. Create a **redirect rule** for `/old-page` → your new URL — [Redirect rules in the dashboard](./guides/dashboard/redirect-rules-in-dashboard.md).
+4. Validate with **Run tests** or **Fetch expected result** — [Tests in the dashboard](./guides/dashboard/tests-in-dashboard.md).
 
 Point DNS at LinkShift when you are ready for live traffic.
 
@@ -150,13 +159,14 @@ Task guides for the sidebar UI — start at [Dashboard overview](./guides/dashbo
 
 | Guide | When to read |
 |-------|--------------|
-| [Dashboard overview](./guides/dashboard/dashboard-overview.md) | Shell, nav, profile, billing summary, docs assistant |
-| [Domain groups](./guides/dashboard/domain-groups-in-dashboard.md) | Create and manage domain groups |
+| [Dashboard overview](./guides/dashboard/dashboard-overview.md) | Shell, Campaign/Advanced modes, profile, billing summary, docs assistant |
+| [Domains and domain groups](./guides/domains-and-groups.md#in-the-dashboard) | Campaign connect-domain flow vs Advanced domain groups |
+| [Domain groups](./guides/dashboard/domain-groups-in-dashboard.md) | Create and manage domain groups (Advanced) |
 | [Domains and subdomains](./guides/dashboard/domains-and-subdomains-in-dashboard.md) | Custom domains and LinkShift subdomains |
 | [Redirect rules](./guides/dashboard/redirect-rules-in-dashboard.md) | Rule wizard, table, redirect tests card |
 | [Link maps](./guides/dashboard/link-maps-in-dashboard.md) | Maps, entries, CSV import |
 | [Tests](./guides/dashboard/tests-in-dashboard.md) | Redirect test fixtures and **Run tests** |
-| [Analytics](./guides/dashboard/analytics-in-dashboard.md) | Traffic chart and rule drill-down |
+| [Analytics](./guides/dashboard/analytics-in-dashboard.md) | Traffic chart and rule drill-down — `/analytics` (Campaign) or `/redirect-rules-analytics` (Advanced) |
 | [Organization and API keys](./guides/dashboard/organization-and-api-keys-in-dashboard.md) | Members, invites, API keys |
 | [Tools](./guides/dashboard/tools-in-dashboard.md) | QR generator and redirect tester (signed in) |
 

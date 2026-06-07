@@ -174,8 +174,13 @@ app.use(
 );
 
 const CSR_ROUTES = [
+  '/overview',
+  '/home',
+  '/links',
+  '/settings',
   '/dashboard',
   '/tools',
+  '/analytics',
   '/redirect-rules-analytics',
   '/profile',
   '/organization',

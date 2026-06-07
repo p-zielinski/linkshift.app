@@ -1,6 +1,7 @@
 <app-resource-page-shell
   title="Domains"
   subtitle="Registered hostnames available for redirect routing."
+  [bodyScroll]="false"
 >
   <div page-actions class="flex items-center gap-2">
     <button mat-stroked-button color="primary" (click)="openSetupDialog()">
@@ -13,21 +14,15 @@
     </button>
   </div>
 
-  <app-resource-card>
-    <div class="grid gap-4">
-      <app-domain-group-select
-        [groups]="domainGroups()"
-        [formField]="filterForm.domainGroupId"
-        [includeAllOption]="true"
-      />
-    </div>
-  </app-resource-card>
-
   <app-resource-table-card className="flex min-h-0 flex-1 flex-col" [showFooter]="true">
     <div table-content>
       <app-domains-table
         [domains]="pagedDomains()"
         [groupMap]="groupMap()"
+        [loading]="loading()"
+        [workspaceFilterActive]="!!activeGroupId()"
+        [totalUnfilteredCount]="domains().length"
+        (create)="openCreateDialog()"
         (edit)="openEditDialog($event)"
         (delete)="confirmDelete($event)"
       />
@@ -38,6 +33,7 @@
         [showCurrentPage]="true"
         [currentPage]="page()"
         [hasNextPage]="hasNextPage()"
+        [isLoading]="loading()"
         [pageLimitOptions]="pageLimitOptions"
         [pageLimit]="pageLimit()"
         (currentPageChange)="onPageChange($event)"

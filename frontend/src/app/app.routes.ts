@@ -3,7 +3,14 @@ import { authGuard, guestGuard } from './core/auth/auth.guard';
 import { AppShellComponent } from './core/layout/app-shell.component';
 import { AuthPageComponent } from './features/auth/auth-page.component';
 import { DashboardPageComponent } from './features/dashboard/dashboard-page.component';
+import { CampaignHomePageComponent } from './features/campaign-home/campaign-home-page.component';
+import { LinksPageComponent } from './features/links/links-page.component';
+import { CampaignSettingsPageComponent } from './features/campaign-settings/campaign-settings-page.component';
+import { campaignDashboardRedirectGuard } from './core/layout/dashboard-landing.guard';
+import { advancedCampaignRoutesRedirectGuard } from './core/layout/advanced-campaign-routes-redirect.guard';
+import { campaignAdvancedRoutesRedirectGuard } from './core/layout/campaign-advanced-routes-redirect.guard';
 import { RedirectRulesAnalyticsPageComponent } from './features/redirect-rules-analytics/redirect-rules-analytics-page.component';
+import { CampaignAnalyticsPageComponent } from './features/campaign-analytics/campaign-analytics-page.component';
 import { DomainsPageComponent } from './features/domains/domains-page.component';
 import { SubdomainsPageComponent } from './features/subdomains/subdomains-page.component';
 import { DomainGroupsPageComponent } from './features/domain-groups/domain-groups-page.component';
@@ -21,6 +28,7 @@ import { BlogArticlePageComponent } from './features/marketing/pages/blog/blog-a
 import { UseCasesPageComponent } from './features/marketing/pages/use-cases/use-cases-page.component';
 import { QrCodeGeneratorPageComponent } from './features/marketing/pages/qr-code-generator/qr-code-generator-page.component';
 import { RedirectTraceTesterPageComponent } from './features/marketing/pages/redirect-trace-tester/redirect-trace-tester-page.component';
+import { AlternativePageComponent } from './features/marketing/pages/alternative/alternative-page.component';
 import { ProfilePageComponent } from './features/profile/profile-page.component';
 import { OrganizationPageComponent } from './features/organization/organization-page.component';
 import { OrganizationApiKeysPageComponent } from './features/organization/organization-api-keys-page.component';
@@ -36,10 +44,14 @@ import { CookiesPageComponent } from './features/legal/cookies-page.component';
 import { DoNotSellPageComponent } from './features/legal/do-not-sell-page.component';
 import { LegalConsentPageComponent } from './features/legal/legal-consent-page.component';
 import { legalConsentGuard } from './core/legal/legal-consent.guard';
+import {
+  appFallbackRedirectGuard,
+  AppFallbackRedirectPageComponent,
+} from './core/routing/app-fallback-redirect.guard';
+import { marketingPublicCanMatch } from './core/routing/marketing-public-can-match.guard';
 import { DOCUMENTATION_CHILD_ROUTES } from './features/documentation/documentation.routes';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'home' },
   { path: 'auth', component: AuthPageComponent, canMatch: [guestGuard] },
   { path: 'verify-email', component: VerifyEmailPageComponent },
   { path: 'reset-password', component: ResetPasswordPageComponent },
@@ -48,8 +60,9 @@ export const routes: Routes = [
   {
     path: '',
     component: MarketingShellComponent,
+    canMatch: [marketingPublicCanMatch],
     children: [
-      { path: 'home', component: HomePageComponent },
+      { path: '', component: HomePageComponent },
       { path: 'blog', component: BlogPageComponent },
       {
         path: 'blog/redirect-pizza-vs-linkshift',
@@ -186,6 +199,21 @@ export const routes: Routes = [
         component: BlogArticlePageComponent,
         data: { article: 'linkshift-subdomains-for-managed-hostnames' },
       },
+      {
+        path: 'alternatives/redirect-pizza',
+        component: AlternativePageComponent,
+        data: { alternative: 'redirect-pizza' },
+      },
+      {
+        path: 'alternatives/redirect-proxy',
+        component: AlternativePageComponent,
+        data: { alternative: 'redirect-proxy' },
+      },
+      {
+        path: 'alternatives/managed-redirects',
+        component: AlternativePageComponent,
+        data: { alternative: 'managed-redirects' },
+      },
       { path: 'pricing', component: PricingPageComponent },
       { path: 'use-cases', component: UseCasesPageComponent },
       { path: 'qr-code-generator', component: QrCodeGeneratorPageComponent },
@@ -203,14 +231,33 @@ export const routes: Routes = [
     canActivate: [authGuard, legalConsentGuard],
     canActivateChild: [legalConsentGuard],
     children: [
-      { path: 'dashboard', component: DashboardPageComponent },
+      { path: 'overview', component: CampaignHomePageComponent, canActivate: [advancedCampaignRoutesRedirectGuard] },
+      { path: 'home', redirectTo: 'overview', pathMatch: 'full' },
+      {
+        path: 'links',
+        component: LinksPageComponent,
+        canActivate: [domainGroupsRequiredGuard],
+        data: { skipDomainGroupsInCampaign: true },
+      },
+      { path: 'settings', component: CampaignSettingsPageComponent, canActivate: [advancedCampaignRoutesRedirectGuard] },
+      {
+        path: 'dashboard',
+        component: DashboardPageComponent,
+        canActivate: [campaignDashboardRedirectGuard],
+      },
       { path: 'tools', component: ToolsPageComponent },
       { path: 'tools/qr-code-generator', component: ToolsQrCodeGeneratorPageComponent },
       { path: 'tools/redirect-tester', component: ToolsRedirectTesterPageComponent },
       {
+        path: 'analytics',
+        component: CampaignAnalyticsPageComponent,
+        canActivate: [advancedCampaignRoutesRedirectGuard, domainGroupsRequiredGuard],
+        data: { skipDomainGroupsInCampaign: true },
+      },
+      {
         path: 'redirect-rules-analytics',
         component: RedirectRulesAnalyticsPageComponent,
-        canActivate: [domainGroupsRequiredGuard],
+        canActivate: [campaignAdvancedRoutesRedirectGuard, domainGroupsRequiredGuard],
       },
       { path: 'legal/consent', component: LegalConsentPageComponent },
       { path: 'profile', component: ProfilePageComponent },
@@ -219,35 +266,43 @@ export const routes: Routes = [
       {
         path: 'domains',
         component: DomainsPageComponent,
-        canActivate: [domainGroupsRequiredGuard],
+        canActivate: [campaignAdvancedRoutesRedirectGuard, domainGroupsRequiredGuard],
       },
       {
         path: 'subdomains',
         component: SubdomainsPageComponent,
-        canActivate: [domainGroupsRequiredGuard],
+        canActivate: [campaignAdvancedRoutesRedirectGuard, domainGroupsRequiredGuard],
       },
-      { path: 'domain-groups', component: DomainGroupsPageComponent },
+      {
+        path: 'domain-groups',
+        component: DomainGroupsPageComponent,
+        canActivate: [campaignAdvancedRoutesRedirectGuard],
+      },
       {
         path: 'redirect-rules',
         component: RedirectRulesPageComponent,
-        canActivate: [domainGroupsRequiredGuard],
+        canActivate: [campaignAdvancedRoutesRedirectGuard, domainGroupsRequiredGuard],
       },
       {
         path: 'link-maps/:id',
         component: LinkMapDetailsPageComponent,
-        canActivate: [domainGroupsRequiredGuard],
+        canActivate: [campaignAdvancedRoutesRedirectGuard, domainGroupsRequiredGuard],
       },
       {
         path: 'link-maps',
         component: LinkMapsPageComponent,
-        canActivate: [domainGroupsRequiredGuard],
+        canActivate: [campaignAdvancedRoutesRedirectGuard, domainGroupsRequiredGuard],
       },
       {
         path: 'tests',
         component: TestsPageComponent,
-        canActivate: [domainGroupsRequiredGuard],
+        canActivate: [campaignAdvancedRoutesRedirectGuard, domainGroupsRequiredGuard],
       },
     ],
   },
-  { path: '**', redirectTo: 'home' },
+  {
+    path: '**',
+    canActivate: [appFallbackRedirectGuard],
+    component: AppFallbackRedirectPageComponent,
+  },
 ];

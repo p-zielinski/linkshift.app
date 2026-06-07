@@ -90,7 +90,10 @@ export function createEntityStore<
             ...state.list,
             [filterKey]: { data: [], hasMore: false }
           },
-          expirationDates: { ...state.expirationDates, [filterKey]: null }
+          expirationDates: {
+            ...state.expirationDates,
+            [filterKey]: getExpiration(ttlMs)
+          }
         }));
       };
 
@@ -321,6 +324,11 @@ export function createEntityStore<
         return computed(() => store.list()[filterKey] ?? null);
       };
 
+      const selectListExpiration = (filter?: TFilter | string) => {
+        const filterKey = getFilterKey(filter);
+        return computed(() => store.expirationDates()[filterKey] ?? null);
+      };
+
       const clearError = () => {
         patchState(store, { lastError: null });
       };
@@ -346,6 +354,7 @@ export function createEntityStore<
         selectById,
         selectList,
         selectListResult,
+        selectListExpiration,
         clearError
       };
     })

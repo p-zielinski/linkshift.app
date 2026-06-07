@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,6 +23,7 @@ export type ApiKeyCreatedDialogData = {
     MatInputModule,
   ],
   templateUrl: './api-key-created-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApiKeyCreatedDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<ApiKeyCreatedDialogComponent>);

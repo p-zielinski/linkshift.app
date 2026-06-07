@@ -35,6 +35,10 @@ export const serverRoutes: ServerRoute[] = [
     getPrerenderParams: async () =>
       OPENAPI_ENDPOINTS_SNAPSHOT.map((endpoint) => ({ operationId: endpoint.id })),
   },
+  { path: 'overview', renderMode: RenderMode.Client },
+  { path: 'home', renderMode: RenderMode.Client },
+  { path: 'links', renderMode: RenderMode.Client },
+  { path: 'settings', renderMode: RenderMode.Client },
   { path: 'dashboard', renderMode: RenderMode.Client },
   { path: 'tools', renderMode: RenderMode.Client },
   { path: 'tools/:tool', renderMode: RenderMode.Client },
@@ -46,6 +50,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'subdomains', renderMode: RenderMode.Client },
   { path: 'domain-groups', renderMode: RenderMode.Client },
   { path: 'redirect-rules', renderMode: RenderMode.Client },
+  { path: 'analytics', renderMode: RenderMode.Client },
   { path: 'redirect-rules-analytics', renderMode: RenderMode.Client },
   { path: 'tests', renderMode: RenderMode.Client },
   { path: 'link-maps', renderMode: RenderMode.Client },

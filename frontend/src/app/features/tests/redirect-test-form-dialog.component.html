@@ -3,7 +3,7 @@
     [title]="dialogTitle"
     subtitle="Configure a request payload and expected redirect outcome."
     [steps]="steps()"
-    [saveLabel]="submitLabel"
+    [saveLabel]="effectiveSubmitLabel()"
     [saveDisabled]="submitDisabled()"
     (save)="onSubmit()"
     (cancel)="onCancel()"
@@ -142,7 +142,7 @@
             (click)="simulateExpected()"
           >
             <mat-icon>bolt</mat-icon>
-            <span>{{ simulating() ? 'Simulating...' : 'Fetch expected result' }}</span>
+            <span>{{ simulating() ? 'Simulating…' : 'Fetch expected result' }}</span>
           </button>
           @if (simulatedResult()) {
             <span class="text-[12px] text-app-muted">Expected result synced from simulation.</span>

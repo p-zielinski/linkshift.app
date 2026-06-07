@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { PricingPlansComponent, PricingPlanSelection } from '../../marketing/components/pricing-plans/pricing-plans.component';
 import {
@@ -35,10 +36,12 @@ type PlanBlockReasons = Partial<Record<OrganizationPlan, string>>;
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
+    MatProgressSpinnerModule,
     PricingPlansComponent,
   ],
   templateUrl: './upgrade-dialog.component.html',
   styleUrl: './upgrade-dialog.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UpgradeDialogComponent {
   private readonly snackBar = inject(MatSnackBar);
@@ -48,6 +51,7 @@ export class UpgradeDialogComponent {
   private readonly checkoutFlow = inject(PaddleCheckoutFlowService);
   readonly data = inject<UpgradeDialogData>(MAT_DIALOG_DATA);
   readonly busy = signal(false);
+  readonly errorMessage = signal<string | null>(null);
   readonly billingIntervalLocked = computed(
     () =>
       this.data.hasProviderSubscription &&
@@ -91,12 +95,12 @@ export class UpgradeDialogComponent {
     if (plan === OrganizationPlan.FREE) {
       return;
     }
-    if (!priceId) {
+    if (!priceId || this.busy()) {
       return;
     }
 
-    this.dialogRef.close({ checkoutStarted: true });
     this.busy.set(true);
+    this.errorMessage.set(null);
     try {
       const result = await this.checkoutFlow.startSubscriptionChange({
         priceId,
@@ -111,42 +115,26 @@ export class UpgradeDialogComponent {
             ? 'Plan updated. Billing adjustment was applied immediately.'
             : result.change.prorationBillingMode === 'prorated_next_billing_period'
               ? 'Plan updated. Billing adjustment will be applied at the next renewal.'
-              : 'Plan updated successfully.';
-        this.snackBar.open(message, 'Dismiss', {
-          duration: 5000,
-          horizontalPosition: 'center',
-          verticalPosition: 'bottom',
-          panelClass: ['bg-emerald-600', 'text-white'],
-        });
+              : 'Plan updated.';
+        this.closeWithMessage(message, { success: true });
         return;
       }
 
       if (result.kind === 'noop') {
-        this.snackBar.open('Selected plan is already active.', 'Dismiss', {
-          duration: 4000,
-          horizontalPosition: 'center',
-          verticalPosition: 'bottom',
-        });
+        this.closeWithMessage('Selected plan is already active.', { duration: 4000 });
         return;
       }
 
       if (result.status === 'completed') {
-        this.snackBar.open('Payment received. We are confirming plan activation.', 'Dismiss', {
-          duration: 5000,
-          horizontalPosition: 'center',
-          verticalPosition: 'bottom',
-          panelClass: ['bg-emerald-600', 'text-white'],
-        });
+        // CheckoutStatusDialog (opened by PaddleCheckoutFlowService) owns success feedback.
+        this.dialogRef.close();
         return;
       }
 
-      this.snackBar.open('Checkout canceled. Your current plan is unchanged.', 'Dismiss', {
-        duration: 5000,
-        horizontalPosition: 'center',
-        verticalPosition: 'bottom',
-      });
+      this.closeWithMessage('Checkout canceled. Your current plan is unchanged.');
     } catch (error) {
       const message = this.resolveErrorMessage(error);
+      this.errorMessage.set(message);
       this.snackBar.open(message, 'Dismiss', {
         duration: 5000,
         horizontalPosition: 'center',
@@ -159,7 +147,25 @@ export class UpgradeDialogComponent {
   }
 
   close(): void {
+    if (this.busy()) {
+      return;
+    }
     this.dialogRef.close();
+  }
+
+  private closeWithMessage(
+    message: string,
+    options?: { duration?: number; success?: boolean },
+  ): void {
+    this.dialogRef.close();
+    this.snackBar.open(message, 'Dismiss', {
+      duration: options?.duration ?? 5000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom',
+      ...(options?.success
+        ? { panelClass: ['bg-emerald-600', 'text-white'] as string[] }
+        : {}),
+    });
   }
 
   private resolveErrorMessage(error: unknown): string {
@@ -188,7 +194,7 @@ export class UpgradeDialogComponent {
       return error.message;
     }
 
-    return 'Unable to change subscription at the moment.';
+    return "Couldn't change subscription at the moment.";
   }
 
   private getOverageDetails(usage: OrganizationUsage, limits: PlanLimits): string[] {

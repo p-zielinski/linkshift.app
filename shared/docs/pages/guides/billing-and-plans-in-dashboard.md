@@ -1,12 +1,20 @@
 # Billing and plans in the dashboard
 
-View plan usage, upgrade, open the Paddle customer portal, or cancel subscription from the home dashboard.
+View plan usage, upgrade, open the Paddle customer portal, or cancel subscription from the dashboard. Where those controls live depends on whether you use **Campaign** or **Advanced** view — see [Dashboard overview — Campaign and Advanced views](./dashboard/dashboard-overview.md#campaign-and-advanced-views).
 
-Sign in and open **Dashboard** in the sidebar. Billing actions are dashboard-only (not in the Management API). Usage quotas also appear in `GET /api/v1/organization/usage` — see [Domains and domain groups — usage](./domains-and-groups.md#get-usage-summary).
+Sign in to the web app. Billing actions are dashboard-only (not in the Management API). Usage quotas also appear in `GET /api/v1/organization/usage` — see [Domains and domain groups — usage](./domains-and-groups.md#get-usage-summary).
 
 ## Where to see usage and limits
 
-On **Dashboard** (*Operational overview for the active organization.*):
+### Campaign view
+
+Open **Settings** in the sidebar, then the **Plan and usage** section (`#plan-usage`). You see compact limit tiles for domains, rules, active users, and link maps.
+
+**Upgrade** and **Manage subscription** are on **Settings** → **Plan and billing** in Campaign view. **Cancel subscription** is on **Dashboard** in Advanced view only (or switch views from **Settings** → **Switch to advanced view**).
+
+### Advanced view
+
+Open **Dashboard** in the sidebar (`/dashboard`, *Operational overview for the active organization.*):
 
 | Block | What it shows |
 |-------|----------------|
@@ -18,7 +26,7 @@ On **Dashboard** (*Operational overview for the active organization.*):
 When a meter is at capacity, the card may show **Limit reached** and **Upgrade plan to increase this limit.**
 
 :::warning
-At plan capacity or when the organization is suspended, redirects and API calls may fail (`402`, `429`, or blocked sidebar actions) until you upgrade or reduce usage. Fix billing on **Dashboard** before high-traffic launches.
+At plan capacity or when the organization is suspended, redirects and API calls may fail (`402`, `429`, or blocked sidebar actions) until you upgrade or reduce usage. Fix billing on **Dashboard** (Advanced) before high-traffic launches.
 :::
 
 If the organization is over limits or suspended, a suspension banner appears at the top of the page.
@@ -27,9 +35,10 @@ Engine-level caps (for example per-group domain limits) are described in [Domain
 
 ## Upgrade your plan
 
-1. On **Dashboard**, select **Upgrade**.
-2. The dialog title is **Change your subscription**.
-3. Choose a plan and complete checkout when billing is enabled for your organization.
+1. Switch to **Advanced** view if you are in **Campaign** view (**Switch to advanced** in the sidebar, or **Settings** → **Switch to advanced view**).
+2. On **Dashboard**, select **Upgrade**.
+3. The dialog title is **Change your subscription**.
+4. Choose a plan and complete checkout when billing is enabled for your organization.
 
 If you do not see **Upgrade**, your organization may already be on a plan that does not use self-serve checkout through this dialog. Use **Manage subscription** when it is available, or contact support for billing questions.
 
@@ -37,7 +46,7 @@ After checkout, a status dialog may open from the Paddle flow (not a separate da
 
 ## Manage or cancel subscription
 
-When your plan is not **FREE**:
+When your plan is not **FREE** (from **Dashboard** in Advanced view):
 
 | Action | What happens |
 |--------|----------------|
@@ -72,11 +81,11 @@ Subscription changes, Paddle portal access, and cancellation are not exposed as 
 For automation, use:
 
 - `GET /api/v1/organization/usage` — current usage vs plan limits (documented in [Domains and domain groups](./domains-and-groups.md#get-usage-summary))
-- Dashboard **Dashboard** page for human billing actions
+- **Dashboard** (Advanced) or **Settings** → **Plan and usage** (Campaign) for human billing and limit review
 
 ## Related
 
-- [Dashboard overview](./dashboard/dashboard-overview.md) — shell navigation and first-run onboarding
+- [Dashboard overview](./dashboard/dashboard-overview.md) — shell navigation, mode switching, and first-run onboarding
 - [Domains and domain groups](./domains-and-groups.md) — usage API and routing limits
 - [Getting started](./getting-started.md) — API key scope and Free plan paywall
 - [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md) — seat limits and **Upgrade to invite more teammates**
