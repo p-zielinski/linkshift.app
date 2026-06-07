@@ -12,6 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ResourcePillComponent } from '../../../../shared/components/resource-pill/resource-pill.component';
+import { switchSiteOrAllSitesCopy } from '../../../../core/layout/page-workspace-empty-state.copy';
 import type { Domain } from '../../../../core/models/domain.model';
 
 type GroupMap = Record<string, { name: string } | undefined>;
@@ -37,6 +38,8 @@ type DomainRowViewModel = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DomainsTableComponent {
+  readonly switchSiteOrAllSitesCopy = switchSiteOrAllSitesCopy();
+
   readonly domains = input<Domain[]>([]);
   readonly groupMap = input<GroupMap>({});
   readonly loading = input(false);

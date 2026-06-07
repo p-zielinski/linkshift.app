@@ -8,7 +8,7 @@ Every endpoint has a dedicated page with parameters, security requirements, requ
 
 Browse by tag at `/docs/reference` or open individual operations at `/docs/api/:operationId`.
 
-OpenAPI source: `linkshift-api-keys.openapi.yaml` (also downloadable from docs UI).
+OpenAPI contract: downloadable from this docs site as `linkshift-api-keys.openapi.yaml`.
 
 ---
 

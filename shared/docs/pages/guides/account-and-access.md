@@ -65,8 +65,7 @@ Open the password reset flow from **Forgot password?** on the **Login** tab.
 
 **Set a new password** (from the email link)
 
-1. Page title **Set a new password**.
-2. Enter **New password** and **Confirm password**.
+1. On the reset page, enter **New password** and **Confirm password**.
 3. Select **Update password**.
 4. Open **Sign in** and sign in with your new password.
 
@@ -77,8 +76,7 @@ There is no in-dashboard password change. Use this flow from **Forgot password?*
 Organization owners send invites from **Organization** (Advanced view) or **Settings** → **Manage team** (Campaign view) — see [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md#invite-a-teammate).
 
 1. Open the invite link from your email.
-2. Page title **Join {organizationName}** — complete setup for the invited email.
-3. Enter **Password** and **Confirm password**.
+2. On **Join {organizationName}**, enter **Password** and **Confirm password**.
 4. Accept Terms of Service, Privacy Policy, and age confirmation.
 5. Select **Create account**.
 
@@ -98,14 +96,14 @@ LinkShift records the version identifier and acceptance timestamps on your accou
 
 You can also open consent from **Profile** via **Review and accept updates** when an update is pending.
 
-Other dashboard routes and sidebar links stay blocked until you select **Continue**. The app shell only allows the consent screen and **Log out** until consent is recorded. Authenticated Management API requests with your user session are also blocked until acceptance is current.
+Other dashboard routes and sidebar links stay blocked until you select **Continue**. The app shell only allows the consent screen and **Log out** until consent is recorded.
 
 ## End your session
 
 In the dashboard sidebar footer, select **Log out**. You return to **Sign in**.
 
 :::ai-only
-Web app routes: sign-in `/auth` (page title Sign in), password reset `/reset-password`, email verification `/verify-email`, invites `/invite`, legal consent `/legal/consent`, dashboard shell after sign-in. Profile `/profile`. Marketing site root `/` (signed out). Campaign landing `/overview`; Advanced landing `/dashboard`. Mode key `linkshift-dashboard-mode` (`campaign` | `advanced`). Log out returns to `/auth`.
+Web app routes: sign-in `/auth` (page title Sign in), password reset `/reset-password`, email verification `/verify-email`, invites `/invite`, legal consent `/legal/consent`, dashboard shell after sign-in. Profile `/profile`. Marketing site root `/` (signed out). Campaign landing `/overview`; Advanced landing `/dashboard`. Mode key `linkshift-dashboard-mode` (`campaign` | `advanced`). Log out returns to `/auth`. Until legal consent is current, authenticated Management API calls using the user session are blocked (not API-key calls).
 :::
 
 ## Related

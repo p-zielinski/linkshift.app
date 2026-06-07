@@ -107,7 +107,7 @@
       [attr.colspan]="columns.length"
     >
       @if (!activeGroupId()) {
-        Select a site in the workspace menu above to view link maps.
+        {{ noSiteSelectedCopy }}
       } @else if (loading()) {
         Loading link maps…
       } @else {

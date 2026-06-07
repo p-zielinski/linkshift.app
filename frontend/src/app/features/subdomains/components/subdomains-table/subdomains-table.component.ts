@@ -12,6 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ResourcePillComponent } from '../../../../shared/components/resource-pill/resource-pill.component';
+import { switchSiteOrAllSitesCopy } from '../../../../core/layout/page-workspace-empty-state.copy';
 import type { Subdomain } from '../../../../core/models/subdomain.model';
 
 type GroupMap = Record<string, { name: string } | undefined>;
@@ -38,6 +39,8 @@ type SubdomainRowViewModel = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubdomainsTableComponent {
+  readonly switchSiteOrAllSitesCopy = switchSiteOrAllSitesCopy();
+
   readonly subdomains = input<Subdomain[]>([]);
   readonly groupMap = input<GroupMap>({});
   readonly loading = input(false);

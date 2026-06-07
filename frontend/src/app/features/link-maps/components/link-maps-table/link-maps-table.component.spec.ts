@@ -35,7 +35,7 @@ describe('LinkMapsTableComponent', () => {
 
     const root = fixture.nativeElement as HTMLElement;
 
-    expect(root.textContent).toContain('Select a site in the workspace menu above to view link maps.');
+    expect(root.textContent).toContain('Choose a site in the page header Site menu to view link maps.');
   });
 
   it('shows loading message while link maps are loading', () => {

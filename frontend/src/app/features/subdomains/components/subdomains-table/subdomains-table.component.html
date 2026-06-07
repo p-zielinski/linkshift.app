@@ -84,7 +84,7 @@
       } @else if (workspaceFilterActive() && (totalUnfilteredCount() ?? 0) > 0) {
         <p class="m-0 text-sm font-medium text-app-foreground">No subdomains in this site</p>
         <p class="mt-1 text-[13px] text-app-muted">
-          Switch site in the header menu or choose All sites to see everything.
+          {{ switchSiteOrAllSitesCopy }}
         </p>
       } @else {
         <p class="m-0 text-sm font-medium text-app-foreground">No subdomains yet</p>

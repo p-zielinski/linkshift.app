@@ -3,7 +3,7 @@
 QR code generation and redirect tracing run on a **separate public tools service** — not the LinkShift Management API. No API key or account is required.
 
 :::info
-These endpoints are **not** in the Management API OpenAPI spec (`linkshift-api-keys`). Use the public tools base URL. Signed-in users can open the same tools in the dashboard — [Tools in the dashboard](./dashboard/tools-in-dashboard.md).
+These endpoints are **not** in the Management API OpenAPI contract. Use the public tools base URL. Signed-in users can open the same tools in the dashboard — [Tools in the dashboard](./dashboard/tools-in-dashboard.md).
 :::
 
 ## What the public tools do
@@ -26,7 +26,7 @@ Base path on the public tools service:
 | `GET` | `/trace` | Alias for single-hop trace (same behavior as `/api/v1/public/trace`) |
 | `POST` | `/api/v1/public/mcp` | Read-only docs MCP for AI clients (catalog search, page load, trace, QR) — see [LinkShift docs MCP](./linkshift-mcp.md) |
 
-These paths are **not** listed in the Management API OpenAPI spec (`linkshift-api-keys`).
+These paths are **not** listed in the Management API OpenAPI contract.
 
 ## Single-hop trace semantics
 

@@ -34,7 +34,7 @@ Capture groups populate `$0` (full match), `$1`, `$2`, … in destination **befo
 |------|--------|
 | `$N` in `destination` where `N` exceeds capturing groups in `source` | **`400` at save** — `Destination uses group $N, but source only has …` |
 | `$N` on plain path / `*` / link map rule | **`400` at save** — capture substitution requires regex `source` |
-| Optional group did not match this request (e.g. `(…)?` absent) | Replaced with the literal text **`undefined`** in the URL (`redirect.service.ts` — `String.replace` with `undefined`) |
+| Optional group did not match this request (e.g. `(…)?` absent) | Replaced with the literal text **`undefined`** in the URL |
 | `{placeholder}` missing (no modifier chain) | Left **unchanged** as `{placeholder}` — different from `$N` |
 
 Prefer required capturing groups or separate rules when a suffix is optional; test edge paths with [simulate](../guides/redirect-rules-operations.md#simulate-before-rollout).
@@ -55,7 +55,7 @@ With `queryMatch: ignore`, regex matches path only. Otherwise matches full path 
 
 **Flag `g` (global):** Avoid storing regex sources with a `g` flag unless you intend it. `String.match()` on a global regex can behave differently with capture groups than a non-global pattern. Prefer patterns without `g` for redirect `source` values.
 
-**Preserve query on www → apex:** For `source: /^\\/(.*)$/` and `destination: https://{domain.extension}/$1`, do not use `queryMatch: ignore` — use default `exact` so `$1` includes the query string. See `redirect.service.spec.ts` (www host → apex with query).
+**Preserve query on www → apex:** For `source: /^\\/(.*)$/` and `destination: https://{domain.extension}/$1`, do not use `queryMatch: ignore` — use default `exact` so `$1` includes the query string.
 
 ### Plain path vs regex — do not confuse them
 
@@ -222,7 +222,7 @@ On create/update, the API validates:
 | Multiline `destination` | Allowed — validation runs on the full string (JSON may contain `\n` in the value). Avoid accidental newlines inside quoted condition operands. Example: `"destination": "'{method}' == 'GET' ? https://a.example.com\\n: https://b.example.com"` — the newline is part of the stored string; keep condition operands on one line when possible. |
 | Link map exclusivity | `linkMapId` + `destination: null` + prefix/ignore + plain path `source` (no regex) |
 | Link map + destination on write | **`destination` must be omitted or JSON `null`.** Any other value (including `""`) with `linkMapId` returns `400` on create and update. |
-| Link map rule validation | Validator runs on `source` plus internal stub `https://linkmap.local` (static URL only). It does **not** validate your conditional/placeholder program on the rule, because stored `destination` is always `null`. Test dynamic logic with a separate rule (no `linkMapId`) or [simulate](../guides/redirect-rules-operations.md#simulate-before-rollout). Entry URLs are validated on link map entry write. |
+| Link map rule validation | Validates `source` path matching only — not conditional or placeholder logic on the rule, because stored `destination` is always `null`. Test dynamic logic with a separate rule (no `linkMapId`) or [simulate](../guides/redirect-rules-operations.md#simulate-before-rollout). Entry URLs are validated on link map entry write. |
 
 Validation errors return `400` with an `errors.details` array.
 
@@ -263,13 +263,13 @@ Source footgun:     /path/i may be regex — use /^...$/ for intentional regex
 
 ## Advanced engineering FAQ
 
-Edge cases that often appear in production debugging. Each answer is aligned with `redirect.service.ts` and `redirect.service.spec.ts`.
+Edge cases that often appear in production debugging.
 
 ### What happens with an infinite redirect loop?
 
 LinkShift issues **one HTTP redirect per incoming request** (`Location` + `statusCode`). It does **not** follow redirect chains on live traffic the way a browser or the public [redirect trace tool](https://linkshift.app/tools/redirect-trace) does.
 
-If rule A sends visitors to a URL that hits rule B, which sends them back to A, the **browser** (or API client) loops — not the edge engine in a single request. Design destinations so the next hop leaves the matched prefix, use different paths, or lower-priority fallbacks. Test multi-hop journeys with the trace tool (hop limit and loop detection live in the tools frontend, not in `redirect.service`).
+If rule A sends visitors to a URL that hits rule B, which sends them back to A, the **browser** (or API client) loops — LinkShift returns only one redirect per request. Design destinations so the next hop leaves the matched prefix, use different paths, or lower-priority fallbacks. Test multi-hop journeys with the trace tool.
 
 ### How does the engine handle query-string encoding (`%20`, `+`, Unicode)?
 

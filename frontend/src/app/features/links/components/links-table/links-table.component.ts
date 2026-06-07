@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DashboardModeService } from '../../../../core/layout/dashboard-mode.service';
+import { switchSiteOrAllSitesCopy } from '../../../../core/layout/page-workspace-empty-state.copy';
 import {
   formatShortUrlsTooltip,
   type AggregatedLinkRow,
@@ -19,6 +20,8 @@ import {
 })
 export class LinksTableComponent {
   private readonly dashboardModeService = inject(DashboardModeService);
+
+  readonly switchSiteOrAllSitesCopy = switchSiteOrAllSitesCopy();
 
   readonly rows = input<AggregatedLinkRow[]>([]);
   readonly loading = input(false);

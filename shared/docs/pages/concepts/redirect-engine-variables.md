@@ -123,8 +123,8 @@ Country-based routing via `{geo.country}` is a **planned feature** — it is **n
 
 | Topic | Status |
 |-------|--------|
-| `{geo.country}` placeholder | **Rejected** at API validation (`Unknown variable: "geo.country"`) — see `rule-validator.service.spec.ts` |
-| Runtime / simulate | No GeoIP lookup; `extractVariables` has no `geo` branch (comment-only future hook in `redirect.service.ts`) |
+| `{geo.country}` placeholder | **Rejected** at API validation (`Unknown variable: "geo.country"`) |
+| Runtime / simulate | No GeoIP lookup |
 | Dev / localhost stub | **None** — do not assume `PL` on `localhost` or `US` as a default in simulate or live traffic |
 | Workarounds today | `{accept-language}`, `{ip}`, `{user-agent}`, path/query conditionals, or separate rules per domain |
 
@@ -267,7 +267,7 @@ https://example.com/{{not-a-placeholder}}
 
 → `https://example.com/{not-a-placeholder}`
 
-The placeholder regex only matches single braces (`{…}`), so doubled braces are not treated as variables. Unescaping runs **after** placeholder substitution (`{{` → `{`, `}}` → `}`). Covered by `redirect.service.spec.ts` (double-brace destination).
+The placeholder regex only matches single braces (`{…}`), so doubled braces are not treated as variables. Unescaping runs **after** placeholder substitution (`{{` → `{`, `}}` → `}`).
 
 This applies anywhere in the destination string, including inside ternary branches.
 

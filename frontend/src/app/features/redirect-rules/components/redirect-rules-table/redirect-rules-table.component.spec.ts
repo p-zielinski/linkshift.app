@@ -50,7 +50,7 @@ describe('RedirectRulesTableComponent', () => {
     fixture.detectChanges();
 
     expect(emptyStateText()).toBe(
-      'Select a site in the workspace menu above to view redirect rules.',
+      'Choose a site in the page header Site menu to view redirect rules.',
     );
   });
 
