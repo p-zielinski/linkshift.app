@@ -93,7 +93,7 @@ export class ResetPasswordPageComponent {
         duration: 4000,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Reset request failed.';
+      const message = error instanceof Error ? error.message : "Couldn't send reset link. Try again.";
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });
     } finally {
       this.busy.set(false);
@@ -115,12 +115,12 @@ export class ResetPasswordPageComponent {
     try {
       const password = this.resetModel().password;
       await firstValueFrom(this.authApi.confirmPasswordReset({ token, password }));
-      this.snackBar.open('Password updated. Please log in.', 'Dismiss', {
+      this.snackBar.open('Password updated. Log in to continue.', 'Dismiss', {
         duration: 4000,
       });
       await this.router.navigateByUrl('/auth');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Reset failed.';
+      const message = error instanceof Error ? error.message : "Couldn't reset password. Try again.";
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });
     } finally {
       this.busy.set(false);

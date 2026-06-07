@@ -29,19 +29,31 @@
   </div>
 
   <div class="flex items-center gap-1">
-    <button mat-icon-button [disabled]="!canGoPrevious" (click)="onPreviousPage()">
+    <button
+      mat-icon-button
+      type="button"
+      aria-label="Previous page"
+      [disabled]="!canGoPrevious()"
+      (click)="onPreviousPage()"
+    >
       <mat-icon
         matTooltip="Previous page"
-        [class.text-app-accent-strong]="canGoPrevious"
+        [class.text-app-accent-strong]="canGoPrevious()"
         matTooltipPosition="above"
       >
         chevron_left
       </mat-icon>
     </button>
-    <button mat-icon-button [disabled]="!canGoNext" (click)="onNextPage()">
+    <button
+      mat-icon-button
+      type="button"
+      aria-label="Next page"
+      [disabled]="!canGoNext()"
+      (click)="onNextPage()"
+    >
       <mat-icon
         matTooltip="Next page"
-        [class.text-app-accent-strong]="canGoNext"
+        [class.text-app-accent-strong]="canGoNext()"
         matTooltipPosition="above"
       >
         chevron_right

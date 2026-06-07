@@ -83,7 +83,7 @@ export class PaddleCheckoutService {
       let completionReceived = false;
       let checkoutId: string | null = null;
       const openTimeout = setTimeout(() => {
-        fail('Unable to initialize Paddle checkout. Please try again.');
+        fail("Couldn't initialize Paddle checkout. Try again.");
       }, 20_000);
 
       const settle = (result: OverlayCheckoutResult) => {
@@ -158,7 +158,7 @@ export class PaddleCheckoutService {
           const message =
             (errorData?.['detail'] as string | undefined) ??
             (errorData?.['message'] as string | undefined) ??
-            'Paddle checkout failed.';
+            "Couldn't complete Paddle checkout. Try again.";
           fail(message);
           return;
         }
@@ -191,7 +191,7 @@ export class PaddleCheckoutService {
         });
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : 'Unable to open Paddle checkout.';
+          error instanceof Error ? error.message : "Couldn't open Paddle checkout.";
         fail(message);
       }
     });
@@ -249,7 +249,7 @@ export class PaddleCheckoutService {
         existing.addEventListener('load', () => resolve(), { once: true });
         existing.addEventListener(
           'error',
-          () => reject(new Error('Failed to load Paddle.js script.')),
+          () => reject(new Error("Couldn't load Paddle checkout. Refresh the page and try again.")),
           { once: true },
         );
         return;
@@ -260,7 +260,7 @@ export class PaddleCheckoutService {
       script.async = true;
       script.onload = () => resolve();
       script.onerror = () =>
-        reject(new Error('Failed to load Paddle.js script.'));
+        reject(new Error("Couldn't load Paddle checkout. Refresh the page and try again."));
       this.document.head.appendChild(script);
     });
 

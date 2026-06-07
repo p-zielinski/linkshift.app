@@ -1,4 +1,5 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -13,12 +14,14 @@ import type { Domain } from '../../core/models/domain.model';
 import { AuthStore } from '../../core/store/auth.store';
 import { DomainSetupDialogComponent } from './domain-setup-dialog.component';
 import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
-import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
 import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
-import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
+import { attachPageWorkspaceFilter } from '../../core/layout/attach-page-workspace.util';
 import { DomainsTableComponent } from './components/domains-table/domains-table.component';
 import { WizardDialogService } from '../../core/services/wizard-dialog.service';
 import { DomainGroupFilterPersistenceService } from '../../core/services/domain-group-filter-persistence.service';
+import { DashboardModeService } from '../../core/layout/dashboard-mode.service';
+import { DEFAULT_LIST_KEY } from '../../core/store/entity/entity-store.utils';
+import { areRowsEqualByIdAndUpdatedAt } from '../../core/utils/signal-list-equality.util';
 
 @Component({
   selector: 'app-domains-page',
@@ -30,12 +33,11 @@ import { DomainGroupFilterPersistenceService } from '../../core/services/domain-
     MatSnackBarModule,
     TablePaginatorComponent,
     ResourcePageShellComponent,
-    ResourceCardComponent,
     ResourceTableCardComponent,
-    DomainGroupSelectComponent,
     DomainsTableComponent
   ],
-  templateUrl: './domains-page.component.html'
+  templateUrl: './domains-page.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DomainsPageComponent {
   private readonly authStore = inject(AuthStore);
@@ -45,8 +47,12 @@ export class DomainsPageComponent {
   private readonly domainStore = inject(DomainStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly domainGroupFilterPersistence = inject(DomainGroupFilterPersistenceService);
+  private readonly dashboardMode = inject(DashboardModeService);
+  private readonly destroyRef = inject(DestroyRef);
 
+  readonly showPageLevelWorkspaceFilter = this.dashboardMode.showPageLevelWorkspaceFilter;
   readonly domains = this.domainStore.selectList();
+  readonly loading = computed(() => this.domainStore.isLoading()[DEFAULT_LIST_KEY] ?? false);
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly pageLimitOptions = [10, 20, 50];
   readonly pageLimit = signal(20);
@@ -71,12 +77,15 @@ export class DomainsPageComponent {
   readonly pageCount = computed(() =>
     Math.max(1, Math.ceil(this.totalDomains() / this.pageLimit()))
   );
-  readonly pagedDomains = computed(() => {
-    const limit = this.pageLimit();
-    const page = this.page();
-    const start = (page - 1) * limit;
-    return this.filteredDomains().slice(start, start + limit);
-  });
+  readonly pagedDomains = computed(
+    () => {
+      const limit = this.pageLimit();
+      const page = this.page();
+      const start = (page - 1) * limit;
+      return this.filteredDomains().slice(start, start + limit);
+    },
+    { equal: areRowsEqualByIdAndUpdatedAt },
+  );
   readonly hasNextPage = computed(() => this.page() < this.pageCount());
   readonly groupMap = computed(() => {
     const map: Record<string, { name: string } | undefined> = {};
@@ -92,7 +101,20 @@ export class DomainsPageComponent {
       this.domainGroupStore.searchList();
     }
 
-    this.domainGroupFilterPersistence.bind(this.filterModel, this.domainGroups);
+    this.domainGroupFilterPersistence.bind(this.filterModel, this.domainGroups, {
+      allowEmptySelection: this.showPageLevelWorkspaceFilter,
+      syncFromDashboardContext: computed(() => this.dashboardMode.isAdvanced()),
+    });
+
+    attachPageWorkspaceFilter({
+      destroyRef: this.destroyRef,
+      filterModel: () => this.filterModel(),
+      updateFilterModel: (domainGroupId) => {
+        this.filterModel.update((model) => ({ ...model, domainGroupId }));
+      },
+      groups: this.domainGroups,
+      allowEmptySelection: this.showPageLevelWorkspaceFilter,
+    });
 
     effect(() => {
       const error = this.domainStore.lastError();
@@ -123,9 +145,9 @@ export class DomainsPageComponent {
       boolean
     >(DomainFormDialogComponent, {
       domainGroupId: this.activeGroupId() || undefined
-    });
+    }, 0, { size: 'compact' });
 
-    dialogRef.afterClosed().subscribe((created) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((created) => {
       if (created) {
         this.openSetupDialog();
       }
@@ -139,7 +161,7 @@ export class DomainsPageComponent {
       boolean
     >(DomainFormDialogComponent, {
       domain
-    });
+    }, 0, { size: 'compact' });
   }
 
   confirmDelete(domainId: string): void {
@@ -153,7 +175,7 @@ export class DomainsPageComponent {
       }
     });
 
-    dialogRef.afterClosed().subscribe((confirmed) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed) => {
       if (confirmed) {
         this.domainStore.remove(domainId);
       }

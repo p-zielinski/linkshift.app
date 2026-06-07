@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { publicSessionRestoreCanMatch } from '../../core/auth/public-session-restore.guard';
 import { DocumentationSiteShellComponent } from './pages/documentation-site-shell.component';
 import { DocumentationShellComponent } from './pages/documentation-shell.component';
 import { DocumentationOverviewPageComponent } from './pages/documentation-overview-page.component';
@@ -9,6 +10,7 @@ export const DOCUMENTATION_CHILD_ROUTES: Routes = [
   {
     path: 'docs',
     component: DocumentationSiteShellComponent,
+    canMatch: [publicSessionRestoreCanMatch],
     children: [
       {
         path: '',

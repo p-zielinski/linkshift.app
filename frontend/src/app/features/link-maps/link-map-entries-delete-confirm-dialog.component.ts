@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import type { LinkMapEntry } from '../../core/models/link-map.model';
 import { WizardComponent, type WizardStep } from '../../shared/components/wizard/wizard.component';
@@ -18,6 +18,7 @@ export type LinkMapEntriesDeleteConfirmDialogData = {
   imports: [CommonModule, WizardComponent, WizardStepDirective, WizardStepSummaryDirective],
   templateUrl: './link-map-entries-delete-confirm-dialog.component.html',
   styleUrl: './link-map-entries-delete-confirm-dialog.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkMapEntriesDeleteConfirmDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<LinkMapEntriesDeleteConfirmDialogComponent>);

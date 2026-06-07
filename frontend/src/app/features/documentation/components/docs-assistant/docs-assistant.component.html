@@ -78,7 +78,7 @@
         </div>
       }
 
-      @for (message of activeMessages(); track message.id) {
+      @for (message of messageViews(); track message.id) {
         <article
           class="docs-assistant__message"
           [class.docs-assistant__message--user]="message.role === 'user'"
@@ -93,19 +93,20 @@
               <p class="docs-assistant__text">{{ message.text }}</p>
             }
 
-            @if (message.role === 'assistant' && message.sources?.length) {
+            @if (message.role === 'assistant' && message.parsedSources.length) {
               <div class="docs-assistant__sources">
                 <div class="docs-assistant__sources-title">Sources</div>
                 <ul>
-                  @for (source of message.sources; track source) {
-                    @let parsed = parseSource(source);
+                  @for (sourceView of message.parsedSources; track sourceView.source) {
                     <li>
-                      @if (parsed.route) {
-                        <a [routerLink]="parsed.route" (click)="onSourceLinkClick($event)">{{
-                          parsed.label
-                        }}</a>
+                      @if (sourceView.parsed.route) {
+                        <a
+                          [routerLink]="sourceView.parsed.route"
+                          (click)="onSourceLinkClick($event)"
+                          >{{ sourceView.parsed.label }}</a
+                        >
                       } @else {
-                        <span>{{ parsed.label }}</span>
+                        <span>{{ sourceView.parsed.label }}</span>
                       }
                     </li>
                   }

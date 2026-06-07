@@ -182,6 +182,21 @@ export class PricingPlansComponent {
     return plans.map(({ sortAmount: _, ...plan }) => plan);
   });
 
+  readonly planCardViews = computed(() =>
+    this.plans().map((plan) => {
+      const blockedReason = this.resolvePlanBlockedReason(plan.key);
+      return {
+        plan,
+        features: this.compact() ? plan.features.slice(0, 3) : plan.features,
+        hasExtraFeatures: this.compact() && plan.features.length > 3,
+        isCurrent: this.isCurrentPlan(plan.key),
+        isSelectable: this.isSelectablePlan(plan.key),
+        blockedReason,
+        blockedCtaLabel: blockedReason ? 'Downgrade unavailable' : 'Not available',
+      };
+    }),
+  );
+
   constructor() {
     effect(() => {
       this.billingPlansStore.loadPlans();
@@ -199,14 +214,6 @@ export class PricingPlansComponent {
         this.billingInterval.set(lockedInterval);
       }
     });
-  }
-
-  getFeatures(plan: PricingPlan): string[] {
-    return this.compact() ? plan.features.slice(0, 3) : plan.features;
-  }
-
-  hasExtraFeatures(plan: PricingPlan): boolean {
-    return this.compact() && plan.features.length > 3;
   }
 
   private buildFallbackPlan(plan: OrganizationPlan): PricingPlanBase {
@@ -282,7 +289,7 @@ export class PricingPlansComponent {
     this.billingInterval.set(interval);
   }
 
-  getPlanBlockedReason(plan: OrganizationPlan): string | null {
+  private resolvePlanBlockedReason(plan: OrganizationPlan): string | null {
     if (plan === OrganizationPlan.FREE) {
       return null;
     }
@@ -295,7 +302,7 @@ export class PricingPlansComponent {
   }
 
   isPlanBlocked(plan: OrganizationPlan): boolean {
-    return !!this.getPlanBlockedReason(plan);
+    return !!this.resolvePlanBlockedReason(plan);
   }
 
   private getPlanPrice(plan: OrganizationPlan, interval: BillingInterval): BillingPlanPrice | null {

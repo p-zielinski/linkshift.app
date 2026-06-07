@@ -1,5 +1,5 @@
 <div class="qr-tool-grid">
-  <mat-card class="qr-tool-card">
+  <div class="qr-tool-card">
     <h3>Generate QR code</h3>
     <p class="text-[13px] text-app-muted">
       Enter a URL and export the generated code as PNG, SVG, or EPS.
@@ -16,7 +16,7 @@
     <div class="mt-2 flex flex-wrap items-center gap-3">
       <button mat-flat-button color="primary" type="button" (click)="onGenerateClick()">
         <mat-icon>qr_code_2</mat-icon>
-        <span>{{ isGenerating() ? 'Generating...' : 'Generate' }}</span>
+        <span>{{ isGenerating() ? 'Generating…' : 'Generate' }}</span>
       </button>
     </div>
 
@@ -60,9 +60,9 @@
         <button mat-stroked-button type="button" (click)="onDownloadClick('eps')">EPS</button>
       </div>
     </div>
-  </mat-card>
+  </div>
 
-  <mat-card class="qr-preview-card">
+  <div class="qr-preview-card">
     <div class="preview-title">QR preview</div>
     @if (previewObjectUrl()) {
       <img
@@ -83,5 +83,5 @@
         share it.
       </div>
     }
-  </mat-card>
+  </div>
 </div>

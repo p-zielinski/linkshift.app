@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -10,6 +10,7 @@ import { DOMAIN_SETUP_CONFIG } from '../../core/config/domain-setup-config';
   standalone: true,
   imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
   templateUrl: './domain-setup-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DomainSetupDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<DomainSetupDialogComponent>);
@@ -19,8 +20,6 @@ export class DomainSetupDialogComponent {
   readonly hasTargetIp = computed(() => this.targetIp().length > 0);
 
   close(): void {
-    console.log('Closing domain setup dialog', this.config);
-
     this.dialogRef.close();
   }
 }

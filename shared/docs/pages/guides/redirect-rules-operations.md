@@ -64,7 +64,7 @@ Simulate skips redirect **rate limits** (`429`) and runs **blacklist checks only
 
 **Batch behavior:** Each object in `entries` is evaluated **independently** (the API processes them concurrently). Order of objects in the request does not affect results. **Within one entry**, rules run in `priority` desc, then `createdAt` desc, then `id` desc — same as live traffic.
 
-**HTTPS only:** Simulate has **no** `protocol` field. The engine always evaluates each entry as **HTTPS** (`req.protocol` is fixed internally), which matches live redirect traffic on LinkShift domains. Pass `hostname`, `path`, and `query` only — not a scheme. Absolute URLs in rule `destination` are unchanged.
+**HTTPS only:** Simulate has **no** `protocol` field. The engine always evaluates each entry as **HTTPS**, which matches live redirect traffic on LinkShift domains. Pass `hostname`, `path`, and `query` only — not a scheme. Absolute URLs in rule `destination` are unchanged.
 
 ```json
 {

@@ -1,6 +1,7 @@
 <app-resource-page-shell
   title="Tests"
   subtitle="Validate redirect outcomes without leaving the dashboard."
+  [bodyScroll]="false"
 >
   <div page-actions class="flex flex-wrap items-center gap-2">
     <button
@@ -23,15 +24,11 @@
     </button>
   </div>
 
-  <app-resource-card>
-    <div class="grid gap-4 md:grid-cols-[minmax(220px,1fr)_2fr]">
-      <app-domain-group-select [groups]="domainGroups()" [formField]="filterForm.domainGroupId" />
-
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
-        <mat-label>Search by path or query</mat-label>
-        <input matInput type="text" [formField]="filterForm.search" />
-      </mat-form-field>
-    </div>
+  <app-resource-card class="shrink-0">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+      <mat-label>Search by path or query</mat-label>
+      <input matInput type="text" [formField]="filterForm.search" />
+    </mat-form-field>
   </app-resource-card>
 
   <app-resource-table-card className="flex min-h-0 flex-1 flex-col" [showFooter]="true">
@@ -54,6 +51,7 @@
         [showCurrentPage]="true"
         [currentPage]="page()"
         [hasNextPage]="hasNextPage()"
+        [isLoading]="loading()"
         [pageLimitOptions]="pageLimitOptions"
         [pageLimit]="pageLimit()"
         (currentPageChange)="onPageChange($event)"

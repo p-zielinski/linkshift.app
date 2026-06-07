@@ -1,5 +1,7 @@
-<div class="page-background flex min-h-[calc(100vh-48px)] items-center justify-center px-4 py-10">
-  <mat-card class="auth-card w-[min(480px,96vw)] rounded-[20px] p-6 text-center">
+<div class="page-background flex min-h-[calc(100dvh-48px)] items-center justify-center px-4 py-10">
+  <mat-card
+    class="auth-card max-h-[calc(100dvh-2rem)] w-[min(520px,96vw)] overflow-y-auto rounded-[20px] p-6 text-center"
+  >
     @if (verifying()) {
       <mat-progress-spinner diameter="48" mode="indeterminate" />
       <h2 class="mt-4 text-lg font-semibold text-app-foreground">Verifying your email</h2>
@@ -13,7 +15,7 @@
         Go to login
       </a>
     } @else {
-      <h2 class="m-0 text-lg font-semibold text-app-foreground">Verification failed</h2>
+      <h2 class="m-0 text-lg font-semibold text-app-foreground">Couldn't verify email</h2>
       <p class="mt-2 text-[13px] text-app-muted">{{ error() }}</p>
       <a mat-stroked-button color="primary" routerLink="/auth" class="mt-4 inline-flex">
         Back to login

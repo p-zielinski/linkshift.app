@@ -82,7 +82,7 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
     ],
     references: [
       { label: 'redirect.pizza (official website)', href: 'https://redirect.pizza/' },
-      { label: 'LinkShift - link map docs (repo)', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - link map docs (repo)', href: 'https://linkshift.app/' },
     ],
   },
   {
@@ -1013,7 +1013,7 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       'When you do not need key mapping and detailed query matching.',
     ],
     references: [
-      { label: 'LinkShift - homepage', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - homepage', href: 'https://linkshift.app/' },
       {
         label: 'Cloudflare Bulk Redirects docs',
         href: 'https://developers.cloudflare.com/rules/url-forwarding/bulk-redirects/',
@@ -1101,7 +1101,7 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       'When a team already has mature in-house redirect tooling and process ownership.',
     ],
     references: [
-      { label: 'LinkShift - homepage', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - homepage', href: 'https://linkshift.app/' },
       { label: 'LinkShift - pricing', href: 'https://linkshift.app/pricing' },
     ],
   },
@@ -1185,7 +1185,7 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       'When a dedicated migration team already operates a tested internal redirect engine.',
     ],
     references: [
-      { label: 'LinkShift - homepage', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - homepage', href: 'https://linkshift.app/' },
       {
         label: 'Google Search Central - site moves and URL changes',
         href: 'https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes',
@@ -1362,7 +1362,7 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       'When registrar-level forwarding fully satisfies a very small setup.',
     ],
     references: [
-      { label: 'LinkShift - homepage', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - homepage', href: 'https://linkshift.app/' },
       {
         label: 'Cloudflare docs - URL forwarding overview',
         href: 'https://developers.cloudflare.com/rules/url-forwarding/',
@@ -1453,7 +1453,7 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
         label: 'Google Search Central - site moves and URL changes',
         href: 'https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes',
       },
-      { label: 'LinkShift - homepage', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - homepage', href: 'https://linkshift.app/' },
     ],
   },
   {
@@ -1536,7 +1536,7 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       'When strict policy requires all URL handling to remain in infrastructure code only.',
     ],
     references: [
-      { label: 'LinkShift - homepage', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - homepage', href: 'https://linkshift.app/' },
       { label: 'LinkShift - contact', href: 'https://linkshift.app/contact' },
     ],
   },
@@ -1624,7 +1624,7 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
         label: 'Google Search Central - consolidating duplicate URLs',
         href: 'https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls',
       },
-      { label: 'LinkShift - homepage', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - homepage', href: 'https://linkshift.app/' },
     ],
   },
   {
@@ -1711,7 +1711,7 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
         label: 'MDN - HTTP redirections',
         href: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Redirections',
       },
-      { label: 'LinkShift - homepage', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - homepage', href: 'https://linkshift.app/' },
     ],
   },
   {
@@ -1794,7 +1794,7 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       'When there is no need to integrate redirects with CI/CD, release orchestration, or external control planes.',
     ],
     references: [
-      { label: 'LinkShift - homepage', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - homepage', href: 'https://linkshift.app/' },
       { label: 'LinkShift - pricing', href: 'https://linkshift.app/pricing' },
     ],
   },
@@ -2309,7 +2309,7 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       'When each domain must keep fully independent crawler policy with no shared group-level behavior.',
     ],
     references: [
-      { label: 'LinkShift - home', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - home', href: 'https://linkshift.app/' },
       { label: 'LinkShift - blog', href: 'https://linkshift.app/blog' },
       {
         label: 'Google Search Central - robots.txt introduction',
@@ -2414,7 +2414,7 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       'When no managed subdomain workflows are needed and all routing stays on fixed hostnames.',
     ],
     references: [
-      { label: 'LinkShift - home', href: 'https://linkshift.app/home' },
+      { label: 'LinkShift - home', href: 'https://linkshift.app/' },
       { label: 'LinkShift - pricing', href: 'https://linkshift.app/pricing' },
       {
         label: 'MDN - Subdomains and hostnames overview',

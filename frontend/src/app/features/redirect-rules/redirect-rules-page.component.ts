@@ -1,12 +1,14 @@
 import {
+  ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   computed,
   effect,
   inject,
   signal,
-  EnvironmentInjector,
-  runInInjectionContext
+  untracked,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -14,13 +16,14 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { debounce, form, required, FormField } from '@angular/forms/signals';
-import { toObservable } from '@angular/core/rxjs-interop';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
 import { RedirectTestStore } from '../../core/store/redirect-test.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { RedirectTestResultsStore } from '../../core/store/redirect-test-results.store';
+import { LinkMapStore } from '../../core/store/link-map.store';
+import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
 import { RunPendingTestsDialogComponent } from '../tests/run-pending-tests-dialog.component';
 import {
   RedirectTestFormDialogComponent,
@@ -32,26 +35,47 @@ import type {
   RedirectTestListQuery,
   RedirectTestResult
 } from '../../core/models/redirect-test.model';
-import { extractErrorMessage } from '../../core/store/store-error.utils';
-import { combineLatest, filter, firstValueFrom, take } from 'rxjs';
 import {
   RedirectRuleFormDialogComponent,
   type RedirectRuleDialogData,
   type RedirectRuleDialogResult,
+  type RedirectRuleDialogResumeData,
+  type RedirectRuleLinkMapWizardRequest,
 } from './redirect-rule-form-dialog.component';
-import type { RedirectRule } from '../../core/models/redirect-rule.model';
+import {
+  LinkMapFormDialogComponent,
+  type LinkMapDialogData,
+  type LinkMapDialogResult,
+} from '../link-maps/link-map-form-dialog.component';
+import type { RedirectRule, RedirectRuleListQuery } from '../../core/models/redirect-rule.model';
 import { AuthStore } from '../../core/store/auth.store';
 import { getFilterKey } from '../../core/store/entity/entity-store.utils';
 import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
 import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
 import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
-import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
+import { attachPageWorkspaceFilter } from '../../core/layout/attach-page-workspace.util';
 import { RedirectRulesTableComponent } from './components/redirect-rules-table/redirect-rules-table.component';
 import {
   RedirectTestsSummaryCardComponent,
 } from './components/redirect-tests-summary-card/redirect-tests-summary-card.component';
 import { WizardDialogService } from '../../core/services/wizard-dialog.service';
 import { DomainGroupFilterPersistenceService } from '../../core/services/domain-group-filter-persistence.service';
+import { DashboardModeService } from '../../core/layout/dashboard-mode.service';
+import {
+  beginPendingCursorDelete,
+  buildCursorPageFilter,
+  createPendingCursorDeleteRefs,
+  needsCursorListFetch,
+  refreshCursorListAfterDelete,
+  registerRefreshCursorListAfterDeleteEffect,
+} from '../../core/utils/cursor-list-pagination.util';
+import {
+  REDIRECT_RULES_LIST_LIMIT,
+  nextRedirectRulePageFilterToFetch,
+  planRedirectRulePages,
+} from '../../core/utils/redirect-rules-list.util';
+import { areRowsEqualByIdAndUpdatedAt } from '../../core/utils/signal-list-equality.util';
+import { registerStoreRefreshOnVisibility } from '../../core/store/store-visibility-refresh.util';
 
 @Component({
   selector: 'app-redirect-rules-page',
@@ -68,12 +92,12 @@ import { DomainGroupFilterPersistenceService } from '../../core/services/domain-
     ResourcePageShellComponent,
     ResourceCardComponent,
     ResourceTableCardComponent,
-    DomainGroupSelectComponent,
     RedirectRulesTableComponent,
     RedirectTestsSummaryCardComponent
   ],
   templateUrl: './redirect-rules-page.component.html',
-  styleUrl: './redirect-rules-page.component.css'
+  styleUrl: './redirect-rules-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RedirectRulesPageComponent {
   private readonly authStore = inject(AuthStore);
@@ -84,11 +108,15 @@ export class RedirectRulesPageComponent {
   private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
   private readonly redirectTestStore = inject(RedirectTestStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
-  private readonly envInjector = inject(EnvironmentInjector);
+  private readonly linkMapStore = inject(LinkMapStore);
+  private readonly usageStore = inject(OrganizationUsageStore);
   private readonly domainGroupFilterPersistence = inject(DomainGroupFilterPersistenceService);
+  private readonly dashboardMode = inject(DashboardModeService);
+  private readonly destroyRef = inject(DestroyRef);
 
+  readonly showPageLevelWorkspaceFilter = this.dashboardMode.showPageLevelWorkspaceFilter;
   readonly domainGroups = this.domainGroupStore.selectList();
-  readonly pageLimitOptions = [20];
+  readonly pageLimitOptions = [20, 50, REDIRECT_RULES_LIST_LIMIT];
   readonly pageLimit = signal(20);
   readonly page = signal(1);
   readonly pageCursors = signal<Record<number, string | null>>({ 1: null });
@@ -104,6 +132,11 @@ export class RedirectRulesPageComponent {
   });
 
   readonly activeGroupId = computed(() => this.filterModel().domainGroupId || '');
+  readonly activeGroupLabel = computed(() => {
+    const groupId = this.activeGroupId();
+
+    return this.groupMap()[groupId]?.name ?? groupId;
+  });
 
   readonly baseFilter = computed(() => {
     const { domainGroupId, search } = this.filterModel();
@@ -118,27 +151,30 @@ export class RedirectRulesPageComponent {
     };
   });
 
-  readonly filterParams = computed(() => {
+  readonly filterParams = computed((): RedirectRuleListQuery | null => {
     const baseFilter = this.baseFilter();
     if (!baseFilter) {
       return null;
     }
 
-    const cursor = this.pageCursors()[this.page()];
-    return {
-      ...baseFilter,
-      limit: this.pageLimit(),
-      ...(cursor ? { startAfterId: cursor } : {})
-    };
+    return buildCursorPageFilter(
+      baseFilter,
+      this.page(),
+      Math.min(this.pageLimit(), REDIRECT_RULES_LIST_LIMIT),
+      this.pageCursors(),
+    );
   });
 
-  readonly rules = computed(() => {
-    const filter = this.filterParams();
-    if (!filter) {
-      return [];
-    }
-    return this.redirectRuleStore.selectList(filter)();
-  });
+  readonly rules = computed(
+    () => {
+      const filter = this.filterParams();
+      if (!filter) {
+        return [];
+      }
+      return this.redirectRuleStore.selectList(filter)();
+    },
+    { equal: areRowsEqualByIdAndUpdatedAt },
+  );
 
   readonly listResult = computed(() => {
     const filter = this.filterParams();
@@ -148,12 +184,85 @@ export class RedirectRulesPageComponent {
     return this.redirectRuleStore.selectListResult(filter)();
   });
 
+  readonly listExpiration = computed(() => {
+    const filter = this.filterParams();
+    if (!filter) {
+      return null;
+    }
+    return this.redirectRuleStore.selectListExpiration(filter)();
+  });
+
   readonly hasNextPage = computed(() => !!this.listResult()?.moreStartingAfterId);
 
-  readonly tests = signal<RedirectTest[]>([]);
-  readonly testsLoading = signal(false);
-  readonly testsError = signal<string | null>(null);
-  private testsLoadSequence = 0;
+  readonly loading = computed(() => {
+    const filter = this.filterParams();
+    if (!filter) {
+      return false;
+    }
+    const key = getFilterKey(filter);
+    return !!this.redirectRuleStore.isLoading()[key];
+  });
+
+  readonly tests = computed(
+    () => {
+      const groupId = this.activeGroupId();
+      if (!groupId) {
+        return [] as RedirectTest[];
+      }
+
+      const tests: RedirectTest[] = [];
+      for (const filter of this.redirectTestPageResultsForGroup(groupId).filters) {
+        tests.push(...this.redirectTestStore.selectList(filter as RedirectTestListQuery)());
+      }
+      return tests;
+    },
+    { equal: areRowsEqualByIdAndUpdatedAt },
+  );
+
+  readonly testsLoading = computed(() => {
+    const groupId = this.activeGroupId();
+    if (!groupId) {
+      return false;
+    }
+
+    const pageResults = this.redirectTestPageResultsForGroup(groupId);
+    const firstResult = pageResults.results[0];
+    if (firstResult === null || firstResult === undefined) {
+      return true;
+    }
+
+    const loading = this.redirectTestStore.isLoading();
+    for (const filter of pageResults.filters) {
+      if (loading[getFilterKey(filter)]) {
+        return true;
+      }
+    }
+
+    const loadedKeys = new Set(
+      pageResults.filters
+        .filter((filter) => this.redirectTestStore.selectListResult(filter as RedirectTestListQuery)() !== null)
+        .map((filter) => getFilterKey(filter)),
+    );
+
+    return (
+      nextRedirectRulePageFilterToFetch(
+        groupId,
+        pageResults.results,
+        loadedKeys,
+        getFilterKey,
+        (filter) => this.redirectTestStore.selectListExpiration(filter as RedirectTestListQuery)(),
+      ) !== null
+    );
+  });
+
+  readonly testsError = computed(() => {
+    if (!this.activeGroupId()) {
+      return null;
+    }
+    return this.redirectTestStore.lastError();
+  });
+
+  private readonly pendingDelete = createPendingCursorDeleteRefs();
 
   readonly testsMetrics = computed(() => {
     const tests = this.tests();
@@ -213,7 +322,19 @@ export class RedirectRulesPageComponent {
       this.domainGroupStore.searchList();
     }
 
-    this.domainGroupFilterPersistence.bind(this.filterModel, this.domainGroups);
+    this.domainGroupFilterPersistence.bind(this.filterModel, this.domainGroups, {
+      syncFromDashboardContext: computed(() => this.dashboardMode.isAdvanced()),
+    });
+
+    attachPageWorkspaceFilter({
+      destroyRef: this.destroyRef,
+      filterModel: () => this.filterModel(),
+      updateFilterModel: (domainGroupId) => {
+        this.filterModel.update((model) => ({ ...model, domainGroupId }));
+      },
+      groups: this.domainGroups,
+      allowEmptySelection: this.showPageLevelWorkspaceFilter,
+    });
 
     effect(() => {
       this.baseFilter();
@@ -224,24 +345,49 @@ export class RedirectRulesPageComponent {
     effect(() => {
       const filter = this.filterParams();
       const listResult = this.listResult();
-      if (filter && !listResult) {
+      const expiration = this.listExpiration();
+      if (filter && needsCursorListFetch(listResult, expiration)) {
         this.redirectRuleStore.searchList(filter);
       }
     });
 
     effect(() => {
+      this.activeGroupId();
+      untracked(() => this.redirectTestStore.clearError());
+    });
+
+    effect(() => {
       const groupId = this.activeGroupId();
       if (!groupId) {
-        this.tests.set([]);
-        this.testsError.set(null);
-        this.testsLoading.set(false);
         return;
       }
-      queueMicrotask(() => {
-        if (this.activeGroupId() !== groupId) {
+
+      const pageResults = this.redirectTestPageResultsForGroup(groupId);
+      const loading = this.redirectTestStore.isLoading();
+
+      untracked(() => {
+        const loadedKeys = new Set(
+          pageResults.filters
+            .filter(
+              (filter) =>
+                this.redirectTestStore.selectListResult(filter as RedirectTestListQuery)() !== null,
+            )
+            .map((filter) => getFilterKey(filter)),
+        );
+
+        const nextFilter = nextRedirectRulePageFilterToFetch(
+          groupId,
+          pageResults.results,
+          loadedKeys,
+          getFilterKey,
+          (filter) => this.redirectTestStore.selectListExpiration(filter as RedirectTestListQuery)(),
+        );
+
+        if (!nextFilter || loading[getFilterKey(nextFilter)]) {
           return;
         }
-        this.loadTestsSnapshot(groupId);
+
+        this.redirectTestStore.searchList(nextFilter as RedirectTestListQuery);
       });
     });
 
@@ -265,8 +411,25 @@ export class RedirectRulesPageComponent {
     effect(() => {
       const error = this.redirectRuleStore.lastError();
       if (error) {
-        this.snackBar.open(error, 'Dismiss', { duration: 4000 });
-        this.redirectRuleStore.clearError();
+        untracked(() => {
+          this.snackBar.open(error, 'Dismiss', { duration: 4000 });
+          this.redirectRuleStore.clearError();
+        });
+      }
+    });
+
+    registerRefreshCursorListAfterDeleteEffect(
+      this.pendingDelete,
+      this.redirectRuleStore.isLoading,
+      (currentPageItemCount) => this.refreshListAfterDelete(currentPageItemCount),
+    );
+
+    registerStoreRefreshOnVisibility(this.destroyRef, () => {
+      const filter = this.filterParams();
+      const listResult = this.listResult();
+      const expiration = this.listExpiration();
+      if (filter && needsCursorListFetch(listResult, expiration)) {
+        this.redirectRuleStore.searchList(filter);
       }
     });
   }
@@ -279,40 +442,13 @@ export class RedirectRulesPageComponent {
       return;
     }
 
-    const dialogRef = this.wizardDialog.openWizard<
-      RedirectRuleFormDialogComponent,
-      RedirectRuleDialogData,
-      RedirectRuleDialogResult | boolean
-    >(RedirectRuleFormDialogComponent, {
+    this.openRuleDialog({
       domainGroupId: this.activeGroupId()
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      const saved = typeof result === 'boolean' ? result : result?.saved;
-      if (saved) {
-        this.refreshListAfterSave();
-      }
-      if (typeof result !== 'boolean' && result?.openTestWizard && result.testPrefill) {
-        this.openTestWizard(result.testPrefill);
-      }
     });
   }
 
   openEditDialog(rule: RedirectRule): void {
-    const dialogRef = this.wizardDialog.openWizard<
-      RedirectRuleFormDialogComponent,
-      RedirectRuleDialogData,
-      RedirectRuleDialogResult | boolean
-    >(RedirectRuleFormDialogComponent, {
-      rule
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      const saved = typeof result === 'boolean' ? result : result?.saved;
-      if (saved) {
-        this.refreshListAfterSave();
-      }
-    });
+    this.openRuleDialog({ rule });
   }
 
   confirmDelete(ruleId: string): void {
@@ -326,8 +462,9 @@ export class RedirectRulesPageComponent {
       }
     });
 
-    dialogRef.afterClosed().subscribe((confirmed) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed) => {
       if (confirmed) {
+        beginPendingCursorDelete(this.pendingDelete, ruleId, this.rules().length);
         this.redirectTestResultsStore.clearAll();
         this.redirectRuleStore.remove(ruleId);
       }
@@ -349,6 +486,76 @@ export class RedirectRulesPageComponent {
     });
   }
 
+  private openRuleDialog(data: RedirectRuleDialogData): void {
+    const dialogRef = this.wizardDialog.openWizard<
+      RedirectRuleFormDialogComponent,
+      RedirectRuleDialogData,
+      RedirectRuleDialogResult | boolean
+    >(RedirectRuleFormDialogComponent, data);
+
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
+      this.handleRuleDialogClosed(result);
+    });
+  }
+
+  private handleRuleDialogClosed(result: RedirectRuleDialogResult | boolean | undefined): void {
+    if (result === false || result === undefined) {
+      return;
+    }
+
+    const saved = typeof result === 'boolean' ? result : result.saved;
+    if (saved) {
+      this.refreshListAfterSave();
+    }
+
+    if (typeof result === 'boolean') {
+      return;
+    }
+
+    if (result.openTestWizard && result.testPrefill) {
+      this.openTestWizard(result.testPrefill);
+      return;
+    }
+
+    if (result.openLinkMapWizard && result.resumeRuleDialog) {
+      this.openLinkMapWizardThenResumeRuleDialog(result.openLinkMapWizard, result.resumeRuleDialog);
+    }
+  }
+
+  private openLinkMapWizardThenResumeRuleDialog(
+    request: RedirectRuleLinkMapWizardRequest,
+    resume: RedirectRuleDialogResumeData,
+  ): void {
+    const dialogRef = this.wizardDialog.openWizard<
+      LinkMapFormDialogComponent,
+      LinkMapDialogData,
+      LinkMapDialogResult
+    >(LinkMapFormDialogComponent, {
+      domainGroupId: request.domainGroupId,
+      linkMapId: request.linkMapId,
+    }, 0, { size: 'compact' });
+
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((linkMapResult) => {
+      if (linkMapResult?.saved) {
+        this.linkMapStore.searchList({ domainGroupId: request.domainGroupId }, true);
+        this.usageStore.invalidateUsage();
+        this.usageStore.loadUsage(true);
+      }
+
+      const draft = { ...resume.draft };
+      if (linkMapResult?.saved && linkMapResult.linkMapId && !request.linkMapId) {
+        draft.linkMapId = linkMapResult.linkMapId;
+      }
+
+      this.openRuleDialog({
+        rule: resume.rule,
+        domainGroupId: resume.rule ? undefined : draft.domainGroupId,
+        resumeDraft: draft,
+        activeStepId: resume.activeStepId,
+      });
+    });
+  }
+
   private openTestWizard(prefill: RedirectTestFormPrefill): void {
     const groupId = prefill.domainGroupId ?? this.activeGroupId();
     const dialogRef = this.wizardDialog.openWizard<
@@ -360,15 +567,15 @@ export class RedirectRulesPageComponent {
       prefill
     });
 
-    dialogRef.afterClosed().subscribe((created) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((created) => {
       if (created && groupId && this.activeGroupId() === groupId) {
-        this.loadTestsSnapshot(groupId);
+        this.redirectTestStore.invalidateList();
+        this.redirectTestStore.searchList(
+          { domainGroupId: groupId, limit: REDIRECT_RULES_LIST_LIMIT },
+          true,
+        );
       }
     });
-  }
-
-  groupLabel(groupId: string): string {
-    return this.groupMap()[groupId]?.name ?? groupId;
   }
 
   onPageChange(page: number): void {
@@ -391,74 +598,34 @@ export class RedirectRulesPageComponent {
     this.page.set(1);
     this.pageCursors.set({ 1: null });
     this.redirectRuleStore.searchList(
-      {
-        ...baseFilter,
-        limit: this.pageLimit()
-      },
-      true
+      buildCursorPageFilter(
+        baseFilter,
+        1,
+        Math.min(this.pageLimit(), REDIRECT_RULES_LIST_LIMIT),
+        { 1: null },
+      ),
+      true,
     );
   }
 
-  private async loadTestsSnapshot(groupId: string): Promise<void> {
-    const currentSequence = ++this.testsLoadSequence;
-    this.testsLoading.set(true);
-    this.testsError.set(null);
-    this.tests.set([]);
+  private refreshListAfterDelete(currentPageItemCount: number): void {
+    refreshCursorListAfterDelete<
+      { domainGroupId: string; search?: string },
+      RedirectRuleListQuery
+    >({
+      baseFilter: this.baseFilter(),
+      page: this.page,
+      pageLimit: Math.min(this.pageLimit(), REDIRECT_RULES_LIST_LIMIT),
+      pageCursors: this.pageCursors,
+      currentPageItemCount,
+      store: this.redirectRuleStore,
+    });
+  }
 
-    const collected: RedirectTest[] = [];
-    let cursor: string | undefined;
-
-    try {
-      do {
-        const filterParams: RedirectTestListQuery = {
-          domainGroupId: groupId,
-          limit: 100,
-          ...(cursor ? { startAfterId: cursor } : {})
-        };
-
-        const filterKey = getFilterKey(filterParams);
-        this.redirectTestStore.searchList(filterParams);
-        const [result] = await firstValueFrom(
-          runInInjectionContext(this.envInjector, () =>
-            combineLatest([
-              toObservable(this.redirectTestStore.selectListResult(filterParams)),
-              toObservable(
-                computed(() => this.redirectTestStore.isLoading()[filterKey] ?? false)
-              )
-            ]).pipe(
-              filter(([value, loading]) => value !== null && !loading),
-              take(1)
-            )
-          )
-        );
-
-        if (currentSequence !== this.testsLoadSequence) {
-          return;
-        }
-
-        collected.push(...this.redirectTestStore.selectList(filterParams)());
-        cursor = result?.moreStartingAfterId ?? undefined;
-
-        const storeError = this.redirectTestStore.lastError();
-        if (storeError) {
-          this.testsError.set(storeError);
-          this.redirectTestStore.clearError();
-        }
-      } while (cursor);
-
-      if (currentSequence === this.testsLoadSequence) {
-        this.tests.set(collected);
-      }
-    } catch (error) {
-      if (currentSequence === this.testsLoadSequence) {
-        this.tests.set([]);
-        this.testsError.set(extractErrorMessage(error, 'Failed to load tests.'));
-      }
-    } finally {
-      if (currentSequence === this.testsLoadSequence) {
-        this.testsLoading.set(false);
-      }
-    }
+  private redirectTestPageResultsForGroup(domainGroupId: string) {
+    return planRedirectRulePages(domainGroupId, (filter) =>
+      this.redirectTestStore.selectListResult(filter as RedirectTestListQuery)(),
+    );
   }
 
   private compareResults(expected: RedirectTestResult, actual: RedirectTestResult): boolean {

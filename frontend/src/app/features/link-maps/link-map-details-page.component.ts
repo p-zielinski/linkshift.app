@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,7 +11,7 @@ import { debounce, form, FormField } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
 import { LinkMapEntriesApiService } from '../../core/api/link-map-entries-api.service';
 import { LinkMapsApiService } from '../../core/api/link-maps-api.service';
-import type { LinkMap, LinkMapEntry } from '../../core/models/link-map.model';
+import type { LinkMap, LinkMapEntry, LinkMapEntryListQuery } from '../../core/models/link-map.model';
 import { WizardDialogService } from '../../core/services/wizard-dialog.service';
 import { LinkMapEntryStore } from '../../core/store/link-map-entry.store';
 import { LinkMapStore } from '../../core/store/link-map.store';
@@ -36,6 +37,12 @@ import {
   LinkMapEntryDialogResult,
 } from './link-map-entry-form-dialog.component';
 import { LinkMapEntriesTableComponent } from './components/link-map-entries-table/link-map-entries-table.component';
+import { areRowsEqualByIdAndUpdatedAt } from '../../core/utils/signal-list-equality.util';
+import {
+  needsCursorListFetch,
+  refreshCursorListAfterDelete,
+} from '../../core/utils/cursor-list-pagination.util';
+import { registerStoreRefreshOnVisibility } from '../../core/store/store-visibility-refresh.util';
 
 @Component({
   selector: 'app-link-map-details-page',
@@ -56,6 +63,7 @@ import { LinkMapEntriesTableComponent } from './components/link-map-entries-tabl
   ],
   templateUrl: './link-map-details-page.component.html',
   styleUrl: './link-map-details-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkMapDetailsPageComponent {
   private readonly route = inject(ActivatedRoute);
@@ -66,6 +74,7 @@ export class LinkMapDetailsPageComponent {
   private readonly linkMapStore = inject(LinkMapStore);
   private readonly entryStore = inject(LinkMapEntryStore);
   private readonly entryApi = inject(LinkMapEntriesApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly pageLimitOptions = [20, 50, 100];
   readonly pageLimit = signal(20);
@@ -112,13 +121,16 @@ export class LinkMapDetailsPageComponent {
     };
   });
 
-  readonly entries = computed(() => {
-    const filter = this.filterParams();
-    if (!filter) {
-      return [] as LinkMapEntry[];
-    }
-    return this.entryStore.selectList(filter)();
-  });
+  readonly entries = computed(
+    () => {
+      const filter = this.filterParams();
+      if (!filter) {
+        return [] as LinkMapEntry[];
+      }
+      return this.entryStore.selectList(filter)();
+    },
+    { equal: areRowsEqualByIdAndUpdatedAt },
+  );
 
   readonly listResult = computed(() => {
     const filter = this.filterParams();
@@ -126,6 +138,14 @@ export class LinkMapDetailsPageComponent {
       return null;
     }
     return this.entryStore.selectListResult(filter)();
+  });
+
+  readonly listExpiration = computed(() => {
+    const filter = this.filterParams();
+    if (!filter) {
+      return null;
+    }
+    return this.entryStore.selectListExpiration(filter)();
   });
 
   readonly loading = computed(() => {
@@ -203,10 +223,11 @@ export class LinkMapDetailsPageComponent {
 
     effect(() => {
       const filter = this.filterParams();
-      if (!filter) {
-        return;
+      const listResult = this.listResult();
+      const expiration = this.listExpiration();
+      if (filter && needsCursorListFetch(listResult, expiration)) {
+        this.entryStore.searchList(filter);
       }
-      this.entryStore.searchList(filter);
     });
 
     effect(() => {
@@ -224,6 +245,13 @@ export class LinkMapDetailsPageComponent {
         }
         return { ...cursors, [nextPage]: nextCursor };
       });
+    });
+
+    effect(() => {
+      const currentPage = this.page();
+      if (this.entries().length === 0 && currentPage > 1 && !this.loading()) {
+        this.page.set(currentPage - 1);
+      }
     });
 
     effect(() => {
@@ -254,6 +282,15 @@ export class LinkMapDetailsPageComponent {
       this.entryStore.clearError();
       this.shownStoreErrorSequence.set(sequence);
     });
+
+    registerStoreRefreshOnVisibility(this.destroyRef, () => {
+      const filter = this.filterParams();
+      const listResult = this.listResult();
+      const expiration = this.listExpiration();
+      if (filter && needsCursorListFetch(listResult, expiration)) {
+        this.entryStore.searchList(filter);
+      }
+    });
   }
 
   goBack(): void {
@@ -273,9 +310,9 @@ export class LinkMapDetailsPageComponent {
     >(LinkMapFormDialogComponent, {
       linkMapId: map.id,
       domainGroupId: map.domainGroupId,
-    });
+    }, 0, { size: 'compact' });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (result?.saved) {
         this.loadLinkMap();
       }
@@ -297,7 +334,7 @@ export class LinkMapDetailsPageComponent {
       caseSensitive: map.caseSensitive,
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (result?.saved) {
         this.clearSearchAndForceRefresh();
       }
@@ -320,7 +357,7 @@ export class LinkMapDetailsPageComponent {
       entry,
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (result?.saved) {
         this.clearSearchAndForceRefresh();
       }
@@ -342,7 +379,7 @@ export class LinkMapDetailsPageComponent {
       caseSensitive: map.caseSensitive,
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (!result) {
         return;
       }
@@ -376,9 +413,13 @@ export class LinkMapDetailsPageComponent {
       return;
     }
 
+    const currentPageEntries = this.entries();
+    const currentPageIds = new Set(currentPageEntries.map((entry) => entry.id));
+    const entryIds = Array.from(this.selectedIds());
+    const allSelectedOnCurrentPage = entryIds.every((id) => currentPageIds.has(id));
+
     this.deleteLoading.set(true);
     try {
-      const entryIds = Array.from(this.selectedIds());
       await firstValueFrom(
         this.entryApi.deleteMany({
           linkMapId: map.id,
@@ -387,10 +428,14 @@ export class LinkMapDetailsPageComponent {
       );
       this.selectedIds.set(new Set<string>());
       this.selectedSnapshots.set({});
-      this.clearSearchAndForceRefresh();
+      if (allSelectedOnCurrentPage) {
+        this.refreshEntriesAfterDelete(currentPageEntries.length);
+      } else {
+        this.clearSearchAndForceRefresh();
+      }
       this.snackBar.open('Entries deleted.', 'Dismiss', { duration: 3000 });
     } catch (error) {
-      this.snackBar.open(extractErrorMessage(error, 'Unable to delete selected entries.'), 'Dismiss', {
+      this.snackBar.open(extractErrorMessage(error, "Couldn't delete selected entries."), 'Dismiss', {
         duration: 4000,
       });
     } finally {
@@ -455,6 +500,21 @@ export class LinkMapDetailsPageComponent {
     } finally {
       this.mapLoading.set(false);
     }
+  }
+
+  private refreshEntriesAfterDelete(currentPageItemCount: number): void {
+    refreshCursorListAfterDelete<
+      { linkMapId: string; search?: string },
+      LinkMapEntryListQuery
+    >({
+      baseFilter: this.baseFilter(),
+      page: this.page,
+      pageLimit: this.pageLimit(),
+      pageCursors: this.pageCursors,
+      currentPageItemCount,
+      store: this.entryStore,
+    });
+    this.loadLinkMap();
   }
 
   private clearSearchAndForceRefresh(): void {

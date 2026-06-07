@@ -33,6 +33,7 @@ export enum DataType {
   SUBDOMAINS = 'linkShiftSubdomain',
   REDIRECT_RULES = 'redirectRule',
   REDIRECT_TESTS = 'redirectTest',
+  LINKS_LIST = 'linksList',
   DOMAIN_GROUPS = 'domainGroup',
   API_KEYS = 'apiKey',
   BLACKLIST_TOKEN = 'blacklistToken',
@@ -64,6 +65,7 @@ const storeByProperties: Record<
   [DataType.DOMAIN_GROUPS]: [CachedByProperty.ID],
   [DataType.REDIRECT_RULES]: [CachedByProperty.ID],
   [DataType.REDIRECT_TESTS]: [CachedByProperty.ID],
+  [DataType.LINKS_LIST]: [CachedByProperty.ID],
   [DataType.API_KEYS]: [CachedByProperty.ID, CachedByProperty.TOKEN_HASH],
   [DataType.BLACKLIST_TOKEN]: [CachedByProperty.JTI],
 };

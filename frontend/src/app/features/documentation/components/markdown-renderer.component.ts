@@ -1,6 +1,7 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   afterNextRender,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
@@ -42,6 +43,7 @@ mermaid.initialize({
   ></article>`,
   styleUrl: './markdown-renderer.component.css',
   encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarkdownRendererComponent {
   private readonly platformId = inject(PLATFORM_ID);

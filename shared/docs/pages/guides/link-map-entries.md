@@ -155,7 +155,7 @@ GET /api/v1/link-map-entries?linkMapId=lmap_abc123&limit=50&search=summer
 `POST /api/v1/link-map-entries/import` — upsert up to **500 entries** per request.
 
 :::info
-The public import endpoint caps at **500** entries per call (`ImportLinkMapEntriesSchema`). For API-key workflows, use **`POST /api/v1/link-map-entries/import`** — not legacy bulk-upsert shapes that may allow up to **1000** rows internally.
+Each import request accepts up to **500** entries. Use **`POST /api/v1/link-map-entries/import`** with your organization API key.
 :::
 
 ```json

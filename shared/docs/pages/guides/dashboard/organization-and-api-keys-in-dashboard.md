@@ -4,9 +4,33 @@ Invite teammates, review seat usage, and create organization API keys for the Ma
 
 Sign in as a member of the organization. **Send invite** is available only to organization **owners** with a free seat.
 
+:::info
+In **Campaign** view, open **Settings** → **Manage team** to reach the same organization pages. You can also open `/organization` or `/organization/api-keys` directly — those routes work in both modes even though **Organization** appears only in the **Advanced** sidebar. In **Advanced** view, open **Organization** in the sidebar.
+:::
+
 ## Organization
 
-Open **Organization** in the sidebar.
+Open **Organization** in the sidebar (Advanced view), or **Settings** → **Manage team** (Campaign view).
+
+### Plan and usage
+
+At the top of **Organization**, the **Plan and usage** section shows compact limit tiles:
+
+| Tile | Measures |
+|------|----------|
+| **Domains** | Domains across your organization |
+| **Rules** | Redirect rules across your organization |
+| **Active users** | Active organization members |
+| **Link maps** | Link maps across your organization |
+
+Select **View full usage** to open the full limits view:
+
+| View | Destination |
+|------|-------------|
+| **Campaign** | **Settings** → **Plan and usage** (`/settings#plan-usage`) |
+| **Advanced** | **Dashboard** (`/dashboard`) |
+
+When a tile reaches capacity, it shows **Limit reached** and a clickable **Upgrade plan to increase this limit.** If loading fails, you see **Couldn't load usage. Try again or refresh the page.** with **Try again**.
 
 ### Team seats
 
@@ -23,7 +47,7 @@ Columns include **Email**, **Role**, **Status**, and **Email verified**. Organiz
 1. Under **Invite a teammate**, enter an email in **Invite email**.
 2. Select **Send invite**.
 
-Invitations expire after 30 minutes (shown on the page). Non-owners see: **Only organization owners can send invites.**
+Invitations are valid for 30 minutes and require owner approval to activate. After **Send invite**, snackbar **Invite sent. It expires in 30 minutes.** Non-owners see: **Only organization owners can send invites.**
 
 ### API keys summary
 
@@ -37,7 +61,7 @@ On-page policy:
 
 ## API keys
 
-On the API keys page (**Organization** → **Manage API keys**):
+On the API keys page (**Organization** → **Manage API keys**).
 
 ### Create a key
 
@@ -53,7 +77,14 @@ Use row actions to **Edit API key** (same fields) or delete.
 
 ### Usage cards
 
-The page shows **API keys** (created vs allowed), **Rate limit** (calls per minute per key), and **Policy** notes.
+The page shows **API keys** (created vs allowed), **Rate limit** (calls per minute per key), and **Policy**:
+
+- *API keys are organization-scoped and cannot manage API keys themselves.*
+- *Set expiration dates whenever possible for safer key retention.*
+
+### API integration
+
+The **API integration** block shows the **API server base URL** (read-only) for your environment.
 
 ### Integration links
 
@@ -63,11 +94,6 @@ The page shows **API keys** (created vs allowed), **Rate limit** (calls per minu
 ### Delete a key
 
 In the table, use the delete action (**Delete API key**), confirm **Delete** in the dialog.
-
-## What you should see
-
-- New invites listed in the members table after send.
-- New keys in the table within plan limits; cards turn emphasis when the key limit is reached.
 
 ## Automate instead
 

@@ -1,0 +1,261 @@
+<app-resource-page-shell
+  title="Overview"
+  subtitle="Create links, review performance, and share QR codes from one place."
+>
+  <section aria-label="Quick actions">
+    <h2 class="sr-only">Quick actions</h2>
+    <div class="grid gap-3 sm:grid-cols-3">
+      @switch (primaryQuickAction()) {
+        @case ('connect-domain') {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="!flex !h-auto !min-h-[88px] !flex-col !items-start !justify-start !rounded-[18px] !px-4 !py-4 !text-left"
+            (click)="openConnectDomainDialog()"
+          >
+            <span class="flex items-center gap-2 text-sm font-semibold">
+              <mat-icon class="text-[20px]">language</mat-icon>
+              Connect your domain
+            </span>
+            <span class="mt-1 text-left text-[12px] font-normal opacity-90">
+              Add a site and host to create short links
+            </span>
+          </button>
+        }
+        @case ('add-host') {
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="!flex !h-auto !min-h-[88px] !flex-col !items-start !justify-start !rounded-[18px] !px-4 !py-4 !text-left"
+            (click)="openConnectDomainDialog()"
+          >
+            <span class="flex items-center gap-2 text-sm font-semibold">
+              <mat-icon class="text-[20px]">dns</mat-icon>
+              Add host
+            </span>
+            <span class="mt-1 text-left text-[12px] font-normal opacity-90">
+              Add subdomain or custom domain before creating short links
+            </span>
+          </button>
+        }
+        @case ('create-link') {
+          <a
+            mat-flat-button
+            color="primary"
+            class="!flex !h-auto !min-h-[88px] !flex-col !items-start !justify-start !rounded-[18px] !px-4 !py-4 !text-left"
+            routerLink="/links"
+            [queryParams]="{ openCreate: '1' }"
+          >
+            <span class="flex items-center gap-2 text-sm font-semibold">
+              <mat-icon class="text-[20px]">add_link</mat-icon>
+              Create link
+            </span>
+            <span class="mt-1 text-left text-[12px] font-normal opacity-90">
+              Add a short link on your domain
+            </span>
+          </a>
+        }
+      }
+
+      @if (hasConnectedHosts()) {
+        <a
+          mat-flat-button
+          class="!flex !h-auto !min-h-[88px] !flex-col !items-start !justify-start !rounded-[18px] !border !border-app-border-soft !bg-app-surface !px-4 !py-4 !text-left !text-app-foreground"
+          routerLink="/analytics"
+        >
+          <span class="flex items-center gap-2 text-sm font-semibold">
+            <mat-icon class="text-[20px]">insights</mat-icon>
+            Open analytics
+          </span>
+          <span class="mt-1 text-left text-[12px] font-normal text-app-muted">
+            See clicks and top-performing links
+          </span>
+        </a>
+      } @else {
+        <button
+          mat-flat-button
+          type="button"
+          class="!flex !h-auto !min-h-[88px] !flex-col !items-start !justify-start !rounded-[18px] !border !border-app-border-soft !bg-app-surface !px-4 !py-4 !text-left !text-app-muted"
+          (click)="openConnectDomainDialog()"
+        >
+          <span class="flex items-center gap-2 text-sm font-semibold">
+            <mat-icon class="text-[20px]">insights</mat-icon>
+            Open analytics
+          </span>
+          <span class="mt-1 text-left text-[12px] font-normal">
+            @if (hasDomainGroups()) {
+              Add a host to see analytics
+            } @else {
+              Set up your domain first
+            }
+          </span>
+        </button>
+      }
+
+      @if (hasConnectedHosts()) {
+        <a
+          mat-flat-button
+          class="!flex !h-auto !min-h-[88px] !flex-col !items-start !justify-start !rounded-[18px] !border !border-app-border-soft !bg-app-surface !px-4 !py-4 !text-left !text-app-foreground"
+          routerLink="/tools/qr-code-generator"
+        >
+          <span class="flex items-center gap-2 text-sm font-semibold">
+            <mat-icon class="text-[20px]">qr_code_2</mat-icon>
+            QR generator
+          </span>
+          <span class="mt-1 text-left text-[12px] font-normal text-app-muted">
+            {{ qrGeneratorSubtitle }}
+          </span>
+        </a>
+      } @else {
+        <button
+          mat-flat-button
+          type="button"
+          class="!flex !h-auto !min-h-[88px] !flex-col !items-start !justify-start !rounded-[18px] !border !border-app-border-soft !bg-app-surface !px-4 !py-4 !text-left !text-app-muted"
+          (click)="openConnectDomainDialog()"
+        >
+          <span class="flex items-center gap-2 text-sm font-semibold">
+            <mat-icon class="text-[20px]">qr_code_2</mat-icon>
+            QR generator
+          </span>
+          <span class="mt-1 text-left text-[12px] font-normal">
+            @if (hasDomainGroups()) {
+              {{ qrGeneratorNoHostSubtitle }}
+            } @else {
+              {{ qrGeneratorNoDomainSubtitle }}
+            }
+          </span>
+        </button>
+      }
+    </div>
+  </section>
+
+  <app-setup-checklist />
+
+  <app-resource-card>
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <h2 class="m-0 text-base font-semibold text-app-foreground">Recent links</h2>
+        <p class="mt-1 text-[13px] text-app-muted">{{ recentLinksSubtitle }}</p>
+      </div>
+      @if (hasDomainGroups()) {
+        <a mat-button routerLink="/links">View all</a>
+      }
+    </div>
+
+    @if (recentLinksLoading()) {
+      <p class="mt-4 text-[13px] text-app-muted">Loading links…</p>
+    } @else if (!hasDomainGroups()) {
+      <div
+        class="mt-4 rounded-xl border border-dashed border-app-border-soft px-4 py-8 text-center"
+      >
+        <p class="m-0 text-sm font-medium text-app-foreground">
+          Set up your domain to create short links
+        </p>
+        <p class="mt-1 text-[13px] text-app-muted">
+          Add a site and host first. Then create short links from this page
+        </p>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="mt-4"
+          (click)="openConnectDomainDialog()"
+        >
+          Connect your domain
+        </button>
+      </div>
+    } @else if (recentLinksEmptyCta() === 'add-host') {
+      <div
+        class="mt-4 rounded-xl border border-dashed border-app-border-soft px-4 py-8 text-center"
+      >
+        <p class="m-0 text-sm font-medium text-app-foreground">Add host to create short links</p>
+        <p class="mt-1 text-[13px] text-app-muted">
+          Add subdomain or custom domain on your site first
+        </p>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="mt-4"
+          (click)="openConnectDomainDialog()"
+        >
+          Add host
+        </button>
+      </div>
+    } @else if (showRecentLinksLoadFailed()) {
+      <div
+        class="mt-4 rounded-xl border border-dashed border-app-border-soft px-4 py-8 text-center"
+      >
+        <p class="m-0 text-sm font-medium text-red-600">{{ recentLinksLoadErrorMessage }}</p>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="mt-4"
+          (click)="retryRecentLinks()"
+        >
+          Try again
+        </button>
+      </div>
+    } @else if (showRecentLinksEmpty()) {
+      <div
+        class="mt-4 rounded-xl border border-dashed border-app-border-soft px-4 py-8 text-center"
+      >
+        <p class="m-0 text-sm font-medium text-app-foreground">No links yet</p>
+        <p class="mt-1 text-[13px] text-app-muted">Create your first short link to see it here</p>
+        <a
+          mat-flat-button
+          color="primary"
+          class="mt-4"
+          routerLink="/links"
+          [queryParams]="{ openCreate: '1' }"
+        >
+          Create link
+        </a>
+      </div>
+    } @else {
+      <ul class="mt-4 flex flex-col gap-2 p-0">
+        @for (link of recentLinks(); track link.id) {
+          <li class="flex items-center gap-2 rounded-xl border border-app-border-soft px-3 py-2">
+            <div class="min-w-0 flex-1">
+              <p
+                class="m-0 truncate text-sm font-medium text-app-foreground"
+                [matTooltip]="shortPathTooltip(link)"
+              >
+                {{ link.shortPath }}
+              </p>
+              <p
+                class="m-0 mt-0.5 truncate text-[13px] text-app-muted"
+                [matTooltip]="link.destination"
+              >
+                {{ link.destination }}
+              </p>
+            </div>
+            <div class="flex shrink-0 items-center gap-0.5">
+              <button
+                mat-icon-button
+                type="button"
+                [matTooltip]="link.shortUrls.length > 1 ? 'Copy all short URLs' : 'Copy short URL'"
+                [attr.aria-label]="'Copy short URL for ' + link.shortPath"
+                (click)="copyLink(link)"
+              >
+                <mat-icon>content_copy</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                matTooltip="Open analytics"
+                [attr.aria-label]="'Open analytics for ' + link.shortPath"
+                (click)="openAnalytics(link)"
+              >
+                <mat-icon>analytics</mat-icon>
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </app-resource-card>
+</app-resource-page-shell>

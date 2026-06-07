@@ -3,7 +3,7 @@
     [title]="dialogTitle"
     subtitle="Add or update a domain used in routing."
     [steps]="steps()"
-    [saveLabel]="submitLabel"
+    [saveLabel]="effectiveSubmitLabel()"
     [saveDisabled]="domainForm().submitting() || !canSubmit()"
     (save)="onSubmit()"
     (cancel)="onCancel()"
@@ -11,7 +11,7 @@
     <ng-template wizardStepSummary="details">
       <div class="text-xs text-app-muted">{{ domainModel().name || 'No domain yet' }}</div>
       <div class="text-[11px] text-app-muted">
-        {{ domainModel().domainGroupId || 'Select group' }}
+        {{ selectedGroupLabel() }}
       </div>
     </ng-template>
 

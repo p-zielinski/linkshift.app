@@ -29,38 +29,40 @@
   <div class="text-[12px] text-zinc-500">Prices include applicable taxes.</div>
 
   <div class="grid grid-cols-1 md:grid-cols-2" [class.gap-3]="compact()" [class.gap-4]="!compact()">
-    @for (plan of plans(); track plan.key) {
+    @for (view of planCardViews(); track view.plan.key) {
       <mat-card
         class="flex flex-col gap-4 rounded-2xl border border-black/10 bg-white text-zinc-900 shadow-sm"
         [class.p-4]="compact()"
         [class.p-5]="!compact()"
-        [class.border-rose-300]="plan.featured"
-        [class.bg-rose-50]="plan.featured"
+        [class.border-rose-300]="view.plan.featured"
+        [class.bg-rose-50]="view.plan.featured"
       >
         <div class="flex flex-col gap-2">
           <div class="flex flex-wrap items-center gap-2">
-            <div class="text-[18px] font-bold">{{ plan.name }}</div>
-            @if (plan.badge) {
+            <div class="text-[18px] font-bold">{{ view.plan.name }}</div>
+            @if (view.plan.badge) {
               <div
                 class="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-rose-700"
               >
-                {{ plan.badge }}
+                {{ view.plan.badge }}
               </div>
             }
           </div>
-          <div class="text-[13px] text-zinc-500">{{ plan.description }}</div>
+          <div class="text-[13px] text-zinc-500">{{ view.plan.description }}</div>
         </div>
 
         <div class="flex flex-col gap-1">
-          <div class="text-[22px] font-bold">{{ plan.price }}</div>
-          <div class="text-[12px] text-zinc-500">{{ plan.priceNote }}</div>
-          @if (plan.savingsNote) {
-            <div class="text-[11px] font-semibold text-emerald-700">{{ plan.savingsNote }}</div>
+          <div class="text-[22px] font-bold">{{ view.plan.price }}</div>
+          <div class="text-[12px] text-zinc-500">{{ view.plan.priceNote }}</div>
+          @if (view.plan.savingsNote) {
+            <div class="text-[11px] font-semibold text-emerald-700">
+              {{ view.plan.savingsNote }}
+            </div>
           }
         </div>
 
         <div class="flex flex-wrap gap-2">
-          @for (limit of plan.limits; track limit) {
+          @for (limit of view.plan.limits; track limit) {
             <span
               class="rounded-full bg-rose-100 px-2.5 py-1 text-[12px] font-semibold text-rose-700"
             >
@@ -70,50 +72,59 @@
         </div>
 
         <div class="flex flex-col gap-2.5">
-          @for (feature of getFeatures(plan); track feature) {
+          @for (feature of view.features; track feature) {
             <div class="flex items-start gap-2 text-[13px]">
               <mat-icon class="text-[18px] text-rose-600">check_circle</mat-icon>
               <span>{{ feature }}</span>
             </div>
           }
-          @if (hasExtraFeatures(plan)) {
+          @if (view.hasExtraFeatures) {
             <div class="text-[12px] text-zinc-500">+ more included in full plan details</div>
           }
         </div>
 
         <div class="flex items-center">
           @if (actionMode() === 'link') {
-            @if (plan.featured) {
-              <a mat-flat-button color="primary" class="app-cta-button" [routerLink]="plan.ctaLink">
-                {{ plan.ctaLabel }}
+            @if (view.plan.featured) {
+              <a
+                mat-flat-button
+                color="primary"
+                class="app-cta-button"
+                [routerLink]="view.plan.ctaLink"
+              >
+                {{ view.plan.ctaLabel }}
               </a>
             } @else {
-              <a mat-stroked-button class="app-neutral-stroked-button" [routerLink]="plan.ctaLink">
-                {{ plan.ctaLabel }}
+              <a
+                mat-stroked-button
+                class="app-neutral-stroked-button"
+                [routerLink]="view.plan.ctaLink"
+              >
+                {{ view.plan.ctaLabel }}
               </a>
             }
           } @else {
-            @if (isCurrentPlan(plan.key)) {
+            @if (view.isCurrent) {
               <button mat-stroked-button disabled type="button">Current plan</button>
-            } @else if (!isSelectablePlan(plan.key)) {
+            } @else if (!view.isSelectable) {
               <span
-                [matTooltip]="getPlanBlockedReason(plan.key)"
-                [matTooltipDisabled]="!getPlanBlockedReason(plan.key)"
+                [matTooltip]="view.blockedReason"
+                [matTooltipDisabled]="!view.blockedReason"
                 matTooltipPosition="above"
               >
                 <button mat-stroked-button disabled type="button">
-                  {{ getPlanBlockedReason(plan.key) ? 'Downgrade unavailable' : 'Not available' }}
+                  {{ view.blockedCtaLabel }}
                 </button>
               </span>
             } @else {
               <button
                 mat-flat-button
-                [color]="plan.featured ? 'primary' : undefined"
-                [class.app-cta-button]="plan.featured"
+                [color]="view.plan.featured ? 'primary' : undefined"
+                [class.app-cta-button]="view.plan.featured"
                 type="button"
-                (click)="selectPlan(plan.key)"
+                (click)="selectPlan(view.plan.key)"
               >
-                {{ plan.ctaLabel }}
+                {{ view.plan.ctaLabel }}
               </button>
             }
           }

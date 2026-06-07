@@ -1,50 +1,44 @@
-<div class="flex min-h-[calc(100vh-48px)] flex-col gap-4">
-  <app-page-header
-    title="Tools"
-    subtitle="Operational utilities for diagnosing redirects and generating share-ready QR assets."
-  />
-
-  <div class="rounded-[18px] border border-app-border-soft bg-app-surface p-4">
-    <div class="text-sm font-semibold text-app-foreground">Why these tools matter</div>
-    <p class="mt-1 text-[13px] text-app-muted">
-      Use these utilities during rollout, migration, and campaign execution to reduce redirect
-      issues before they hit production traffic.
-    </p>
-  </div>
+<app-resource-page-shell title="Tools" [subtitle]="pageCopy().subtitle">
+  @if (pageCopy().introTitle && pageCopy().introBody) {
+    <div class="rounded-[18px] border border-app-border-soft bg-app-surface p-4">
+      <div class="text-sm font-semibold text-app-foreground">{{ pageCopy().introTitle }}</div>
+      <p class="mt-1 text-[13px] text-app-muted">
+        {{ pageCopy().introBody }}
+      </p>
+    </div>
+  }
 
   <div class="grid gap-4 lg:grid-cols-2">
-    <mat-card class="rounded-[18px] border border-app-border-soft bg-app-surface p-5">
+    <app-resource-card>
       <div class="flex items-center gap-2 text-app-foreground">
         <mat-icon class="text-[20px]">qr_code_2</mat-icon>
-        <h3 class="m-0 text-base font-semibold">QR Code Generator</h3>
+        <h3 class="m-0 text-base font-semibold">{{ pageCopy().qrCard.title }}</h3>
       </div>
       <p class="mt-2 text-[13px] text-app-muted">
-        Generate QR assets in PNG/SVG/EPS from any URL. Useful for campaigns, print materials, and
-        partner handoffs where file format control matters.
+        {{ pageCopy().qrCard.body }}
       </p>
       <div class="mt-3 text-[12px] text-app-muted">
-        Includes final-destination verification to catch redirect issues before distribution.
+        {{ pageCopy().qrCard.hint }}
       </div>
       <div class="mt-4">
         <a mat-flat-button color="primary" routerLink="/tools/qr-code-generator">Open tool</a>
       </div>
-    </mat-card>
+    </app-resource-card>
 
-    <mat-card class="rounded-[18px] border border-app-border-soft bg-app-surface p-5">
+    <app-resource-card>
       <div class="flex items-center gap-2 text-app-foreground">
         <mat-icon class="text-[20px]">alt_route</mat-icon>
-        <h3 class="m-0 text-base font-semibold">Redirect Tester</h3>
+        <h3 class="m-0 text-base font-semibold">{{ pageCopy().redirectTesterCard.title }}</h3>
       </div>
       <p class="mt-2 text-[13px] text-app-muted">
-        Inspect redirect chains hop-by-hop with status code, destination, latency estimate, and
-        headers. Useful for debugging loops, broken hops, and User-Agent dependent behavior.
+        {{ pageCopy().redirectTesterCard.body }}
       </p>
       <div class="mt-3 text-[12px] text-app-muted">
-        Supports desktop, mobile, and custom User-Agent traces for faster incident diagnosis.
+        {{ pageCopy().redirectTesterCard.hint }}
       </div>
       <div class="mt-4">
         <a mat-flat-button color="primary" routerLink="/tools/redirect-tester">Open tool</a>
       </div>
-    </mat-card>
+    </app-resource-card>
   </div>
-</div>
+</app-resource-page-shell>

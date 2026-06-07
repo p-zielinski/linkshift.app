@@ -33,7 +33,7 @@
             [formField]="entryForm.destination"
             (blur)="onDestinationBlur()"
           />
-          <mat-hint>We add https:// if missing.</mat-hint>
+          <mat-hint>Adds https:// if missing.</mat-hint>
           @if (destinationError(); as error) {
             <mat-error>{{ error }}</mat-error>
           }

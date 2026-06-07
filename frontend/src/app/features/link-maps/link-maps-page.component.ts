@@ -1,4 +1,5 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -13,10 +14,13 @@ import { getFilterKey } from '../../core/store/entity/entity-store.utils';
 import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
 import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
 import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
-import { DomainGroupSelectComponent } from '../../shared/components/domain-group-select/domain-group-select.component';
+import { attachPageWorkspaceFilter } from '../../core/layout/attach-page-workspace.util';
 import { LinkMapsTableComponent } from './components/link-maps-table/link-maps-table.component';
+import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
 import { WizardDialogService } from '../../core/services/wizard-dialog.service';
 import { DomainGroupFilterPersistenceService } from '../../core/services/domain-group-filter-persistence.service';
+import { DashboardModeService } from '../../core/layout/dashboard-mode.service';
+import { areRowsEqualByIdAndUpdatedAt } from '../../core/utils/signal-list-equality.util';
 
 @Component({
   selector: 'app-link-maps-page',
@@ -29,11 +33,12 @@ import { DomainGroupFilterPersistenceService } from '../../core/services/domain-
     ResourcePageShellComponent,
     ResourceCardComponent,
     ResourceTableCardComponent,
-    DomainGroupSelectComponent,
     LinkMapsTableComponent,
+    TablePaginatorComponent,
   ],
   templateUrl: './link-maps-page.component.html',
   styleUrl: './link-maps-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkMapsPageComponent {
   private readonly domainGroupStore = inject(DomainGroupStore);
@@ -42,13 +47,20 @@ export class LinkMapsPageComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly router = inject(Router);
   private readonly domainGroupFilterPersistence = inject(DomainGroupFilterPersistenceService);
+  private readonly dashboardMode = inject(DashboardModeService);
+  private readonly destroyRef = inject(DestroyRef);
 
+  readonly showPageLevelWorkspaceFilter = this.dashboardMode.showPageLevelWorkspaceFilter;
   readonly domainGroups = this.domainGroupStore.selectList();
 
   filterModel = signal({ domainGroupId: '' });
   filterForm = form(this.filterModel, (f) => {
     required(f.domainGroupId);
   });
+
+  readonly pageLimitOptions = [10, 20, 50];
+  readonly pageLimit = signal(20);
+  readonly page = signal(1);
 
   readonly linkMaps = computed(() => {
     const groupId = this.activeGroupId();
@@ -57,6 +69,20 @@ export class LinkMapsPageComponent {
     }
     return this.linkMapStore.selectList({ domainGroupId: groupId })();
   });
+  readonly totalLinkMaps = computed(() => this.linkMaps().length);
+  readonly pageCount = computed(() =>
+    Math.max(1, Math.ceil(this.totalLinkMaps() / this.pageLimit())),
+  );
+  readonly pagedLinkMaps = computed(
+    () => {
+      const limit = this.pageLimit();
+      const page = this.page();
+      const start = (page - 1) * limit;
+      return this.linkMaps().slice(start, start + limit);
+    },
+    { equal: areRowsEqualByIdAndUpdatedAt },
+  );
+  readonly hasNextPage = computed(() => this.page() < this.pageCount());
   readonly loading = computed(() => {
     const groupId = this.activeGroupId();
     if (!groupId) {
@@ -75,7 +101,19 @@ export class LinkMapsPageComponent {
 
   constructor() {
     this.domainGroupStore.searchList();
-    this.domainGroupFilterPersistence.bind(this.filterModel, this.domainGroups);
+    this.domainGroupFilterPersistence.bind(this.filterModel, this.domainGroups, {
+      syncFromDashboardContext: computed(() => this.dashboardMode.isAdvanced()),
+    });
+
+    attachPageWorkspaceFilter({
+      destroyRef: this.destroyRef,
+      filterModel: () => this.filterModel(),
+      updateFilterModel: (domainGroupId) => {
+        this.filterModel.update((model) => ({ ...model, domainGroupId }));
+      },
+      groups: this.domainGroups,
+      allowEmptySelection: this.showPageLevelWorkspaceFilter,
+    });
 
     effect(() => {
       const pendingId = this.pendingDeleteId();
@@ -100,7 +138,7 @@ export class LinkMapsPageComponent {
       this.deleteLoadingSeen.set(false);
 
       if (hadError) {
-        this.snackBar.open(this.linkMapStore.lastError() ?? 'Unable to delete link map.', 'Dismiss', {
+        this.snackBar.open(this.linkMapStore.lastError() ?? "Couldn't delete link map.", 'Dismiss', {
           duration: 4000,
         });
         this.linkMapStore.clearError();
@@ -116,8 +154,8 @@ export class LinkMapsPageComponent {
         this.listErrorSequence.set(null);
         return;
       }
-      this.listErrorSequence.set(this.linkMapStore.errorSequence());
-      this.linkMapStore.searchList({ domainGroupId: groupId });
+      untracked(() => this.listErrorSequence.set(this.linkMapStore.errorSequence()));
+      this.linkMapStore.searchList({ domainGroupId: groupId }, true);
     });
 
     effect(() => {
@@ -129,13 +167,34 @@ export class LinkMapsPageComponent {
         return;
       }
       if (this.linkMapStore.errorSequence() > sequenceAtLoad) {
-        this.snackBar.open(this.linkMapStore.lastError() ?? 'Unable to load link maps.', 'Dismiss', {
+        this.snackBar.open(this.linkMapStore.lastError() ?? "Couldn't load link maps.", 'Dismiss', {
           duration: 4000,
         });
         this.linkMapStore.clearError();
       }
       this.listErrorSequence.set(null);
     });
+
+    effect(() => {
+      const maxPage = this.pageCount();
+      if (this.page() > maxPage) {
+        this.page.set(maxPage);
+      }
+    });
+
+    effect(() => {
+      this.activeGroupId();
+      this.page.set(1);
+    });
+  }
+
+  onPageChange(page: number): void {
+    this.page.set(page);
+  }
+
+  onPageLimitChange(limit: number): void {
+    this.pageLimit.set(limit);
+    this.page.set(1);
   }
 
   openCreateDialog(): void {
@@ -152,9 +211,9 @@ export class LinkMapsPageComponent {
       LinkMapDialogResult
     >(LinkMapFormDialogComponent, {
       domainGroupId: this.activeGroupId(),
-    });
+    }, 0, { size: 'compact' });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (result?.saved) {
         this.linkMapStore.searchList({ domainGroupId: this.activeGroupId() }, true);
       }
@@ -169,9 +228,9 @@ export class LinkMapsPageComponent {
     >(LinkMapFormDialogComponent, {
       linkMapId: map.id,
       domainGroupId: map.domainGroupId,
-    });
+    }, 0, { size: 'compact' });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (result?.saved) {
         this.linkMapStore.searchList({ domainGroupId: this.activeGroupId() }, true);
       }

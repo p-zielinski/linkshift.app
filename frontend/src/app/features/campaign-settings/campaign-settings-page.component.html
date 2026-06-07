@@ -1,0 +1,344 @@
+<app-resource-page-shell title="Settings" subtitle="Manage your site, plan, and account.">
+  <section
+    id="plan-usage"
+    class="rounded-[18px] border border-app-border-soft bg-app-surface p-4"
+    aria-label="Plan and usage"
+  >
+    <div>
+      <h2 class="m-0 text-sm font-semibold text-app-foreground">Plan and usage</h2>
+      <p class="mt-1 text-[12px] text-app-muted">
+        {{ planLimitView().sectionSubtitle }}
+      </p>
+    </div>
+
+    @if (usageLoading()) {
+      <div class="mt-4 text-[12px] text-app-muted">Loading usage…</div>
+    } @else if (usageError()) {
+      <div class="mt-4 text-[13px] text-app-muted">
+        <p class="m-0 text-red-600">Couldn't load usage. Try again or refresh the page.</p>
+        <button
+          mat-stroked-button
+          type="button"
+          color="primary"
+          class="mt-3"
+          (click)="retryLoadUsage()"
+        >
+          Try again
+        </button>
+      </div>
+    } @else {
+      <div
+        class="mt-4 grid gap-3 sm:grid-cols-2"
+        [class.xl:grid-cols-3]="primaryTileViews().length === 3"
+        [class.xl:grid-cols-4]="primaryTileViews().length === 4"
+      >
+        @for (view of primaryTileViews(); track view.tile.id) {
+          <div
+            class="rounded-2xl p-4"
+            [class.bg-app-accent-soft]="!view.limitReached"
+            [class.bg-red-50]="view.limitReached"
+          >
+            <div class="text-[22px] font-semibold" [class.text-red-700]="view.limitReached">
+              {{ view.usage ?? '-' }} / {{ view.limit }}
+            </div>
+            <div
+              class="text-[13px]"
+              [class.text-red-600]="view.limitReached"
+              [class.text-app-muted]="!view.limitReached"
+            >
+              {{ view.tile.label }}
+            </div>
+            @if (view.limitReached) {
+              <div
+                class="mt-3 inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-red-700"
+              >
+                Limit reached
+              </div>
+              <button
+                type="button"
+                class="mt-1 block text-left text-[12px] text-red-600 underline hover:text-red-700"
+                (click)="openUpgradeDialog()"
+              >
+                Upgrade plan to increase this limit.
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      @if (showTechnicalLimits()) {
+        <mat-expansion-panel class="mt-4 !shadow-none">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="text-sm font-medium">Technical limits</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="grid gap-3 sm:grid-cols-2">
+            @for (view of technicalTileViews(); track view.tile.id) {
+              <div
+                class="rounded-2xl p-4"
+                [class.bg-app-accent-soft]="!view.limitReached"
+                [class.bg-red-50]="view.limitReached"
+              >
+                <div class="text-[22px] font-semibold" [class.text-red-700]="view.limitReached">
+                  {{ view.usage ?? '-' }} / {{ view.limit }}
+                </div>
+                <div
+                  class="text-[13px]"
+                  [class.text-red-600]="view.limitReached"
+                  [class.text-app-muted]="!view.limitReached"
+                >
+                  {{ view.tile.label }}
+                </div>
+                @if (view.limitReached) {
+                  <div
+                    class="mt-3 inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-red-700"
+                  >
+                    Limit reached
+                  </div>
+                  <button
+                    type="button"
+                    class="mt-1 block text-left text-[12px] text-red-600 underline hover:text-red-700"
+                    (click)="openUpgradeDialog()"
+                  >
+                    Upgrade plan to increase this limit.
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </mat-expansion-panel>
+      }
+    }
+  </section>
+
+  <section
+    id="hosts"
+    class="mt-4 rounded-[18px] border border-app-border-soft bg-app-surface p-4"
+    aria-label="Domains and hosts"
+  >
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 class="m-0 text-sm font-semibold text-app-foreground">Domains &amp; hosts</h2>
+        <p class="mt-1 text-[12px] text-app-muted">
+          Sites and connected hosts for your short links
+        </p>
+      </div>
+      <button mat-flat-button color="primary" type="button" (click)="openConnectDomainDialog()">
+        Connect domain
+      </button>
+    </div>
+
+    @if (hostsLoading()) {
+      <div class="mt-4 text-[12px] text-app-muted">Loading sites and hosts…</div>
+    } @else if (!hasDomainGroups()) {
+      <div
+        class="mt-4 rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-3 text-[13px] text-app-muted"
+      >
+        No sites yet. Connect a domain to create short links.
+      </div>
+    } @else {
+      <ul class="mt-4 flex flex-col gap-3 p-0" aria-label="Sites and connected hosts">
+        @for (group of domainGroups(); track group.id) {
+          <li class="rounded-[12px] border border-app-border-soft bg-app-surface p-3">
+            <div class="text-sm font-medium text-app-foreground">{{ group.name }}</div>
+            @if (hostsByDomainGroupId()[group.id]?.length) {
+              <ul
+                class="m-0 mt-2 list-none rounded-[12px] border border-app-border-soft p-0"
+                [attr.aria-label]="'Connected hosts for ' + group.name"
+              >
+                @for (host of hostsByDomainGroupId()[group.id]; track host.host) {
+                  <li
+                    class="border-b border-app-border-soft px-3 py-2 text-[13px] text-app-muted last:border-b-0"
+                  >
+                    {{ host.label }}
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="m-0 mt-2 text-[13px] text-app-muted">No hosts connected on this site</p>
+            }
+          </li>
+        }
+      </ul>
+      @if (!hasConnectedHosts()) {
+        <p class="mt-3 text-[13px] text-app-muted">
+          Add a subdomain or custom domain before creating short links
+        </p>
+      }
+    }
+  </section>
+
+  <div class="mt-4 grid gap-4 lg:grid-cols-2">
+    <app-resource-card>
+      <div class="flex flex-col gap-3">
+        <div class="flex items-start gap-3">
+          <mat-icon class="mt-0.5 text-app-muted">groups</mat-icon>
+          <div class="min-w-0 flex-1">
+            <h2 class="m-0 text-sm font-semibold text-app-foreground">Team</h2>
+            @if (usageLoading()) {
+              <p class="mt-1 text-[12px] text-app-muted">Loading team usage…</p>
+            } @else if (usageError()) {
+              <p class="mt-1 text-[12px] text-red-600">
+                Couldn't load usage. Try again or refresh the page.
+              </p>
+              <button
+                mat-stroked-button
+                type="button"
+                color="primary"
+                class="mt-3"
+                (click)="retryLoadUsage()"
+              >
+                Try again
+              </button>
+            } @else if (activeUsers() !== null) {
+              <p class="mt-1 text-[12px] text-app-muted">
+                {{ activeUsers() }} active {{ activeUsers() === 1 ? 'user' : 'users' }}
+              </p>
+            } @else {
+              <p class="mt-1 text-[12px] text-app-muted">Active user count unavailable</p>
+            }
+          </div>
+        </div>
+        <div>
+          <a mat-stroked-button routerLink="/organization">Manage team</a>
+        </div>
+      </div>
+    </app-resource-card>
+
+    <app-resource-card>
+      <div class="flex flex-col gap-3">
+        <div class="flex items-start gap-3">
+          <mat-icon class="mt-0.5 text-app-muted">credit_card</mat-icon>
+          <div class="min-w-0 flex-1">
+            <h2 class="m-0 text-sm font-semibold text-app-foreground">Plan and billing</h2>
+            @if (organization()) {
+              @if (activeSubscription(); as subscription) {
+                <p class="mt-1 text-[12px] text-app-muted">
+                  <span class="font-medium text-app-foreground">
+                    {{ subscriptionPlanLabel() }}
+                  </span>
+                  · Status: {{ subscription.status }}
+                </p>
+              }
+            } @else {
+              <p class="mt-1 text-[12px] text-app-muted">Plan details unavailable</p>
+            }
+          </div>
+        </div>
+        @if (activeSubscription(); as subscription) {
+          <div class="flex flex-wrap items-center gap-2">
+            @if (subscription.plan !== OrganizationPlan.UNMETERED) {
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="billingBusy()"
+                (click)="openUpgradeDialog()"
+              >
+                Upgrade
+              </button>
+              @if (subscription.plan !== OrganizationPlan.FREE) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="billingBusy()"
+                  (click)="openManageSubscription()"
+                >
+                  {{ billingBusy() ? 'Opening portal…' : 'Manage subscription' }}
+                </button>
+                <button
+                  mat-button
+                  type="button"
+                  [disabled]="billingBusy()"
+                  (click)="openCancelSubscription()"
+                >
+                  {{ billingBusy() ? 'Opening portal…' : 'Cancel subscription' }}
+                </button>
+              }
+            }
+          </div>
+        }
+      </div>
+    </app-resource-card>
+
+    <app-resource-card>
+      <div class="flex flex-col gap-3">
+        <div class="flex items-start gap-3">
+          <mat-icon class="mt-0.5 text-app-muted">person</mat-icon>
+          <div class="min-w-0 flex-1">
+            <h2 class="m-0 text-sm font-semibold text-app-foreground">Profile</h2>
+            <p class="mt-1 text-[12px] text-app-muted">
+              @if (user(); as currentUser) {
+                Signed in as {{ currentUser.email }}
+              } @else {
+                Update your sign-in details and personal preferences
+              }
+            </p>
+          </div>
+        </div>
+        <div>
+          <a mat-stroked-button routerLink="/profile">Open profile</a>
+        </div>
+      </div>
+    </app-resource-card>
+
+    @if (isCampaignMode()) {
+      <app-resource-card className="border-app-border">
+        <div class="flex flex-col gap-3">
+          <div class="flex items-start gap-3">
+            <mat-icon class="mt-0.5 text-app-muted">tune</mat-icon>
+            <div class="min-w-0 flex-1">
+              <h2 class="m-0 text-sm font-semibold text-app-foreground">Advanced</h2>
+              <p class="mt-1 text-[12px] text-app-muted">
+                Open the full dashboard for redirect rules and infrastructure tools
+              </p>
+            </div>
+          </div>
+          <div>
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              class="!min-w-[200px]"
+              (click)="switchToAdvancedView()"
+            >
+              Switch to advanced view
+            </button>
+          </div>
+        </div>
+      </app-resource-card>
+    } @else {
+      <app-resource-card>
+        <div class="flex flex-col gap-3">
+          <div class="flex items-start gap-3">
+            <mat-icon class="mt-0.5 text-app-muted">dashboard</mat-icon>
+            <div class="min-w-0 flex-1">
+              <h2 class="m-0 text-sm font-semibold text-app-foreground">Operations dashboard</h2>
+              <p class="mt-1 text-[12px] text-app-muted">
+                View health, limits, and organization usage
+              </p>
+            </div>
+          </div>
+          <div>
+            <a mat-stroked-button routerLink="/dashboard">Open dashboard</a>
+          </div>
+        </div>
+      </app-resource-card>
+
+      <app-resource-card>
+        <div class="flex flex-col gap-3">
+          <div class="flex items-start gap-3">
+            <mat-icon class="mt-0.5 text-app-muted">swap_horiz</mat-icon>
+            <div class="min-w-0 flex-1">
+              <h2 class="m-0 text-sm font-semibold text-app-foreground">Routing</h2>
+              <p class="mt-1 text-[12px] text-app-muted">Manage domain groups and redirect rules</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <a mat-stroked-button routerLink="/domain-groups">Domain groups</a>
+            <a mat-stroked-button routerLink="/redirect-rules">Redirect rules</a>
+          </div>
+        </div>
+      </app-resource-card>
+    }
+  </div>
+</app-resource-page-shell>

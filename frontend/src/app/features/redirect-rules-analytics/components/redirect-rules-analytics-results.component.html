@@ -1,47 +1,83 @@
-@if (loading) {
-  <div class="chart-placeholder flex items-center justify-center text-[12px] text-app-muted">
-    Loading analytics...
+@if (loading()) {
+  <div class="chart-placeholder flex items-start justify-start text-[12px] text-app-muted">
+    Loading analytics…
   </div>
-} @else if (error) {
-  <div class="chart-placeholder flex items-center justify-center text-[12px] text-red-600">
-    {{ error }}
+} @else if (error()) {
+  <div
+    class="chart-placeholder flex flex-col items-start justify-start gap-3 text-[13px] text-red-600"
+  >
+    <p class="m-0">{{ error() }}</p>
+    <button mat-stroked-button type="button" color="primary" (click)="retry.emit()">
+      Try again
+    </button>
   </div>
-} @else if (entries.length === 0) {
-  <div class="chart-placeholder flex items-center justify-center text-[12px] text-app-muted">
-    No traffic data yet.
+} @else if (entries().length === 0) {
+  <div
+    class="chart-placeholder flex flex-col items-start justify-start gap-3 text-[13px] text-app-muted"
+  >
+    @if (campaignMode()) {
+      <p class="m-0">
+        No short link hits in the selected period. Create a link and share it to start seeing
+        traffic.
+      </p>
+      <a mat-flat-button color="primary" routerLink="/links" [queryParams]="{ openCreate: '1' }">
+        Create link
+      </a>
+    } @else {
+      <p class="m-0">
+        No redirect rule hits in the selected period. Check your rules are active and receiving
+        traffic.
+      </p>
+      <a mat-stroked-button color="primary" routerLink="/redirect-rules">View redirect rules</a>
+    }
   </div>
 } @else {
-  <apx-chart
-    [series]="chartSeries"
-    [chart]="chartOptions.chart"
-    [xaxis]="chartOptions.xaxis"
-    [plotOptions]="chartOptions.plotOptions"
-    [dataLabels]="chartOptions.dataLabels"
-    [colors]="chartOptions.colors"
-    [fill]="chartOptions.fill"
-    [stroke]="chartOptions.stroke"
-    [tooltip]="chartOptions.tooltip"
-    [grid]="chartOptions.grid"
-  />
+  @if (campaignMode()) {
+    <div class="mb-4">
+      <h3 class="m-0 text-[15px] font-semibold text-app-foreground">Link performance</h3>
+      <p class="mt-1 text-[13px] text-app-muted">
+        Each row is a short link path. Top keys shows which slug drove the most traffic.
+      </p>
+    </div>
+  }
+  <p class="sr-only">{{ chartSummary() }}</p>
+  <div aria-hidden="true">
+    <apx-chart
+      [series]="chartSeries()"
+      [chart]="chartOptions().chart"
+      [xaxis]="chartOptions().xaxis"
+      [plotOptions]="chartOptions().plotOptions"
+      [dataLabels]="chartOptions().dataLabels"
+      [colors]="chartOptions().colors"
+      [fill]="chartOptions().fill"
+      [stroke]="chartOptions().stroke"
+      [tooltip]="chartOptions().tooltip"
+      [grid]="chartOptions().grid"
+    />
+  </div>
 
-  <div class="mt-5 grid gap-3">
-    @for (entry of entries; track entry.rule.id) {
+  <div class="mt-5 grid gap-3" aria-label="Analytics results table">
+    @for (row of entryRowViews(); track row.entry.rule.id) {
       <div
         class="flex flex-wrap items-center justify-between gap-4 rounded-[16px] bg-app-accent-soft p-3"
+        [class.ring-2]="row.isHighlighted"
+        [class.ring-app-accent]="row.isHighlighted"
       >
         <div class="flex min-w-0 flex-1 flex-wrap items-center gap-4">
           <div class="flex min-w-[90px] flex-col text-[18px] font-semibold leading-tight">
-            {{ entry.hits | number }}
+            {{ row.entry.hits | number }}
             <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">hits</span>
           </div>
           <div class="grid min-w-0 flex-1 gap-2">
             <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
-              <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Source</span>
+              <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">{{
+                row.sourceRowLabel
+              }}</span>
               <span
                 class="truncate text-[13px] text-app-foreground"
-                [attr.title]="entry.rule.source"
+                [attr.title]="row.entry.rule.source"
               >
-                {{ entry.rule.source }}
+                {{ row.entry.rule.source }}
               </span>
             </div>
             <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
@@ -50,19 +86,19 @@
               >
               <span
                 class="truncate text-[13px] text-app-foreground"
-                [attr.title]="entry.rule.destination || entry.rule.source"
+                [attr.title]="row.entry.rule.destination || row.entry.rule.source"
               >
-                {{ entry.rule.destination || 'Dynamic / link map destination' }}
+                {{ row.destinationValue }}
               </span>
             </div>
 
-            @if (entry.topLinkMapKeys.length > 0) {
+            @if (row.entry.topLinkMapKeys.length > 0) {
               <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
-                <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted"
-                  >Link keys</span
-                >
+                <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted">{{
+                  row.linkKeysRowLabel
+                }}</span>
                 <div class="flex min-w-0 flex-wrap gap-2 text-[12px]">
-                  @for (keyEntry of entry.topLinkMapKeys; track keyEntry.key) {
+                  @for (keyEntry of row.entry.topLinkMapKeys; track keyEntry.key) {
                     <span
                       class="rounded-full border border-app-border-soft bg-app-surface px-2 py-1"
                     >
@@ -73,14 +109,14 @@
               </div>
             }
 
-            @if (entry.topRequestVariants.length > 0) {
+            @if (!campaignMode() && row.entry.topRequestVariants.length > 0) {
               <div class="grid min-w-0 gap-2 sm:grid-cols-[92px_1fr]">
                 <span class="text-[11px] uppercase tracking-[0.12em] text-app-muted"
                   >Top requests</span
                 >
                 <div class="grid min-w-0 gap-2">
                   @for (
-                    variant of entry.topRequestVariants.slice(0, 3);
+                    variant of row.topRequestVariantsPreview;
                     track variant.requestMethod + variant.requestUrl + variant.destination
                   ) {
                     <div
@@ -102,7 +138,12 @@
             }
           </div>
         </div>
-        <button mat-stroked-button type="button" class="shrink-0" (click)="openDetails.emit(entry)">
+        <button
+          mat-stroked-button
+          type="button"
+          class="shrink-0"
+          (click)="openDetails.emit(row.entry)"
+        >
           Details
         </button>
       </div>

@@ -1,7 +1,7 @@
 <app-marketing-hero
-  eyebrow="SEO preservation + branded shortlinks"
-  [title]="siteConfig.name + ' for migrations and campaign links'"
-  subtitle="Protect rankings while moving URLs and launch short branded links from your own domains. LinkShift centralizes redirect rules so teams stop editing infrastructure-level configs."
+  eyebrow="Branded short links, QR, and analytics"
+  [title]="siteConfig.name + ' for campaign links on your domain'"
+  subtitle="Create short branded links, track clicks, and share QR codes from domains you control. LinkShift keeps redirects precise so marketers ship campaigns without editing server configs."
   primaryCtaLabel="Start with a new account"
   primaryCtaLink="/auth"
   secondaryCtaLabel="Explore use cases"
@@ -13,9 +13,9 @@
       <div
         class="inline-flex items-center gap-1.5 rounded-full bg-app-muted/10 px-2.5 py-1.5 text-[12px] text-app-muted"
       >
-        Domain group blueprint
+        Campaign workflow
       </div>
-      <span class="hero-card-badge">Operationally consistent</span>
+      <span class="hero-card-badge">Links, analytics, QR</span>
     </div>
     <div class="hero-flow">
       @for (step of workflowSteps; track step.title) {
@@ -28,19 +28,22 @@
         </div>
       }
     </div>
-    <div class="hero-footnote">Group-level rules propagate to domains in the group.</div>
+    <div class="hero-footnote">
+      Connect a domain once, then manage links from Overview, Links, and Analytics.
+    </div>
   </mat-card>
 </app-marketing-hero>
 
 <app-marketing-section
   eyebrow="Demo"
-  title="Watch the first domain + redirect rule setup"
-  subtitle="A quick walkthrough showing how to attach your first domain and publish a rule on LinkShift.App."
+  title="Watch your first short link go live"
+  subtitle="A quick walkthrough of connecting a domain, creating a link, and checking analytics in LinkShift.App."
 >
   <div class="demo-video-card">
     <app-video-holder src="/demo.mp4" ratio="16:9" />
     <div class="demo-video-note">
-      Step-by-step: create a domain group, attach a domain, and publish your first redirect rule.
+      Step-by-step: attach your domain, publish a short link, and review clicks in analytics. Domain
+      groups organize routing when you need advanced control.
     </div>
   </div>
 </app-marketing-section>
@@ -63,8 +66,8 @@
 
 <app-marketing-section
   eyebrow="Capabilities"
-  title="Built for SEO-safe migrations and branded shortlink operations"
-  subtitle="Keep redirects precise, reusable, and observable across every domain you manage."
+  title="Built for campaign links, analytics, and SEO-safe migrations"
+  subtitle="Run short links on your domain, measure performance, and keep redirects precise when you scale routing."
 >
   <app-marketing-feature-grid [features]="features" />
   <p class="mt-4 text-[13px] text-app-muted">
@@ -142,12 +145,12 @@
 
 <app-marketing-section
   eyebrow="Get started"
-  title="Launch migration-safe redirects in minutes"
-  subtitle="Set up domain groups, publish rules, and run branded shortlinks with shared governance."
+  title="Launch branded short links in minutes"
+  subtitle="Connect a domain, create links, and track performance with shared workspace controls."
 >
   <app-marketing-cta
-    title="Ready to protect SEO and own your shortlink stack?"
-    description="Create an account and move redirects into one control panel for developers and marketers."
+    title="Ready to run campaign links on your own domain?"
+    description="Create an account and manage short links, QR codes, and analytics from one control panel."
     primaryLabel="Create account"
     primaryLink="/auth"
     secondaryLabel="Use cases"

@@ -3,17 +3,23 @@
     class="flex flex-col gap-3 border-b border-app-border-soft px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
   >
     <div class="flex items-center gap-2">
-      <button mat-button type="button" color="primary" (click)="cancel.emit()">
+      <button
+        mat-button
+        type="button"
+        color="primary"
+        [attr.aria-label]="cancelLabel"
+        (click)="cancel.emit()"
+      >
         <mat-icon class="material-icons-outlined">close</mat-icon>
-        {{ cancelLabel }}
+        <span class="hidden sm:inline">{{ cancelLabel }}</span>
       </button>
       <ng-content select="[wizard-leading-actions]" />
     </div>
 
     <div class="text-center">
-      @if (steps.length > 1) {
+      @if (stepCount() > 1) {
         <div class="text-[11px] uppercase tracking-[0.2em] text-app-muted">
-          Step {{ activeIndex + 1 }} of {{ steps.length }}
+          Step {{ activeIndexSignal() + 1 }} of {{ stepCount() }}
         </div>
       }
       <h3 class="m-0 text-lg font-semibold">{{ title }}</h3>
@@ -24,27 +30,36 @@
 
     <div class="flex flex-wrap items-center gap-2">
       <ng-content select="[wizard-header-actions]" />
-      @if (steps.length > 1) {
+      @if (stepCount() > 1) {
         <button
           mat-stroked-button
           type="button"
           color="primary"
-          [disabled]="!canGoBack"
+          [attr.aria-label]="'Back'"
+          [disabled]="!canGoBack()"
           (click)="previous()"
         >
           <mat-icon class="material-icons-outlined">arrow_back</mat-icon>
-          Back
+          <span class="hidden sm:inline">Back</span>
         </button>
-        <button
-          mat-stroked-button
-          type="button"
-          color="primary"
-          [disabled]="!canGoNext || nextDisabled"
-          (click)="next()"
+        <span
+          class="inline-flex"
+          [matTooltip]="nextTooltip"
+          [matTooltipDisabled]="nextTooltipDisabled"
+          [matTooltipClass]="nextTooltipClass"
         >
-          <mat-icon class="material-icons-outlined">arrow_forward</mat-icon>
-          Next
-        </button>
+          <button
+            mat-stroked-button
+            type="button"
+            color="primary"
+            [attr.aria-label]="'Next'"
+            [disabled]="!canGoNext() || nextDisabled()"
+            (click)="next()"
+          >
+            <mat-icon class="material-icons-outlined">arrow_forward</mat-icon>
+            <span class="hidden sm:inline">Next</span>
+          </button>
+        </span>
       }
       @if (!hideSave) {
         <span
@@ -57,73 +72,124 @@
             mat-flat-button
             color="primary"
             type="button"
+            [attr.aria-label]="saveLabel"
             [disabled]="saveDisabled"
             [class.opacity-60]="saveDisabled"
             [class.cursor-not-allowed]="saveDisabled"
             (click)="save.emit()"
           >
             <mat-icon class="material-icons-outlined">check</mat-icon>
-            {{ saveLabel }}
+            <span class="hidden sm:inline">{{ saveLabel }}</span>
           </button>
         </span>
       }
     </div>
   </div>
 
+  @if (stepCount() > 1) {
+    <div class="border-b border-app-border-soft px-4 py-3 lg:hidden">
+      <div class="wizard-mobile-stepper flex gap-2 overflow-x-auto pb-1">
+        @for (step of stepsSignal(); track step.id; let idx = $index) {
+          <button
+            type="button"
+            class="wizard-mobile-step flex min-w-0 flex-shrink-0 items-center gap-2 rounded-[14px] border px-3 py-2 text-left transition"
+            [ngClass]="{
+              'border-app-border-soft bg-app-surface': idx === activeIndexSignal(),
+              'border-transparent hover:border-app-border-soft hover:bg-app-surface':
+                idx !== activeIndexSignal() && !step.disabled,
+              'cursor-not-allowed opacity-50': step.disabled,
+            }"
+            [disabled]="step.disabled"
+            [attr.aria-current]="idx === activeIndexSignal() ? 'step' : null"
+            [attr.aria-disabled]="step.disabled ? 'true' : null"
+            [attr.aria-label]="'Go to step ' + (idx + 1) + ': ' + step.label"
+            (click)="setActiveStep(idx)"
+          >
+            <span
+              class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold"
+              [ngClass]="{
+                'border-app-border-soft bg-app-muted/10 text-app-text': idx === activeIndexSignal(),
+                'border-app-border-soft text-app-muted': idx !== activeIndexSignal(),
+              }"
+            >
+              {{ idx + 1 }}
+            </span>
+            <span class="max-w-[8rem] truncate text-sm font-semibold">{{ step.label }}</span>
+          </button>
+        }
+      </div>
+      @if (canGoNext() && nextDisabled()) {
+        <div
+          class="mt-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-700"
+        >
+          Action required
+        </div>
+      }
+    </div>
+  }
+
   <div class="flex min-h-0 flex-1">
-    @if (steps.length > 1) {
+    @if (stepCount() > 1) {
       <aside
         class="hidden min-h-0 w-[240px] flex-shrink-0 flex-col gap-3 overflow-auto border-r border-app-border-soft px-4 py-5 lg:flex"
       >
-        @for (step of steps; track step.id; let idx = $index) {
-          <div
-            class="cursor-pointer rounded-[14px] border border-transparent px-3 py-2 transition"
+        @for (view of sidebarStepViews(); track view.step.id) {
+          <button
+            type="button"
+            class="wizard-sidebar-step w-full rounded-[14px] border border-transparent bg-transparent px-3 py-2 text-left transition"
             [ngClass]="{
-              'border-app-border-soft bg-app-surface': idx === activeIndex,
-              'hover:border-app-border-soft hover:bg-app-surface': idx !== activeIndex,
+              'border-app-border-soft bg-app-surface': view.index === activeIndexSignal(),
+              'cursor-pointer hover:border-app-border-soft hover:bg-app-surface':
+                view.index !== activeIndexSignal() && !view.step.disabled,
+              'cursor-not-allowed opacity-50': view.step.disabled,
             }"
-            (click)="setActiveStep(idx)"
+            [disabled]="view.step.disabled"
+            [attr.aria-current]="view.index === activeIndexSignal() ? 'step' : null"
+            [attr.aria-disabled]="view.step.disabled ? 'true' : null"
+            [attr.aria-label]="'Go to step ' + (view.index + 1) + ': ' + view.step.label"
+            (click)="setActiveStep(view.index)"
           >
             <div class="flex items-center gap-2">
               <div
                 class="flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold"
                 [ngClass]="{
-                  'border-app-border-soft bg-app-muted/10 text-app-text': idx === activeIndex,
-                  'border-app-border-soft text-app-muted': idx !== activeIndex,
+                  'border-app-border-soft bg-app-muted/10 text-app-text':
+                    view.index === activeIndexSignal(),
+                  'border-app-border-soft text-app-muted': view.index !== activeIndexSignal(),
                 }"
               >
-                {{ idx + 1 }}
+                {{ view.index + 1 }}
               </div>
-              <div class="text-sm font-semibold">{{ step.label }}</div>
+              <div class="text-sm font-semibold">{{ view.step.label }}</div>
             </div>
-            @if (summaryFor(step.id); as summary) {
+            @if (view.summary; as summary) {
               <div class="mt-2 text-xs text-app-muted">
                 <ng-container [ngTemplateOutlet]="summary.templateRef" />
               </div>
             }
-            @if (step.complete === false) {
+            @if (view.step.complete === false) {
               <div
                 class="mt-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-700"
               >
                 Action required
               </div>
             }
-          </div>
+          </button>
         }
       </aside>
     }
 
     <div class="flex min-h-0 flex-1 flex-col overflow-auto px-4 py-5 sm:px-6">
-      @if (activeStep) {
+      @if (activeStep(); as step) {
         <div class="mb-4">
-          @if (activeStep.title) {
-            <div class="text-lg font-semibold">{{ activeStep.title }}</div>
+          @if (step.title) {
+            <div class="text-lg font-semibold">{{ step.title }}</div>
           }
-          @if (activeStep.description) {
-            <div class="mt-1 text-sm text-app-muted">{{ activeStep.description }}</div>
+          @if (step.description) {
+            <div class="mt-1 text-sm text-app-muted">{{ step.description }}</div>
           }
         </div>
-        @if (templateFor(activeStep.id); as template) {
+        @if (activeStepTemplate(); as template) {
           <ng-container [ngTemplateOutlet]="template.templateRef" />
         }
       }

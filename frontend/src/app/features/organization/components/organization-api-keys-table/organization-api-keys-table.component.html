@@ -1,29 +1,23 @@
-<table mat-table [dataSource]="keys()" class="min-w-[920px] w-full mat-elevation-z0">
+<table
+  mat-table
+  [dataSource]="keys()"
+  [trackBy]="trackRow"
+  aria-label="API keys"
+  class="table-fixed min-w-[920px] w-full mat-elevation-z0"
+>
   <ng-container matColumnDef="name">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[180px] max-w-[260px] truncate"
-    >
-      Name
-    </th>
-    <td mat-cell *matCellDef="let key" class="py-3 min-w-[180px] max-w-[260px] truncate">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[200px] truncate">Name</th>
+    <td mat-cell *matCellDef="let key" class="py-3 truncate max-w-0" [matTooltip]="key.name">
       {{ key.name }}
     </td>
   </ng-container>
 
   <ng-container matColumnDef="prefix">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[170px] max-w-[220px] truncate"
-    >
-      Key prefix
-    </th>
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[176px] truncate">Key prefix</th>
     <td
       mat-cell
       *matCellDef="let key"
-      class="py-3 min-w-[170px] max-w-[220px] truncate font-mono text-[12px]"
+      class="py-3 truncate max-w-0 font-mono text-[12px]"
       [matTooltip]="key.tokenPrefix + '…'"
     >
       {{ key.tokenPrefix }}…
@@ -31,14 +25,8 @@
   </ng-container>
 
   <ng-container matColumnDef="expiresAt">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[160px] max-w-[220px] truncate"
-    >
-      Expires at
-    </th>
-    <td mat-cell *matCellDef="let key" class="py-3 min-w-[160px] max-w-[220px] truncate">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[156px] truncate">Expires at</th>
+    <td mat-cell *matCellDef="let key" class="py-3 truncate max-w-0 text-[13px]">
       @if (key.expiresAt) {
         {{ key.expiresAt | date: 'yyyy-MM-dd HH:mm' }}
       } @else {
@@ -48,27 +36,15 @@
   </ng-container>
 
   <ng-container matColumnDef="createdAt">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[160px] max-w-[220px] truncate"
-    >
-      Created
-    </th>
-    <td mat-cell *matCellDef="let key" class="py-3 min-w-[160px] max-w-[220px] truncate">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[156px] truncate">Created</th>
+    <td mat-cell *matCellDef="let key" class="py-3 truncate max-w-0 text-[13px] text-app-muted">
       {{ key.createdAt | date: 'yyyy-MM-dd HH:mm' }}
     </td>
   </ng-container>
 
   <ng-container matColumnDef="lastUsedAt">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[160px] max-w-[220px] truncate"
-    >
-      Last used
-    </th>
-    <td mat-cell *matCellDef="let key" class="py-3 min-w-[160px] max-w-[220px] truncate">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[156px] truncate">Last used</th>
+    <td mat-cell *matCellDef="let key" class="py-3 truncate max-w-0 text-[13px]">
       @if (key.lastUsedAt) {
         {{ key.lastUsedAt | date: 'yyyy-MM-dd HH:mm' }}
       } @else {
@@ -78,12 +54,25 @@
   </ng-container>
 
   <ng-container matColumnDef="actions">
-    <th mat-header-cell *matHeaderCellDef class="min-w-[120px]"></th>
-    <td mat-cell *matCellDef="let key" class="py-3 min-w-[120px]">
-      <button mat-icon-button matTooltip="Edit API key" (click)="onEdit(key)">
+    <th mat-header-cell *matHeaderCellDef class="w-[100px]"></th>
+    <td mat-cell *matCellDef="let key" class="py-3 w-[100px]">
+      <button
+        mat-icon-button
+        type="button"
+        matTooltip="Edit API key"
+        [attr.aria-label]="'Edit API key ' + key.name"
+        (click)="onEdit(key)"
+      >
         <mat-icon>edit</mat-icon>
       </button>
-      <button mat-icon-button color="warn" matTooltip="Delete API key" (click)="onDelete(key)">
+      <button
+        mat-icon-button
+        type="button"
+        color="warn"
+        matTooltip="Delete API key"
+        [attr.aria-label]="'Delete API key ' + key.name"
+        (click)="onDelete(key)"
+      >
         <mat-icon>delete</mat-icon>
       </button>
     </td>
@@ -97,7 +86,7 @@
       [attr.colspan]="columns.length"
     >
       @if (loading()) {
-        Loading API keys...
+        Loading API keys…
       } @else {
         No API keys found.
       }

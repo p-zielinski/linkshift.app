@@ -1,90 +1,97 @@
-<table mat-table [dataSource]="maps()" class="min-w-[960px] w-full mat-elevation-z0">
+<table
+  mat-table
+  [dataSource]="rowViewModels()"
+  [trackBy]="trackRow"
+  aria-label="Link maps"
+  class="table-fixed min-w-[960px] w-full mat-elevation-z0"
+>
   <ng-container matColumnDef="name">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[180px] max-w-[280px] truncate"
-    >
-      Name
-    </th>
-    <td mat-cell *matCellDef="let map" class="py-3 min-w-[180px] max-w-[280px] truncate">
-      {{ map.name }}
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[200px] truncate">Name</th>
+    <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0" [matTooltip]="row.map.name">
+      {{ row.map.name }}
     </td>
   </ng-container>
 
   <ng-container matColumnDef="entriesCount">
-    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[120px]">Entries</th>
-    <td mat-cell *matCellDef="let map" class="py-3 min-w-[120px]">
-      <span class="font-medium text-app-text">{{ map.entriesCount }}</span>
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[88px] truncate">Entries</th>
+    <td mat-cell *matCellDef="let row" class="py-3 w-[88px]">
+      <span class="font-medium text-app-text">{{ row.map.entriesCount }}</span>
     </td>
   </ng-container>
 
   <ng-container matColumnDef="queryMatch">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[140px] max-w-[220px] truncate"
-    >
-      Query match
-    </th>
-    <td mat-cell *matCellDef="let map" class="py-3 min-w-[140px] max-w-[220px] truncate">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[140px] truncate">Query match</th>
+    <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0">
       <div class="flex items-center gap-2">
-        <mat-icon class="text-[18px] text-app-muted" [matTooltip]="queryMatchTooltip(map)">
-          {{ queryMatchIcon(map) }}
+        <mat-icon class="shrink-0 text-[18px] text-app-muted" [matTooltip]="row.queryMatchTooltip">
+          {{ row.queryMatchIcon }}
         </mat-icon>
-        <span>{{ formatQueryMatch(map) }}</span>
+        <span class="truncate">{{ row.queryMatchLabel }}</span>
       </div>
     </td>
   </ng-container>
 
   <ng-container matColumnDef="caseSensitive">
-    <th mat-header-cell *matHeaderCellDef class="font-semibold min-w-[120px] truncate">Case</th>
-    <td mat-cell *matCellDef="let map" class="py-3">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[132px] truncate">Case</th>
+    <td mat-cell *matCellDef="let row" class="py-3 w-[132px]">
       <div class="flex items-center gap-2">
-        <mat-icon class="text-[18px] w-[18px] h-[18px] text-app-muted">
-          {{ map.caseSensitive ? 'format_size' : 'text_format' }}
+        <mat-icon class="shrink-0 text-[18px] w-[18px] h-[18px] text-app-muted">
+          {{ row.map.caseSensitive ? 'format_size' : 'text_format' }}
         </mat-icon>
         <span class="text-sm">
-          {{ map.caseSensitive ? 'Sensitive' : 'Insensitive' }}
+          {{ row.map.caseSensitive ? 'Sensitive' : 'Insensitive' }}
         </span>
       </div>
     </td>
   </ng-container>
 
   <ng-container matColumnDef="fallback">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[200px] max-w-[320px] truncate"
-    >
-      Fallback
-    </th>
+    <th mat-header-cell *matHeaderCellDef class="font-semibold truncate">Fallback</th>
     <td
       mat-cell
-      *matCellDef="let map"
-      class="py-3 min-w-[200px] max-w-[320px] truncate"
-      [matTooltip]="map.fallbackDestination || 'No fallback destination'"
+      *matCellDef="let row"
+      class="py-3 truncate max-w-0"
+      [matTooltip]="row.map.fallbackDestination || 'No fallback destination'"
     >
-      {{ map.fallbackDestination || '—' }}
+      {{ row.map.fallbackDestination || '—' }}
     </td>
   </ng-container>
 
   <ng-container matColumnDef="actions">
-    <th mat-header-cell *matHeaderCellDef class="min-w-[140px] max-w-[200px] truncate"></th>
-    <td mat-cell *matCellDef="let map" class="py-3 min-w-[140px] max-w-[200px] truncate">
+    <th mat-header-cell *matHeaderCellDef class="w-[132px]"></th>
+    <td mat-cell *matCellDef="let row" class="py-3 w-[132px]">
       <div class="flex items-center gap-1">
-        <button mat-icon-button matTooltip="Manage entries" (click)="onManage(map)">
+        <button
+          mat-icon-button
+          type="button"
+          matTooltip="Manage entries"
+          [attr.aria-label]="'Manage entries for ' + row.map.name"
+          (click)="onManage(row.map)"
+        >
           <mat-icon>open_in_new</mat-icon>
         </button>
-        <button mat-icon-button matTooltip="Edit link map" (click)="onEdit(map)">
+        <button
+          mat-icon-button
+          type="button"
+          matTooltip="Edit link map"
+          [attr.aria-label]="'Edit link map ' + row.map.name"
+          (click)="onEdit(row.map)"
+        >
           <mat-icon>edit</mat-icon>
         </button>
         <span
           class="inline-flex"
-          [matTooltip]="deleteTooltip(map)"
-          [matTooltipDisabled]="canDelete(map)"
+          [matTooltip]="row.deleteTooltip"
+          [matTooltipDisabled]="row.canDelete"
         >
-          <button mat-icon-button color="warn" [disabled]="!canDelete(map)" (click)="onDelete(map)">
+          <button
+            mat-icon-button
+            type="button"
+            color="warn"
+            [disabled]="!row.canDelete"
+            [attr.aria-label]="'Delete link map ' + row.map.name"
+            (click)="onDelete(row.map)"
+          >
             <mat-icon>delete</mat-icon>
           </button>
         </span>
@@ -100,9 +107,9 @@
       [attr.colspan]="columns.length"
     >
       @if (!activeGroupId()) {
-        Select a domain group to view link maps.
+        {{ noSiteSelectedCopy }}
       } @else if (loading()) {
-        Loading link maps...
+        Loading link maps…
       } @else {
         No link maps found.
       }

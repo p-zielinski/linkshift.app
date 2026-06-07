@@ -20,10 +20,15 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { tryRestoreAuthSession } from '../../../core/auth/auth-session-restore.util';
+import { AuthStore } from '../../../core/store/auth.store';
+import { DashboardModeService } from '../../../core/layout/dashboard-mode.service';
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
 import { DocsAssistantComponent } from '../components/docs-assistant/docs-assistant.component';
 import { DocsAssistantDrawerService } from '../services/docs-assistant-drawer.service';
+import { DocsNavDrawerService } from '../services/docs-nav-drawer.service';
 import { DocumentationContentService } from '../services/documentation-content.service';
 import { resolveDocsAssistantPageContext } from '../utils/docs-assistant-page-context.util';
 
@@ -38,6 +43,7 @@ const MOBILE_BREAKPOINT = '(max-width: 767px)';
     RouterLinkActive,
     MatToolbarModule,
     MatButtonModule,
+    MatIconModule,
     MatSidenavModule,
     LogoComponent,
     DocsAssistantComponent,
@@ -47,10 +53,15 @@ const MOBILE_BREAKPOINT = '(max-width: 767px)';
 })
 export class DocumentationSiteShellComponent {
   readonly isMobile = signal(false);
+  readonly isAuthenticated = computed(() => this.authStore.isAuthenticated());
+  readonly appLandingPath = computed(() => this.dashboardMode.defaultLandingPath());
+  private readonly authStore = inject(AuthStore);
+  private readonly dashboardMode = inject(DashboardModeService);
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly assistantDrawer = inject(DocsAssistantDrawerService);
+  private readonly docsNavDrawer = inject(DocsNavDrawerService);
   private readonly router = inject(Router);
   private readonly docsContent = inject(DocumentationContentService);
 
@@ -73,11 +84,13 @@ export class DocumentationSiteShellComponent {
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.isMobile.set(this.breakpointObserver.isMatched(MOBILE_BREAKPOINT));
+      tryRestoreAuthSession(this.authStore).subscribe();
       this.lockDocumentScrollWhileInDocs();
     }
 
     this.destroyRef.onDestroy(() => {
       this.assistantDrawer.forceClose();
+      this.docsNavDrawer.close();
     });
 
     this.observeViewport();
@@ -93,8 +106,24 @@ export class DocumentationSiteShellComponent {
     });
   }
 
+  onSignInClick(event: Event): void {
+    if (!this.isAuthenticated()) {
+      return;
+    }
+
+    event.preventDefault();
+    void this.router.navigateByUrl(this.appLandingPath());
+  }
+
   closeAssistantDrawer(): void {
     this.assistantDrawer.closeDrawer();
+  }
+
+  toggleDocsNav(): void {
+    if (this.assistantDrawerOpen()) {
+      this.closeAssistantDrawer();
+    }
+    this.docsNavDrawer.toggle();
   }
 
   onAssistantDrawerOpenedChange(opened: boolean): void {

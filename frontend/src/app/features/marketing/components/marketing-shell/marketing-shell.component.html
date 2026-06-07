@@ -11,7 +11,7 @@
     >
       <a
         class="mb-4 inline-flex items-center gap-2.5 no-underline text-inherit"
-        routerLink="/home"
+        routerLink="/"
         (click)="onNavigate()"
       >
         <app-logo />
@@ -25,7 +25,8 @@
           <a
             mat-list-item
             class="rounded-lg"
-            routerLink="/home"
+            routerLink="/"
+            [routerLinkActiveOptions]="{ exact: true }"
             routerLinkActive="active"
             (click)="onNavigate()"
             >Home</a
@@ -74,21 +75,32 @@
       </div>
 
       <div class="mt-auto flex flex-col gap-2 pt-4">
-        <a
-          mat-button
-          class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-          routerLink="/auth"
-          (click)="onNavigate()"
-          >Sign in</a
-        >
-        <a
-          mat-flat-button
-          color="primary"
-          class="app-cta-button"
-          routerLink="/auth"
-          (click)="onNavigate()"
-          >Start now</a
-        >
+        @if (isAuthenticated()) {
+          <a
+            mat-flat-button
+            color="primary"
+            class="app-cta-button"
+            [routerLink]="appLandingPath()"
+            (click)="onNavigate()"
+            >Go to app</a
+          >
+        } @else {
+          <a
+            mat-button
+            class="!justify-start !text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+            routerLink="/auth"
+            (click)="onSignInClick($event); onNavigate()"
+            >Sign in</a
+          >
+          <a
+            mat-flat-button
+            color="primary"
+            class="app-cta-button"
+            routerLink="/auth"
+            (click)="onNavigate()"
+            >Start now</a
+          >
+        }
       </div>
     </div>
   </mat-sidenav>
@@ -109,10 +121,7 @@
             >
               <mat-icon>menu</mat-icon>
             </button>
-            <a
-              class="inline-flex items-center gap-2.5 no-underline text-inherit"
-              routerLink="/home"
-            >
+            <a class="inline-flex items-center gap-2.5 no-underline text-inherit" routerLink="/">
               <app-logo />
             </a>
           </div>
@@ -123,7 +132,8 @@
             <a
               mat-button
               class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-              routerLink="/home"
+              routerLink="/"
+              [routerLinkActiveOptions]="{ exact: true }"
               routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
               >Home</a
             >
@@ -165,19 +175,34 @@
           </nav>
 
           <div class="md:hidden">
-            <a mat-flat-button color="primary" routerLink="/auth">Go to App</a>
+            @if (isAuthenticated()) {
+              <a mat-flat-button color="primary" [routerLink]="appLandingPath()">Go to app</a>
+            } @else {
+              <a mat-flat-button color="primary" routerLink="/auth">Start now</a>
+            }
           </div>
 
           <div class="hidden items-center gap-2 md:inline-flex">
-            <a
-              mat-button
-              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-              routerLink="/auth"
-              >Sign in</a
-            >
-            <a mat-flat-button color="primary" class="app-cta-button" routerLink="/auth"
-              >Start now</a
-            >
+            @if (isAuthenticated()) {
+              <a
+                mat-flat-button
+                color="primary"
+                class="app-cta-button"
+                [routerLink]="appLandingPath()"
+                >Go to app</a
+              >
+            } @else {
+              <a
+                mat-button
+                class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+                routerLink="/auth"
+                (click)="onSignInClick($event)"
+                >Sign in</a
+              >
+              <a mat-flat-button color="primary" class="app-cta-button" routerLink="/auth"
+                >Start now</a
+              >
+            }
           </div>
         </div>
       </mat-toolbar>
@@ -201,7 +226,7 @@
             <div class="grid gap-1.5">
               <a
                 class="no-underline text-[#3b2f36] hover:text-[var(--app-accent-strong)]"
-                routerLink="/home"
+                routerLink="/"
                 >Capabilities</a
               >
               <a

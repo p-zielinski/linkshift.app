@@ -2,7 +2,6 @@ User-agent: *
 Allow: /
 
 # Public marketing and legal pages are indexable.
-Allow: /home
 Allow: /use-cases
 Allow: /blog
 Allow: /docs
@@ -17,7 +16,11 @@ Allow: /cookies
 Allow: /do-not-sell
 
 # Private app areas (authenticated)
+Disallow: /overview
+Disallow: /home
 Disallow: /dashboard
+Disallow: /links
+Disallow: /settings
 Disallow: /tools
 Disallow: /tools/
 Disallow: /profile
@@ -26,6 +29,7 @@ Disallow: /domains
 Disallow: /subdomains
 Disallow: /domain-groups
 Disallow: /redirect-rules
+Disallow: /analytics
 Disallow: /redirect-rules-analytics
 Disallow: /link-maps
 Disallow: /tests

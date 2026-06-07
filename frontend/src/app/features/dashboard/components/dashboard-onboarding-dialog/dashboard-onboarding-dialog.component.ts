@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { APP_CONFIG } from '../../../../core/config/app-runtime-config';
@@ -12,8 +13,14 @@ import {
   WizardStepSummaryDirective,
 } from '../../../../shared/components/wizard/wizard-step.directive';
 
+export type DashboardOnboardingDialogData = {
+  campaignMode?: boolean;
+};
+
 export type DashboardOnboardingDialogResult = {
   confirmed: boolean;
+  openCreate?: boolean;
+  navigateTo?: string;
 };
 
 @Component({
@@ -21,14 +28,21 @@ export type DashboardOnboardingDialogResult = {
   standalone: true,
   imports: [
     CommonModule,
+    MatButtonModule,
     MatIconModule,
     WizardComponent,
     WizardStepDirective,
     WizardStepSummaryDirective,
   ],
   templateUrl: './dashboard-onboarding-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardOnboardingDialogComponent {
+  private readonly dialogData = inject<DashboardOnboardingDialogData>(MAT_DIALOG_DATA, {
+    optional: true,
+  });
+  readonly campaignMode = signal(this.dialogData?.campaignMode ?? false);
+
   private readonly dialogRef = inject(
     MatDialogRef<DashboardOnboardingDialogComponent, DashboardOnboardingDialogResult>,
   );
@@ -45,7 +59,15 @@ export class DashboardOnboardingDialogComponent {
     return configured.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
   });
   readonly domainGroupPreview = computed(() => this.domainGroups().slice(0, 4));
-  readonly subdomainPreview = computed(() => this.subdomains().slice(0, 4));
+  readonly subdomainPreview = computed(() =>
+    this.subdomains()
+      .slice(0, 4)
+      .map((subdomain) => ({
+        id: subdomain.id,
+        name: subdomain.name,
+        displayHost: `${subdomain.name}.${this.subdomainBaseHost()}`,
+      })),
+  );
   readonly domainGroupOverflow = computed(
     () => Math.max(0, this.domainGroups().length - this.domainGroupPreview().length),
   );
@@ -56,46 +78,47 @@ export class DashboardOnboardingDialogComponent {
     const organizationName = this.organization()?.name ?? 'your organization';
     return `Welcome to LinkShift, ${organizationName}`;
   });
-  readonly steps = computed<WizardStep[]>(() => [
-    {
-      id: 'welcome',
-      label: 'Welcome',
-      title: 'You are ready to ship redirects',
-      description: 'A quick intro to the core flow. It takes around one minute.',
-      complete: true,
-    },
-    {
-      id: 'domains',
-      label: 'Domains',
-      title: 'Domain groups and hosts',
-      description:
-        'Domain groups are containers. Inside them you attach custom domains or use starter subdomains.',
-      complete: true,
-    },
-    {
-      id: 'rules',
-      label: 'Rules',
-      title: 'Redirect hierarchy',
-      description:
-        'Create redirect rules to route traffic. Link maps (shortlinks) run inside a selected rule path.',
-      complete: true,
-    },
-    {
-      id: 'next',
-      label: 'Next steps',
-      title: 'What to do now',
-      description: 'Use the sidebar to refine domains, then add your first redirect rule.',
-      complete: true,
-    },
-  ]);
+  readonly steps = computed<WizardStep[]>(() => {
+    if (this.campaignMode()) {
+      return [
+        {
+          id: 'welcome',
+          label: 'Welcome',
+          title: 'You are ready to create short links',
+          description:
+            'Connect a custom domain or use a starter subdomain on your site to publish short links.',
+        },
+        {
+          id: 'next',
+          label: 'Next steps',
+          title: 'What to do now',
+          description:
+            'Connect a host on your site, then create your first short link from Overview or Links.',
+        },
+      ];
+    }
+
+    return [
+      {
+        id: 'welcome',
+        label: 'Welcome',
+        title: 'You are ready to ship redirects',
+        description:
+          'Domain groups are containers. Inside them you attach custom domains or use starter subdomains.',
+      },
+      {
+        id: 'next',
+        label: 'Next steps',
+        title: 'What to do now',
+        description:
+          'Use the sidebar to refine domain groups and hosts, then add your first redirect rule.',
+      },
+    ];
+  });
 
   constructor() {
     this.domainGroupStore.searchList();
     this.subdomainStore.searchList();
-  }
-
-  formatSubdomainHost(name: string): string {
-    return `${name}.${this.subdomainBaseHost()}`;
   }
 
   onConfirm(): void {
@@ -104,5 +127,13 @@ export class DashboardOnboardingDialogComponent {
 
   onSkip(): void {
     this.dialogRef.close({ confirmed: false });
+  }
+
+  onCreateFirstLink(): void {
+    this.dialogRef.close({ confirmed: true, openCreate: true });
+  }
+
+  onViewDomainGroups(): void {
+    this.dialogRef.close({ confirmed: true, navigateTo: '/domain-groups' });
   }
 }

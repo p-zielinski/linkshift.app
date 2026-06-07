@@ -1,5 +1,5 @@
-<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-  <div>
+<div class="flex flex-wrap items-start justify-between gap-3">
+  <div class="min-w-0 flex-1">
     <h2 class="m-0 text-[28px] font-semibold tracking-[0.5px] text-app-text">
       {{ title() }}
     </h2>
@@ -7,5 +7,8 @@
       <div class="text-[13px] text-app-muted">{{ subtitle() }}</div>
     }
   </div>
-  <ng-content />
+  <div class="flex shrink-0 flex-wrap items-center justify-end gap-2">
+    <ng-content select="[workspace]" />
+    <ng-content />
+  </div>
 </div>

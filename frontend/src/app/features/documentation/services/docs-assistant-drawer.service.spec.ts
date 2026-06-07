@@ -83,7 +83,7 @@ describe('DocsAssistantDrawerService', () => {
         DocsAssistantDrawerService,
         provideRouter([
           { path: 'docs', component: StubPageComponent },
-          { path: 'home', component: StubPageComponent },
+          { path: 'overview', component: StubPageComponent },
         ]),
       ],
     });
@@ -94,7 +94,7 @@ describe('DocsAssistantDrawerService', () => {
     await router.navigateByUrl('/docs');
     service.openDrawer();
 
-    await router.navigateByUrl('/home');
+    await router.navigateByUrl('/overview');
 
     expect(service.open()).toBe(false);
   });

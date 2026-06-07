@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
+import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
 import { QrCodeGeneratorToolComponent } from './components/qr-code-generator-tool/qr-code-generator-tool.component';
 
 @Component({
@@ -11,10 +11,11 @@ import { QrCodeGeneratorToolComponent } from './components/qr-code-generator-too
   imports: [
     RouterLink,
     MatButtonModule,
-    MatCardModule,
-    PageHeaderComponent,
+    ResourceCardComponent,
+    ResourcePageShellComponent,
     QrCodeGeneratorToolComponent,
   ],
   templateUrl: './tools-qr-code-generator-page.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ToolsQrCodeGeneratorPageComponent {}
