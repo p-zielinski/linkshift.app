@@ -47,7 +47,7 @@ Full recipes and anti-patterns: [Recipe book](./redirect-rules-recipes.md#recipe
 
 ## Advanced engineering FAQ
 
-[Redirect engine — Advanced engineering FAQ](../concepts/redirect-engine-edge-cases.md#advanced-engineering-faq) — behavior verified against `redirect.service.ts` and tests:
+[Redirect engine — Advanced engineering FAQ](../concepts/redirect-engine-edge-cases.md#advanced-engineering-faq):
 
 - Redirect loops (single hop per request)  
 - Query-string encoding and duplicate keys  

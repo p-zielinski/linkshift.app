@@ -97,7 +97,7 @@
       [attr.colspan]="columns.length"
     >
       @if (!activeGroupId()) {
-        Select a site in the workspace menu above to load tests.
+        {{ noSiteSelectedCopy }}
       } @else if (listReady()) {
         No redirect tests found.
       } @else {

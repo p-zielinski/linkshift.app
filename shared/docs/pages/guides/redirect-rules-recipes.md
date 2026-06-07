@@ -126,7 +126,7 @@ Simulate miss: `matched: false`, `404`, `linkMapKey: null`. See [When lookup fai
 }
 ```
 
-Keep default `queryMatch: exact` (not `ignore`) so regex runs on `originalUrl` and query stays in `$1`. Verified in `redirect.service.spec.ts` (www host → apex with query).
+Keep default `queryMatch: exact` (not `ignore`) so regex runs on `originalUrl` and query stays in `$1`.
 
 ---
 

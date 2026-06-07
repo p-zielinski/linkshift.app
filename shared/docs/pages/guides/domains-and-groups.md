@@ -48,17 +48,10 @@ Organization
 A visitor hitting `links.example.com/go/summer` triggers rules on the domain group attached to `links.example.com`.
 
 :::info
-Before redirect rules run, the edge applies organization **rate limits** and **access checks**, and may serve **`robots.txt`** from the domain group policy. The first rule that **returns a target URL** wins — a matching `source` alone is not enough (link map miss with no fallback skips to the next rule).
+Before redirect rules run, the edge applies organization **rate limits** and **access checks**, and may serve **`robots.txt`** from the domain group policy. The first rule that **returns a target URL** wins — a matching `source` alone is not enough (link map miss with no fallback skips to the next rule). `robots.txt` requests still count toward `redirectionLimitPerMinute`.
 :::
 
-Before redirect rules run:
-
-- Organization redirect rate limit check applies first
-- `GET /robots.txt` may be served from the domain group `robotsPolicy` (not from redirect rules)
-- All other paths go through the rule list
-- `robots.txt` requests still count toward `redirectionLimitPerMinute`
-
-**First redirect wins:** The first rule that **returns a target URL** wins (not merely the first matching `source`). Link map miss with no fallback skips to the next rule; no rule producing a target → `404`. See [Redirect rules — how routing works](./redirect-rules-core.md#how-routing-works) and the [routing decision flow diagram](../concepts/redirect-engine-conditionals.md#routing-decision-flow-diagram).
+See [Redirect rules — how routing works](./redirect-rules-core.md#how-routing-works) and the [routing decision flow diagram](../concepts/redirect-engine-conditionals.md#routing-decision-flow-diagram).
 
 ---
 
@@ -104,7 +97,6 @@ Controls `robots.txt` served for domains in this group:
 Notes:
 
 - Group ownership enforced by API key organization.
-- Soft-delete used internally.
 
 ---
 

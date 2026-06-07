@@ -11,6 +11,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { selectSiteInHeaderMenuCopy } from '../../../../core/layout/page-workspace-empty-state.copy';
 import type { RedirectTest, RedirectTestResult } from '../../../../core/models/redirect-test.model';
 import type { RedirectTestRunState } from '../../../../core/store/redirect-test-results.store';
 
@@ -42,6 +43,8 @@ type RedirectTestRowViewModel = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TestsTableComponent {
+  readonly noSiteSelectedCopy = selectSiteInHeaderMenuCopy('tests');
+
   readonly tests = input<RedirectTest[]>([]);
   readonly activeGroupId = input('');
   readonly listReady = input(false);

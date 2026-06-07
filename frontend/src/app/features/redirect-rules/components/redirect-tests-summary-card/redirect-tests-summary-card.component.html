@@ -4,7 +4,7 @@
       <div class="text-[13px] font-semibold text-app-foreground">Redirect tests</div>
       <p class="mt-1 text-[12px] text-app-muted">
         @if (!activeGroupId()) {
-          Select a site in the workspace menu above to preview tests.
+          {{ noSiteSelectedCopy }}
         } @else {
           Runs on domain group:
           <span class="font-medium text-app-foreground">

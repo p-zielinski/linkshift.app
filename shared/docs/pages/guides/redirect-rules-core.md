@@ -463,7 +463,7 @@ Request `http://sub.my-domain.com/blog/cool-article`
 Request `https://www.example.com/pricing?utm=ad`  
 → `https://example.com/pricing?utm=ad` (apex redirect preserving path)
 
-Leave `queryMatch` at default (`exact`) for this regex so the pattern runs against `originalUrl` and query stays in `$1`. With `queryMatch: ignore`, only the path is matched and query params are dropped (verified in `redirect.service.spec.ts` — www→apex with `queryMatch: exact`).
+Leave `queryMatch` at default (`exact`) for this regex so the pattern runs against `originalUrl` and query stays in `$1`. With `queryMatch: ignore`, only the path is matched and query params are dropped.
 
 Full placeholder and modifier reference: [Redirect engine concepts](../concepts/redirect-engine-concepts.md).
 

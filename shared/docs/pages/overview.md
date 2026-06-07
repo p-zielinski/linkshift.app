@@ -119,6 +119,8 @@ Sign in and see [Dashboard overview](./guides/dashboard/dashboard-overview.md) f
 3. Create a **redirect rule** for `/old-page` → your new URL — [Redirect rules in the dashboard](./guides/dashboard/redirect-rules-in-dashboard.md).
 4. Validate with **Run tests** or **Fetch expected result** — [Tests in the dashboard](./guides/dashboard/tests-in-dashboard.md).
 
+For plan limits, billing, and account shortcuts, see [Settings in the dashboard](./guides/dashboard/settings-in-dashboard.md) (**Settings** in Campaign, **Plan and account** in Advanced).
+
 Point DNS at LinkShift when you are ready for live traffic.
 
 ### Automate instead
@@ -155,20 +157,7 @@ Use this **index** when you know what you need — lookup and deep links, not a 
 
 ### Dashboard (authenticated app)
 
-Task guides for the sidebar UI — start at [Dashboard overview](./guides/dashboard/dashboard-overview.md):
-
-| Guide | When to read |
-|-------|--------------|
-| [Dashboard overview](./guides/dashboard/dashboard-overview.md) | Shell, Campaign/Advanced modes, profile, billing summary, docs assistant |
-| [Domains and domain groups](./guides/domains-and-groups.md#in-the-dashboard) | Campaign connect-domain flow vs Advanced domain groups |
-| [Domain groups](./guides/dashboard/domain-groups-in-dashboard.md) | Create and manage domain groups (Advanced) |
-| [Domains and subdomains](./guides/dashboard/domains-and-subdomains-in-dashboard.md) | Custom domains and LinkShift subdomains |
-| [Redirect rules](./guides/dashboard/redirect-rules-in-dashboard.md) | Rule wizard, table, redirect tests card |
-| [Link maps](./guides/dashboard/link-maps-in-dashboard.md) | Maps, entries, CSV import |
-| [Tests](./guides/dashboard/tests-in-dashboard.md) | Redirect test fixtures and **Run tests** |
-| [Analytics](./guides/dashboard/analytics-in-dashboard.md) | Traffic chart and rule drill-down — `/analytics` (Campaign) or `/redirect-rules-analytics` (Advanced) |
-| [Organization and API keys](./guides/dashboard/organization-and-api-keys-in-dashboard.md) | Members, invites, API keys |
-| [Tools](./guides/dashboard/tools-in-dashboard.md) | QR generator and redirect tester (signed in) |
+Task guides for the sidebar UI — start at [Dashboard overview](./guides/dashboard/dashboard-overview.md) for Campaign vs Advanced navigation and links to each area (links, settings, routing, tests, analytics, organization, tools).
 
 ### Routing depth
 
@@ -212,10 +201,6 @@ The marketing site footer also links to it as **Status page**.
 
 Quick answers and a live-redirect symptom matrix: [FAQ index](./guides/faq.md) · [Overview FAQ](./overview-faq.md).
 
-## How this docs section is built
-
-- OpenAPI 3.1 as source of truth for endpoint pages
-- Markdown guides for routing concepts and workflows
-- Schema tree for request/response inspection
-- Built-in Try me with session-level API key persistence
-- Guides synced from the published markdown source on each docs deploy
+:::ai-only
+Docs site build: OpenAPI 3.1 source of truth for endpoint pages; markdown guides for concepts and workflows; schema tree for request/response inspection; Try me with session-level API key persistence; guides synced from shared/docs on deploy.
+:::

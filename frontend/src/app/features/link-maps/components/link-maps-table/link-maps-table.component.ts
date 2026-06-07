@@ -11,6 +11,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { selectSiteInHeaderMenuCopy } from '../../../../core/layout/page-workspace-empty-state.copy';
 import type { LinkMap } from '../../../../core/models/link-map.model';
 
 type LinkMapRowViewModel = {
@@ -36,6 +37,8 @@ type LinkMapRowViewModel = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkMapsTableComponent {
+  readonly noSiteSelectedCopy = selectSiteInHeaderMenuCopy('link maps');
+
   readonly maps = input<LinkMap[]>([]);
   readonly activeGroupId = input('');
   readonly loading = input(false);

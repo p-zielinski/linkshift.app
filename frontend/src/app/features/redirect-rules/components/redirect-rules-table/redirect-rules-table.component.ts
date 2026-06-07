@@ -12,6 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ResourcePillComponent } from '../../../../shared/components/resource-pill/resource-pill.component';
+import { selectSiteInHeaderMenuCopy } from '../../../../core/layout/page-workspace-empty-state.copy';
 import type { RedirectRule } from '../../../../core/models/redirect-rule.model';
 
 type GroupMap = Record<string, { name: string } | undefined>;
@@ -44,6 +45,8 @@ type RedirectRuleRowViewModel = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RedirectRulesTableComponent {
+  readonly noSiteSelectedCopy = selectSiteInHeaderMenuCopy('redirect rules');
+
   readonly rules = input<RedirectRule[]>([]);
   readonly activeGroupId = input('');
   readonly groupMap = input<GroupMap>({});

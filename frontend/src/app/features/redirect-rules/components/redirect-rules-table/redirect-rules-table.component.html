@@ -132,7 +132,7 @@
       @if (loading()) {
         Loading redirect rules…
       } @else if (!activeGroupId()) {
-        Select a site in the workspace menu above to view redirect rules.
+        {{ noSiteSelectedCopy }}
       } @else {
         No redirect rules found.
       }

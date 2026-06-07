@@ -58,7 +58,7 @@ describe('SubdomainsTableComponent', () => {
 
     expect(root.textContent).toContain('No subdomains in this site');
     expect(root.textContent).toContain(
-      'Switch site in the header menu or choose All sites to see everything.',
+      'Switch site in the page header Site menu, or choose All sites, to see everything.',
     );
     expect(root.querySelector('button[mat-flat-button]')).toBeNull();
   });
