@@ -28,6 +28,7 @@ describe('DocumentationSiteShellComponent', () => {
   let isAuthenticated: WritableSignal<boolean>;
 
   beforeEach(async () => {
+    localStorage.clear();
     isAuthenticated = signal(false);
 
     await TestBed.configureTestingModule({
@@ -60,8 +61,14 @@ describe('DocumentationSiteShellComponent', () => {
       ],
     }).compileComponents();
 
+    TestBed.inject(DashboardModeService).setMode('campaign');
+
     router = TestBed.inject(Router);
     fixture = TestBed.createComponent(TestHostComponent);
+  });
+
+  afterEach(() => {
+    localStorage.clear();
   });
 
   it('shows Sign in and Start now for guests in the desktop toolbar', async () => {
