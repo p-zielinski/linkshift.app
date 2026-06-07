@@ -1,6 +1,6 @@
 ---
 source: shared/docs/pages/guides/redirect-rules.md
-generatedAt: 2026-06-03T17:00:21.526Z
+generatedAt: 2026-06-07T10:07:53.406Z
 model: gpt-4o-mini
 ---
 
@@ -17,13 +17,21 @@ This document is for users of LinkShift who need guidance on creating and managi
   - Validation, simulation, and analytics
   - Recipes and anti-patterns
   - FAQ and troubleshooting
-  - Redirect rules in the dashboard
 
 ## Key workflows and rules
-1. **Accessing Redirect Rules**: 
-   - Open the sidebar in the dashboard, select **Redirect Rules**, and click **Add rule** to start the wizard.
-2. **Recommended Reading Order**: 
-   - Before editing production rules that involve placeholders or conditionals, follow this order:
+1. **Accessing Redirect Rules**:
+   - Open the sidebar in the LinkShift dashboard.
+   - Select **Redirect Rules** and click **Add rule** to initiate the rule creation wizard.
+   
+2. **Creating a Redirect Rule**:
+   - Follow the wizard to specify:
+     - Scope
+     - Matching criteria
+     - Destination
+     - Status of the rule
+
+3. **Recommended Reading Order for Conditional Routing**:
+   - Read the following guides in order before editing production rules:
      1. Redirect engine concepts
      2. Engine — variables
      3. Engine — conditionals
@@ -32,8 +40,8 @@ This document is for users of LinkShift who need guidance on creating and managi
      6. Redirect rules — simulate
 
 ## Limits and constraints
-- The document references rate limits and caching but does not specify exact quotas or limits.
-- For detailed field references and matching criteria, users are directed to the "Matching and destinations" guide.
+- The document does not specify explicit limits or constraints regarding quotas or field limits.
+- Users are advised to consult the linked guides for detailed information on rate limits, caching, and validation.
 
 ## Related docs and API areas
 - [Redirect engine concepts](../concepts/redirect-engine-concepts.md)
@@ -43,3 +51,4 @@ This document is for users of LinkShift who need guidance on creating and managi
 - [Recipes and anti-patterns](./redirect-rules-recipes.md)
 - [FAQ and troubleshooting](./faq.md)
 - [Redirect rules in the dashboard](./dashboard/redirect-rules-in-dashboard.md)
+- [Getting started](./getting-started.md)

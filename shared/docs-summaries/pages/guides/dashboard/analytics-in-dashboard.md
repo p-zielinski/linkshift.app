@@ -1,43 +1,54 @@
 ---
 source: shared/docs/pages/guides/dashboard/analytics-in-dashboard.md
-generatedAt: 2026-06-03T16:57:23.003Z
+generatedAt: 2026-06-07T10:04:24.246Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for users of the LinkShift dashboard who want to view and analyze redirect traffic data.
+This document is for users of the LinkShift dashboard, explaining how to view and analyze redirect traffic through the analytics features available in both Campaign and Advanced views.
 
 ## What this doc covers
-- Overview of accessing analytics in the dashboard.
-- Instructions for filtering analytics by domain group.
-- Options for selecting a time range for traffic data.
-- Details on reading and interpreting analytics results.
-- Information on automating traffic reports via API.
+- Overview of the **Analytics** feature in both dashboard modes.
+- Differences in analytics views: **Campaign** (`/analytics`) vs. **Advanced** (`/redirect-rules-analytics`).
+- Requirements for loading analytics data, including site and host prerequisites.
+- Description of empty states and user prompts based on missing prerequisites.
+- Filtering options by site and time range for analytics data.
+- Details on reading analytics results, including traffic charts and tables.
+- Automation options for retrieving traffic reports via API.
 
 ## Key workflows and rules
-1. **Accessing Analytics:**
-   - Navigate to **Analytics** in the sidebar.
-   - Note: You must have at least one domain group created; otherwise, you will be redirected to the **Dashboard**.
+1. **Accessing Analytics**:
+   - Select **Analytics** from the sidebar.
+   - In **Campaign** view, the link is always visible. In **Advanced** view, it is disabled until at least one site exists.
 
-2. **Filtering by Domain Group:**
-   - Use the **Domain group** control to select either **All domain groups** or a specific group.
+2. **Handling Empty States**:
+   - **Campaign View**:
+     - If no sites exist: Guided empty state prompts to set up a domain.
+     - If sites exist but no hosts: Prompts to add a host.
+   - **Advanced View**:
+     - If no sites exist: Sidebar disabled; redirects to **Domain Groups**.
+     - If sites exist but no hosts: On-page empty state prompts to add a host.
 
-3. **Choosing a Time Range:**
-   - **Quick Ranges:** Select from predefined options (Last 3, 7, 14, or 30 days).
-   - **Custom Range:**
-     1. Set **Start date & time** and **End date & time**.
-     2. Click **Apply range**.
+3. **Filtering by Site**:
+   - In **Campaign** view, select from the **Site** menu if multiple sites exist.
+   - In **Advanced** view, the menu shows only the single site available.
 
-4. **Reading Results:**
-   - View a traffic chart and a table of top rules with traffic.
-   - Click on a rule row to access **Rule analytics details**, which shows **Hits in range**.
+4. **Choosing a Time Range**:
+   - Quick ranges available: Last 3, 7, 14, or 30 days.
+   - For a custom range, set **Start date & time** and **End date & time**, then select **Apply range**.
+
+5. **Reading Results**:
+   - **Campaign View**: Displays a traffic chart and a table under **Link performance** with short link paths and top keys.
+   - **Advanced View**: Displays a table with source paths, resolved destinations, and top requests.
 
 ## Limits and constraints
-- At least one domain group is required to access analytics; otherwise, users are redirected to the dashboard.
-- Analytics retention is dependent on the user's subscription plan, with data older than the **Current plan retention days** potentially not appearing, even if a wider custom range is selected.
-- The dashboard's quick ranges use calendar-style day counts, while the API uses UTC hourly rolling buckets (24 / 168 / 720 hours). To replicate dashboard ranges in API calls, provide matching `start` and `end` parameters.
+- Analytics data requires at least one site with a connected host to load.
+- Data retention is based on the user's plan, with limits displayed at the top of the analytics page.
+- Data older than the retention window may not appear, even if a wider custom range is selected.
+- The **Site** filter in **Campaign** view is hidden if only one site exists.
 
 ## Related docs and API areas
 - [Redirect rules in the dashboard](./redirect-rules-in-dashboard.md)
-- [Redirect rules — operations](../redirect-rules-operations.md#analytics) (for programmatic traffic reports using `GET /api/v1/redirect-rules/analytics`)
-- [Dashboard overview](./dashboard-overview.md)
+- [Redirect rules — operations](../redirect-rules-operations.md) - for API traffic reports.
+- [Links in the dashboard](./links-in-dashboard.md) - includes how to open analytics from link rows.
+- [Dashboard overview](./dashboard-overview.md) - provides context on subscription limits and analytics retention.

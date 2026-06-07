@@ -1,53 +1,45 @@
 ---
 source: shared/docs/pages/guides/dashboard/tests-in-dashboard.md
-generatedAt: 2026-06-03T16:58:21.757Z
+generatedAt: 2026-06-07T10:05:49.252Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for users of the LinkShift dashboard who need to define and manage redirect tests for domain groups.
+This document is for users of the LinkShift dashboard who need to define and manage redirect tests for their sites.
 
 ## What this doc covers
-- Overview of the **Tests** page for validating redirect outcomes.
-- Steps to **Open tests** and filter by domain group.
-- Instructions to **Create a test** including the wizard steps and fields.
-- Process for **Editing or deleting** tests.
-- How to **Run pending tests** and view results.
-- Explanation of the **Tests** table and **Redirect tests** card status indicators.
-- Automation options for managing redirect test fixtures through the Management API.
+- **Open tests**: Instructions on how to access and view tests for a selected site.
+- **Create a test**: Steps to define a new redirect test including scope, request, and expected results.
+- **Create a test after saving a new rule**: Guidance on creating a test immediately after saving a new redirect rule.
+- **Edit or delete**: Instructions on how to edit or delete existing tests.
+- **Run pending tests**: Steps to execute tests that have not yet been run in the current session.
+- **Read results in the UI**: Overview of how to interpret test results displayed in the dashboard.
+- **Automate instead**: Information on managing redirect test fixtures through the Management API.
 
 ## Key workflows and rules
-1. **Open tests**:
-   - Navigate to **Tests** in the sidebar.
-   - Select a **Domain group** and optionally search by path or query.
-   - The tests table displays a maximum of **100 rows per page**.
+### Open tests
+1. Select **Tests** from the sidebar.
+2. Choose a **Site** from the page header menu and optionally search by path or query.
+3. Use the table footer paginator to navigate through pages or adjust rows per page.
 
-2. **Create a test**:
-   - Select **Add test** after choosing a domain group.
-   - Complete the wizard:
-     - **Scope**: Define request scope (domain group, hostname, path).
-     - **Request**: Specify method, headers, and request details.
-     - **Expected**: Set expected status and destination; optionally fetch expected results.
-   - Click **Create** to save the test.
+### Create a test
+1. With a site selected, click **Add test**.
+2. Fill out the **Scope** (site, hostname, path), **Request** (method and headers), and **Expected** (status and destination).
+3. Optionally select **Fetch expected result** to simulate loading.
+4. Click **Create** to save the test.
 
-3. **Create a test after saving a new rule**:
-   - The wizard may open automatically with prefilled fields after saving a new redirect rule.
+### Run pending tests
+1. Select a site from the page header menu.
+2. Click **Run tests** on the **Tests** page or the **Redirect tests** card.
+3. The **Run tests** dialog will execute all tests without results in the current session, showing progress as **Completed** `N`/`total`.
 
-4. **Edit or delete a test**:
-   - Use row actions to reopen the wizard or delete the test with confirmation.
-
-5. **Run pending tests**:
-   - Select a domain group and click **Run tests**.
-   - The dialog will execute all tests without results in the current session, showing progress as **Completed** `N`/`total`.
-   - If no tests are pending, the message **No tests to run** will be displayed.
-
-6. **Read results in the UI**:
-   - The **Tests** table and **Redirect tests** card display status indicators such as **Passed**, **Needs attention**, and **Not run**.
+### Read results in the UI
+- The **Tests** table and **Redirect tests** card display statuses such as **Passed**, **Needs attention**, and **Not run**.
 
 ## Limits and constraints
-- The tests table has a fixed page size of **100 rows**.
-- The **Run tests** feature executes only tests that do not have results in the current session.
-- Users must have at least one **domain group** with redirect rules to run tests.
+- At least one site with redirect rules is required to run tests.
+- The **All sites** option is not available; a specific site must be selected.
+- The **Run tests** dialog only runs tests that do not have a result in the current session.
 
 ## Related docs and API areas
 - [Redirect rules in the dashboard](./redirect-rules-in-dashboard.md)

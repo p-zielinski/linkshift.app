@@ -1,52 +1,59 @@
 ---
 source: shared/docs/pages/guides/dashboard/dashboard-overview.md
-generatedAt: 2026-06-03T16:57:34.078Z
+generatedAt: 2026-06-07T10:04:38.054Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for LinkShift users and explains how to navigate the app shell, utilize redirect features, and monitor plan usage on the home dashboard.
+This document is for users of the LinkShift app, providing an overview of the dashboard, its features, and navigation options.
 
 ## What this doc covers
-- **Account access**: Overview of sign-in, registration, email verification, team invites, password reset, and legal consent.
-- **App shell layout**: Description of the app shell components, including sidebar navigation and the Ask docs feature.
-- **Dashboard home**: Details on the dashboard's summary view, including plan status and usage meters.
-- **First-run onboarding**: Steps for the onboarding wizard that may appear after signup.
-- **Profile management**: Instructions for managing account email and verification status.
+- **Account access**: Sign-in, registration, email verification, team invites, password reset, and legal consent.
+- **Campaign and Advanced views**: Overview of sidebar layouts and primary tasks in each view.
+- **Switch views**: Instructions for toggling between Campaign and Advanced views, including route mapping.
+- **Plan and usage**: Accessing plan and usage details in both views.
+- **App shell layout**: Description of the app shell components and their functions.
+- **Need help? and Ask docs**: Using the documentation assistant for help.
+- **Site filter on scoped pages**: Explanation of the site filter functionality in different views.
+- **Domain-group gate**: Details on sidebar item availability based on site loading status.
+- **Direct URL access in Advanced view**: Behavior when accessing certain pages without a site.
+- **Account footer**: Information available in the sidebar footer.
+- **Marketing site vs Campaign overview**: Differentiation between the marketing site and the app overview.
+- **Campaign overview**: Features of the Campaign overview, including quick actions and recent links.
+- **Advanced dashboard home**: Features of the Advanced dashboard, including summary cards and subscription limits.
+- **First-run onboarding**: Description of the onboarding wizard for new users.
+- **Profile**: Accessing and managing account profile settings.
 
 ## Key workflows and rules
-1. **Sign-in and account management**:
-   - Access account management tasks through the web app, not the Management API.
-   - For tasks like email verification and password reset, refer to the [Account and access](../account-and-access.md) guide.
+1. **Switching Views**:
+   - Use the sidebar header, footer, mobile header, or settings to switch between Campaign and Advanced views.
+   - Route mapping occurs when switching views, directing users to the closest equivalent page if the current route exists in both modes.
 
-2. **Sidebar navigation**:
-   - Access various sections via the sidebar, which includes Dashboard, Analytics, Profile, Organization, Domain Groups, and more.
-   - Items like Domains, Subdomains, Redirect Rules, and Link Maps require at least one domain group to be created.
+2. **Setup Checklist**:
+   - The checklist appears in both Campaign and Advanced views, tracking onboarding progress.
+   - Items can auto-complete based on actions taken, and users can dismiss or reopen the checklist.
 
-3. **Creating a domain group**:
-   - Navigate to **Domain Groups** → **Add group** to create a domain group, which unlocks additional sidebar features.
+3. **Using the Documentation Assistant**:
+   - Type a task question to receive guidance and links to relevant documentation.
 
-4. **Using Ask docs**:
-   - Type a task question in the Ask docs feature to receive linked guides from the documentation.
+4. **Site Filter Functionality**:
+   - Pages in Campaign and Advanced views have a **Site** filter that allows users to select which site's data to view.
 
-5. **Dashboard usage**:
-   - The dashboard summarizes organization details, including current plan, usage meters, and options to manage subscriptions.
-
-6. **First-run onboarding**:
-   - The onboarding wizard provides steps to set up domains and redirect rules, which can be skipped or completed later.
-
-7. **Profile management**:
-   - Manage your email verification status and change your email through the Profile section.
+5. **Domain-Group Gate**:
+   - In Advanced view, certain sidebar items remain disabled until at least one site is loaded.
 
 ## Limits and constraints
-- Redirect-heavy sidebar items remain disabled until at least one domain group is created.
-- Exact usage limits depend on the user's subscription plan; when a meter reaches capacity, it may display a "Limit reached" message.
-- Password reset must be done outside the dashboard through the sign-in flow.
+- **Account Access**: Legal consent is required for certain actions; all sidebar navigation is disabled until consent is accepted.
+- **Usage Limits**: The dashboard displays limits for domain groups, hosts, rules, link maps, tests, and API calls. If limits are reached, users are prompted to upgrade their plan.
+- **Direct URL Access**: Accessing certain Advanced pages without a site redirects users to the Domain Groups page with a prompt to add a site.
+- **Mobile Overlay**: The sidebar opens as an overlay on smaller screens (below 1023px).
 
 ## Related docs and API areas
 - [Account and access](../account-and-access.md)
+- [Analytics in the dashboard](./analytics-in-dashboard.md)
 - [Billing and plans in the dashboard](../billing-and-plans-in-dashboard.md)
+- [Links in the dashboard](./links-in-dashboard.md)
+- [Settings in the dashboard](./settings-in-dashboard.md)
 - [Domain groups in the dashboard](./domain-groups-in-dashboard.md)
 - [Domains and subdomains in the dashboard](./domains-and-subdomains-in-dashboard.md)
 - [Getting started (API)](../getting-started.md)
-- API endpoint for usage: `GET /api/v1/organization/usage`
