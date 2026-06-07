@@ -1,11 +1,23 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Output,
+  computed,
+  input,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import type { LinkMapEntry } from '../../../../core/models/link-map.model';
+
+type LinkMapEntryRowViewModel = {
+  entry: LinkMapEntry;
+  isSelected: boolean;
+};
 
 @Component({
   selector: 'app-link-map-entries-table',
@@ -19,6 +31,7 @@ import type { LinkMapEntry } from '../../../../core/models/link-map.model';
     MatTooltipModule,
   ],
   templateUrl: './link-map-entries-table.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkMapEntriesTableComponent {
   readonly entries = input<LinkMapEntry[]>([]);
@@ -33,9 +46,14 @@ export class LinkMapEntriesTableComponent {
 
   readonly columns = ['select', 'key', 'destination', 'actions'];
 
-  isSelected(id: string): boolean {
-    return this.selectedIds().has(id);
-  }
+  readonly rowViewModels = computed((): LinkMapEntryRowViewModel[] => {
+    const selectedIds = this.selectedIds();
+
+    return this.entries().map((entry) => ({
+      entry,
+      isSelected: selectedIds.has(entry.id),
+    }));
+  });
 
   onToggleAll(checked: boolean): void {
     this.toggleAll.emit(checked);
@@ -47,5 +65,9 @@ export class LinkMapEntriesTableComponent {
 
   onEdit(entry: LinkMapEntry): void {
     this.edit.emit(entry);
+  }
+
+  trackRow(_index: number, row: LinkMapEntryRowViewModel): string {
+    return row.entry.id;
   }
 }

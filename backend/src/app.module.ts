@@ -17,6 +17,7 @@ import { OrganizationController } from './api/organization.controller';
 import { RedirectTestsController } from './api/redirect-tests.controller';
 import { LinkMapsController } from './api/link-maps.controller';
 import { LinkMapEntriesController } from './api/link-map-entries.controller';
+import { LinksController } from './api/links.controller';
 import { ApiKeysController } from './api/api-keys.controller';
 import { CaddyController } from './api/caddy.controller';
 import { AuthService } from './auth/auth.service';
@@ -52,6 +53,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { SentryExceptionFilter } from './filters/sentry-exception.filter';
 import { LinkMapService } from './link-map/link-map.service';
+import { LinksListService } from './links/links-list.service';
 import { RedirectAnalyticsRetentionService } from './security/redirect-analytics-retention.service';
 import { ApiKeyService } from './api-key/api-key.service';
 import { WebRiskQuotaService } from './security/web-risk-quota.service';
@@ -146,6 +148,7 @@ import { WebRiskQuotaService } from './security/web-risk-quota.service';
     RedirectRulesController,
     LinkMapsController,
     LinkMapEntriesController,
+    LinksController,
     ApiKeysController,
     AuthController,
     BillingController,
@@ -183,6 +186,7 @@ import { WebRiskQuotaService } from './security/web-risk-quota.service';
     RedirectAnalyticsRetentionService,
     WebRiskQuotaService,
     LinkMapService,
+    LinksListService,
     SafetyRescanScheduler,
     SafetyRescanProcessor,
     {

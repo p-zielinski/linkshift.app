@@ -1,6 +1,7 @@
 <app-resource-page-shell
   title="Redirect Rules"
   subtitle="Define path-level routing actions for each domain group."
+  [bodyScroll]="false"
 >
   <div page-actions>
     <button
@@ -14,31 +15,31 @@
     </button>
   </div>
 
-  <app-resource-card>
-    <div class="grid gap-4 md:grid-cols-[minmax(220px,1fr)_2fr]">
-      <app-domain-group-select [groups]="domainGroups()" [formField]="filterForm.domainGroupId" />
-
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
-        <mat-label>Search source or destination</mat-label>
-        <input matInput type="text" [formField]="filterForm.search" />
-      </mat-form-field>
-    </div>
+  <app-resource-card class="shrink-0">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-full">
+      <mat-label>Search source or destination</mat-label>
+      <input matInput type="text" [formField]="filterForm.search" />
+    </mat-form-field>
   </app-resource-card>
 
-  <app-redirect-tests-summary-card
-    [activeGroupId]="activeGroupId()"
-    [activeGroupLabel]="groupLabel(activeGroupId())"
-    [metrics]="testsMetrics()"
-    [loading]="testsLoading()"
-    [error]="testsError()"
-    (runTests)="runTests()"
-  />
+  <div class="shrink-0">
+    <app-redirect-tests-summary-card
+      [activeGroupId]="activeGroupId()"
+      [activeGroupLabel]="activeGroupLabel()"
+      [metrics]="testsMetrics()"
+      [loading]="testsLoading()"
+      [error]="testsError()"
+      (runTests)="runTests()"
+    />
+  </div>
 
   <app-resource-table-card className="flex min-h-0 flex-1 flex-col" [showFooter]="true">
     <div table-content>
       <app-redirect-rules-table
         [rules]="rules()"
+        [activeGroupId]="activeGroupId()"
         [groupMap]="groupMap()"
+        [loading]="loading()"
         (edit)="openEditDialog($event)"
         (delete)="confirmDelete($event)"
       />
@@ -49,6 +50,7 @@
         [showCurrentPage]="true"
         [currentPage]="page()"
         [hasNextPage]="hasNextPage()"
+        [isLoading]="loading()"
         [pageLimitOptions]="pageLimitOptions"
         [pageLimit]="pageLimit()"
         (currentPageChange)="onPageChange($event)"

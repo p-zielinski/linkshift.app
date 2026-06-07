@@ -1,6 +1,6 @@
 <app-wizard
   [title]="title()"
-  subtitle="We prepared this short walkthrough to help you get value quickly."
+  subtitle="Short walkthrough to help you get value quickly."
   [steps]="steps()"
   saveLabel="Confirm and continue"
   cancelLabel="Skip for now"
@@ -8,20 +8,16 @@
   (cancel)="onSkip()"
 >
   <ng-template wizardStepSummary="welcome">
-    <div>4 short steps</div>
-  </ng-template>
-
-  <ng-template wizardStepSummary="domains">
-    <div>{{ domainGroups().length }} group(s)</div>
+    @if (campaignMode()) {
+      <div>{{ domainGroups().length }} site(s)</div>
+    } @else {
+      <div>{{ domainGroups().length }} domain group(s)</div>
+    }
     <div>{{ subdomains().length }} subdomain(s)</div>
   </ng-template>
 
-  <ng-template wizardStepSummary="rules">
-    <div>Group -> host -> rule -> link map</div>
-  </ng-template>
-
   <ng-template wizardStepSummary="next">
-    <div>Recommended setup checklist</div>
+    <div>Recommended first actions</div>
   </ng-template>
 
   <ng-template wizardStep="welcome">
@@ -47,38 +43,55 @@
           </div>
         </div>
         <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-4">
-          <div class="text-sm font-semibold">Why groups exist</div>
-          <div class="mt-2 text-sm text-app-muted">
-            Domain groups keep related hosts and rules together in one place.
-          </div>
+          @if (campaignMode()) {
+            <div class="text-sm font-semibold">Your site</div>
+            <div class="mt-2 text-sm text-app-muted">
+              Your site keeps related hosts and short links together in one place.
+            </div>
+          } @else {
+            <div class="text-sm font-semibold">Why domain groups exist</div>
+            <div class="mt-2 text-sm text-app-muted">
+              Domain groups keep related hosts and rules together in one place.
+            </div>
+          }
         </div>
       </div>
-    </div>
-  </ng-template>
 
-  <ng-template wizardStep="domains">
-    <div class="grid gap-4">
       <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
-        <div class="text-sm font-semibold">Current domain groups</div>
+        @if (campaignMode()) {
+          <div class="text-sm font-semibold">Your site</div>
+        } @else {
+          <div class="text-sm font-semibold">Current domain groups</div>
+        }
         @if (domainGroupPreview().length > 0) {
           <div class="mt-3 grid gap-2">
             @for (group of domainGroupPreview(); track group.id) {
-              <div
-                class="flex items-center justify-between gap-2 rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm"
-              >
-                <span class="font-medium">{{ group.name }}</span>
-                <span class="text-xs text-app-muted">{{ group.id }}</span>
+              <div class="rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm font-medium">
+                {{ group.name }}
               </div>
             }
             @if (domainGroupOverflow() > 0) {
-              <div class="text-xs text-app-muted">+{{ domainGroupOverflow() }} more group(s)</div>
+              @if (campaignMode()) {
+                <div class="text-xs text-app-muted">+{{ domainGroupOverflow() }} more site(s)</div>
+              } @else {
+                <div class="text-xs text-app-muted">
+                  +{{ domainGroupOverflow() }} more domain group(s)
+                </div>
+              }
             }
           </div>
         } @else {
-          <div class="mt-2 text-sm text-app-muted">
-            No groups loaded yet. Your starter group is created during registration and should
-            appear after refresh.
-          </div>
+          @if (campaignMode()) {
+            <div class="mt-2 text-sm text-app-muted">
+              No site loaded yet. Your starter site is created during registration and should appear
+              after refresh.
+            </div>
+          } @else {
+            <div class="mt-2 text-sm text-app-muted">
+              No sites loaded yet. Your starter site is created during registration and should
+              appear after refresh.
+            </div>
+          }
         }
       </div>
 
@@ -87,11 +100,8 @@
         @if (subdomainPreview().length > 0) {
           <div class="mt-3 grid gap-2">
             @for (subdomain of subdomainPreview(); track subdomain.id) {
-              <div
-                class="flex items-center justify-between gap-2 rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm"
-              >
-                <span class="font-medium">{{ formatSubdomainHost(subdomain.name) }}</span>
-                <span class="text-xs text-app-muted">{{ subdomain.id }}</span>
+              <div class="rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm font-medium">
+                {{ subdomain.displayHost }}
               </div>
             }
             @if (subdomainOverflow() > 0) {
@@ -107,52 +117,39 @@
     </div>
   </ng-template>
 
-  <ng-template wizardStep="rules">
-    <div class="grid gap-4">
-      <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
-        <div class="text-sm font-semibold">Hierarchy at a glance</div>
-        <div class="mt-3 grid gap-2 text-sm text-app-muted">
-          <div>
-            <span class="font-semibold text-app-text">1.</span> Domain group scopes your setup.
-          </div>
-          <div>
-            <span class="font-semibold text-app-text">2.</span> Domains/subdomains receive traffic.
-          </div>
-          <div>
-            <span class="font-semibold text-app-text">3.</span> Redirect rules match request paths.
-          </div>
-          <div>
-            <span class="font-semibold text-app-text">4.</span> Link maps (shortlinks) plug into a
-            redirect rule path.
-          </div>
-        </div>
-      </div>
-
-      <div class="rounded-[16px] border border-app-border-soft bg-app-accent-soft p-4 text-sm">
-        <div class="font-semibold">Short example</div>
-        <div class="mt-2 text-app-muted">
-          Create a rule for <span class="font-mono">/go</span>, then connect a link map.
-          <span class="font-mono">/go/docs</span> can resolve to a dynamic destination from that
-          map.
-        </div>
-      </div>
-    </div>
-  </ng-template>
-
   <ng-template wizardStep="next">
     <div class="grid gap-4">
       <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
         <div class="text-sm font-semibold">Recommended first actions</div>
-        <div class="mt-3 grid gap-2 text-sm text-app-muted">
-          <div>Review domain groups and rename if needed.</div>
-          <div>Confirm your starter subdomain or attach a custom domain.</div>
-          <div>Create your first redirect rule and test it immediately.</div>
-        </div>
+        @if (campaignMode()) {
+          <div class="mt-3 grid gap-2 text-sm text-app-muted">
+            <div>Connect a host on your site or confirm the starter subdomain.</div>
+            <div>Create your first short link from Overview or Links.</div>
+            <div>Share the short URL and track clicks in Analytics.</div>
+          </div>
+        } @else {
+          <div class="mt-3 grid gap-2 text-sm text-app-muted">
+            <div>Review domain groups and rename if needed.</div>
+            <div>Confirm your starter subdomain or attach a custom domain.</div>
+            <div>Create your first redirect rule and test it immediately.</div>
+          </div>
+        }
       </div>
 
       <div class="rounded-[14px] bg-app-muted/10 px-4 py-3 text-sm text-app-muted">
-        You can skip now and return later. Confirming this wizard hides it automatically for this
-        account on future dashboard visits.
+        Skip or confirm to hide this walkthrough on future visits for this account.
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        @if (campaignMode()) {
+          <button mat-flat-button color="primary" type="button" (click)="onCreateFirstLink()">
+            Create your first link
+          </button>
+        } @else {
+          <button mat-flat-button color="primary" type="button" (click)="onViewDomainGroups()">
+            View domain groups
+          </button>
+        }
       </div>
     </div>
   </ng-template>

@@ -1,0 +1,93 @@
+@let cols = columns();
+<table
+  mat-table
+  [dataSource]="rows()"
+  [trackBy]="trackRow"
+  aria-label="Links"
+  class="table-fixed min-w-[960px] w-full mat-elevation-z0"
+>
+  <ng-container matColumnDef="shortPath">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[280px] truncate">Short path</th>
+    <td
+      mat-cell
+      *matCellDef="let row"
+      class="py-3 truncate max-w-0 font-medium"
+      [matTooltip]="shortPathTooltip(row)"
+    >
+      {{ row.shortPath }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="destination">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold truncate">Destination</th>
+    <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0" [matTooltip]="row.destination">
+      {{ row.destination }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="linkMapName">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[180px] truncate">Link map</th>
+    <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0" [matTooltip]="row.linkMapName">
+      {{ row.linkMapName }}
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef class="w-[132px]"></th>
+    <td mat-cell *matCellDef="let row" class="py-3 w-[132px]">
+      <div class="flex items-center gap-1">
+        <button
+          mat-icon-button
+          type="button"
+          matTooltip="Edit link"
+          [attr.aria-label]="'Edit link for ' + rowActionLabel(row)"
+          (click)="onEdit(row)"
+        >
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          type="button"
+          [matTooltip]="row.shortUrls.length > 1 ? 'Copy all short URLs' : 'Copy short URL'"
+          [attr.aria-label]="'Copy short URL for ' + rowActionLabel(row)"
+          (click)="onCopy(row)"
+        >
+          <mat-icon>content_copy</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          type="button"
+          matTooltip="Open analytics"
+          [attr.aria-label]="'Open analytics for ' + rowActionLabel(row)"
+          (click)="onStats(row)"
+        >
+          <mat-icon>analytics</mat-icon>
+        </button>
+      </div>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="cols"></tr>
+  <tr mat-row *matRowDef="let row; columns: cols"></tr>
+  <tr class="mat-row" *matNoDataRow>
+    <td class="mat-cell px-0 py-8 text-center" [attr.colspan]="cols.length">
+      @if (loading()) {
+        <p class="m-0 text-[13px] text-app-muted">Loading links…</p>
+      } @else if (searchTerm().trim()) {
+        <p class="m-0 text-[13px] text-app-muted">No links match this search</p>
+      } @else if (workspaceFilterActive() && (totalUnfilteredCount() ?? 0) > 0) {
+        <p class="m-0 text-sm font-medium text-app-foreground">No links in this site</p>
+        <p class="mt-1 text-[13px] text-app-muted">
+          Switch site in the header menu or choose All sites to see everything.
+        </p>
+      } @else {
+        <p class="m-0 text-sm font-medium text-app-foreground">No links yet</p>
+        <p class="mt-1 text-[13px] text-app-muted">Create your first short link to start sharing</p>
+        <button mat-flat-button color="primary" class="mt-4" (click)="onCreate()">
+          <mat-icon>add_link</mat-icon>
+          Create link
+        </button>
+      }
+    </td>
+  </tr>
+</table>

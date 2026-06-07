@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ResourceCardComponent } from '../../../../shared/components/resource-card/resource-card.component';
@@ -28,7 +28,8 @@ const EMPTY_METRICS: RedirectTestsMetrics = {
   selector: 'app-redirect-tests-summary-card',
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatIconModule, ResourceCardComponent],
-  templateUrl: './redirect-tests-summary-card.component.html'
+  templateUrl: './redirect-tests-summary-card.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RedirectTestsSummaryCardComponent {
   readonly activeGroupId = input('');

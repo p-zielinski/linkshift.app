@@ -4,9 +4,13 @@ Invite teammates, review seat usage, and create organization API keys for the Ma
 
 Sign in as a member of the organization. **Send invite** is available only to organization **owners** with a free seat.
 
+:::info
+In **Campaign** view, open **Settings** → **Manage team** to reach the same organization pages. In **Advanced** view, open **Organization** in the sidebar.
+:::
+
 ## Organization
 
-Open **Organization** in the sidebar.
+Open **Organization** in the sidebar (Advanced view), or **Settings** → **Manage team** (Campaign view).
 
 ### Team seats
 

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -59,6 +59,7 @@ export type LinkMapEntriesImportDialogResult = {
   ],
   templateUrl: './link-map-entries-import-dialog.component.html',
   styleUrl: './link-map-entries-import-dialog.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkMapEntriesImportDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<LinkMapEntriesImportDialogComponent>);
@@ -116,7 +117,7 @@ export class LinkMapEntriesImportDialogComponent {
       );
       this.result.set(result);
     } catch (error) {
-      this.submitError.set(extractErrorMessage(error, 'Unable to import entries.'));
+      this.submitError.set(extractErrorMessage(error, "Couldn't import entries."));
     } finally {
       this.running.set(false);
     }
@@ -139,7 +140,7 @@ export class LinkMapEntriesImportDialogComponent {
       );
       this.rolledBack.set(true);
     } catch (error) {
-      this.submitError.set(extractErrorMessage(error, 'Unable to rollback imported entries.'));
+      this.submitError.set(extractErrorMessage(error, "Couldn't roll back imported entries."));
     } finally {
       this.rollingBack.set(false);
     }

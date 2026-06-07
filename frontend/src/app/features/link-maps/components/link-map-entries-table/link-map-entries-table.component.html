@@ -1,60 +1,62 @@
-<table mat-table [dataSource]="entries()" class="min-w-[900px] w-full mat-elevation-z0">
+<table
+  mat-table
+  [dataSource]="rowViewModels()"
+  [trackBy]="trackRow"
+  aria-label="Link map entries"
+  class="table-fixed min-w-[900px] w-full mat-elevation-z0"
+>
   <ng-container matColumnDef="select">
     <th mat-header-cell *matHeaderCellDef class="w-[52px] px-2">
       <mat-checkbox
+        aria-label="Select all entries"
         [checked]="allSelected()"
         [indeterminate]="someSelected()"
         (change)="onToggleAll($event.checked)"
       />
     </th>
-    <td mat-cell *matCellDef="let entry" class="w-[52px] px-2">
+    <td mat-cell *matCellDef="let row" class="w-[52px] px-2">
       <mat-checkbox
-        [checked]="isSelected(entry.id)"
-        (change)="onToggleOne(entry.id, $event.checked)"
+        [attr.aria-label]="'Select entry ' + (row.entry.key || '(root)')"
+        [checked]="row.isSelected"
+        (change)="onToggleOne(row.entry.id, $event.checked)"
       />
     </td>
   </ng-container>
 
   <ng-container matColumnDef="key">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[240px] max-w-[360px] truncate"
-    >
-      Key
-    </th>
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[280px] truncate">Key</th>
     <td
       mat-cell
-      *matCellDef="let entry"
-      class="py-3 min-w-[240px] max-w-[360px] truncate font-medium"
-      [matTooltip]="entry.key"
+      *matCellDef="let row"
+      class="py-3 truncate max-w-0 font-medium"
+      [matTooltip]="row.entry.key"
     >
-      {{ entry.key || '(root)' }}
+      {{ row.entry.key || '(root)' }}
     </td>
   </ng-container>
 
   <ng-container matColumnDef="destination">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[320px] max-w-[560px] truncate"
-    >
-      Destination
-    </th>
+    <th mat-header-cell *matHeaderCellDef class="font-semibold truncate">Destination</th>
     <td
       mat-cell
-      *matCellDef="let entry"
-      class="py-3 min-w-[320px] max-w-[560px] truncate"
-      [matTooltip]="entry.destination"
+      *matCellDef="let row"
+      class="py-3 truncate max-w-0"
+      [matTooltip]="row.entry.destination"
     >
-      {{ entry.destination }}
+      {{ row.entry.destination }}
     </td>
   </ng-container>
 
   <ng-container matColumnDef="actions">
-    <th mat-header-cell *matHeaderCellDef class="min-w-[120px]"></th>
-    <td mat-cell *matCellDef="let entry" class="py-3 min-w-[120px]">
-      <button mat-icon-button matTooltip="Edit entry" (click)="onEdit(entry)">
+    <th mat-header-cell *matHeaderCellDef class="w-[72px]"></th>
+    <td mat-cell *matCellDef="let row" class="py-3 w-[72px]">
+      <button
+        mat-icon-button
+        type="button"
+        matTooltip="Edit entry"
+        [attr.aria-label]="'Edit entry ' + row.entry.key"
+        (click)="onEdit(row.entry)"
+      >
         <mat-icon>edit</mat-icon>
       </button>
     </td>
@@ -68,7 +70,7 @@
       [attr.colspan]="columns.length"
     >
       @if (loading()) {
-        Loading entries...
+        Loading entries…
       } @else {
         No entries found.
       }

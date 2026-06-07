@@ -1,6 +1,7 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   OnInit,
@@ -8,12 +9,12 @@ import {
   computed,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -65,7 +66,6 @@ const TRACE_URL_MAX_LENGTH = 1024 * 16;
     CommonModule,
     ReactiveFormsModule,
     MatButtonModule,
-    MatCardModule,
     MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
@@ -74,6 +74,7 @@ const TRACE_URL_MAX_LENGTH = 1024 * 16;
   ],
   templateUrl: './redirect-trace-tester-tool.component.html',
   styleUrl: './redirect-trace-tester-tool.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RedirectTraceTesterToolComponent implements OnInit {
   private readonly redirectTraceApi = inject(RedirectTraceApiService);
@@ -83,6 +84,7 @@ export class RedirectTraceTesterToolComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly showShareHint = input(true);
+  readonly traceCompleted = output<void>();
 
   readonly sourceUrlControl = new FormControl('http://', {
     nonNullable: true,
@@ -125,6 +127,14 @@ export class RedirectTraceTesterToolComponent implements OnInit {
     return preset?.value ?? '';
   });
   readonly finalDestination = computed(() => this.finalResolvedUrl());
+  readonly hopViews = computed(() =>
+    this.hops().map((hop) => ({
+      hop,
+      statusTone: resolveHopStatusTone(hop.status),
+      statusDescription: resolveHopStatusDescription(hop),
+      headerEntries: resolveHopHeaderEntries(hop.headers),
+    })),
+  );
 
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
@@ -159,56 +169,6 @@ export class RedirectTraceTesterToolComponent implements OnInit {
 
   async onTestClick(): Promise<void> {
     await this.trace(this.sourceUrlControl.value, true);
-  }
-
-  headerEntries(headers: Record<string, string>): Array<{ key: string; value: string }> {
-    return Object.entries(headers)
-      .map(([key, value]) => ({ key, value }))
-      .sort((a, b) => a.key.localeCompare(b.key));
-  }
-
-  statusDescription(hop: RedirectTraceHop): string {
-    if (hop.error) {
-      return `The request failed on this step: ${hop.error}.`;
-    }
-
-    if (hop.status === null) {
-      return 'No HTTP response status was returned for this step.';
-    }
-
-    if (hop.isRedirect && hop.destination) {
-      return `This URL returned ${hop.status} and redirected to the Location header target.`;
-    }
-
-    if (hop.status >= 200 && hop.status < 300) {
-      return 'This URL responded successfully and no further redirect was followed.';
-    }
-
-    if (hop.status >= 400 && hop.status < 500) {
-      return 'This URL returned a client error response.';
-    }
-
-    if (hop.status >= 500) {
-      return 'This URL returned a server error response.';
-    }
-
-    return 'This URL returned a non-redirect response.';
-  }
-
-  statusTone(status: number | null): 'redirect' | 'success' | 'error' | 'neutral' {
-    if (status === null) {
-      return 'neutral';
-    }
-    if ([301, 302, 303, 307, 308].includes(status)) {
-      return 'redirect';
-    }
-    if (status >= 200 && status < 300) {
-      return 'success';
-    }
-    if (status >= 400) {
-      return 'error';
-    }
-    return 'neutral';
   }
 
   private async trace(source: string, syncQuery: boolean): Promise<void> {
@@ -312,6 +272,8 @@ export class RedirectTraceTesterToolComponent implements OnInit {
           replaceUrl: true,
         });
       }
+
+      this.traceCompleted.emit();
     } catch (error) {
       this.hops.set([]);
       this.testedUrl.set(null);
@@ -379,7 +341,7 @@ export class RedirectTraceTesterToolComponent implements OnInit {
 
   private async resolveErrorMessage(error: unknown): Promise<string> {
     if (!(error instanceof HttpErrorResponse)) {
-      return 'Redirect trace failed. Please try again in a moment.';
+      return "Couldn't trace redirect. Try again in a moment.";
     }
 
     const details = await this.extractDetails(error.error);
@@ -388,14 +350,14 @@ export class RedirectTraceTesterToolComponent implements OnInit {
     }
 
     if (error.status === 429) {
-      return 'Too many requests. Please wait a moment and try again.';
+      return 'Too many requests. Wait a moment and try again.';
     }
 
     if (error.status === 400) {
       return 'Invalid URL. Use a complete URL or domain, e.g. https://linkshift.app.';
     }
 
-    return 'Redirect trace failed. Please try again in a moment.';
+    return "Couldn't trace redirect. Try again in a moment.";
   }
 
   private async extractDetails(payload: unknown): Promise<string | null> {
@@ -419,4 +381,58 @@ export class RedirectTraceTesterToolComponent implements OnInit {
 
     return null;
   }
+}
+
+type HopStatusTone = 'redirect' | 'success' | 'error' | 'neutral';
+
+function resolveHopStatusTone(status: number | null): HopStatusTone {
+  if (status === null) {
+    return 'neutral';
+  }
+  if ([301, 302, 303, 307, 308].includes(status)) {
+    return 'redirect';
+  }
+  if (status >= 200 && status < 300) {
+    return 'success';
+  }
+  if (status >= 400) {
+    return 'error';
+  }
+  return 'neutral';
+}
+
+function resolveHopStatusDescription(hop: RedirectTraceHop): string {
+  if (hop.error) {
+    return `This step didn't complete: ${hop.error}.`;
+  }
+
+  if (hop.status === null) {
+    return 'No HTTP response status was returned for this step.';
+  }
+
+  if (hop.isRedirect && hop.destination) {
+    return `This URL returned ${hop.status} and redirected to the Location header target.`;
+  }
+
+  if (hop.status >= 200 && hop.status < 300) {
+    return 'This URL returned a 2xx response with no further redirect.';
+  }
+
+  if (hop.status >= 400 && hop.status < 500) {
+    return 'This URL returned a client error response.';
+  }
+
+  if (hop.status >= 500) {
+    return 'This URL returned a server error response.';
+  }
+
+  return 'This URL returned a non-redirect response.';
+}
+
+function resolveHopHeaderEntries(
+  headers: Record<string, string>,
+): Array<{ key: string; value: string }> {
+  return Object.entries(headers)
+    .map(([key, value]) => ({ key, value }))
+    .sort((a, b) => a.key.localeCompare(b.key));
 }

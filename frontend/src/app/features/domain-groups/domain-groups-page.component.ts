@@ -1,4 +1,6 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -14,6 +16,9 @@ import { ResourcePageShellComponent } from '../../shared/components/resource-pag
 import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
 import { DomainGroupsTableComponent } from './components/domain-groups-table/domain-groups-table.component';
 import { WizardDialogService } from '../../core/services/wizard-dialog.service';
+import { areRowsEqualByIdAndUpdatedAt } from '../../core/utils/signal-list-equality.util';
+import { DashboardDialogQueueService } from '../dashboard/services/dashboard-dialog-queue.service';
+import { DASHBOARD_OPEN_CREATE_QUERY } from '../dashboard/services/dashboard-onboarding.service';
 
 @Component({
   selector: 'app-domain-groups-page',
@@ -28,7 +33,8 @@ import { WizardDialogService } from '../../core/services/wizard-dialog.service';
     ResourceTableCardComponent,
     DomainGroupsTableComponent,
   ],
-  templateUrl: './domain-groups-page.component.html'
+  templateUrl: './domain-groups-page.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DomainGroupsPageComponent {
   private readonly dialog = inject(MatDialog);
@@ -36,9 +42,17 @@ export class DomainGroupsPageComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly domainStore = inject(DomainStore);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly dialogQueue = inject(DashboardDialogQueueService);
+  private readonly pendingOpenCreateFromQuery = signal(false);
 
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly domains = this.domainStore.selectList();
+  readonly loading = computed(
+    () => this.domainGroupStore.isLoading()[DEFAULT_LIST_KEY] ?? false,
+  );
   readonly domainsLoaded = computed(() => !!this.domainStore.list()[DEFAULT_LIST_KEY]);
   readonly pageLimitOptions = [10, 20, 50];
   readonly pageLimit = signal(20);
@@ -48,12 +62,15 @@ export class DomainGroupsPageComponent {
   readonly pageCount = computed(() =>
     Math.max(1, Math.ceil(this.totalGroups() / this.pageLimit()))
   );
-  readonly pagedGroups = computed(() => {
-    const limit = this.pageLimit();
-    const page = this.page();
-    const start = (page - 1) * limit;
-    return this.domainGroups().slice(start, start + limit);
-  });
+  readonly pagedGroups = computed(
+    () => {
+      const limit = this.pageLimit();
+      const page = this.page();
+      const start = (page - 1) * limit;
+      return this.domainGroups().slice(start, start + limit);
+    },
+    { equal: areRowsEqualByIdAndUpdatedAt },
+  );
   readonly hasNextPage = computed(() => this.page() < this.pageCount());
 
   readonly domainCounts = computed(() => {
@@ -79,6 +96,22 @@ export class DomainGroupsPageComponent {
         this.page.set(maxPage);
       }
     });
+
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((query) => {
+      this.pendingOpenCreateFromQuery.set(query.get(DASHBOARD_OPEN_CREATE_QUERY) === '1');
+    });
+
+    effect(() => {
+      if (!this.pendingOpenCreateFromQuery() || this.loading()) {
+        return;
+      }
+
+      this.pendingOpenCreateFromQuery.set(false);
+      this.dialogQueue.runWhenIdle(() => {
+        this.openCreateDialog();
+        this.clearOpenCreateQueryParam();
+      });
+    });
   }
 
   openCreateDialog(): void {
@@ -86,7 +119,7 @@ export class DomainGroupsPageComponent {
       DomainGroupFormDialogComponent,
       DomainGroupDialogData,
       boolean
-    >(DomainGroupFormDialogComponent);
+    >(DomainGroupFormDialogComponent, undefined, 0, { size: 'compact' });
   }
 
   openEditDialog(group: DomainGroup): void {
@@ -96,7 +129,7 @@ export class DomainGroupsPageComponent {
       boolean
     >(DomainGroupFormDialogComponent, {
       group
-    });
+    }, 0, { size: 'compact' });
   }
 
   confirmDelete(groupId: string): void {
@@ -126,7 +159,7 @@ export class DomainGroupsPageComponent {
       }
     });
 
-    dialogRef.afterClosed().subscribe((confirmed) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((confirmed) => {
       if (confirmed) {
         this.domainGroupStore.remove(groupId);
       }
@@ -140,5 +173,14 @@ export class DomainGroupsPageComponent {
   onPageLimitChange(limit: number): void {
     this.pageLimit.set(limit);
     this.page.set(1);
+  }
+
+  private clearOpenCreateQueryParam(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { [DASHBOARD_OPEN_CREATE_QUERY]: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 }

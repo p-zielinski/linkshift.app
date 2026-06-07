@@ -144,8 +144,8 @@ pages:
     source: pages/guides/dashboard/dashboard-overview.md
     route: /docs/guides/dashboard-overview
     description: >-
-      Dashboard app shell, sidebar, Ask docs assistant, domain-group gate, home
-      usage, profile email, and billing summary.
+      Dashboard app shell, Campaign and Advanced views, Need help? and Ask docs,
+      workspace selector, domain-group gate, plan usage, profile, and billing.
 
   - slug: domain-groups-in-dashboard
     category: guide

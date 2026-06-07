@@ -35,25 +35,23 @@
 
   @if (!running() && failures().length > 0) {
     <div class="rounded-xl border border-app-border-soft bg-app-muted/5 p-3 text-sm">
-      <div class="font-semibold text-app-foreground">Failed tests</div>
+      <div class="font-semibold text-app-foreground">Tests that didn't pass</div>
       <div class="mt-2 grid gap-3">
-        @for (failure of failures(); track failure.test.id) {
+        @for (row of failureRowViews(); track row.failure.test.id) {
           <div class="rounded-lg border border-app-border-soft bg-white/60 p-3">
             <div class="flex items-start justify-between gap-3">
               <div>
                 <div class="font-semibold text-app-foreground">
-                  {{ failure.test.pathWithQuery }}
+                  {{ row.failure.test.pathWithQuery }}
                 </div>
-                <div class="text-[12px] text-app-muted">
-                  Expected: {{ formatExpected(failure.test) }}
-                </div>
-                <div class="text-[12px] text-app-muted">Actual: {{ formatActual(failure) }}</div>
+                <div class="text-[12px] text-app-muted">Expected: {{ row.expectedText }}</div>
+                <div class="text-[12px] text-app-muted">Actual: {{ row.actualText }}</div>
               </div>
               <button
                 mat-stroked-button
                 color="primary"
                 type="button"
-                (click)="openDetails(failure.test)"
+                (click)="openDetails(row.failure.test)"
               >
                 Details
               </button>

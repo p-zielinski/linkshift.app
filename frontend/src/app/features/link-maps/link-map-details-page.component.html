@@ -1,4 +1,8 @@
-<app-resource-page-shell [title]="linkMap()?.name || 'Link map'" [subtitle]="mapSubtitle()">
+<app-resource-page-shell
+  [title]="linkMap()?.name || 'Link map'"
+  [subtitle]="mapSubtitle()"
+  [bodyScroll]="false"
+>
   <div page-actions class="flex flex-wrap items-center gap-2">
     <button mat-stroked-button type="button" (click)="goBack()">
       <mat-icon>arrow_back</mat-icon>

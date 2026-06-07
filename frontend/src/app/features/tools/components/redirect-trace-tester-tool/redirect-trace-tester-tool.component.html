@@ -1,5 +1,5 @@
 <div class="trace-grid">
-  <mat-card class="trace-input-card">
+  <div class="trace-input-card">
     <h3>Test redirects</h3>
     <p class="text-[13px] text-app-muted">
       Enter a full URL, FQDN, or path. Example: <code>example.com</code> or
@@ -42,7 +42,7 @@
     <div class="mt-2 flex flex-wrap items-center gap-3">
       <button mat-flat-button color="primary" type="button" (click)="onTestClick()">
         <mat-icon>alt_route</mat-icon>
-        <span>{{ isTesting() ? 'Testing...' : 'Test redirect trace' }}</span>
+        <span>{{ isTesting() ? 'Testing…' : 'Test redirect trace' }}</span>
       </button>
     </div>
 
@@ -61,9 +61,9 @@
         {{ noticeMessage() }}
       </div>
     }
-  </mat-card>
+  </div>
 
-  <mat-card class="trace-summary-card">
+  <div class="trace-summary-card">
     <div class="summary-title">Current result</div>
     @if (testedUrl()) {
       <div class="summary-row">
@@ -94,45 +94,45 @@
         share it.
       </div>
     }
-  </mat-card>
+  </div>
 </div>
 
 @if (hasResults()) {
-  <mat-card class="trace-results-card">
+  <div class="trace-results-card">
     <mat-accordion class="trace-accordion" multi>
-      @for (hop of hops(); track hop.hop) {
-        <mat-expansion-panel [expanded]="hop.hop === 1">
+      @for (view of hopViews(); track view.hop.hop) {
+        <mat-expansion-panel [expanded]="view.hop.hop === 1">
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <span class="status-chip" [class]="'tone-' + statusTone(hop.status)">
-                {{ hop.status ?? 'ERR' }}
+              <span class="status-chip" [class]="'tone-' + view.statusTone">
+                {{ view.hop.status ?? 'ERR' }}
               </span>
-              <span class="ml-2">{{ hop.url }}</span>
+              <span class="ml-2">{{ view.hop.url }}</span>
             </mat-panel-title>
-            <mat-panel-description>{{ hop.latencyMs }} ms (est.)</mat-panel-description>
+            <mat-panel-description>{{ view.hop.latencyMs }} ms (est.)</mat-panel-description>
           </mat-expansion-panel-header>
 
-          @if (hop.destination) {
-            <div class="hop-target">Redirecting to {{ hop.destination }}</div>
+          @if (view.hop.destination) {
+            <div class="hop-target">Redirecting to {{ view.hop.destination }}</div>
           }
 
-          @if (hop.error) {
+          @if (view.hop.error) {
             <div
               class="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700"
             >
-              {{ hop.error }}
+              {{ view.hop.error }}
             </div>
           }
 
           <div class="mt-3 text-[13px] text-app-muted">
             <strong>What does this mean?</strong>
-            <div>{{ statusDescription(hop) }}</div>
+            <div>{{ view.statusDescription }}</div>
           </div>
 
           <div class="details-grid mt-4">
             <div class="detail-item">
               <div class="detail-label">Response time (estimate)</div>
-              <div class="detail-value">{{ hop.latencyMs }} ms</div>
+              <div class="detail-value">{{ view.hop.latencyMs }} ms</div>
               <div class="mt-1 text-[12px] text-app-muted">
                 Indicative only. Real user latency can differ by client location, network path, and
                 edge routing.
@@ -140,14 +140,14 @@
             </div>
             <div class="detail-item">
               <div class="detail-label">Server</div>
-              <div class="detail-value">{{ hop.server || 'n/a' }}</div>
+              <div class="detail-value">{{ view.hop.server || 'n/a' }}</div>
             </div>
           </div>
 
           <div class="mt-4">
             <div class="detail-label">Headers</div>
             <div class="header-list">
-              @for (entry of headerEntries(hop.headers); track entry.key) {
+              @for (entry of view.headerEntries; track entry.key) {
                 <div class="header-row">
                   <div class="header-key">{{ entry.key }}</div>
                   <div class="header-value">{{ entry.value }}</div>
@@ -166,5 +166,5 @@
         {{ progressMessage() }}
       </div>
     }
-  </mat-card>
+  </div>
 }

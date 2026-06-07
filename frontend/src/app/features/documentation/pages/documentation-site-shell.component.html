@@ -21,76 +21,105 @@
   </mat-sidenav>
 
   <mat-sidenav-content class="flex min-h-0 flex-col">
-    @if (!isMobile()) {
-      <mat-toolbar
-        class="docs-site-toolbar sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fafafa_0%,#fff_55%,#f5f4f6_100%)] text-[#241c21]"
-      >
-        <div class="mx-auto flex w-full max-w-[1280px] flex-wrap items-center gap-4 px-4 py-2">
-          <a class="inline-flex items-center gap-2.5 no-underline text-inherit" routerLink="/home">
+    <mat-toolbar
+      class="docs-site-toolbar sticky top-0 z-10 h-auto min-h-0 border-b border-[rgba(33,33,33,0.08)] bg-[linear-gradient(120deg,#fafafa_0%,#fff_55%,#f5f4f6_100%)] text-[#241c21]"
+    >
+      <div class="mx-auto flex w-full max-w-[1280px] flex-wrap items-center gap-4 px-4 py-2">
+        <div class="inline-flex items-center gap-3">
+          <button
+            mat-icon-button
+            type="button"
+            class="md:hidden"
+            aria-label="Open menu"
+            (click)="toggleDocsNav()"
+          >
+            <mat-icon>menu</mat-icon>
+          </button>
+          <a class="inline-flex items-center gap-2.5 no-underline text-inherit" routerLink="/">
             <app-logo />
           </a>
+        </div>
 
-          <span class="flex-1"></span>
+        <span class="flex-1"></span>
 
-          <nav class="hidden items-center gap-1 md:inline-flex">
-            <a
-              mat-button
-              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-              routerLink="/home"
-              routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
-              >Home</a
-            >
-            <a
-              mat-button
-              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-              routerLink="/use-cases"
-              routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
-              >Use Cases</a
-            >
-            <a
-              mat-button
-              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-              routerLink="/docs"
-              routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
-              >Docs</a
-            >
-            <a
-              mat-button
-              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-              routerLink="/blog"
-              routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
-              >Blog</a
-            >
-            <a
-              mat-button
-              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-              routerLink="/pricing"
-              routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
-              >Pricing</a
-            >
-            <a
-              mat-button
-              class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
-              routerLink="/contact"
-              routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
-              >Contact</a
-            >
-          </nav>
+        <nav class="hidden items-center gap-1 md:inline-flex">
+          <a
+            mat-button
+            class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+            routerLink="/"
+            [routerLinkActiveOptions]="{ exact: true }"
+            routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+            >Home</a
+          >
+          <a
+            mat-button
+            class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+            routerLink="/use-cases"
+            routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+            >Use Cases</a
+          >
+          <a
+            mat-button
+            class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+            routerLink="/docs"
+            routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+            >Docs</a
+          >
+          <a
+            mat-button
+            class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+            routerLink="/blog"
+            routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+            >Blog</a
+          >
+          <a
+            mat-button
+            class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+            routerLink="/pricing"
+            routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+            >Pricing</a
+          >
+          <a
+            mat-button
+            class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
+            routerLink="/contact"
+            routerLinkActive="!rounded-full !bg-[rgba(192,55,98,0.14)] !font-semibold !text-[var(--app-accent-strong)]"
+            >Contact</a
+          >
+        </nav>
 
-          <div class="hidden items-center gap-2 md:inline-flex">
+        <div class="md:hidden">
+          @if (isAuthenticated()) {
+            <a mat-flat-button color="primary" [routerLink]="appLandingPath()">Go to app</a>
+          } @else {
+            <a mat-flat-button color="primary" routerLink="/auth">Start now</a>
+          }
+        </div>
+
+        <div class="hidden items-center gap-2 md:inline-flex">
+          @if (isAuthenticated()) {
+            <a
+              mat-flat-button
+              color="primary"
+              class="app-cta-button"
+              [routerLink]="appLandingPath()"
+              >Go to app</a
+            >
+          } @else {
             <a
               mat-button
               class="!text-[#2b2127] hover:!text-[var(--app-accent-strong)]"
               routerLink="/auth"
+              (click)="onSignInClick($event)"
               >Sign in</a
             >
             <a mat-flat-button color="primary" class="app-cta-button" routerLink="/auth"
               >Start now</a
             >
-          </div>
+          }
         </div>
-      </mat-toolbar>
-    }
+      </div>
+    </mat-toolbar>
 
     <main class="docs-site-content flex-1 overflow-hidden">
       <router-outlet />

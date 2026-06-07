@@ -1,7 +1,9 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   ElementRef,
   PLATFORM_ID,
@@ -19,15 +21,14 @@ import { MatListModule } from '@angular/material/list';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DocumentationOpenApiService } from '../services/documentation-openapi.service';
 import { DocumentationContentService } from '../services/documentation-content.service';
 import { DocumentationScrollService } from '../services/documentation-scroll.service';
-import { DocumentationSidebarNavGroup } from '../utils/documentation-sidebar-groups.util';
-import { OpenApiTagGroup } from '../models/openapi.types';
-import { LogoComponent } from '../../../shared/components/logo/logo.component';
+import { AuthStore } from '../../../core/store/auth.store';
+import { DashboardModeService } from '../../../core/layout/dashboard-mode.service';
 import { DocsAssistantDrawerService } from '../services/docs-assistant-drawer.service';
+import { DocsNavDrawerService } from '../services/docs-nav-drawer.service';
 
 const MOBILE_BREAKPOINT = '(max-width: 1023px)';
 const SMALL_SCREEN_BREAKPOINT = '(max-width: 767px)';
@@ -45,12 +46,11 @@ const SMALL_SCREEN_BREAKPOINT = '(max-width: 767px)';
     MatExpansionModule,
     MatIconModule,
     MatButtonModule,
-    MatToolbarModule,
     MatProgressSpinnerModule,
-    LogoComponent,
   ],
   templateUrl: './documentation-shell.component.html',
   styleUrl: './documentation-shell.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DocumentationShellComponent implements AfterViewInit {
   readonly openApi = inject(DocumentationOpenApiService);
@@ -61,11 +61,14 @@ export class DocumentationShellComponent implements AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly authStore = inject(AuthStore);
+  private readonly dashboardMode = inject(DashboardModeService);
   private readonly assistantDrawer = inject(DocsAssistantDrawerService);
+  private readonly docsNavDrawer = inject(DocsNavDrawerService);
 
   readonly isMobile = signal(false);
   readonly isSmallScreen = signal(false);
-  readonly mobileDrawerOpen = signal(false);
+  readonly docsNavDrawerOpen = this.docsNavDrawer.open;
   readonly manuallyExpandedEndpointGroups = signal<string[]>([]);
   readonly manuallyExpandedNavGroups = signal<string[]>([]);
   readonly assistantDrawerOpen = this.assistantDrawer.open;
@@ -100,7 +103,7 @@ export class DocumentationShellComponent implements AfterViewInit {
         this.isMobile.set(isMobile);
         this.isSmallScreen.set(state.breakpoints[SMALL_SCREEN_BREAKPOINT] ?? false);
         if (!isMobile) {
-          this.mobileDrawerOpen.set(false);
+          this.docsNavDrawer.close();
         }
       });
   }
@@ -118,32 +121,54 @@ export class DocumentationShellComponent implements AfterViewInit {
     { initialValue: this.router.url.split('?')[0] ?? this.router.url },
   );
 
-  readonly siteLinks = [
-    { label: 'Home', route: '/home' },
+  private readonly marketingSiteLinks = [
+    { label: 'Home', route: '/' },
     { label: 'Use Cases', route: '/use-cases' },
     { label: 'Docs', route: '/docs' },
     { label: 'Blog', route: '/blog' },
     { label: 'Pricing', route: '/pricing' },
     { label: 'Contact', route: '/contact' },
-    { label: 'Go to app', route: '/auth' },
-  ];
+  ] as const;
 
-  toggleDrawer(): void {
-    this.mobileDrawerOpen.set(!this.mobileDrawerOpen());
+  readonly siteLinks = computed(() => {
+    if (this.authStore.isAuthenticated()) {
+      return [
+        ...this.marketingSiteLinks,
+        { label: 'Go to app', route: this.dashboardMode.defaultLandingPath() },
+      ];
+    }
+
+    return [
+      ...this.marketingSiteLinks,
+      { label: 'Sign in', route: '/auth' },
+      { label: 'Start now', route: '/auth' },
+    ];
+  });
+
+  onDocsNavDrawerOpenedChange(opened: boolean): void {
+    if (this.isMobile()) {
+      this.docsNavDrawer.setOpen(opened);
+    }
   }
 
   closeDrawerOnMobile(): void {
     if (this.isMobile()) {
-      this.mobileDrawerOpen.set(false);
+      this.docsNavDrawer.close();
     }
   }
 
-  isNavGroupExpanded(group: DocumentationSidebarNavGroup): boolean {
+  readonly navGroupExpansion = computed(() => {
     const activePath = this.currentRoutePath();
-    const isActiveGroup = group.pages.some((page) => page.route === activePath);
+    const manuallyExpanded = new Set(this.manuallyExpandedNavGroups());
+    const expansion: Record<string, boolean> = {};
 
-    return isActiveGroup || this.manuallyExpandedNavGroups().includes(group.id);
-  }
+    for (const group of this.sidebarNavGroups) {
+      const isActiveGroup = group.pages.some((page) => page.route === activePath);
+      expansion[group.id] = isActiveGroup || manuallyExpanded.has(group.id);
+    }
+
+    return expansion;
+  });
 
   onNavGroupOpened(groupId: string): void {
     if (this.manuallyExpandedNavGroups().includes(groupId)) {
@@ -165,14 +190,20 @@ export class DocumentationShellComponent implements AfterViewInit {
     this.closeDrawerOnMobile();
   }
 
-  isEndpointGroupExpanded(group: OpenApiTagGroup): boolean {
+  readonly endpointGroupExpansion = computed(() => {
     const activePath = this.currentRoutePath();
-    const isActiveGroup = group.endpoints.some(
-      (endpoint) => `/docs/api/${endpoint.id}` === activePath,
-    );
+    const manuallyExpanded = new Set(this.manuallyExpandedEndpointGroups());
+    const expansion: Record<string, boolean> = {};
 
-    return isActiveGroup || this.manuallyExpandedEndpointGroups().includes(group.tag);
-  }
+    for (const group of this.openApi.tagGroups()) {
+      const isActiveGroup = group.endpoints.some(
+        (endpoint) => `/docs/api/${endpoint.id}` === activePath,
+      );
+      expansion[group.tag] = isActiveGroup || manuallyExpanded.has(group.tag);
+    }
+
+    return expansion;
+  });
 
   onEndpointGroupOpened(tag: string): void {
     if (this.manuallyExpandedEndpointGroups().includes(tag)) {
@@ -206,13 +237,6 @@ export class DocumentationShellComponent implements AfterViewInit {
 
   closeAssistantDrawer(): void {
     this.assistantDrawer.closeDrawer();
-  }
-
-  toggleAssistantDrawer(): void {
-    if (!this.assistantDrawerOpen()) {
-      this.closeDrawerOnMobile();
-    }
-    this.assistantDrawer.toggleDrawer();
   }
 
 }

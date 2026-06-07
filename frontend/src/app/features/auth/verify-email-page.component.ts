@@ -59,7 +59,7 @@ export class VerifyEmailPageComponent {
           return this.authApi.verifyEmail({ token }).pipe(
             catchError((error) => {
               const message =
-                error instanceof Error ? error.message : 'Verification failed.';
+                error instanceof Error ? error.message : "Couldn't verify email. Try again.";
               this.error.set(message);
               return of(null);
             }),

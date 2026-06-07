@@ -1,10 +1,19 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { form, required, FormField } from '@angular/forms/signals';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
@@ -26,6 +35,7 @@ import type {
 } from '../../core/models/redirect-rule.model';
 import type { LinkMap } from '../../core/models/link-map.model';
 import { CREATE_ENTITY_ID, getFilterKey } from '../../core/store/entity/entity-store.utils';
+import { notifyStoreError } from '../../core/store/store-error.utils';
 import { HttpMethod } from '../../core/models/http-method.model';
 import { ensureLeadingSlash, splitPathWithQuery } from '../tests/redirect-test.utils';
 import type { RedirectTestFormPrefill } from '../tests/redirect-test-form-dialog.component';
@@ -34,18 +44,11 @@ import {
   WizardStepDirective,
   WizardStepSummaryDirective,
 } from '../../shared/components/wizard/wizard-step.directive';
-import { WizardDialogService } from '../../core/services/wizard-dialog.service';
-import {
-  LinkMapFormDialogComponent,
-  type LinkMapDialogData,
-  type LinkMapDialogResult,
-} from '../link-maps/link-map-form-dialog.component';
 import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
 import { AuthStore } from '../../core/store/auth.store';
-import { OrganizationConfiguration } from '@shared/models/organization-config.model';
-import { UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
+import { resolveOrganizationConfig } from '../../core/utils/organization-config.util';
 
-type RedirectRuleFormModel = {
+export type RedirectRuleFormDraft = {
   domainGroupId: string;
   source: string;
   destination: string;
@@ -57,16 +60,32 @@ type RedirectRuleFormModel = {
   priority: string;
 };
 
+type RedirectRuleFormModel = RedirectRuleFormDraft;
 
 export type RedirectRuleDialogData = {
   domainGroupId?: string;
   rule?: RedirectRule;
+  resumeDraft?: RedirectRuleFormDraft;
+  activeStepId?: string;
+};
+
+export type RedirectRuleLinkMapWizardRequest = {
+  domainGroupId: string;
+  linkMapId?: string;
+};
+
+export type RedirectRuleDialogResumeData = {
+  rule?: RedirectRule;
+  draft: RedirectRuleFormDraft;
+  activeStepId: string;
 };
 
 export type RedirectRuleDialogResult = {
   saved: boolean;
   openTestWizard?: boolean;
   testPrefill?: RedirectTestFormPrefill;
+  openLinkMapWizard?: RedirectRuleLinkMapWizardRequest;
+  resumeRuleDialog?: RedirectRuleDialogResumeData;
 };
 
 @Component({
@@ -79,6 +98,7 @@ export type RedirectRuleDialogResult = {
     MatButtonModule,
     MatSelectModule,
     MatExpansionModule,
+    MatSnackBarModule,
     FormField,
     WizardComponent,
     WizardStepDirective,
@@ -86,6 +106,7 @@ export type RedirectRuleDialogResult = {
   ],
   templateUrl: './redirect-rule-form-dialog.component.html',
   styleUrl: './redirect-rule-form-dialog.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RedirectRuleFormDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<RedirectRuleFormDialogComponent>);
@@ -94,9 +115,9 @@ export class RedirectRuleFormDialogComponent {
   });
   private readonly redirectRuleStore = inject(RedirectRuleStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly redirectTestResultsStore = inject(RedirectTestResultsStore);
   private readonly linkMapStore = inject(LinkMapStore);
-  private readonly wizardDialog = inject(WizardDialogService);
   private readonly usageStore = inject(OrganizationUsageStore);
   private readonly authStore = inject(AuthStore);
 
@@ -111,6 +132,12 @@ export class RedirectRuleFormDialogComponent {
     return `${title} for domain group ${this.selectedGroupLabel()}`;
   });
   readonly submitLabel = this.isEdit ? 'Save' : 'Create';
+  readonly effectiveSubmitLabel = computed(() => {
+    if (this.pendingSubmit() || this.ruleForm().submitting()) {
+      return this.isEdit ? 'Saving…' : 'Creating…';
+    }
+    return this.submitLabel;
+  });
   readonly subtitle = this.isEdit
     ? 'Update how this rule matches requests and routes traffic.'
     : 'Define how requests should be matched and routed.';
@@ -126,12 +153,10 @@ export class RedirectRuleFormDialogComponent {
     return this.groupMap()[groupId]?.name ?? groupId;
   });
   readonly selectedGroupId = computed(() => this.ruleModel().domainGroupId);
-  readonly config = computed(() => {
-    const org = this.authStore.organization();
-    const rawConfig = org?.configuration ?? undefined;
-    return OrganizationConfiguration.fromJson(rawConfig);
-  });
-  readonly limits = computed(() => this.config().activeSubscription.limits ?? UNMETERED_PLAN_LIMITS);
+  readonly config = computed(() =>
+    resolveOrganizationConfig(this.authStore.organization()?.configuration),
+  );
+  readonly limits = computed(() => this.config().activeSubscription.limits);
   readonly usage = computed(() => this.usageStore.usage());
   readonly usageLoading = computed(() => this.usageStore.isLoading());
   readonly usageError = computed(() => this.usageStore.error());
@@ -151,25 +176,30 @@ export class RedirectRuleFormDialogComponent {
   readonly linkMapLimitLabel = computed(() => {
     const usage = this.usage();
     if (!usage) {
-      return this.usageLoading() ? 'Loading limits...' : 'Usage unavailable.';
+      return this.usageLoading() ? 'Loading limits…' : 'Usage unavailable.';
     }
     return `${usage.linkMaps}/${this.limits().maxLinkMaps} link maps used`;
   });
 
   private readonly initialStatusCode = this.rule?.statusCode ?? 302;
 
-  ruleModel = signal({
-    domainGroupId: this.rule?.domainGroupId ?? this.data?.domainGroupId ?? '',
-    source: this.rule?.source ?? '',
-    destination: this.rule?.destination ?? (this.rule?.linkMapId ? '' : 'https://'),
-    statusCode: String(this.initialStatusCode),
-    matchMethod: this.rule?.matchMethod ?? [],
-    queryMatch: this.rule?.queryMatch ?? 'exact',
-    pathMatch: this.rule?.pathMatch ?? 'exact',
-    linkMapId: this.rule?.linkMapId ?? null,
-    priority: String(this.rule?.priority ?? 0),
-  });
+  ruleModel = signal<RedirectRuleFormDraft>(
+    this.data?.resumeDraft ?? {
+      domainGroupId: this.rule?.domainGroupId ?? this.data?.domainGroupId ?? '',
+      source: this.rule?.source ?? '',
+      destination: this.rule?.destination ?? (this.rule?.linkMapId ? '' : 'https://'),
+      statusCode: String(this.initialStatusCode),
+      matchMethod: this.rule?.matchMethod ?? [],
+      queryMatch: this.rule?.queryMatch ?? 'exact',
+      pathMatch: this.rule?.pathMatch ?? 'exact',
+      linkMapId: this.rule?.linkMapId ?? null,
+      priority: String(this.rule?.priority ?? 0),
+    },
+  );
 
+  readonly activeStepId = signal(this.data?.activeStepId ?? 'scope');
+  private readonly wizard = viewChild(WizardComponent);
+  private readonly resumeStepApplied = signal(false);
   readonly pendingSubmit = signal(false);
   private readonly submitKey = signal(CREATE_ENTITY_ID);
   private readonly submitErrorSequence = signal(0);
@@ -193,30 +223,35 @@ export class RedirectRuleFormDialogComponent {
     applyZodField(f.priority, redirectRuleSchema.shape.priority);
   });
 
-  field(key: keyof RedirectRuleFormModel): any {
-    return (this.ruleForm as unknown as Record<string, unknown>)[key];
-  }
+  readonly domainGroupIdField = this.ruleForm.domainGroupId;
+  readonly priorityField = this.ruleForm.priority;
+  readonly sourceField = this.ruleForm.source;
+  readonly matchMethodField = this.ruleForm.matchMethod;
+  readonly pathMatchField = this.ruleForm.pathMatch;
+  readonly queryMatchField = this.ruleForm.queryMatch;
+  readonly linkMapIdField = this.ruleForm.linkMapId;
+  readonly destinationField = this.ruleForm.destination;
+  readonly statusCodeField = this.ruleForm.statusCode;
 
-  formatMatchMethods(methods: HttpMethod[] | undefined): string {
-    if (!methods || methods.length === 0) {
-      return 'All methods';
+  readonly selectedLinkMapDetails = computed(() => {
+    const map = this.selectedLinkMap();
+    if (!map) {
+      return null;
     }
-    return methods.join(', ');
-  }
-
-  formatPathMatch(value: RedirectPathMatch): string {
-    return value === 'prefix' ? 'Prefix' : 'Exact';
-  }
-
-  formatQueryMatch(value: RedirectQueryMatch): string {
-    if (value === 'ignore') {
-      return 'Ignore';
-    }
-    if (value === 'subset') {
-      return 'Subset';
-    }
-    return 'Exact';
-  }
+    return {
+      queryMatchLabel: formatQueryMatchLabel(map.queryMatch),
+      caseSensitiveLabel: map.caseSensitive ? 'yes' : 'no',
+      fallbackLabel: map.fallbackDestination || 'none',
+    };
+  });
+  readonly reviewSummaryLabels = computed(() => {
+    const model = this.ruleModel();
+    return {
+      matchMethods: formatMatchMethodsLabel(model.matchMethod),
+      pathMatch: formatPathMatchLabel(model.pathMatch),
+      queryMatch: formatQueryMatchLabel(model.queryMatch),
+    };
+  });
 
   sourceError = computed(() => this.getFieldError(this.ruleForm.source()));
   destinationError = computed(() => this.getFieldError(this.ruleForm.destination()));
@@ -323,13 +358,17 @@ export class RedirectRuleFormDialogComponent {
     );
   });
   readonly submitDisabled = computed(
-    () => !this.canSubmit() || this.ruleForm().submitting() || this.pendingSubmit(),
+    () =>
+      this.activeStepId() !== 'summary' ||
+      !this.canSubmit() ||
+      this.ruleForm().submitting() ||
+      this.pendingSubmit(),
   );
   readonly submitTooltip = computed(() => {
     const errors = new Set<string>();
 
     if (this.pendingSubmit() || this.ruleForm().submitting()) {
-      errors.add('Saving in progress...');
+      errors.add('Saving…');
     }
     if (!this.ruleForm.domainGroupId().valid()) {
       errors.add('Domain group is missing.');
@@ -620,6 +659,7 @@ export class RedirectRuleFormDialogComponent {
     this.usageStore.loadUsage();
     this.observeLinkMapSelection();
     this.observeLinkMapList();
+    this.observeResumeWizardStep();
 
     effect(() => {
       if (!this.pendingSubmit()) {
@@ -644,19 +684,42 @@ export class RedirectRuleFormDialogComponent {
       this.submitLoadingSeen.set(false);
       this.submitKey.set(CREATE_ENTITY_ID);
 
-      if (!hadError) {
-        this.redirectTestResultsStore.clearAll();
-        if (!this.isEdit) {
-          const lastValue = this.lastSubmittedValue();
-          const testPrefill = lastValue ? this.buildTestPrefill(lastValue) : undefined;
-          this.dialogRef.close({
-            saved: true,
-            openTestWizard: true,
-            testPrefill,
-          });
-          return;
-        }
-        this.dialogRef.close({ saved: true });
+      if (hadError) {
+        notifyStoreError(this.snackBar, this.redirectRuleStore);
+        return;
+      }
+
+      this.redirectTestResultsStore.clearAll();
+      if (!this.isEdit) {
+        const lastValue = this.lastSubmittedValue();
+        const testPrefill = lastValue ? this.buildTestPrefill(lastValue) : undefined;
+        this.dialogRef.close({
+          saved: true,
+          openTestWizard: true,
+          testPrefill,
+        });
+        return;
+      }
+      this.dialogRef.close({ saved: true });
+    });
+  }
+
+  private observeResumeWizardStep(): void {
+    effect(() => {
+      if (this.resumeStepApplied() || !this.data?.activeStepId) {
+        return;
+      }
+
+      const wizard = this.wizard();
+      const steps = this.steps();
+      if (!wizard || steps.length === 0) {
+        return;
+      }
+
+      const index = steps.findIndex((step) => step.id === this.data!.activeStepId);
+      if (index >= 0) {
+        wizard.activeIndex = index;
+        this.resumeStepApplied.set(true);
       }
     });
   }
@@ -778,6 +841,10 @@ export class RedirectRuleFormDialogComponent {
     }
   }
 
+  onStepChange(stepId: string): void {
+    this.activeStepId.set(stepId);
+  }
+
   onCancel(): void {
     this.dialogRef.close(false);
   }
@@ -802,22 +869,15 @@ export class RedirectRuleFormDialogComponent {
     if (!groupId) {
       return;
     }
-    const dialogRef = this.wizardDialog.openWizard<
-      LinkMapFormDialogComponent,
-      LinkMapDialogData,
-      LinkMapDialogResult
-    >(LinkMapFormDialogComponent, { domainGroupId: groupId, linkMapId }, 1);
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (!result?.saved) {
-        return;
-      }
-      this.linkMapStore.searchList({ domainGroupId: groupId }, true);
-      this.usageStore.invalidateUsage();
-      this.usageStore.loadUsage(true);
-      if (result.linkMapId) {
-        this.ruleModel.update((model) => ({ ...model, linkMapId: result.linkMapId ?? null }));
-      }
+    this.dialogRef.close({
+      saved: false,
+      openLinkMapWizard: { domainGroupId: groupId, linkMapId },
+      resumeRuleDialog: {
+        rule: this.rule ?? undefined,
+        draft: this.ruleModel(),
+        activeStepId: this.activeStepId(),
+      },
     });
   }
 
@@ -870,4 +930,25 @@ export class RedirectRuleFormDialogComponent {
     const message = errors[0].message ?? 'Invalid value';
     return message === 'Invalid value' ? null : message;
   }
+}
+
+function formatMatchMethodsLabel(methods: HttpMethod[] | undefined): string {
+  if (!methods || methods.length === 0) {
+    return 'All methods';
+  }
+  return methods.join(', ');
+}
+
+function formatPathMatchLabel(value: RedirectPathMatch): string {
+  return value === 'prefix' ? 'Prefix' : 'Exact';
+}
+
+function formatQueryMatchLabel(value: RedirectQueryMatch): string {
+  if (value === 'ignore') {
+    return 'Ignore';
+  }
+  if (value === 'subset') {
+    return 'Subset';
+  }
+  return 'Exact';
 }

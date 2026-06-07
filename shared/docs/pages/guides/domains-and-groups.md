@@ -8,10 +8,28 @@ For how rules match requests, see [Redirect rules guide](./redirect-rules.md).
 
 ## In the dashboard
 
-Prefer the UI? Use the sidebar:
+Prefer the UI? The path depends on your sidebar layout — see [Dashboard overview — Campaign and Advanced views](./dashboard/dashboard-overview.md#campaign-and-advanced-views).
+
+### Campaign view (short links)
+
+1. Open **Links** (`/links`) or **Overview** (`/overview`) and select **Connect your domain**, or follow **Connect your domain** on the setup checklist.
+2. In the **Connect your domain** wizard, set a **Site name**, then add a LinkShift **subdomain** or **custom domain**. LinkShift creates the domain group and host for you.
+3. Create short links from **Links** → **Create link** (or **Overview** → **Create link**). The create flow can provision a default link map and `/go` prefix rule when needed.
+
+Campaign onboarding does not require opening **Domain Groups** in the sidebar. Infrastructure pages stay in **Advanced** view.
+
+### Advanced view (full routing stack)
+
+Use the sidebar in this order:
 
 - **Domain Groups** → **Add group** — [Domain groups in the dashboard](./dashboard/domain-groups-in-dashboard.md)
 - **Domains** → **Add domain** or **Subdomains** → **Add subdomain** — [Domains and subdomains in the dashboard](./dashboard/domains-and-subdomains-in-dashboard.md)
+
+Then add redirect rules, link maps, and tests as needed.
+
+:::ai-only
+Campaign connect-domain wizard: route `/links` with query `openConnectDomain=1` (also from setup checklist). Creates domain group + subdomain or custom domain. Advanced domain setup: `/domain-groups` → `/domains` or `/subdomains`. Checklist confirm-domain Campaign → connect flow; Advanced → `/domain-groups`.
+:::
 
 ---
 
@@ -213,7 +231,7 @@ GET /api/v1/organization/usage
 
 Returns plan usage: domain counts, rule counts, link map entries, etc. Use before bulk imports to avoid limit errors.
 
-**In the dashboard:** open **Dashboard** in the sidebar for the same meters (domain groups, domains, rules, link maps, tests, seats, API keys, redirection rate, analytics retention). See [Dashboard overview — Dashboard home](./dashboard/dashboard-overview.md#dashboard-home).
+**In the dashboard:** open **Settings** → **Plan and usage** in **Campaign** view, or **Dashboard** in **Advanced** view, for the same meters (domain groups, domains, rules, link maps, tests, seats, API keys, redirection rate, analytics retention). See [Dashboard overview — Plan and usage](./dashboard/dashboard-overview.md#plan-and-usage).
 
 ---
 
@@ -228,7 +246,9 @@ Returns plan usage: domain counts, rule counts, link map entries, etc. Use befor
 5. **Simulate** — verify routing before DNS cutover
 6. **Add redirect tests** — lock behavior in CI
 
-**Dashboard path** — same order in the app: [Domain groups](./dashboard/domain-groups-in-dashboard.md) → [Domains and subdomains](./dashboard/domains-and-subdomains-in-dashboard.md) → [Redirect rules](./dashboard/redirect-rules-in-dashboard.md) → [Link maps](./dashboard/link-maps-in-dashboard.md) (optional) → [Tests](./dashboard/tests-in-dashboard.md) (**Run tests** or **Fetch expected result** instead of simulate).
+**Dashboard path (Advanced)** — same order in the app: [Domain groups](./dashboard/domain-groups-in-dashboard.md) → [Domains and subdomains](./dashboard/domains-and-subdomains-in-dashboard.md) → [Redirect rules](./dashboard/redirect-rules-in-dashboard.md) → [Link maps](./dashboard/link-maps-in-dashboard.md) (optional) → [Tests](./dashboard/tests-in-dashboard.md) (**Run tests** or **Fetch expected result** instead of simulate).
+
+**Dashboard path (Campaign)** — [Connect your domain](#in-the-dashboard) from **Links** or **Overview** (`/overview`), then **Create link** on **Links**. Validate with **Tools** → **Redirect tester** (setup checklist **Test a link**) or switch to **Advanced** for redirect tests.
 
 ---
 

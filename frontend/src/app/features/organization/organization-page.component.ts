@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,23 +6,30 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { RouterLink } from '@angular/router';
 import { form, required, FormField } from '@angular/forms/signals';
 import { z } from 'zod';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { EMAIL_MAX_LENGTH } from '../../core/forms/validation.constants';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
+import { ResourceTableCardComponent } from '../../shared/components/resource-table-card/resource-table-card.component';
 import { AuthStore } from '../../core/store/auth.store';
 import { OrganizationMembersStore } from '../../core/store/organization-members.store';
 import { OrganizationMembersApiService } from '../../core/api/organization-members-api.service';
 import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
-import {
-  OrganizationConfiguration,
-  OrganizationPlan,
-} from '@shared/models/organization-config.model';
+import { BillingInterval, OrganizationStatus } from '@shared/models/organization-config.model';
+import { UpgradeDialogComponent } from '../billing/upgrade-dialog/upgrade-dialog.component';
 import { extractErrorMessage } from '../../core/store/store-error.utils';
 import { firstValueFrom } from 'rxjs';
-import { UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
+import { resolveOrganizationConfig } from '../../core/utils/organization-config.util';
+import { DashboardModeService } from '../../core/layout/dashboard-mode.service';
+import { resolveUsageDestination } from '../../core/layout/dashboard-usage-destination.util';
+import { SetupChecklistService } from '../../shared/components/setup-checklist/setup-checklist.service';
+import {
+  buildOrganizationMemberRowViews,
+  type OrganizationMemberRowViewModel,
+} from './organization-page.util';
 
 @Component({
   selector: 'app-organization-page',
@@ -35,38 +42,77 @@ import { UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
     MatFormFieldModule,
     MatInputModule,
     MatTooltipModule,
+    MatDialogModule,
     RouterLink,
     FormField,
-    PageHeaderComponent
+    ResourcePageShellComponent,
+    ResourceTableCardComponent,
   ],
   templateUrl: './organization-page.component.html',
   styleUrl: './organization-page.component.css',
   host: {
     '[style.--seat-width.%]': 'seatUsagePercent()',
   },
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrganizationPageComponent {
   private readonly authStore = inject(AuthStore);
   private readonly membersStore = inject(OrganizationMembersStore);
   private readonly membersApi = inject(OrganizationMembersApiService);
   private readonly usageStore = inject(OrganizationUsageStore);
+  private readonly dashboardModeService = inject(DashboardModeService);
+  private readonly setupChecklist = inject(SetupChecklistService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
+
+  readonly usageDestination = computed(() =>
+    resolveUsageDestination(this.dashboardModeService.mode()),
+  );
 
   readonly columns = ['email', 'role', 'status', 'verified', 'actions'];
   readonly members = computed(() => this.membersStore.members());
+  readonly memberRowViews = computed(() => buildOrganizationMemberRowViews(this.members()));
   readonly loading = computed(() => this.membersStore.isLoading());
   readonly error = computed(() => this.membersStore.error());
   readonly isOwner = computed(() => !!this.authStore.user()?.isOwner);
 
-  readonly config = computed(() => {
-    const org = this.authStore.organization();
-    const orgConfig =  OrganizationConfiguration.fromJson(org?.configuration ?? {});
-    if (orgConfig.activeSubscription.plan === OrganizationPlan.UNMETERED) {
-      orgConfig.activeSubscription.limits = UNMETERED_PLAN_LIMITS;
+  readonly config = computed(() =>
+    resolveOrganizationConfig(this.authStore.organization()?.configuration),
+  );
+  readonly activeSubscription = computed(() => this.config().activeSubscription);
+  readonly limits = computed(() => this.config().activeSubscription.limits);
+  readonly usage = computed(() => this.usageStore.usage());
+  readonly usageLoading = computed(() => this.usageStore.isLoading());
+  readonly usageError = computed(() => this.usageStore.error());
+  readonly maxUsers = computed(() => this.limits().maxUsers);
+  readonly domainLimitReached = computed(() => {
+    const usage = this.usage();
+    if (!usage) {
+      return false;
     }
-    return orgConfig;
+    return usage.domains >= this.limits().maxTotalDomains;
   });
-  readonly maxUsers = computed(() => this.config().activeSubscription.limits.maxUsers);
+  readonly ruleLimitReached = computed(() => {
+    const usage = this.usage();
+    if (!usage) {
+      return false;
+    }
+    return usage.rules >= this.limits().maxTotalRules;
+  });
+  readonly userLimitReached = computed(() => {
+    const usage = this.usage();
+    if (!usage) {
+      return false;
+    }
+    return usage.users >= this.limits().maxUsers;
+  });
+  readonly linkMapLimitReached = computed(() => {
+    const usage = this.usage();
+    if (!usage) {
+      return false;
+    }
+    return usage.linkMaps >= this.limits().maxLinkMaps;
+  });
   readonly maxApiKeys = computed(() => this.config().activeSubscription.limits.maxApiKeys);
   readonly apiCallsPerMinute = computed(
     () => this.config().activeSubscription.limits.apiKeyCallsPerMinute,
@@ -85,6 +131,11 @@ export class OrganizationPageComponent {
     const percent = Math.round((used / max) * 100);
     return Math.min(100, Math.max(0, percent));
   });
+  readonly seatProgressAriaValueNow = computed(() => this.activeUsers());
+  readonly seatProgressAriaValueMax = computed(() => this.maxUsers());
+  readonly seatProgressAriaLabel = computed(
+    () => `${this.activeUsers()} of ${this.maxUsers()} team seats used`,
+  );
 
   readonly inviteBusy = signal(false);
   readonly inviteFormModel = signal({ email: '' });
@@ -129,13 +180,31 @@ export class OrganizationPageComponent {
       }
     });
 
-    effect(() => {
-      const error = this.error();
-      if (!error) {
-        return;
-      }
-      this.snackBar.open(error, 'Dismiss', { duration: 4000 });
-      this.membersStore.clearError();
+  }
+
+  retryLoadMembers(): void {
+    this.membersStore.loadMembers(true);
+  }
+
+  retryLoadUsage(): void {
+    this.usageStore.loadUsage(true);
+  }
+
+  openUpgradeDialog(): void {
+    const activeSubscription = this.activeSubscription();
+    const currentInterval: BillingInterval =
+      activeSubscription.interval === 'YEARLY' ? 'YEARLY' : 'MONTHLY';
+
+    this.dialog.open(UpgradeDialogComponent, {
+      data: {
+        currentPlan: activeSubscription.plan,
+        currentInterval,
+        currentStatus: activeSubscription.status as OrganizationStatus,
+        hasProviderSubscription: !!activeSubscription.providerSubscriptionId,
+      },
+      closeOnNavigation: true,
+      maxWidth: '960px',
+      width: 'min(960px, 96vw)',
     });
   }
 
@@ -155,12 +224,15 @@ export class OrganizationPageComponent {
     this.inviteBusy.set(true);
     try {
       await firstValueFrom(this.membersApi.inviteMember(email));
+      this.setupChecklist.markInviteSent();
       this.inviteFormModel.set({ email: '' });
+      this.membersStore.loadMembers(true);
+      this.usageStore.loadUsage(true);
       this.snackBar.open('Invite sent. It expires in 30 minutes.', 'Dismiss', {
         duration: 4000
       });
     } catch (error) {
-      const message = extractErrorMessage(error, 'Unable to send invite.');
+      const message = extractErrorMessage(error, "Couldn't send invite.");
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });
     } finally {
       this.inviteBusy.set(false);
@@ -174,12 +246,8 @@ export class OrganizationPageComponent {
     this.membersStore.updateMemberStatus({ userId: memberId, blocked });
   }
 
-  statusLabel(member: { isBlocked: boolean }): string {
-    return member.isBlocked ? 'Blocked' : 'Active';
-  }
-
-  statusClass(member: { isBlocked: boolean }): string {
-    return member.isBlocked ? 'status-pill status-pill--danger' : 'status-pill status-pill--success';
+  trackRow(_index: number, row: OrganizationMemberRowViewModel): string {
+    return row.member.id;
   }
 
   private getFieldError(field: any): string | null {

@@ -44,10 +44,10 @@
   <div class="field">
     <div class="field-label">Match methods</div>
     <div class="field-value">
-      @if (data.entry.rule.matchMethod.length === 0) {
+      @if (!hasMatchMethods) {
         All methods
       } @else {
-        {{ data.entry.rule.matchMethod.join(', ') }}
+        {{ matchMethodsLabel }}
       }
     </div>
   </div>

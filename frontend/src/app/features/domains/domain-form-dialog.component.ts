@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -7,6 +7,7 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { form, required, submit, FormField } from '@angular/forms/signals';
 import { DomainStore } from '../../core/store/domain.store';
@@ -14,6 +15,7 @@ import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { domainSchema } from './domain.schemas';
 import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
+import { notifyStoreError } from '../../core/store/store-error.utils';
 import {
   LoadingDialogComponent,
   type LoadingDialogData
@@ -38,13 +40,15 @@ export type DomainDialogData = {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatSnackBarModule,
     FormField,
     WizardComponent,
     WizardStepDirective,
     WizardStepSummaryDirective
   ],
   templateUrl: './domain-form-dialog.component.html',
-  styleUrl: './domain-form-dialog.component.css'
+  styleUrl: './domain-form-dialog.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DomainFormDialogComponent {
   private readonly dialog = inject(MatDialog);
@@ -52,6 +56,7 @@ export class DomainFormDialogComponent {
   private readonly data = inject<DomainDialogData | null>(MAT_DIALOG_DATA, { optional: true });
   private readonly domainStore = inject(DomainStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly isSubmitting = signal(false);
   private readonly activeRequestId = signal<string | null>(null);
   private readonly errorSequenceAtSubmit = signal<number | null>(null);
@@ -62,7 +67,13 @@ export class DomainFormDialogComponent {
   readonly isEdit = !!this.domain;
   readonly dialogTitle = this.isEdit ? 'Edit domain' : 'Create domain';
   readonly submitLabel = this.isEdit ? 'Save' : 'Create';
-  readonly loadingMessage = this.isEdit ? 'Updating domain...' : 'Creating domain...';
+  readonly loadingMessage = this.isEdit ? 'Updating domain…' : 'Creating domain…';
+  readonly effectiveSubmitLabel = computed(() => {
+    if (this.isSaving()) {
+      return this.isEdit ? 'Saving…' : 'Creating…';
+    }
+    return this.submitLabel;
+  });
 
   domainModel = signal({
     name: this.domain?.name ?? '',
@@ -97,6 +108,20 @@ export class DomainFormDialogComponent {
       complete: this.canSubmit(),
     },
   ]);
+  readonly groupMap = computed(() => {
+    const map: Record<string, { name: string } | undefined> = {};
+    for (const group of this.domainGroups()) {
+      map[group.id] = { name: group.name };
+    }
+    return map;
+  });
+  readonly selectedGroupLabel = computed(() => {
+    const groupId = this.domainModel().domainGroupId;
+    if (!groupId) {
+      return 'Select group';
+    }
+    return this.groupMap()[groupId]?.name ?? 'Select group';
+  });
 
   constructor() {
     this.domainGroupStore.searchList();
@@ -127,7 +152,9 @@ export class DomainFormDialogComponent {
           errorSequence !== null && this.domainStore.errorSequence() > errorSequence;
         this.errorSequenceAtSubmit.set(null);
 
-        if (!hadError) {
+        if (hadError) {
+          notifyStoreError(this.snackBar, this.domainStore);
+        } else {
           this.dialogRef.close(true);
         }
       }

@@ -16,15 +16,39 @@
 - Keep card surfaces consistent by wrapping list and filter areas in `ResourceCard`.
 - Ensure table containers use `min-h-0` and `overflow-auto` for correct scrolling.
 
+### App dashboard page layout
+- Authenticated app pages use `ResourcePageShell` (`app-resource-page-shell`); do not use `min-h-[calc(100vh)]` for dashboard layout. Shell `:host` must stretch (`flex: 1 1 0`, `min-height: 0`); inner layout root uses `flex-1`, not `h-full`.
+- Page body is always **top-aligned** and fills available height (`justify-start`); do not vertically center page body or empty states with `justify-center` on flex fill containers.
+- **Content pages** (cards, forms): default `bodyScroll` (true) — body scrolls as one block; header stays fixed.
+- **Table pages**: `[bodyScroll]="false"` + `ResourceTableCard` — host stretches to remaining height; table scrolls inside the card (`fillHeight` on inner `ResourceCard`).
+- **Analytics / hybrid pages**: `[bodyScroll]="false"`; filter sections `shrink-0`; primary panel `flex min-h-0 flex-1 flex-col`.
+- Height chain: `AppShell` → `.app-page-host` → page shell → body or table scroll. See `.cursor/work/dashboard-page-layout-blueprint.md`.
+- `.app-page-host` must not use `> *` for flex fill — Angular renders `router-outlet` as a sibling of the routed component; hide the outlet (`display: none`) and target `:not(router-outlet)` only (same pattern as docs site shell).
+- **Workspace filter:** use `attachPageWorkspaceFilter()` on pages that scope data by site; `ResourcePageShell` shows `WorkspaceSwitcher` in the page header (menu popover), not a body filter card.
+
+### Responsive breakpoints
+Two mobile breakpoints are intentional; do not unify them without a product pass.
+
+| Shell / surface | Breakpoint | Media query | Used for |
+|-----------------|------------|-------------|----------|
+| Marketing site (`MarketingShellComponent`) | **767px** (Tailwind `md`) | `(max-width: 767px)` | Top toolbar, mobile nav drawer |
+| Public docs site (`DocumentationSiteShellComponent`) | **767px** (`md`) | `(max-width: 767px)` | Top toolbar, mobile nav drawer |
+| App dashboard (`AppShellComponent`) | **1023px** | `(max-width: 1023px)` | Sidebar collapse, mobile nav |
+| Docs in-app reader (`DocumentationShellComponent`) | **1023px** | `(max-width: 1023px)` | Inner sidenav drawer |
+
+`DocumentationShellComponent` also uses **767px** for small-screen layout tweaks alongside the 1023px sidenav breakpoint.
+
 ## Forms and Filters
-- Use `DomainGroupSelect` for domain group filters to keep markup consistent.
+- Use `attachPageWorkspaceFilter()` for site/workspace scoping on list and analytics pages; do not add inline `DomainGroupSelect` filter cards in page bodies.
 - Keep filter cards compact and use grid utilities for responsive layout.
 - Use `FormField` only in components that bind `[formField]` in their templates.
+- In `mat-form-field`, do not use the native `placeholder` attribute on `matInput` controls. Material recommends `mat-label` for the field name and `mat-hint` for examples or guidance (placeholders disappear on focus and are easy to confuse with entered values). Put optional examples in the hint, e.g. `e.g. launch`.
 
 ## Tables and Empty States
 - Table components own empty-state messaging and row formatting.
 - Inputs should be plain data and UI flags; child components should not access stores.
 - Keep action button wiring in the table component and emit events to the page.
+- Use `table-fixed` on `mat-table` so column widths stay stable across pagination; set fixed `w-[…]` on header cells for narrow/known columns (dates, IDs, actions, badges). Leave one flexible text column without a width (e.g. destination, source, email) to absorb remaining space. Use `truncate max-w-0` on data cells with long values.
 
 ## State Management
 - Use `signal`, `computed`, and `effect` for local UI state.

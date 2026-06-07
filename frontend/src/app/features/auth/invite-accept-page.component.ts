@@ -43,6 +43,7 @@ export class InviteAcceptPageComponent {
   readonly inviteEmail = signal('');
   readonly organizationName = signal('');
   readonly completed = signal(false);
+  readonly busy = signal(false);
 
   readonly formModel = signal({
     password: '',
@@ -114,6 +115,7 @@ export class InviteAcceptPageComponent {
       return;
     }
 
+    this.busy.set(true);
     try {
       await firstValueFrom(
         this.authApi.registerInvite({
@@ -127,8 +129,10 @@ export class InviteAcceptPageComponent {
       );
       this.completed.set(true);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Registration failed.';
+      const message = error instanceof Error ? error.message : "Couldn't create account. Try again.";
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });
+    } finally {
+      this.busy.set(false);
     }
   }
 

@@ -1,79 +1,88 @@
-<table mat-table [dataSource]="tests()" class="min-w-[860px] w-full mat-elevation-z0">
+<table
+  mat-table
+  [dataSource]="rowViewModels()"
+  [trackBy]="trackRow"
+  aria-label="Redirect tests"
+  class="table-fixed min-w-[860px] w-full mat-elevation-z0"
+>
   <ng-container matColumnDef="path">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[220px] max-w-[380px] truncate"
-    >
-      Path + query
-    </th>
+    <th mat-header-cell *matHeaderCellDef class="font-semibold truncate">Path + query</th>
     <td
       mat-cell
-      *matCellDef="let test"
-      class="py-3 min-w-[220px] max-w-[380px] truncate"
-      [matTooltip]="test.pathWithQuery"
+      *matCellDef="let row"
+      class="py-3 truncate max-w-0"
+      [matTooltip]="row.test.pathWithQuery"
     >
-      {{ test.pathWithQuery }}
+      {{ row.test.pathWithQuery }}
     </td>
   </ng-container>
 
   <ng-container matColumnDef="expected">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[220px] max-w-[360px] truncate"
-    >
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[240px] truncate">
       Expected outcome
     </th>
-    <td mat-cell *matCellDef="let test" class="py-3 min-w-[220px] max-w-[360px] truncate">
-      {{ formatExpectedResult(test) }}
+    <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0">
+      {{ row.expectedResultText }}
     </td>
   </ng-container>
 
   <ng-container matColumnDef="result">
-    <th
-      mat-header-cell
-      *matHeaderCellDef
-      class="font-semibold min-w-[220px] max-w-[320px] truncate"
-    >
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[220px] truncate">
       Latest result
     </th>
-    <td mat-cell *matCellDef="let test" class="py-3 min-w-[220px] max-w-[320px] truncate">
+    <td mat-cell *matCellDef="let row" class="py-3 w-[220px]">
       <div class="flex flex-col gap-1">
-        <span [class]="statusClass(test)">{{ statusLabel(test) }}</span>
-        <span class="text-[12px] text-app-muted">
-          {{ formatActualResult(test) || 'Not run yet' }}
+        <span [class]="row.statusClass">{{ row.statusLabel }}</span>
+        <span class="truncate text-[12px] text-app-muted">
+          {{ row.actualResultText || 'Not run yet' }}
         </span>
       </div>
     </td>
   </ng-container>
 
   <ng-container matColumnDef="actions" stickyEnd>
-    <th mat-header-cell *matHeaderCellDef class="min-w-[160px] max-w-[220px] truncate"></th>
-    <td mat-cell *matCellDef="let test" class="py-3 min-w-[160px] max-w-[220px] truncate">
+    <th mat-header-cell *matHeaderCellDef class="w-[168px]"></th>
+    <td mat-cell *matCellDef="let row" class="py-3 w-[168px]">
       <div class="flex items-center gap-1">
         <button
           mat-icon-button
-          [matTooltip]="showResultDetails(test) ? 'Re-run test' : 'Run test'"
-          [disabled]="isRunning(test.id)"
-          (click)="onRunTest(test)"
+          type="button"
+          [matTooltip]="row.runTooltip"
+          [attr.aria-label]="row.runAriaLabel"
+          [disabled]="row.isRunning"
+          (click)="onRunTest(row.test)"
         >
-          <mat-icon [class.animate-spin]="isRunning(test.id)">
-            {{ isRunning(test.id) ? 'autorenew' : 'play_arrow' }}
+          <mat-icon [class.animate-spin]="row.isRunning">
+            {{ row.isRunning ? 'autorenew' : 'play_arrow' }}
           </mat-icon>
         </button>
         <button
           mat-icon-button
+          type="button"
           matTooltip="View result details"
-          [disabled]="!showResultDetails(test)"
-          (click)="onViewResult(test)"
+          [attr.aria-label]="'View result details for ' + row.test.pathWithQuery"
+          [disabled]="!row.showResultDetails"
+          (click)="onViewResult(row.test)"
         >
           <mat-icon>visibility</mat-icon>
         </button>
-        <button mat-icon-button matTooltip="Edit test" (click)="onEdit(test)">
+        <button
+          mat-icon-button
+          type="button"
+          matTooltip="Edit test"
+          [attr.aria-label]="'Edit test for ' + row.test.pathWithQuery"
+          (click)="onEdit(row.test)"
+        >
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button color="warn" matTooltip="Delete test" (click)="onDelete(test)">
+        <button
+          mat-icon-button
+          type="button"
+          color="warn"
+          matTooltip="Delete test"
+          [attr.aria-label]="'Delete test for ' + row.test.pathWithQuery"
+          (click)="onDelete(row.test)"
+        >
           <mat-icon>delete</mat-icon>
         </button>
       </div>
@@ -88,11 +97,11 @@
       [attr.colspan]="columns.length"
     >
       @if (!activeGroupId()) {
-        Select a domain group to load tests.
+        Select a site in the workspace menu above to load tests.
       } @else if (listReady()) {
         No redirect tests found.
       } @else {
-        Loading tests...
+        Loading tests…
       }
     </td>
   </tr>

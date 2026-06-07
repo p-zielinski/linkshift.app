@@ -199,3 +199,86 @@ describe('DocsAssistantComponent message rendering', () => {
     expect(fencedCode?.textContent).toContain('/old-page');
   });
 });
+
+describe('DocsAssistantComponent source links', () => {
+  beforeEach(() => {
+    const thread: DocsAssistantThread = {
+      id: 'thread-1',
+      title: 'Domain groups',
+      pageContext: null,
+      messages: [
+        {
+          id: 'assistant-1',
+          role: 'assistant',
+          text: 'See the domain groups guide.',
+          sources: [
+            'Guide: Domain groups (/docs/guides/domain-groups-in-dashboard)',
+            'API reference: Domain Groups',
+          ],
+          createdAt: new Date().toISOString(),
+          rating: null,
+        },
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    TestBed.configureTestingModule({
+      imports: [DocsAssistantComponent],
+      providers: [
+        provideRouter([]),
+        { provide: PLATFORM_ID, useValue: 'browser' },
+        {
+          provide: DocumentationScrollService,
+          useValue: {
+            onMarkdownContentReady: vi.fn(),
+            setPendingFragment: vi.fn(),
+            scrollToFragment: vi.fn(),
+          },
+        },
+        {
+          provide: DocsAssistantSessionService,
+          useValue: {
+            threads: signal([thread]),
+            activeThread: signal(thread),
+            isSearching: signal(false),
+            searchStage: signal(null),
+            searchElapsedSeconds: signal(0),
+            searchStatusLabel: signal('Searching docs…'),
+            showLongSearchHint: signal(false),
+            errorMessage: signal(null),
+            submitQuestion: vi.fn().mockResolvedValue(undefined),
+            startNewThread: vi.fn(),
+            selectThread: vi.fn(),
+            deleteThread: vi.fn(),
+            clearAllHistory: vi.fn(),
+            rateMessage: vi.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: DocsAssistantDrawerService,
+          useValue: { open: signal(true) },
+        },
+      ],
+    });
+  });
+
+  it('renders pre-parsed source links and plain labels', () => {
+    const fixture = TestBed.createComponent(DocsAssistantComponent);
+    fixture.detectChanges();
+
+    const sourceItems = fixture.nativeElement.querySelectorAll(
+      '.docs-assistant__sources li',
+    ) as NodeListOf<HTMLElement>;
+
+    expect(sourceItems).toHaveLength(2);
+    expect(sourceItems[0]?.querySelector('a')?.textContent?.trim()).toBe('Guide: Domain groups');
+    expect(sourceItems[0]?.querySelector('a')?.getAttribute('href')).toBe(
+      '/docs/guides/domain-groups-in-dashboard',
+    );
+    expect(sourceItems[1]?.querySelector('span')?.textContent?.trim()).toBe(
+      'API reference: Domain Groups',
+    );
+    expect(sourceItems[1]?.querySelector('a')).toBeNull();
+  });
+});

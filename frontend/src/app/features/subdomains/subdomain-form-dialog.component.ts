@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
@@ -7,6 +7,7 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { form, required, submit, FormField } from '@angular/forms/signals';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
@@ -14,6 +15,7 @@ import { SubdomainStore } from '../../core/store/subdomain.store';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { subdomainSchema } from './subdomain.schemas';
 import { CREATE_ENTITY_ID } from '../../core/store/entity/entity-store.utils';
+import { notifyStoreError } from '../../core/store/store-error.utils';
 import {
   LoadingDialogComponent,
   type LoadingDialogData
@@ -38,12 +40,14 @@ export type SubdomainDialogData = {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatSnackBarModule,
     FormField,
     WizardComponent,
     WizardStepDirective,
     WizardStepSummaryDirective
   ],
   templateUrl: './subdomain-form-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubdomainFormDialogComponent {
   private readonly dialog = inject(MatDialog);
@@ -51,6 +55,7 @@ export class SubdomainFormDialogComponent {
   private readonly data = inject<SubdomainDialogData | null>(MAT_DIALOG_DATA, { optional: true });
   private readonly subdomainStore = inject(SubdomainStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly isSubmitting = signal(false);
   private readonly activeRequestId = signal<string | null>(null);
   private readonly errorSequenceAtSubmit = signal<number | null>(null);
@@ -61,7 +66,13 @@ export class SubdomainFormDialogComponent {
   readonly isEdit = !!this.subdomain;
   readonly dialogTitle = this.isEdit ? 'Edit subdomain' : 'Create subdomain';
   readonly submitLabel = this.isEdit ? 'Save' : 'Create';
-  readonly loadingMessage = this.isEdit ? 'Updating subdomain...' : 'Creating subdomain...';
+  readonly loadingMessage = this.isEdit ? 'Updating subdomain…' : 'Creating subdomain…';
+  readonly effectiveSubmitLabel = computed(() => {
+    if (this.isSaving()) {
+      return this.isEdit ? 'Saving…' : 'Creating…';
+    }
+    return this.submitLabel;
+  });
 
   subdomainModel = signal({
     name: this.subdomain?.name ?? '',
@@ -126,7 +137,9 @@ export class SubdomainFormDialogComponent {
           errorSequence !== null && this.subdomainStore.errorSequence() > errorSequence;
         this.errorSequenceAtSubmit.set(null);
 
-        if (!hadError) {
+        if (hadError) {
+          notifyStoreError(this.snackBar, this.subdomainStore);
+        } else {
           this.dialogRef.close(true);
         }
       }

@@ -1,11 +1,29 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Output,
+  computed,
+  input,
+} from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ResourcePillComponent } from '../../../../shared/components/resource-pill/resource-pill.component';
 import type { DomainGroup } from '../../../../core/models/domain-group.model';
+
+type DomainGroupRowViewModel = {
+  group: DomainGroup;
+  robotsLabel: string;
+  robotsActive: boolean;
+  robotsClass: string;
+  domainCount: number;
+  domainCountTooltip: string;
+  canDelete: boolean;
+  deleteTooltip: string;
+};
 
 @Component({
   selector: 'app-domain-groups-table',
@@ -18,53 +36,47 @@ import type { DomainGroup } from '../../../../core/models/domain-group.model';
     MatTooltipModule,
     ResourcePillComponent,
   ],
-  templateUrl: './domain-groups-table.component.html'
+  templateUrl: './domain-groups-table.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DomainGroupsTableComponent {
   readonly groups = input<DomainGroup[]>([]);
   readonly domainCounts = input<Record<string, number>>({});
   readonly domainsLoaded = input(false);
+  readonly loading = input(false);
 
+  @Output() create = new EventEmitter<void>();
   @Output() edit = new EventEmitter<DomainGroup>();
   @Output() delete = new EventEmitter<string>();
 
   readonly columns = ['name', 'robots', 'id', 'domains', 'createdAt', 'actions'];
 
-  robotsPolicyLabel(policy: DomainGroup['robotsPolicy']): string {
-    switch (policy) {
-      case 'ALLOW_ALL':
-        return 'Allow all';
-      case 'DISALLOW_ALL':
-        return 'Disallow all';
-      case 'DISALLOW_BAD_BOTS':
-        return 'Disallow bad bots';
-      case 'CUSTOM':
-        return 'Custom';
-      case 'NONE':
-      default:
-        return 'None';
-    }
-  }
+  readonly rowViewModels = computed((): DomainGroupRowViewModel[] => {
+    const groups = this.groups();
+    const domainCounts = this.domainCounts();
+    const domainsLoaded = this.domainsLoaded();
 
-  robotsPolicyActive(policy: DomainGroup['robotsPolicy']): boolean {
-    return policy !== 'NONE';
-  }
+    return groups.map((group) => {
+      const domainCount = domainCounts[group.id] ?? 0;
+      const robotsActive = robotsPolicyActive(group.robotsPolicy);
 
-  domainCount(groupId: string): number {
-    return this.domainCounts()[groupId] ?? 0;
-  }
+      return {
+        group,
+        robotsLabel: robotsPolicyLabel(group.robotsPolicy),
+        robotsActive,
+        robotsClass: robotsActive
+          ? 'bg-green-50 text-green-700'
+          : 'bg-app-muted/10 text-app-muted',
+        domainCount,
+        domainCountTooltip: `${domainCount} domains linked`,
+        canDelete: domainsLoaded && domainCount === 0,
+        deleteTooltip: deleteTooltip(domainsLoaded, domainCount),
+      };
+    });
+  });
 
-  deleteTooltip(groupId: string): string {
-    if (!this.domainsLoaded()) {
-      return 'Domain data is still loading. Try again in a moment.';
-    }
-    return this.domainCount(groupId) > 0
-      ? 'Remove linked domains before deleting this group.'
-      : 'Delete domain group and its redirect rules.';
-  }
-
-  canDelete(groupId: string): boolean {
-    return this.domainsLoaded() && this.domainCount(groupId) === 0;
+  onCreate(): void {
+    this.create.emit();
   }
 
   onEdit(group: DomainGroup): void {
@@ -74,4 +86,37 @@ export class DomainGroupsTableComponent {
   onDelete(groupId: string): void {
     this.delete.emit(groupId);
   }
+
+  trackRow(_index: number, row: DomainGroupRowViewModel): string {
+    return row.group.id;
+  }
+}
+
+function robotsPolicyLabel(policy: DomainGroup['robotsPolicy']): string {
+  switch (policy) {
+    case 'ALLOW_ALL':
+      return 'Allow all';
+    case 'DISALLOW_ALL':
+      return 'Disallow all';
+    case 'DISALLOW_BAD_BOTS':
+      return 'Disallow bad bots';
+    case 'CUSTOM':
+      return 'Custom';
+    case 'NONE':
+    default:
+      return 'None';
+  }
+}
+
+function robotsPolicyActive(policy: DomainGroup['robotsPolicy']): boolean {
+  return policy !== 'NONE';
+}
+
+function deleteTooltip(domainsLoaded: boolean, domainCount: number): string {
+  if (!domainsLoaded) {
+    return 'Domain data is still loading. Try again in a moment.';
+  }
+  return domainCount > 0
+    ? 'Remove linked domains before deleting this group.'
+    : 'Delete domain group and its redirect rules.';
 }

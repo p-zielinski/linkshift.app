@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   HostListener,
   OnInit,
@@ -12,7 +13,7 @@ import {
   ElementRef,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
+import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,41 +21,31 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { firstValueFrom } from 'rxjs';
 import { AuthStore } from '../../core/store/auth.store';
 import {
   BillingInterval,
-  OrganizationConfiguration,
   OrganizationPlan,
   OrganizationStatus,
 } from '@shared/models/organization-config.model';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { resolveOrganizationConfig } from '../../core/utils/organization-config.util';
+import { ResourceCardComponent } from '../../shared/components/resource-card/resource-card.component';
+import { ResourcePageShellComponent } from '../../shared/components/resource-page-shell/resource-page-shell.component';
+import { SetupChecklistComponent } from '../../shared/components/setup-checklist/setup-checklist.component';
 import { BillingApiService } from '../../core/api/billing-api.service';
 import { UpgradeDialogComponent } from '../billing/upgrade-dialog/upgrade-dialog.component';
 import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { formatPlanLabel } from '../../core/utils/plan-label';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { UNMETERED_PLAN_LIMITS } from '@shared/models/plan-limits.model';
-import { WizardDialogService } from '../../core/services/wizard-dialog.service';
-import { DomainGroupStore } from '../../core/store/domain-group.store';
-import { SubdomainStore } from '../../core/store/subdomain.store';
-import {
-  DashboardOnboardingDialogComponent,
-  type DashboardOnboardingDialogResult,
-} from './components/dashboard-onboarding-dialog/dashboard-onboarding-dialog.component';
-
-const DASHBOARD_ONBOARDING_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const DASHBOARD_ONBOARDING_STORAGE_KEY = 'dashboard-onboarding-confirmed';
-// Flip to `true` while testing to force the onboarding wizard on every dashboard visit.
-const DASHBOARD_ONBOARDING_SHOW_ALWAYS = false;
 
 @Component({
   selector: 'app-dashboard-page',
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
+    RouterLink,
     MatIconModule,
     MatListModule,
     MatButtonModule,
@@ -62,21 +53,22 @@ const DASHBOARD_ONBOARDING_SHOW_ALWAYS = false;
     MatSnackBarModule,
     MatMenuModule,
     MatTooltipModule,
+    MatExpansionModule,
     ClipboardModule,
-    PageHeaderComponent,
+    ResourcePageShellComponent,
+    ResourceCardComponent,
+    SetupChecklistComponent,
   ],
   templateUrl: './dashboard-page.component.html',
   styleUrl: './dashboard-page.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardPageComponent implements OnInit, AfterViewInit {
   private readonly authStore = inject(AuthStore);
   private readonly billingApi = inject(BillingApiService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
-  private readonly wizardDialog = inject(WizardDialogService);
   private readonly usageStore = inject(OrganizationUsageStore);
-  private readonly domainGroupStore = inject(DomainGroupStore);
-  private readonly subdomainStore = inject(SubdomainStore);
   private readonly clipboard = inject(Clipboard);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
@@ -89,18 +81,21 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
   readonly billingBusy = signal(false);
   readonly userIdOverflow = signal(false);
   readonly orgIdOverflow = signal(false);
-  private readonly onboardingWizardOpened = signal(false);
-
   readonly user = computed(() => this.authStore.user());
   readonly organization = computed(() => this.authStore.organization());
-  readonly config = computed(() => {
-    const org = this.authStore.organization();
-    const rawConfig = org?.configuration ?? undefined;
-    return OrganizationConfiguration.fromJson(rawConfig);
-  });
+  private readonly userId = computed(() => this.authStore.user()?.id);
+  private readonly organizationId = computed(() => this.authStore.organization()?.id);
+  readonly config = computed(() =>
+    resolveOrganizationConfig(this.authStore.organization()?.configuration),
+  );
   readonly OrganizationPlan = OrganizationPlan;
   readonly activeSubscription = computed(() => this.config().activeSubscription);
-  readonly limits = computed(() => this.activeSubscription().limits ?? UNMETERED_PLAN_LIMITS);
+  readonly subscriptionPlanLabel = computed(() => {
+    const subscription = this.activeSubscription();
+
+    return formatPlanLabel(subscription.plan, subscription.planName);
+  });
+  readonly limits = computed(() => this.activeSubscription().limits);
   readonly usage = computed(() => this.usageStore.usage());
   readonly usageLoading = computed(() => this.usageStore.isLoading());
   readonly usageError = computed(() => this.usageStore.error());
@@ -212,36 +207,25 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       return `Account is suspended until you upgrade or remove resources above limits. Overages: ${details.join(', ')}.`;
     }
     if (this.activeSubscription().status === 'SUSPENDED') {
-      return 'Account is suspended. Please update billing or remove over-limit resources.';
+      return 'Account is suspended. Update billing or remove over-limit resources.';
     }
     return null;
   });
 
   constructor() {
     effect(() => {
-      this.user();
-      this.organization();
+      this.userId();
+      this.organizationId();
       this.scheduleOverflowCheck();
-    });
-
-    effect(() => {
-      const user = this.user();
-      if (!user || this.onboardingWizardOpened()) {
-        return;
-      }
-      if (!this.shouldOpenOnboardingWizard(user.createdAt)) {
-        return;
-      }
-
-      this.onboardingWizardOpened.set(true);
-      this.openOnboardingWizard();
     });
   }
 
   ngOnInit(): void {
     this.usageStore.loadUsage();
-    this.domainGroupStore.searchList();
-    this.subdomainStore.searchList();
+  }
+
+  retryLoadUsage(): void {
+    this.usageStore.loadUsage(true);
   }
 
   ngAfterViewInit(): void {
@@ -284,7 +268,7 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       const response = await firstValueFrom(this.billingApi.getCustomerPortal());
       window.location.href = response.url;
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to open portal.';
+      const message = error instanceof Error ? error.message : "Couldn't open portal.";
       this.snackBar.open(message, 'Dismiss', {
         duration: 5000,
         horizontalPosition: 'center',
@@ -319,17 +303,13 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
       return;
     }
     const copied = this.clipboard.copy(value);
-    const message = copied ? 'Copied to clipboard.' : 'Copy failed.';
+    const message = copied ? 'Copied to clipboard.' : "Couldn't copy to clipboard.";
     this.snackBar.open(message, 'Dismiss', {
       duration: 3000,
       horizontalPosition: 'center',
       verticalPosition: 'bottom',
       panelClass: copied ? ['bg-emerald-600', 'text-white'] : ['bg-red-600', 'text-white'],
     });
-  }
-
-  planLabel(plan: string, planName?: string | null): string {
-    return formatPlanLabel(plan, planName);
   }
 
   private scheduleOverflowCheck(): void {
@@ -351,37 +331,4 @@ export class DashboardPageComponent implements OnInit, AfterViewInit {
     return element.scrollWidth > element.clientWidth;
   }
 
-  private shouldOpenOnboardingWizard(createdAtIso: string): boolean {
-    if (!this.isBrowser) {
-      return false;
-    }
-    if (DASHBOARD_ONBOARDING_SHOW_ALWAYS) {
-      return true;
-    }
-    if (localStorage.getItem(DASHBOARD_ONBOARDING_STORAGE_KEY) === 'true') {
-      return false;
-    }
-
-    const createdAt = Date.parse(createdAtIso);
-    if (Number.isNaN(createdAt)) {
-      return false;
-    }
-
-    return Date.now() - createdAt <= DASHBOARD_ONBOARDING_WINDOW_MS;
-  }
-
-  private openOnboardingWizard(): void {
-    const dialogRef = this.wizardDialog.openWizard<
-      DashboardOnboardingDialogComponent,
-      undefined,
-      DashboardOnboardingDialogResult
-    >(DashboardOnboardingDialogComponent);
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (!this.isBrowser || !result?.confirmed || DASHBOARD_ONBOARDING_SHOW_ALWAYS) {
-        return;
-      }
-      localStorage.setItem(DASHBOARD_ONBOARDING_STORAGE_KEY, 'true');
-    });
-  }
 }

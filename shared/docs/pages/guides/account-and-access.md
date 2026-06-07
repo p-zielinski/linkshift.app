@@ -10,7 +10,7 @@ Programmatic access starts after you have an account and an API key — see [Get
 
 ## Sign in or register
 
-Open **Access Control** from the sign-in link (marketing site or after sign-out). This page is outside the authenticated app shell.
+Open **Sign in** from the sign-in link (marketing site or after sign-out). This page is outside the authenticated app shell.
 
 1. Use the **Login** tab to sign in:
    - **Email**
@@ -27,6 +27,10 @@ Open **Access Control** from the sign-in link (marketing site or after sign-out)
 
 From the **Login** tab, select **Forgot password?** to open the password reset flow.
 
+After sign-in, LinkShift opens the authenticated app shell. By default you land on **Overview** (`/overview`) in **Campaign** view. Switch to **Advanced** view for the operational **Dashboard** at `/dashboard` — see [Dashboard overview](./dashboard/dashboard-overview.md#campaign-and-advanced-views).
+
+The public marketing site uses `/` for visitors who are not signed in. That URL is separate from app **Overview** at `/overview`.
+
 If registration is temporarily closed, the page shows **Private testing in progress** instead of the tabs.
 
 ## Verify your email
@@ -35,7 +39,7 @@ When you register or change email, LinkShift sends a verification link.
 
 1. Open the link from your email (verification page).
 2. While the link is processed, you see **Verifying your email**.
-3. On success: **Email verified** — then **Go to login** or sign in at **Access Control**.
+3. On success: **Email verified** — then **Go to login** or open **Sign in**.
 
 If verification fails, follow the message on the page or resend from the dashboard:
 
@@ -64,13 +68,13 @@ Open the password reset flow from **Forgot password?** on the **Login** tab.
 1. Page title **Set a new password**.
 2. Enter **New password** and **Confirm password**.
 3. Select **Update password**.
-4. Sign in at **Access Control**.
+4. Open **Sign in** and sign in with your new password.
 
 There is no in-dashboard password change. Use this flow from **Forgot password?** on the login tab.
 
 ## Accept an invitation
 
-Organization owners send invites from **Organization** — see [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md#invite-a-teammate).
+Organization owners send invites from **Organization** (Advanced view) or **Settings** → **Manage team** (Campaign view) — see [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md#invite-a-teammate).
 
 1. Open the invite link from your email.
 2. Page title **Join {organizationName}** — complete setup for the invited email.
@@ -98,10 +102,10 @@ Other dashboard routes and sidebar links stay blocked until you select **Continu
 
 ## End your session
 
-In the dashboard sidebar footer, select **Log out**. You return to **Access Control**.
+In the dashboard sidebar footer, select **Log out**. You return to **Sign in**.
 
 :::ai-only
-Web app routes: sign-in `/auth` (page title Access Control), password reset `/reset-password`, email verification `/verify-email`, invites `/invite`, legal consent `/legal/consent`, dashboard shell after sign-in. Profile `/profile`. Dashboard home `/dashboard`. Log out returns to `/auth`.
+Web app routes: sign-in `/auth` (page title Sign in), password reset `/reset-password`, email verification `/verify-email`, invites `/invite`, legal consent `/legal/consent`, dashboard shell after sign-in. Profile `/profile`. Marketing site root `/` (signed out). Campaign landing `/overview`; Advanced landing `/dashboard`. Mode key `linkshift-dashboard-mode` (`campaign` | `advanced`). Log out returns to `/auth`.
 :::
 
 ## Related
@@ -109,4 +113,4 @@ Web app routes: sign-in `/auth` (page title Access Control), password reset `/re
 - [Dashboard overview](./dashboard/dashboard-overview.md) — shell, profile, billing summary
 - [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md) — invites and API keys
 - [Getting started](./getting-started.md) — Management API keys after sign-in
-- [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md) — upgrade and subscription from **Dashboard** home
+- [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md) — upgrade and subscription from **Dashboard** (Advanced) or limits on **Settings** (Campaign)

@@ -1,0 +1,226 @@
+<form class="h-full" (submit)="$event.preventDefault()" (keydown.enter)="$event.preventDefault()">
+  <app-wizard
+    title="Create short link"
+    subtitle="Set site, path, and destination in one guided flow."
+    [steps]="steps()"
+    [saveLabel]="saveLabel()"
+    [saveDisabled]="saveDisabled()"
+    [backDisabled]="isCreated()"
+    [saveTooltip]="saveTooltip()"
+    [saveTooltipDisabled]="!saveTooltip()"
+    (save)="onSave()"
+    (cancel)="onCancel()"
+    (stepChange)="onStepChange($event)"
+  >
+    <ng-template wizardStepSummary="site">
+      <div class="text-xs text-app-muted">{{ groupMap()[model().domainGroupId] || 'No site' }}</div>
+      @if (hostsForSelectedGroup().length) {
+        <div class="text-[11px] text-app-muted">
+          {{ hostsForSelectedGroup().length }} host{{
+            hostsForSelectedGroup().length === 1 ? '' : 's'
+          }}
+        </div>
+      } @else {
+        <div class="text-[11px] text-app-muted">Add a host</div>
+      }
+    </ng-template>
+
+    <ng-template wizardStepSummary="path">
+      <div class="text-xs text-app-muted">Path prefix {{ provisioningPlan().sourcePath }}</div>
+      <div class="text-[11px] text-app-muted">{{ keyValue() || 'Set path' }}</div>
+    </ng-template>
+
+    <ng-template wizardStepSummary="destination">
+      <div class="text-xs text-app-muted truncate">
+        {{ destinationValue() || 'Set destination' }}
+      </div>
+    </ng-template>
+
+    <ng-template wizardStepSummary="summary">
+      <div class="text-xs text-app-muted truncate">
+        {{ createdShortPath() || previewShortPath() || 'Review before create' }}
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="site">
+      <div class="grid gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Site</mat-label>
+          <mat-select [formField]="wizardForm.domainGroupId">
+            @for (group of domainGroups; track group.id) {
+              <mat-option [value]="group.id">{{ group.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (hostsForSelectedGroup().length) {
+          <div class="grid gap-2">
+            <div class="text-sm font-medium text-app-foreground">Works on these hosts</div>
+            <ul
+              class="m-0 list-none rounded-[12px] border border-app-border-soft bg-app-surface p-0"
+              aria-label="Connected hosts for selected site"
+            >
+              @for (host of hostsForSelectedGroup(); track host.host) {
+                <li class="border-b border-app-border-soft px-3 py-2 text-sm last:border-b-0">
+                  {{ host.label }}
+                </li>
+              }
+            </ul>
+            <p class="m-0 text-[13px] text-app-muted">
+              Routing is shared across every host on this site. Any listed host serves the same
+              short link path.
+            </p>
+          </div>
+        } @else {
+          <div class="grid gap-3">
+            <div
+              class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm text-app-muted"
+            >
+              Add subdomain or custom domain on this site before creating a short link.
+            </div>
+            <button mat-flat-button color="primary" type="button" (click)="openConnectDomain()">
+              Add host
+            </button>
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="path">
+      <div class="grid gap-4">
+        <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm">
+          <span class="text-app-muted">Path prefix:</span>
+          <span class="font-medium text-app-foreground">{{ provisioningPlan().sourcePath }}</span>
+        </div>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Link path</mat-label>
+          <input matInput type="text" [formField]="wizardForm.key" />
+          <mat-hint>e.g. summer-sale. Use lowercase letters, numbers, and hyphens</mat-hint>
+          @if (!keyValid() && wizardForm.key().touched()) {
+            <mat-error>Use lowercase letters, numbers, and hyphens only</mat-error>
+          }
+        </mat-form-field>
+
+        @if (previewShortPath()) {
+          <div
+            class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm"
+          >
+            <span class="text-app-muted">Short path preview:</span>
+            <span class="font-medium text-app-foreground">{{ previewShortPath() }}</span>
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="destination">
+      <div class="grid gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Destination URL</mat-label>
+          <input matInput type="url" [formField]="wizardForm.destination" />
+          <mat-hint
+            >e.g. https://example.com/landing. Destination must start with https://</mat-hint
+          >
+          @if (!destinationValid() && wizardForm.destination().touched()) {
+            <mat-error>Use valid https URL</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-sm">
+          <span class="text-app-muted">Final destination:</span>
+          <span class="font-medium text-app-foreground">{{
+            destinationValue() || 'Set destination'
+          }}</span>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template wizardStep="summary">
+      @if (isCreated()) {
+        <div class="grid gap-4">
+          <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-4">
+            <div class="text-sm font-semibold text-app-foreground">Short link is ready</div>
+            <div class="mt-3 text-[13px] text-app-muted">Short path</div>
+            <div class="mt-1 break-all text-lg font-semibold text-app-foreground">
+              {{ createdShortPath() }}
+            </div>
+            <div class="mt-4 text-[13px] text-app-muted">Full URLs (one per host)</div>
+            <ul class="m-0 mt-2 list-none space-y-2 p-0">
+              @for (url of createdShortUrls(); track url) {
+                <li class="break-all text-sm font-medium text-app-foreground">{{ url }}</li>
+              }
+            </ul>
+          </div>
+
+          @if (provisioningDisclosureVisible()) {
+            <div class="text-[13px] text-app-muted">{{ provisioningDisclosureCopy }}</div>
+          }
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              mat-stroked-button
+              type="button"
+              color="primary"
+              [matTooltip]="copyUrlTooltip"
+              matTooltipPosition="above"
+              (click)="copyCreatedUrl()"
+            >
+              <mat-icon>content_copy</mat-icon>
+              Copy
+            </button>
+            <button mat-stroked-button type="button" color="primary" (click)="openAnalytics()">
+              <mat-icon>analytics</mat-icon>
+              Open analytics
+            </button>
+            <button mat-stroked-button type="button" color="primary" (click)="openQrGenerator()">
+              <mat-icon>qr_code_2</mat-icon>
+              Download QR
+            </button>
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              mat-button
+              type="button"
+              class="!text-app-muted"
+              [matTooltip]="advancedOptionsTooltip"
+              matTooltipPosition="above"
+              (click)="openAdvancedOptions()"
+            >
+              Show advanced options
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="grid gap-4">
+          <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-4">
+            <div class="text-sm font-semibold text-app-foreground">Review short link</div>
+            <div class="mt-3 text-[13px] text-app-muted">Short path</div>
+            <div class="mt-1 break-all text-lg font-semibold text-app-foreground">
+              {{ previewShortPath() || 'Complete previous steps to preview' }}
+            </div>
+            @if (previewShortUrls().length) {
+              <div class="mt-4 text-[13px] text-app-muted">Full URLs (one per host)</div>
+              <ul class="m-0 mt-2 list-none space-y-2 p-0">
+                @for (url of previewShortUrls(); track url) {
+                  <li class="break-all text-sm font-medium text-app-foreground">{{ url }}</li>
+                }
+              </ul>
+            }
+          </div>
+        </div>
+      }
+    </ng-template>
+
+    @if (submitError(); as error) {
+      <div wizard-alert class="mt-4">
+        <div
+          class="rounded-[12px] border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+          role="alert"
+        >
+          {{ error }}
+        </div>
+      </div>
+    }
+  </app-wizard>
+</form>

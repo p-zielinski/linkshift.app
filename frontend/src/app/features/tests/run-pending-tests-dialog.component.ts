@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,12 +12,48 @@ import type { RedirectTest, RedirectTestResult } from '../../core/models/redirec
 import { buildSimulationEntry } from './redirect-test.utils';
 import { RedirectTestResultDialogComponent } from './redirect-test-result-dialog.component';
 
-type RunTestOutcome = {
+export type RunTestOutcome = {
   test: RedirectTest;
   reason: 'passed' | 'failed' | 'error';
   actual: RedirectTestResult | null;
   error: string | null;
 };
+
+export type FailureRowView = {
+  failure: RunTestOutcome;
+  expectedText: string;
+  actualText: string;
+};
+
+function formatExpectedResult(test: RedirectTest): string {
+  const expected = test.expectedResult;
+  if (!expected) {
+    return 'Expectation not set';
+  }
+  if (!expected.matched) {
+    return 'No redirect (404)';
+  }
+  if (!expected.target) {
+    return `${expected.statusCode} (missing target)`;
+  }
+  return `${expected.statusCode} -> ${expected.target}`;
+}
+
+function formatFailureActual(failure: RunTestOutcome): string {
+  if (failure.error) {
+    return failure.error;
+  }
+  if (!failure.actual) {
+    return 'No result';
+  }
+  if (!failure.actual.matched) {
+    return 'No redirect (404)';
+  }
+  if (!failure.actual.target) {
+    return `${failure.actual.statusCode} (no target)`;
+  }
+  return `${failure.actual.statusCode} -> ${failure.actual.target}`;
+}
 
 export type RunPendingTestsDialogData = {
   domainGroupId: string;
@@ -32,7 +68,8 @@ export type RunPendingTestsDialogData = {
     MatProgressBarModule,
     MatButtonModule
   ],
-  templateUrl: './run-pending-tests-dialog.component.html'
+  templateUrl: './run-pending-tests-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RunPendingTestsDialogComponent {
   private readonly dialogRef = inject(MatDialogRef<RunPendingTestsDialogComponent>);
@@ -48,6 +85,14 @@ export class RunPendingTestsDialogComponent {
   readonly summary = signal<string | null>(null);
   readonly didRun = signal(false);
   readonly failures = signal<RunTestOutcome[]>([]);
+
+  readonly failureRowViews = computed<FailureRowView[]>(() =>
+    this.failures().map((failure) => ({
+      failure,
+      expectedText: formatExpectedResult(failure.test),
+      actualText: formatFailureActual(failure)
+    }))
+  );
 
   readonly progress = computed(() => {
     const total = this.total();
@@ -94,11 +139,11 @@ export class RunPendingTestsDialogComponent {
       const successCount = tests.length - failures;
       this.summary.set(
         failures
-          ? `${successCount} tests passed, ${failures} failed or errored.`
-          : `All ${tests.length} tests completed successfully.`
+          ? `${successCount} tests passed, ${failures} didn't pass or returned errors.`
+          : `All ${tests.length} tests passed.`
       );
     } catch (error) {
-      this.summary.set(extractErrorMessage(error, 'Failed to run tests.'));
+      this.summary.set(extractErrorMessage(error, "Couldn't run tests. Try again."));
     } finally {
       this.running.set(false);
     }
@@ -171,7 +216,7 @@ export class RunPendingTestsDialogComponent {
         };
       });
     } catch (error) {
-      const message = extractErrorMessage(error, 'Simulation failed.');
+      const message = extractErrorMessage(error, "Couldn't run simulation.");
       return tests.map((test) => {
         this.resultsStore.setFailure(test.id, message);
         return {
@@ -202,36 +247,6 @@ export class RunPendingTestsDialogComponent {
       chunks.push(tests.slice(i, i + size));
     }
     return chunks;
-  }
-
-  formatExpected(test: RedirectTest): string {
-    const expected = test.expectedResult;
-    if (!expected) {
-      return 'Expectation not set';
-    }
-    if (!expected.matched) {
-      return 'No redirect (404)';
-    }
-    if (!expected.target) {
-      return `${expected.statusCode} (missing target)`;
-    }
-    return `${expected.statusCode} -> ${expected.target}`;
-  }
-
-  formatActual(failure: RunTestOutcome): string {
-    if (failure.error) {
-      return failure.error;
-    }
-    if (!failure.actual) {
-      return 'No result';
-    }
-    if (!failure.actual.matched) {
-      return 'No redirect (404)';
-    }
-    if (!failure.actual.target) {
-      return `${failure.actual.statusCode} (no target)`;
-    }
-    return `${failure.actual.statusCode} -> ${failure.actual.target}`;
   }
 
   openDetails(test: RedirectTest): void {

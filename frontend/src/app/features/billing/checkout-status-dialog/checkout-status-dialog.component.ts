@@ -1,8 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subject, catchError, of, switchMap, takeUntil, timer } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -28,9 +36,11 @@ type CheckoutStatusDialogData = {
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
+    MatExpansionModule,
     MatProgressSpinnerModule,
   ],
   templateUrl: './checkout-status-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CheckoutStatusDialogComponent {
   private readonly billingApi = inject(BillingApiService);
@@ -64,11 +74,11 @@ export class CheckoutStatusDialogComponent {
       case 'CANCELED':
         return 'Checkout was canceled before payment completed.';
       case 'FAILED':
-        return 'Payment failed. Please try again or update your billing details.';
+        return "Couldn't complete payment. Try again or update your billing details.";
       case 'EXPIRED':
-        return 'Checkout expired. Please start a new checkout.';
+        return 'Checkout expired. Start a new checkout.';
       default:
-        return 'We are confirming your payment. This usually takes a few seconds.';
+        return 'Confirming your payment. This usually takes a few seconds.';
     }
   });
 
@@ -117,7 +127,7 @@ export class CheckoutStatusDialogComponent {
               const message =
                 error instanceof Error
                   ? error.message
-                  : 'Unable to verify checkout status yet.';
+                  : "Couldn't verify checkout status yet.";
               this.error.set(message);
               this.isLoading.set(false);
               return of(null);

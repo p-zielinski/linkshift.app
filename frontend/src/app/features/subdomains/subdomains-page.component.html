@@ -1,6 +1,7 @@
 <app-resource-page-shell
   title="Subdomains"
   subtitle="LinkShift-hosted subdomains mapped to your domain groups."
+  [bodyScroll]="false"
 >
   <div page-actions class="flex items-center gap-2">
     <button mat-flat-button color="primary" (click)="openCreateDialog()">
@@ -10,7 +11,7 @@
   </div>
 
   <div
-    class="flex flex-col gap-4 rounded-[16px] border border-app-border-soft bg-app-surface p-4 sm:flex-row sm:items-center"
+    class="flex shrink-0 flex-col gap-4 rounded-[16px] border border-app-border-soft bg-app-surface p-4 sm:flex-row sm:items-center"
   >
     <div
       class="hidden h-10 w-10 items-center justify-center rounded-full bg-app-background text-app-muted sm:flex"
@@ -43,6 +44,10 @@
         [subdomains]="pagedSubdomains()"
         [groupMap]="groupMap()"
         [baseHost]="subdomainBaseHost()"
+        [loading]="loading()"
+        [workspaceFilterActive]="!!activeGroupId()"
+        [totalUnfilteredCount]="subdomains().length"
+        (create)="openCreateDialog()"
         (edit)="openEditDialog($event)"
         (delete)="confirmDelete($event)"
       />
@@ -53,6 +58,7 @@
         [showCurrentPage]="true"
         [currentPage]="page()"
         [hasNextPage]="hasNextPage()"
+        [isLoading]="loading()"
         [pageLimitOptions]="pageLimitOptions"
         [pageLimit]="pageLimit()"
         (currentPageChange)="onPageChange($event)"

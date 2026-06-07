@@ -5,7 +5,7 @@
 ## Public Pages
 
 ### Product
-- Home: https://linkshift.app/home
+- Home: https://linkshift.app/
 - Documentation hub: https://linkshift.app/docs
 - API reference: https://linkshift.app/docs/reference
 - Getting started guide: https://linkshift.app/docs/guides/getting-started

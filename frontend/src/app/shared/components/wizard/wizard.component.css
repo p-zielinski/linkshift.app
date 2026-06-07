@@ -6,3 +6,13 @@
 :host ::ng-deep .wizard-tooltip {
   white-space: pre-line;
 }
+
+.wizard-mobile-stepper {
+  scrollbar-width: thin;
+}
+
+.wizard-mobile-step:focus-visible,
+.wizard-sidebar-step:focus-visible {
+  outline: 2px solid var(--app-primary, currentColor);
+  outline-offset: 2px;
+}
