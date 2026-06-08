@@ -30,7 +30,7 @@ export class PricingPageComponent implements OnInit {
     this.seo.updateTags({
       title: `${this.siteConfig.name} | Pricing`,
       description:
-        'Compare plans for redirect governance, domain group management, and audit-ready routing workflows.',
+        'Compare plans for redirect governance, domain group management, and production routing limits.',
       canonicalPath: '/pricing',
       keywords:
         'redirect management pricing, domain group governance, redirect rules plans, link maps',

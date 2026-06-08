@@ -1,0 +1,187 @@
+<div class="legal-shell">
+  <div class="legal-card">
+    <h1>Data Processing Agreement (summary / online terms)</h1>
+    <div class="legal-meta">
+      Last updated: {{ updatedAt }} · Version {{ siteConfig.legalVersion }}
+    </div>
+
+    <p>
+      This Data Processing Agreement ("DPA") supplements the
+      <a routerLink="/terms">Terms of Service</a> when you use {{ siteConfig.name }} to route live
+      redirect traffic for your sites or campaigns. By using the Service for live redirects, you
+      agree to this DPA together with the Terms and <a routerLink="/privacy">Privacy Policy</a>.
+    </p>
+
+    <h2>Roles</h2>
+    <ul>
+      <li>
+        <strong>Customer (you)</strong> — data controller for end visitors who request your redirect
+        URLs.
+      </li>
+      <li>
+        <strong>{{ siteConfig.legalName }} (Operator)</strong> — data processor for redirect
+        routing, analytics, and configuration storage on your documented instructions.
+      </li>
+    </ul>
+
+    <h2>Subject matter and duration</h2>
+    <p>
+      <strong>Subject matter:</strong> redirect routing, aggregated redirect analytics, and storage
+      of your redirect configuration (rules, link maps, domains, and related settings).
+    </p>
+    <p>
+      <strong>Duration:</strong> for the term of your Service agreement — from account creation or
+      first use of live redirect traffic until termination of the Service, plus any retention period
+      described in the <a routerLink="/privacy">Privacy Policy</a> or this DPA.
+    </p>
+
+    <h2>Categories of data subjects and personal data</h2>
+    <p>
+      For live redirect processing under this DPA, the Operator processes the following on your
+      documented instructions:
+    </p>
+    <ul>
+      <li><strong>Data subjects:</strong> end visitors who request your redirect URLs.</li>
+      <li>
+        <strong>Categories of personal data:</strong> redirect request metadata (HTTP method, path,
+        query parameters, destination URL, link map keys) and aggregated redirect analytics. Visitor
+        IP addresses are not stored in the analytics database. IP addresses may appear in
+        short-lived operational logs as described in the
+        <a routerLink="/privacy">Privacy Policy</a>.
+      </li>
+    </ul>
+
+    <h2>Customer instructions</h2>
+    <p>
+      You instruct the Operator through configuration in the dashboard and Management API — redirect
+      rules, link maps, domain groups, analytics usage, and related settings. You are responsible
+      for the lawfulness of your configuration, including destinations that use placeholders such as
+      <code>{{ '{' }}ip{{ '}' }}</code
+      >. See
+      <a routerLink="/docs/guides/live-traffic-and-visitor-privacy"
+        >Live traffic and visitor privacy</a
+      >
+      for controller responsibilities.
+    </p>
+
+    <h2>Processor obligations</h2>
+    <ul>
+      <li>
+        Process personal data only on documented instructions, except where applicable law requires
+        otherwise.
+      </li>
+      <li>
+        Implement appropriate technical and organizational measures to protect personal data
+        (encryption in transit, access controls, monitoring).
+      </li>
+      <li>Ensure personnel with access to personal data are bound by confidentiality.</li>
+      <li>
+        Engage subprocessors listed below under written terms that impose data protection
+        obligations comparable to this DPA.
+      </li>
+      <li>
+        Assist you with data subject requests where feasible, taking into account the nature of
+        processing and information available to the Operator.
+      </li>
+      <li>
+        Upon termination of the Service, delete or return end-visitor personal data per your
+        instruction, except where applicable law requires retention, subject to a reasonable
+        operational wind-down period.
+      </li>
+    </ul>
+
+    <h2>Breach notification</h2>
+    <p>
+      The Operator will notify you without undue delay after becoming aware of a personal data
+      breach affecting your end-visitor data processed under this DPA, with the information required
+      by applicable law.
+    </p>
+
+    <h2>Audit and inspection</h2>
+    <p>
+      You may request reasonable information to demonstrate the Operator's compliance with this DPA.
+      On-site audits require mutual agreement and reasonable advance notice, or may be satisfied
+      through third-party audit reports or certifications where available.
+    </p>
+
+    <h2>Subprocessors</h2>
+    <p>
+      The Operator uses the following subprocessors to deliver the Service. Material subprocessor
+      changes will be reflected in the <a routerLink="/privacy">Privacy Policy</a>.
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Subprocessor</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Paddle</td>
+          <td>Payments and subscription management</td>
+        </tr>
+        <tr>
+          <td>Profitwell</td>
+          <td>Subscription analytics loaded via Paddle checkout (functional, not advertising)</td>
+        </tr>
+        <tr>
+          <td>Zoho ZeptoMail</td>
+          <td>Transactional email (EU-based)</td>
+        </tr>
+        <tr>
+          <td>Supabase (EU)</td>
+          <td>Documentation assistant logs only (when configured)</td>
+        </tr>
+        <tr>
+          <td>Sentry / GlitchTip</td>
+          <td>Error monitoring</td>
+        </tr>
+        <tr>
+          <td>Google</td>
+          <td>Web Risk API security screening; Google Fonts on the website</td>
+        </tr>
+        <tr>
+          <td>Cloudflare</td>
+          <td>Turnstile bot protection; DNS/TLS where used</td>
+        </tr>
+        <tr>
+          <td>OnlineOrNot</td>
+          <td>Status page at status.linkshift.app</td>
+        </tr>
+        <tr>
+          <td>Self-hosted infrastructure</td>
+          <td>PostgreSQL, Redis, Loki/Grafana on Operator servers</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      You may object to a new or replaced subprocessor on reasonable grounds relating to data
+      protection. If the Operator cannot address your objection in a commercially reasonable manner,
+      you may terminate use of the affected Service.
+    </p>
+    <p>
+      OpenAI processes documentation assistant queries as a subprocessor under our
+      <a routerLink="/privacy">Privacy Policy</a>, not under this DPA for live redirect visitor
+      data.
+    </p>
+
+    <h2>International transfers</h2>
+    <p>
+      Primary Service infrastructure is hosted in the European Union. Subprocessors may still
+      process data in the United States, the European Economic Area, and other countries where they
+      operate. Where required by applicable law, the Operator relies on standard contractual clauses
+      or equivalent safeguards for international transfers.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      For DPA questions or to request a countersigned agreement, email
+      {{ siteConfig.privacyEmail }}.
+    </p>
+    <p>
+      A full signed DPA is available on request at {{ siteConfig.privacyEmail }} when your
+      organization needs a wet signature for enterprise procurement.
+    </p>
+  </div>
+</div>

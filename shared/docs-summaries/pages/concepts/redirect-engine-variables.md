@@ -1,53 +1,51 @@
 ---
 source: shared/docs/pages/concepts/redirect-engine-variables.md
-generatedAt: 2026-06-07T10:03:50.051Z
+generatedAt: 2026-06-08T20:07:07.272Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for developers working with the LinkShift redirect engine, explaining how to use request variables, modifiers, and function placeholders in redirect rules.
+This document is for developers using the LinkShift redirect engine, explaining the request variables, modifiers, and function placeholders available for configuring redirects.
 
 ## What this doc covers
-- **Request variables**: Overview of how variables are derived from incoming requests.
-- **Domain variables**: Detailed placeholders for domain-related data.
-- **Path variables**: Placeholders for segments of the request path.
-- **Query variables**: Placeholders for query parameters in the request.
-- **Request metadata**: Placeholders for metadata like HTTP method and client IP.
-- **Modifiers**: How to apply modifiers to placeholders.
-- **Function placeholders**: Usage of functions like `{time()}` and `{random(min,max)}` in destinations.
-- **Functions in conditions**: Syntax for using functions directly in ternary conditions.
-- **Escaping literal braces**: How to include literal braces in destination strings.
-- **Missing placeholders**: Behavior when placeholders are missing in the output.
+- **Request variables**: Overview of variables derived from incoming requests, including:
+  - **Domain variables**: `{domain.fqdn}`, `{domain.label}`, `{domain.root}`, `{domain.extension}`, `{domain.subdomain}`, `{domain.subdomains.N}`
+  - **Path variables**: `{path}`, `{segments.N}`
+  - **Query variables**: `{query.paramName}`
+  - **Request metadata**: `{method}`, `{ip}`, `{user-agent}`, `{accept-language}`, `{accept-language.primary}`
+- **Modifiers**: How to apply modifiers to placeholders, including:
+  - Examples of modifiers like `to_lower_case`, `url_encode`, `multiply_10`, etc.
+- **Function placeholders**: Usage of `{time()}` and `{random(min,max)}` in destination strings.
+- **Functions in conditions**: Syntax for using functions like `time()` and `random()` directly in ternary conditions.
+- **Escaping literal braces**: How to include literal `{` or `}` in destination strings.
+- **Missing placeholders**: Behavior when placeholders do not exist.
 
 ## Key workflows and rules
 1. **Using Request Variables**:
-   - Placeholders are defined using `{placeholder}` syntax.
-   - Domain variables are derived from the `Host` header and include `{domain.fqdn}`, `{domain.label}`, `{domain.root}`, `{domain.extension}`, and `{domain.subdomain}`.
-   - Path variables are derived from the request path, e.g., `{path}` and `{segments.N}`.
-   - Query variables are derived from query parameters, e.g., `{query.paramName}`.
+   - Placeholders are used in `{placeholder}` syntax within destination URLs and conditions.
+   - Domain variables are derived from the request hostname, with specific rules for how labels are assigned.
+   - Path and query variables are extracted from the request path and query string, respectively.
 
-2. **Modifiers**:
-   - Modifiers are appended after a colon and can be chained, e.g., `{query.code:to_upper_case.url_encode}`.
-   - Modifiers include `to_lower_case`, `url_encode`, `multiply_10`, etc.
-   - The order of modifiers is left to right.
+2. **Applying Modifiers**:
+   - Modifiers are appended after a colon and can be chained together.
+   - Example: `{query.code:to_upper_case.url_encode}` applies `to_upper_case` and then `url_encode`.
 
-3. **Function Placeholders**:
+3. **Using Function Placeholders**:
    - Functions like `{time()}` and `{random(min,max)}` can be used in destination strings.
    - In conditions, use `time()` and `random(min,max)` without curly braces.
 
 4. **Escaping Braces**:
-   - To include literal braces, double them: `{{` becomes `{` and `}}` becomes `}`.
+   - To include literal braces in a destination, double them: `{{` becomes `{` and `}}` becomes `}`.
 
 5. **Handling Missing Placeholders**:
    - If a placeholder is missing and has no modifiers, it remains unchanged in the output.
+   - If a modifier chain is present but the value is missing, the raw key name may be passed to the modifiers.
 
 ## Limits and constraints
-- **Domain Variables**: The engine splits hostnames based on `.` and assigns values accordingly. For example, `{domain.root}` is the second-to-last label unless there are fewer than two labels.
-- **Path Variables**: Only existing segments are set; missing segments remain unchanged unless a modifier chain is present.
-- **Query Variables**: If a query parameter appears multiple times, the last occurrence is used for substitution.
-- **Modifiers**: Non-numeric input with math modifiers may produce `NaN`. Invalid percent-sequences in `url_decode` keep the previous value.
-- **Function Placeholders**: Invalid arguments for functions like `{random(min,max)}` will fail validation at rule save time.
-- **Country Routing**: The `{geo.country}` placeholder is planned but not currently available.
+- **Domain Variables**: The engine does not support generic `{header.*}` or `{cookie.*}` placeholders; cookie-based routing is not supported.
+- **Modifiers**: Invalid modifiers result in a validation error during API create/update; at runtime, they are skipped with a warning.
+- **Function Placeholders**: Arguments for functions like `{random(min,max)}` must be safe integers; invalid arguments fail validation.
+- **Country Routing**: The planned feature for country-based routing via `{geo.country}` is not available and has no current implementation.
 
 ## Related docs and API areas
 - [Redirect engine concepts](./redirect-engine-concepts.md)

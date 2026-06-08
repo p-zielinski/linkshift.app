@@ -8,6 +8,7 @@ import {
   BillingPlanCatalog,
 } from '../api/billing-api.service';
 import { extractErrorMessage } from './store-error.utils';
+import { createStoreLoadGeneration } from './store-load-generation.util';
 
 export type BillingPlansState = {
   catalog: BillingPlanCatalog | null;
@@ -36,6 +37,8 @@ export const BillingPlansStore = signalStore(
     hasCatalog: computed(() => !!store.catalog()),
   })),
   withMethods((store, api = inject(BillingApiService)) => {
+    const loadGeneration = createStoreLoadGeneration();
+
     const setError = (error: unknown, fallback: string) => {
       const message = extractErrorMessage(error, fallback);
       patchState(store, { error: message });
@@ -44,21 +47,40 @@ export const BillingPlansStore = signalStore(
     const loadPlans = rxMethod<void>(
       pipe(
         tap(() => patchState(store, { isLoading: true, error: null })),
-        mergeMap(() =>
-          api.getPlans().pipe(
+        mergeMap(() => {
+          const requestGeneration = loadGeneration.current();
+          return api.getPlans().pipe(
             tapResponse({
-              next: (catalog) => patchState(store, { catalog }),
-              error: (error) => setError(error, 'Billing plans request failed.'),
-              finalize: () => patchState(store, { isLoading: false }),
+              next: (catalog) => {
+                if (!loadGeneration.isCurrent(requestGeneration)) {
+                  return;
+                }
+                patchState(store, { catalog });
+              },
+              error: (error) => {
+                if (!loadGeneration.isCurrent(requestGeneration)) {
+                  return;
+                }
+                setError(error, 'Billing plans request failed.');
+              },
+              finalize: () => {
+                if (!loadGeneration.isCurrent(requestGeneration)) {
+                  return;
+                }
+                patchState(store, { isLoading: false });
+              },
             }),
-          ),
-        ),
+          );
+        }),
       ),
     );
 
     return {
       loadPlans,
-      resetStore: () => patchState(store, resetState()),
+      resetStore: () => {
+        loadGeneration.bump();
+        patchState(store, resetState());
+      },
     };
   }),
 );

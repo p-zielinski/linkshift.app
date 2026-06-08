@@ -323,6 +323,19 @@
               <mat-error>{{ error }}</mat-error>
             }
           </mat-form-field>
+          @if (destinationUsesVisitorIp()) {
+            <div
+              class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted"
+            >
+              <code>{{ '{' }}ip{{ '}' }}</code> sends the visitor IP to the destination URL. Make
+              sure you have a lawful basis and cover this in your privacy notice.
+              <a
+                class="text-app-accent-strong underline"
+                routerLink="/docs/guides/live-traffic-and-visitor-privacy"
+                >Visitor privacy guide</a
+              >
+            </div>
+          }
         } @else {
           <div
             class="rounded-[12px] border border-app-border-soft bg-app-surface px-3 py-2 text-xs text-app-muted"

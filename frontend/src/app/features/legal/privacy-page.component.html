@@ -12,24 +12,89 @@
 
     <h2>Who we are</h2>
     <p>
-      The Service is operated by {{ siteConfig.legalName }}. Contact: {{ siteConfig.privacyEmail }}.
-      Address: {{ siteConfig.legalAddress }}.
+      The Service is operated by {{ siteConfig.legalName }}, a natural person (individual data
+      controller). Contact: {{ siteConfig.privacyEmail }}. Address: {{ siteConfig.legalAddress }}.
     </p>
 
     <h2>Information we collect</h2>
     <ul>
-      <li>Account data: email, organization name, user role, and preferences.</li>
-      <li>Configuration data: domains, redirect rules, tests, and settings you create.</li>
-      <li>Usage data: service events and timestamps for security and reliability.</li>
-      <li>Billing data: subscription status and identifiers (handled by Paddle).</li>
+      <li>Account data: email, organization name, and whether you are the organization owner.</li>
+      <li>
+        Organization configuration and limits: server-stored JSON settings for your organization
+        (for example, plan limits and feature flags). Interface preferences stored in your browser
+        are described under Browser-local data below.
+      </li>
+      <li>Authentication data: email, password hash, and email verification status.</li>
+      <li>
+        Authentication flow tokens: token hashes stored in Redis for about 30 minutes for email
+        verification, password reset, and similar flows.
+      </li>
+      <li>
+        Organization invites: email addresses of people you invite to your organization, token
+        hashes, and expiry (invite links expire after about 30 minutes).
+      </li>
+      <li>
+        Organization membership visibility: when you belong to an organization, other members of the
+        same organization can see your email address and role (owner or member) in the Organization
+        area of the dashboard. Organization owners can also see whether your email is verified and
+        whether your account is blocked.
+      </li>
+      <li>
+        API keys: key name, token hash (not the full secret), token prefix, and last-used timestamp.
+      </li>
+      <li>Configuration data: domains, redirect rules, link maps, and settings you create.</li>
+      <li>
+        Redirect tests: saved simulation inputs and expected results you store in the Service, which
+        may optionally include an IP address, User-Agent, hostname, request headers, and query
+        parameters you choose to save in redirect test fixtures.
+      </li>
+      <li>
+        Redirect traffic analytics: aggregated request method, path, query, destination, and
+        link-map keys from live redirects (visitor IP addresses are not stored in the analytics
+        database).
+      </li>
+      <li>
+        Public tools usage: URLs you submit to the QR code generator and redirect trace tools
+        (redirect trace sends server-side HTTP requests to those URLs; destination hosts may see our
+        infrastructure IP), queries to our read-only documentation MCP endpoint, and an optional
+        User-Agent header when you use redirect trace. QR URLs are processed transiently on the
+        server and are not stored. Redirect trace URLs may appear in short-lived operational logs.
+        Operational logs for QR generation record your IP address only (not the URL); redirect trace
+        logs may record your IP address, the traced URL, and an optional User-Agent header.
+      </li>
+      <li>
+        Usage data: service events and timestamps from application and security logs (for example,
+        request metadata, errors, and operational events) for security and reliability — not for
+        marketing profiling.
+      </li>
+      <li>
+        Billing data: Paddle acts as merchant of record and is an independent controller for payment
+        data (card details, tax, and invoicing). We store subscription status, Paddle identifiers,
+        and checkout session records (plan, session status, and metadata).
+      </li>
       <li>
         Legal acceptance records: confirmation that you accepted the Terms of Service and this
         Privacy Policy, minimum-age confirmation, version identifier, and timestamps.
       </li>
       <li>
+        Identity verification documents if we request know-your-customer (KYC) checks under our
+        Terms of Service.
+      </li>
+      <li>
         Documentation assistant: questions you submit, generated answers, optional feedback ratings,
-        and a temporary IP address for abuse prevention when you use this feature in the Service
-        (for example, on <a href="/docs">our documentation</a> or while signed in).
+        timing or token-usage metadata, and conversation summaries (hidden thread context from prior
+        turns) when you use this feature in the Service (for example, on
+        <a routerLink="/docs">our documentation</a> or while signed in). Conversation summaries may
+        be sent to our API and to OpenAI to generate answers when you ask follow-up questions. We do
+        not share this data with OpenAI for model training. Your IP address may be used briefly for
+        rate limiting (stored in Redis for about one minute) and may appear in short-lived
+        operational logs (up to approximately 96 hours). Questions, answers, and ratings are stored
+        in Supabase when that logging is configured.
+      </li>
+      <li>
+        Browser-local data: a cache of your signed-in profile and organization details, interface
+        preferences, and onboarding state stored on your device to load the dashboard faster and
+        remember your choices.
       </li>
     </ul>
     <p>
@@ -37,22 +102,161 @@
       service logs needed to deliver the Service.
     </p>
 
+    <h2>Browser storage</h2>
+    <p>
+      The Service uses your browser's local storage and session storage (technologies similar to
+      cookies) to operate the dashboard and documentation. Most data stays on your device until you
+      clear browser data manually. Signing out removes only the account cache; other local and
+      session data (documentation history, Try Me drafts, interface preferences) persists until you
+      clear it in the UI or clear browser data.
+    </p>
+    <p>
+      Access tokens for authenticated API requests are held in memory only and are not stored in
+      local storage.
+    </p>
+    <ul>
+      <li>
+        <strong>Account cache (local storage):</strong> a copy of your signed-in profile and
+        organization details under <code>user_data</code> and <code>organization_data</code> (such
+        as email and organization name) so the app can load faster after refresh. Removed when you
+        sign out.
+      </li>
+      <li>
+        <strong>Interface preferences (local storage):</strong> dashboard mode
+        (<code>linkshift-dashboard-mode</code>), selected domain group
+        (<code>linkshift-active-domain-group</code>), and onboarding or setup checklist progress
+        (such as <code>dashboard-onboarding-confirmed</code> and
+        <code>linkshift-setup-checklist</code>).
+      </li>
+      <li>
+        <strong>Documentation assistant history (local storage):</strong> recent chats on your
+        device under <code>linkshift_docs_assistant_history_v1</code>. See Documentation assistant
+        below.
+      </li>
+      <li>
+        <strong>Documentation Try Me (session storage):</strong> an API key
+        (<code>linkshift.docs.tryMe.apiKey</code>) and request drafts
+        (<code>linkshift.docs.tryMe.drafts.v1</code>) for the current browser tab session. The key
+        is sent to our servers only when you run a Try Me request.
+      </li>
+      <li>
+        <strong>OpenAPI spec cache (session storage):</strong> a cached copy of the API
+        specification under the key <code>linkshift.docs.openapi.v1</code> for the current browser
+        tab session.
+      </li>
+    </ul>
+
     <h2>Visitor IP addresses</h2>
     <p>
-      We do not log or store visitor IP addresses for marketing or profiling purposes. Visitor IP
-      addresses may be processed temporarily only for technical security, abuse prevention, and
-      aggregated statistics. We do not retain visitor IPs beyond what is necessary for these limited
-      purposes.
+      We do not store visitor IP addresses in the redirect analytics database, and we do not use IP
+      addresses for marketing or profiling.
+    </p>
+    <p>IP addresses may be processed temporarily for limited technical purposes:</p>
+    <ul>
+      <li>
+        Rate limiting and abuse prevention (Redis counters, typically seconds to about two hours for
+        login abuse protection).
+      </li>
+      <li>
+        Operational logs (Loki, retained for approximately 96 hours) for security monitoring and
+        incident response.
+      </li>
+      <li>
+        Cloudflare Turnstile bot protection when you use the documentation assistant (Ask docs).
+      </li>
+      <li>
+        Optional <code>{{ '{' }}ip{{ '}' }}</code> placeholder substitution in customer-configured
+        redirect destinations (your responsibility for third-party destinations you configure).
+      </li>
+      <li>
+        Public tools — QR code generator: your IP address may appear in operational logs. URLs are
+        processed server-side but are not stored in operational logs for QR generation.
+      </li>
+      <li>
+        Public tools — Redirect trace: your IP address, the traced URL, and an optional User-Agent
+        header may appear in operational logs. Redirect trace issues outbound HTTP requests from our
+        servers to the URLs you submit.
+      </li>
+      <li>
+        Public tools — Documentation MCP: your IP address may appear in operational logs for
+        read-only documentation queries. We do not store MCP conversation content (unlike the
+        documentation assistant).
+      </li>
+    </ul>
+
+    <h2>Redirect traffic and analytics</h2>
+    <p>
+      When visitors hit your live redirect rules, we record aggregated analytics in hourly buckets
+      to power dashboard reports. Stored fields include request method, path, query parameters,
+      destination, link-map keys, and related breakdown dimensions (for example,
+      <code>RedirectRuleHitBreakdownHourly</code> aggregates).
+    </p>
+    <p>
+      Analytics data is kept for a limited period that depends on your subscription plan. Current
+      retention limits are listed on our <a routerLink="/pricing">Pricing</a> page and shown in the
+      Service (for example, <strong>Click data retention</strong> on your analytics dashboard). We
+      may update plan limits from time to time with reasonable notice; the period that applies to
+      your account is the one displayed in the Service for your plan. Data is aggregated; individual
+      visitor IP addresses are not stored in the analytics database.
+    </p>
+
+    <h2>Public tools</h2>
+    <p>
+      We offer public tools that do not require an account: a QR code generator, a redirect trace
+      tester, and a documentation MCP endpoint for read-only documentation access in compatible
+      clients. These tools are subject to per-IP rate limits.
+    </p>
+    <p>
+      The documentation MCP endpoint provides read-only access to our documentation catalog. Your IP
+      address may appear in short-lived operational logs, and we do not store MCP conversation
+      content or chat logs.
+    </p>
+    <p>
+      URLs you submit are processed server-side to generate QR codes or trace redirect chains. The
+      redirect trace tool sends server-side HTTP requests to the URLs you submit; destination
+      servers may log our infrastructure IP address. The traced URL and an optional User-Agent
+      header may appear in short-lived operational logs. For API details and limits, see our
+      <a routerLink="/docs/guides/public-tools-api">Public tools API</a> guide.
+    </p>
+
+    <h2>Your customers' visitors</h2>
+    <p>
+      If you use LinkShift to redirect traffic for your own sites or campaigns, you are the data
+      controller for your end visitors. {{ siteConfig.name }} processes redirect request metadata as
+      a data processor to provide the Service and analytics on your instructions.
+    </p>
+    <p>
+      You are responsible for your own privacy notices, lawful bases, and compliance for those
+      visitors. If you use the <code>{{ '{' }}ip{{ '}' }}</code> placeholder in redirect
+      destinations, the visitor's IP address is passed to third-party URLs you configure.
+    </p>
+    <p>
+      Query parameters in redirect URLs may contain personal data from your end visitors (for
+      example, email addresses or names in tracking links). Avoid putting personal or sensitive
+      information in redirect URLs where possible, and make sure your privacy notices cover how you
+      handle visitor data processed through the Service.
+    </p>
+    <p>
+      See our
+      <a routerLink="/docs/guides/live-traffic-and-visitor-privacy"
+        >Live traffic and visitor privacy</a
+      >
+      guide and <a routerLink="/dpa">Data Processing Agreement</a> for controller and processor
+      roles, analytics scope, and subprocessors.
     </p>
 
     <h2>How we use information</h2>
     <ul>
       <li>Provide and secure the Service (authentication, abuse prevention).</li>
       <li>Process subscriptions and account changes.</li>
-      <li>Communicate service-related updates (no marketing emails).</li>
       <li>
-        Operate and improve the documentation assistant, including sharing questions and answers
-        with OpenAI to develop and improve OpenAI’s AI services when you use that feature.
+        Send service-related transactional emails (not marketing) for account security, organization
+        collaboration, billing, and safety alerts via Zoho ZeptoMail (see Sharing and processors
+        below).
+      </li>
+      <li>
+        Operate the documentation assistant, including sending questions and conversation summaries
+        to OpenAI to generate answers when you use that feature.
       </li>
       <li>Comply with legal obligations and enforce our Terms.</li>
       <li>Record and enforce legal acceptance, including prompting you to accept updated terms.</li>
@@ -60,15 +264,27 @@
 
     <h2>Security screening</h2>
     <p>
-      Destination URLs may be submitted to automated third-party security scanning services
-      (including but not limited to Google Safe Browsing and other similar services) to detect
-      malicious or unsafe destinations.
+      Destination URLs from your redirect rules and link maps may be submitted to the Google Web
+      Risk API and other automated security screening services to detect malicious or unsafe
+      destinations.
+    </p>
+
+    <h2>Automated decisions</h2>
+    <p>
+      Web Risk and other automated security screening may block redirect rules or accounts without
+      human review when destinations are flagged as malicious, unsafe, or high-risk. These decisions
+      can limit access to the Service immediately. See our
+      <a routerLink="/terms">Terms of Service</a> for enforcement details, including limitations on
+      refunds or credits during security blocks.
     </p>
 
     <h2>Legal bases (EU/UK)</h2>
     <ul>
-      <li>Contract: to provide the Service you request, including the documentation assistant.</li>
-      <li>Legitimate interests: fraud prevention and service security.</li>
+      <li>Contract: to provide the Service you request.</li>
+      <li>
+        Legitimate interests: fraud prevention, service security, security logs, rate limiting, and
+        operating the documentation assistant.
+      </li>
       <li>Legal obligations: tax, accounting, and regulatory requirements.</li>
     </ul>
 
@@ -78,13 +294,31 @@
       documentation. You may access it wherever we make it available in the Service (such as our
       documentation site or signed-in areas of the app). When you submit a question, it is sent to
       our tools API to generate an answer. We may store the question, answer, sources cited,
-      response time, and an optional helpful/not helpful rating in our logging database to improve
-      quality and prevent abuse.
+      response time, and an optional helpful/not helpful rating to improve quality and prevent
+      abuse.
+    </p>
+    <p>
+      When Supabase logging is enabled, these records are stored in the
+      <code>agent_search_logs</code> table in Supabase, hosted in the European Union. IP addresses
+      are not stored in that database — only the question, answer, sources, rating, timing, and
+      token usage metadata. IP addresses may still be used briefly for rate limiting or appear in
+      short-lived operational logs as described above.
+    </p>
+    <p>
+      Even when Supabase logging is not configured, your questions and conversation summaries sent
+      for follow-up context are still sent to OpenAI to generate responses. We configure the API so
+      OpenAI does not use this content for model training.
     </p>
     <p>
       Recent chats can be saved in your browser’s local storage on your device so you can return to
       them later. You can clear that history in the assistant UI; clearing it does not delete server
       logs already recorded for earlier questions.
+    </p>
+    <p>
+      Conversation summaries (<code>conversationSummary</code>) are stored locally as part of your
+      chat history on your device. When you ask a follow-up question, the summary may be sent to our
+      API and to OpenAI to provide context for the next answer. Conversation summaries are not
+      stored in Supabase.
     </p>
     <p>
       Bot protection for the documentation assistant uses Cloudflare Turnstile, including invisible
@@ -99,33 +333,47 @@
       (which supplements Cloudflare’s main privacy policy).
     </p>
     <p>
-      The documentation assistant uses OpenAI to generate answers from retrieved documentation
-      context. When you submit a question, your question and the generated answer are shared with
-      OpenAI to develop and improve OpenAI’s services, including model training, research, and
-      evaluation. OpenAI processes that shared content as an independent data controller for those
-      purposes, separate from our data processing agreement with OpenAI for answer generation. Do
-      not submit sensitive, confidential, or proprietary information, protected health information,
-      or personal data of children through the documentation assistant. For how OpenAI uses shared
-      content, see OpenAI’s
-      <a href="https://openai.com/policies/business-terms" rel="noopener noreferrer" target="_blank"
-        >Business Terms</a
-      >
-      (Content Sharing Agreement).
+      The documentation assistant uses OpenAI as a subprocessor to generate answers from retrieved
+      documentation context. When you submit a question, your question and any conversation summary
+      sent for follow-up context are transmitted to OpenAI for answer generation only. We use API
+      settings that opt out of using your content for model training. Do not submit sensitive,
+      confidential, or proprietary information, protected health information, or personal data of
+      children through the documentation assistant. For how OpenAI handles API data, see
+      <a
+        href="https://openai.com/policies/api-data-usage-policies"
+        rel="noopener noreferrer"
+        target="_blank"
+        >OpenAI API data usage policies</a
+      >.
     </p>
 
     <h2>Sharing and processors</h2>
     <ul>
-      <li>Paddle for payments and subscription management.</li>
-      <li>Zoho ZeptoMail for transactional emails.</li>
-      <li>Security scanning providers for anti-abuse screening.</li>
-      <li>Infrastructure providers that host and process Service data.</li>
       <li>
-        OpenAI for documentation assistant answer generation and for developing and improving
-        OpenAI’s AI services using questions and answers you submit through that feature (as an
-        independent controller for that shared content).
+        Paddle for payments and subscription management. Paddle acts as merchant of record and may
+        be an independent controller for payment processing. See
+        <a href="https://www.paddle.com/legal/privacy" rel="noopener noreferrer" target="_blank"
+          >Paddle's Privacy Policy</a
+        >.
       </li>
       <li>
-        Cloudflare Turnstile for documentation assistant bot protection — see
+        Zoho ZeptoMail for EU-based transactional email (api.zeptomail.eu), including email
+        verification and password reset, email change confirmation codes, organization invites,
+        subscription and billing notices (activation, renewal, cancellation, payment failure, and
+        plan changes), and security alerts when a redirect rule is blocked after safety screening
+        (which may include the rule ID and destination URL).
+      </li>
+      <li>
+        Supabase for documentation assistant logs when configured, hosted in the European Union.
+      </li>
+      <li>
+        Sentry and GlitchTip for error monitoring. Error reports may include request metadata; we
+        configure scrubbing to limit sensitive data.
+      </li>
+      <li>Profitwell may load via Paddle checkout for subscription analytics (not advertising).</li>
+      <li>Google for Web Risk API security screening and Google Fonts on the website.</li>
+      <li>
+        Cloudflare for Turnstile bot protection and DNS/TLS services where used — see
         <a
           href="https://www.cloudflare.com/turnstile-privacy-policy/"
           rel="noopener noreferrer"
@@ -133,21 +381,59 @@
           >Turnstile Privacy Addendum</a
         >.
       </li>
+      <li>OnlineOrNot for the status page at status.linkshift.app.</li>
+      <li>
+        Self-hosted infrastructure on our servers: PostgreSQL, Redis, and Loki/Grafana for
+        operational logging.
+      </li>
+      <li>
+        OpenAI for documentation assistant answer generation only (we do not share your data with
+        OpenAI for model training).
+      </li>
     </ul>
     <p>We do not sell or share personal data for advertising purposes.</p>
 
     <h2>International transfers</h2>
     <p>
-      Data may be processed in countries where our providers operate. We use appropriate safeguards
-      where required.
+      Primary Service hosting is in the European Union (see our
+      <a routerLink="/pricing">Pricing</a> page). Some subprocessors may process data in the United
+      States and other countries.
+    </p>
+    <p>
+      Our providers may process data in the United States, the European Economic Area, and other
+      countries where they operate. Where required by applicable law, we rely on standard
+      contractual clauses or equivalent safeguards for international transfers.
     </p>
 
     <h2>Data retention</h2>
-    <p>
-      We retain account data while your account is active, and for a reasonable period thereafter to
-      comply with legal and operational requirements. Security logs are retained only as necessary
-      for abuse prevention and incident response.
-    </p>
+    <ul>
+      <li>
+        Account and configuration data: while your account is active, plus a reasonable period
+        afterward for legal and operational requirements.
+      </li>
+      <li>
+        Redirect traffic analytics: for a limited period that depends on your plan — see our
+        <a routerLink="/pricing">Pricing</a> page and the retention indicator in your analytics
+        dashboard.
+      </li>
+      <li>Operational logs (Loki): approximately 96 hours.</li>
+      <li>Authentication email tokens: approximately 30 minutes.</li>
+      <li>Organization invite records: until the invite is accepted, revoked, or expired.</li>
+      <li>
+        Billing checkout session records: while checkout is in progress and for operational and
+        accounting needs.
+      </li>
+      <li>Rate-limit counters (Redis): seconds to about two hours.</li>
+      <li>
+        Documentation assistant Supabase logs (<code>agent_search_logs</code>): configured retention
+        period (default 90 days).
+      </li>
+      <li>Legal consent records: while your account exists.</li>
+      <li>
+        Data breach notification: if a personal data breach is likely to pose a risk to your rights
+        and freedoms, we will notify you and relevant authorities as required by applicable law.
+      </li>
+    </ul>
 
     <h2>Your rights</h2>
     <ul>
@@ -155,12 +441,35 @@
       <li>Object to or restrict processing where applicable.</li>
       <li>Data portability (EU/UK).</li>
       <li>Opt out of data sale (US). We do not sell data.</li>
+      <li>
+        Lodge a complaint with your local data protection supervisory authority (EU/UK users).
+      </li>
     </ul>
+    <p>
+      We respond to privacy requests within one month where applicable law requires it. Automated
+      security decisions may block redirect rules or accounts to protect the Service — see our
+      <a routerLink="/terms">Terms of Service</a> for details. To request deletion or access, email
+      {{ siteConfig.privacyEmail }} (self-service export is not yet available).
+    </p>
+    <p>
+      If you request account deletion, we will delete your account and associated configuration data
+      (such as domains, redirect rules, link maps, and API keys). We may retain billing and legal
+      records, and operational logs within their retention windows, where required for legal,
+      accounting, or security purposes.
+    </p>
+
+    <h2>Children</h2>
+    <p>
+      The Service is not intended for anyone under 16. We do not knowingly collect personal data
+      from children.
+    </p>
 
     <h2>Cookies</h2>
     <p>
-      We use essential cookies to keep you signed in and protect your account. See our Cookies
-      Notice for details.
+      We use essential cookies to keep you signed in and protect your account, including an HttpOnly
+      <code>refresh_token</code> cookie for session renewal. We also use browser local storage and
+      session storage for account cache and interface preferences. See our
+      <a routerLink="/cookies">Cookies Notice</a> and the Browser storage section above for details.
     </p>
 
     <h2>Changes to this Privacy Policy</h2>

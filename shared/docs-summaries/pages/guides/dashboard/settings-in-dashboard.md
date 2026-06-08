@@ -1,55 +1,57 @@
 ---
 source: shared/docs/pages/guides/dashboard/settings-in-dashboard.md
-generatedAt: 2026-06-07T10:05:38.310Z
+generatedAt: 2026-06-08T20:08:57.473Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for users managing their site settings, plan, team, and account within the LinkShift dashboard.
+This document is for users managing their site, plan, team, and account settings within the LinkShift dashboard.
 
 ## What this doc covers
-- Overview of accessing **Settings** in both **Campaign** and **Advanced** views.
-- Details on **Plan and usage** tiles and their metrics in both views.
-- Information on managing **Domains & hosts** and connecting domains.
-- Overview of the **Team** card and its functionalities.
-- Description of the **Plan and billing** card and available actions.
-- Information on the **Profile** card and its link to account updates.
-- Details on **Shortcut cards** for navigating between views.
+- Overview of accessing **Settings** in both Campaign and Advanced views.
+- Details on plan and usage metrics for both views.
+- Information on managing domains and hosts.
+- Team management features and links to manage team settings.
+- Plan and billing options available in the dashboard.
+- Profile management and links to update account information.
+- Shortcut cards available in both views.
 
 ## Key workflows and rules
 1. **Open Settings**:
    - **Campaign View**: Select **Settings** in the sidebar.
    - **Advanced View**: Select **Plan and account** under **Workspace** in the sidebar.
 
-2. **Plan and Usage**:
+2. **Plan and Usage Metrics**:
    - In **Campaign View**:
-     - Tiles display metrics for **Short link hosts**, **Active links**, and **Team seats**.
-     - Expand **Technical limits** for metrics on **Redirect rules** and **Link maps**.
+     - View tiles for **Short link hosts**, **Active links**, and **Team seats**.
+     - Expand **Technical limits** for **Redirect rules** and **Link maps**.
    - In **Advanced View**:
-     - Tiles display metrics for **Domains**, **Rules**, **Active users**, and **Link maps**.
+     - View tiles for **Domains**, **Rules**, **Active users**, and **Link maps**.
      - No **Technical limits** section is available.
 
-3. **Domains & Hosts**:
-   - Select **Connect domain** to open the domain connection wizard.
-   - Messages displayed based on the state of sites and hosts (loading, no sites, site without hosts).
+3. **Domain Management**:
+   - Select **Connect domain** to open the connect-domain wizard.
+   - Messages displayed based on the state of sites and hosts (loading, no sites, or sites without hosts).
 
 4. **Team Management**:
-   - Access **Manage team** via the **Team** card for invites, seats, and API keys.
+   - View active user count and access **Manage team** for invites, seats, and API keys.
 
-5. **Plan and Billing Management**:
-   - Actions available in the **Plan and billing** card:
-     - **Upgrade**: Shown when checkout is available for your plan.
-     - **Manage subscription**: Available for paid plans.
-     - **Cancel subscription**: Available for paid plans.
-   - **Upgrade** opens the **Change your subscription** dialog; **Manage subscription** and **Cancel subscription** open the Paddle customer portal.
+5. **Plan and Billing Actions**:
+   - Options to **Upgrade**, **Manage subscription**, and **Cancel subscription** based on plan type.
+   - **Upgrade** opens the **Change your subscription** dialog.
+   - **Manage subscription** and **Cancel subscription** redirect to the Paddle customer portal.
 
 6. **Profile Management**:
    - Access **Open profile** for email verification and account updates.
 
+7. **Shortcut Cards**:
+   - **Campaign View**: Switch to Advanced view opens the Dashboard.
+   - **Advanced View**: Access to Operations dashboard and routing options.
+
 ## Limits and constraints
-- When a tile reaches its capacity, it displays **Limit reached** and prompts to **Upgrade plan to increase this limit**.
-- Usage loads from the organization subscription; if it fails, a message appears: **Couldn't load usage. Try again or refresh the page.**
-- The **Plan and billing** card actions are only available for paid plans, not for the **FREE** plan.
+- When a tile reaches capacity, it displays **Limit reached** and prompts to **Upgrade plan to increase this limit**.
+- Usage loads from the organization subscription; if loading fails, a message prompts to **Try again** or refresh the page.
+- The **Upgrade**, **Manage subscription**, and **Cancel subscription** options are only available for paid plans (not **FREE**).
 
 ## Related docs and API areas
 - [Billing and plans in the dashboard](../billing-and-plans-in-dashboard.md)

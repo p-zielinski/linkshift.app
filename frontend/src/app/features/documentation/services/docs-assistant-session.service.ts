@@ -305,15 +305,6 @@ export class DocsAssistantSessionService {
       return typeof details === 'string' && details.trim() ? details.trim() : null;
     }
 
-    if (payload instanceof Blob) {
-      try {
-        const text = await payload.text();
-        return this.extractDetails(JSON.parse(text));
-      } catch {
-        return null;
-      }
-    }
-
     return null;
   }
 
@@ -327,7 +318,7 @@ export class DocsAssistantSessionService {
       }
 
       this.searchElapsedSeconds.set(Math.floor((Date.now() - this.searchStartedAtMs) / 1000));
-    }, 1_000);
+    }, 1000);
   }
 
   private stopSearchElapsedTimer(): void {

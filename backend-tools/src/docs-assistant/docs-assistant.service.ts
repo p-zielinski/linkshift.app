@@ -26,6 +26,7 @@ import {
   resolveCatalogIdsForDocumentationSearch,
 } from './docs-assistant-routing.util';
 import { DOCS_ASSISTANT_MAX_CATALOG_PICKS } from './docs-catalog-metadata';
+import { DocsAssistantLogRetentionService } from './docs-assistant-log-retention.service';
 import { DocsCatalogService } from './docs-catalog.service';
 import { DocsContentLoaderService } from './docs-content-loader.service';
 import type { DocsSearchResultEvent, DocsSearchStreamEvent } from './docs-assistant-stream.model';
@@ -46,13 +47,17 @@ function toSearchResultEvent(
 
 @Injectable()
 export class DocsAssistantService implements OnModuleInit {
+  private static readonly LOG_RETENTION_CLEANUP_THROTTLE_MS = 60 * 60 * 1000;
+
   private openai: OpenAI | null = null;
   private supabase: SupabaseClient | null = null;
+  private lastLogRetentionCleanupAt: number | null = null;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly catalogService: DocsCatalogService,
     private readonly contentLoader: DocsContentLoaderService,
+    private readonly logRetentionService: DocsAssistantLogRetentionService,
     private readonly clsService: ClsService,
     private readonly logger: Logger,
   ) {}
@@ -438,6 +443,7 @@ export class DocsAssistantService implements OnModuleInit {
   }): Promise<string> {
     const response = await this.openai!.chat.completions.create({
       model,
+      store: false,
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: systemPrompt },
@@ -488,7 +494,31 @@ export class DocsAssistantService implements OnModuleInit {
       return null;
     }
 
-    return data?.id ?? null;
+    const logId = data?.id ?? null;
+    if (logId) {
+      this.maybeCleanupExpiredLogs();
+    }
+
+    return logId;
+  }
+
+  private maybeCleanupExpiredLogs(): void {
+    const now = Date.now();
+    if (
+      this.lastLogRetentionCleanupAt !== null &&
+      now - this.lastLogRetentionCleanupAt <
+        DocsAssistantService.LOG_RETENTION_CLEANUP_THROTTLE_MS
+    ) {
+      return;
+    }
+
+    this.lastLogRetentionCleanupAt = now;
+    void this.logRetentionService.cleanupExpiredLogs().catch((error: unknown) => {
+      this.logger.warn('Docs assistant log retention cleanup failed', {
+        requestId: this.clsService.getId(),
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
   }
 
   private routerModel(): string {

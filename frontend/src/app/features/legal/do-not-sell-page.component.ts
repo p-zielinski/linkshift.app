@@ -1,19 +1,20 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { SITE_CONFIG } from '../../core/config/site-config';
 import { SeoService } from '../../core/seo/seo.service';
 
 @Component({
   selector: 'app-do-not-sell-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './do-not-sell-page.component.html',
   styleUrl: './legal-page.component.css',
 })
 export class DoNotSellPageComponent implements OnInit {
   private readonly seo = inject(SeoService);
   readonly siteConfig = inject(SITE_CONFIG);
-  readonly updatedAt = '2026-02-05';
+  readonly updatedAt = '2026-06-08';
 
   ngOnInit(): void {
     this.seo.updateTags({

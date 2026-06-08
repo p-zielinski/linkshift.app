@@ -51,3 +51,24 @@
   font-size: 12px;
   color: var(--app-muted, #6b7280);
 }
+
+.legal-card table {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.legal-card th,
+.legal-card td {
+  padding: 8px 12px;
+  text-align: left;
+  border: 1px solid var(--app-border-soft, rgba(0, 0, 0, 0.08));
+  line-height: 1.5;
+  color: var(--app-muted, #6b7280);
+}
+
+.legal-card th {
+  font-weight: 600;
+  background: var(--app-surface-muted, rgba(0, 0, 0, 0.02));
+}

@@ -6,8 +6,11 @@ import type { LoginDto, RegisterDto } from '../models/auth.dto';
 import type { Organization } from '../models/organization.model';
 import type { User } from '../models/user.model';
 import { AuthApiService } from '../api/auth-api.service';
+import { DashboardContextService } from '../layout/dashboard-context.service';
 import { DomainGroupStore } from './domain-group.store';
 import { DomainStore } from './domain.store';
+import { SubdomainStore } from './subdomain.store';
+import { LinksListStore } from './links-list.store';
 import { RedirectRuleStore } from './redirect-rule.store';
 import { RedirectTestStore } from './redirect-test.store';
 import { LinkMapStore } from './link-map.store';
@@ -52,6 +55,9 @@ export const AuthStore = signalStore(
   withMethods((store, api = inject(AuthApiService)) => {
     const domainStore = inject(DomainStore);
     const domainGroupStore = inject(DomainGroupStore);
+    const subdomainStore = inject(SubdomainStore);
+    const linksListStore = inject(LinksListStore);
+    const dashboardContext = inject(DashboardContextService);
     const redirectRuleStore = inject(RedirectRuleStore);
     const redirectTestStore = inject(RedirectTestStore);
     const linkMapStore = inject(LinkMapStore);
@@ -63,9 +69,39 @@ export const AuthStore = signalStore(
     const redirectRulesAnalyticsStore = inject(RedirectRulesAnalyticsStore);
     const apiKeyStore = inject(ApiKeyStore);
 
+    const resetStores = () => {
+      domainStore.resetStore();
+      domainGroupStore.resetStore();
+      subdomainStore.resetStore();
+      linksListStore.resetStore();
+      redirectRuleStore.resetStore();
+      redirectTestStore.resetStore();
+      linkMapStore.resetStore();
+      linkMapEntryStore.resetStore();
+      redirectTestResultsStore.resetStore();
+      organizationMembersStore.resetStore();
+      billingPlansStore.resetStore();
+      organizationUsageStore.resetStore();
+      redirectRulesAnalyticsStore.resetStore();
+      apiKeyStore.resetStore();
+      dashboardContext.clearSelectedDomainGroupId();
+    };
+
+    const clearAuthState = () => {
+      clearStoredSession();
+      patchState(store, {
+        accessToken: null,
+        user: null,
+        organization: null,
+        isLoading: false,
+        error: null
+      });
+    };
+
     const prefetchCoreData = () => {
-      domainGroupStore.searchList();
-      domainStore.searchList();
+      domainGroupStore.searchList(undefined, true);
+      domainStore.searchList(undefined, true);
+      subdomainStore.searchList(undefined, true);
     };
     const setSession = (payload: AuthResponse) => {
       const nextState: AuthState = {
@@ -132,6 +168,7 @@ export const AuthStore = signalStore(
       patchState(store, { isLoading: true, error: null });
       return api.login(payload).pipe(
         tap((response) => {
+          resetStores();
           setSession(response);
           prefetchCoreData();
         }),
@@ -147,6 +184,7 @@ export const AuthStore = signalStore(
       patchState(store, { isLoading: true, error: null });
       return api.register(payload).pipe(
         tap((response) => {
+          resetStores();
           setSession(response);
           prefetchCoreData();
         }),
@@ -163,8 +201,8 @@ export const AuthStore = signalStore(
         tap((tokens) => setTokens(tokens)),
         catchError((error) => {
           if (error.status === 401) {
-            clearStoredSession();
-            patchState(store, { accessToken: null, user: null, organization: null });
+            resetStores();
+            clearAuthState();
           }
           return throwError(() => error);
         })
@@ -176,8 +214,8 @@ export const AuthStore = signalStore(
         tap((session) => setSessionProfile(session)),
         catchError((error) => {
           if (error.status === 401) {
-            clearStoredSession();
-            patchState(store, { accessToken: null, user: null, organization: null });
+            resetStores();
+            clearAuthState();
           }
           return throwError(() => error);
         })
@@ -185,48 +223,13 @@ export const AuthStore = signalStore(
     };
 
     const logout = (redirectFnc: () => void) => {
-      const resetStores = () => {
-        domainStore.resetStore();
-        domainGroupStore.resetStore();
-        redirectRuleStore.resetStore();
-        redirectTestStore.resetStore();
-        linkMapStore.resetStore();
-        linkMapEntryStore.resetStore();
-        redirectTestResultsStore.resetStore();
-        organizationMembersStore.resetStore();
-        billingPlansStore.resetStore();
-        organizationUsageStore.resetStore();
-        redirectRulesAnalyticsStore.resetStore();
-        apiKeyStore.resetStore();
-      };
+      resetStores();
+      clearAuthState();
 
       api.logout().pipe().subscribe({
-        next: () => {
-          clearStoredSession();
-          patchState(store, {
-            accessToken: null,
-            user: null,
-            organization: null,
-            isLoading: false,
-            error: null
-          });
-          resetStores();
-          redirectFnc();
-        },
-        error: () => {
-          clearStoredSession();
-          patchState(store, {
-            accessToken: null,
-            user: null,
-            organization: null,
-            isLoading: false,
-            error: null
-          });
-          resetStores();
-          redirectFnc();
-        },
+        next: () => redirectFnc(),
+        error: () => redirectFnc(),
       });
-
     };
 
     return {

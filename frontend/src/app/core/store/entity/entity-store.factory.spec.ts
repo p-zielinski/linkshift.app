@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Injectable } from '@angular/core';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { createEntityStore } from './entity-store.factory';
 import type { QueryResult } from '../../models/query-result.model';
 import { needsCursorListFetch } from '../../utils/cursor-list-pagination.util';
@@ -19,11 +19,16 @@ class TestApiService {
   listResult: QueryResult<TestEntity> = { data: [], hasMore: false };
   createResult: TestEntity = { id: '0', name: 'default' };
   listShouldFail = false;
+  listUseSubject = false;
+  listSubject = new Subject<QueryResult<TestEntity>>();
 
   list(filter?: TestFilter) {
     this.listCalls += 1;
     if (this.listShouldFail) {
       return throwError(() => new Error('list failed'));
+    }
+    if (this.listUseSubject) {
+      return this.listSubject.asObservable();
     }
     return of(this.listResult);
   }
@@ -64,6 +69,8 @@ describe('createEntityStore', () => {
     });
     store = TestBed.inject(TestStore);
     api = TestBed.inject(TestApiService);
+    api.listUseSubject = false;
+    api.listSubject = new Subject<QueryResult<TestEntity>>();
   });
 
   it('loads a list once and reuses cache', () => {
@@ -120,20 +127,50 @@ describe('createEntityStore', () => {
     expect(api.listCalls).toBe(1);
   });
 
-  it('caches list failures and does not refetch until forced', () => {
+  it('does not cache list failures and retries on next searchList', () => {
     api.listShouldFail = true;
 
     store.searchList();
     store.searchList();
 
-    expect(api.listCalls).toBe(1);
+    expect(api.listCalls).toBe(2);
     expect(store.selectListResult()()).toEqual({ data: [], hasMore: false });
     expect(needsCursorListFetch(store.selectListResult()(), store.selectListExpiration()())).toBe(
-      false,
+      true,
     );
+  });
 
+  it('ignores stale list responses after resetStore', () => {
+    api.listResult = {
+      data: [{ id: '1', name: 'First' }],
+      hasMore: false,
+    };
+
+    store.searchList();
+    expect(store.list()[DEFAULT_LIST_KEY]?.data).toEqual(['1']);
+
+    api.listUseSubject = true;
     store.searchList(undefined, true);
 
-    expect(api.listCalls).toBe(2);
+    store.resetStore();
+    expect(store.list()[DEFAULT_LIST_KEY]).toBeUndefined();
+    expect(store.selectListResult()()).toBeNull();
+
+    api.listSubject.next({
+      data: [{ id: '2', name: 'Stale' }],
+      hasMore: false,
+    });
+
+    expect(store.list()[DEFAULT_LIST_KEY]).toBeUndefined();
+    expect(store.selectListResult()()).toBeNull();
+    expect(store.isLoading()[DEFAULT_LIST_KEY]).toBeUndefined();
+  });
+
+  it('sets expiration to null on list failure', () => {
+    api.listShouldFail = true;
+
+    store.searchList();
+
+    expect(store.expirationDates()[DEFAULT_LIST_KEY]).toBeNull();
   });
 });
