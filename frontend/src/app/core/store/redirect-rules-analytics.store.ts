@@ -11,6 +11,7 @@ import type {
 import { extractErrorMessage } from './store-error.utils';
 import { getExpiration, getFilterKey, isExpired } from './entity/entity-store.utils';
 import { DEFAULT_STORE_TTL_MS } from './store-cache.constants';
+import { createStoreLoadGeneration } from './store-load-generation.util';
 
 type RedirectRulesAnalyticsState = {
   results: Record<string, TopRedirectRuleEntry[]>;
@@ -40,6 +41,8 @@ export const RedirectRulesAnalyticsStore = signalStore(
     hasAnyLoading: computed(() => Object.values(store.isLoading()).some(Boolean)),
   })),
   withMethods((store, api = inject(RedirectRulesApiService)) => {
+    const loadGeneration = createStoreLoadGeneration();
+
     const setLoading = (key: string, value: boolean) => {
       patchState(store, (state) => ({
         isLoading: { ...state.isLoading, [key]: value },
@@ -67,12 +70,28 @@ export const RedirectRulesAnalyticsStore = signalStore(
       pipe(
         tap((query) => setLoading(getFilterKey(query), true)),
         mergeMap((query) => {
+          const requestGeneration = loadGeneration.current();
           const key = getFilterKey(query);
           return api.analytics(query).pipe(
             tapResponse({
-              next: (response) => setSuccess(key, response.data ?? []),
-              error: (error) => setFailure(key, error),
-              finalize: () => setLoading(key, false),
+              next: (response) => {
+                if (!loadGeneration.isCurrent(requestGeneration)) {
+                  return;
+                }
+                setSuccess(key, response.data ?? []);
+              },
+              error: (error) => {
+                if (!loadGeneration.isCurrent(requestGeneration)) {
+                  return;
+                }
+                setFailure(key, error);
+              },
+              finalize: () => {
+                if (!loadGeneration.isCurrent(requestGeneration)) {
+                  return;
+                }
+                setLoading(key, false);
+              },
             }),
           );
         }),
@@ -126,7 +145,10 @@ export const RedirectRulesAnalyticsStore = signalStore(
       selectAnalytics,
       selectLoading,
       selectError,
-      resetStore: () => patchState(store, resetState()),
+      resetStore: () => {
+        loadGeneration.bump();
+        patchState(store, resetState());
+      },
     };
   }),
 );
