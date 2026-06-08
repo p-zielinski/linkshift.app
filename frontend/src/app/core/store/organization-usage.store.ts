@@ -8,6 +8,7 @@ import { OrganizationApiService } from '../api/organization-api.service';
 import { extractErrorMessage } from './store-error.utils';
 import { getExpiration, isExpired } from './entity/entity-store.utils';
 import { DEFAULT_STORE_TTL_MS } from './store-cache.constants';
+import { createStoreLoadGeneration } from './store-load-generation.util';
 
 type OrganizationUsageState = {
   usage: OrganizationUsage | null;
@@ -37,6 +38,8 @@ export const OrganizationUsageStore = signalStore(
     hasUsage: computed(() => !!store.usage()),
   })),
   withMethods((store, api = inject(OrganizationApiService)) => {
+    const loadGeneration = createStoreLoadGeneration();
+
     const setError = (error: unknown, fallback: string) => {
       const message = extractErrorMessage(error, fallback);
       patchState(store, { error: message });
@@ -45,19 +48,32 @@ export const OrganizationUsageStore = signalStore(
     const fetchUsage = rxMethod<void>(
       pipe(
         tap(() => patchState(store, { isLoading: true, error: null })),
-        mergeMap(() =>
-          api.getUsage().pipe(
+        mergeMap(() => {
+          const requestGeneration = loadGeneration.current();
+          return api.getUsage().pipe(
             tapResponse({
-              next: (usage) =>
-                patchState(store, { usage, expiresAt: getExpiration(DEFAULT_STORE_TTL_MS) }),
+              next: (usage) => {
+                if (!loadGeneration.isCurrent(requestGeneration)) {
+                  return;
+                }
+                patchState(store, { usage, expiresAt: getExpiration(DEFAULT_STORE_TTL_MS) });
+              },
               error: (error) => {
+                if (!loadGeneration.isCurrent(requestGeneration)) {
+                  return;
+                }
                 setError(error, 'Usage request failed.');
                 patchState(store, { expiresAt: null });
               },
-              finalize: () => patchState(store, { isLoading: false }),
+              finalize: () => {
+                if (!loadGeneration.isCurrent(requestGeneration)) {
+                  return;
+                }
+                patchState(store, { isLoading: false });
+              },
             }),
-          ),
-        ),
+          );
+        }),
       ),
     );
 
@@ -72,7 +88,10 @@ export const OrganizationUsageStore = signalStore(
       },
       invalidateUsage: () =>
         patchState(store, { expiresAt: null, error: null }),
-      resetStore: () => patchState(store, resetState()),
+      resetStore: () => {
+        loadGeneration.bump();
+        patchState(store, resetState());
+      },
     };
   }),
 );
