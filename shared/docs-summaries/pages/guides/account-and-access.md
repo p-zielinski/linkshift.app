@@ -1,11 +1,11 @@
 ---
 source: shared/docs/pages/guides/account-and-access.md
-generatedAt: 2026-06-07T10:03:58.943Z
+generatedAt: 2026-06-08T20:07:13.557Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for users of LinkShift and explains how to manage account access, including signing in, registering, verifying email, resetting passwords, accepting team invites, and completing legal consent.
+This document is for users of LinkShift and explains the processes for account management, including signing in, registration, email verification, password reset, accepting team invitations, and legal consent.
 
 ## What this doc covers
 - **Sign in or register**
@@ -17,58 +17,57 @@ This document is for users of LinkShift and explains how to manage account acces
 - **End your session**
 
 ## Key workflows and rules
-### Sign in or register
+### Sign in or Register
 1. **Sign in**:
    - Navigate to the **Login** tab.
    - Enter **Email** and **Password**.
    - Click **Sign in**.
    
 2. **Register**:
-   - Switch to the **Register** tab.
-   - Fill in **Email**, **Password**, **Confirm password**, and **Organization name** (optional).
-   - Choose a plan and billing interval (if available).
-   - Accept Terms of Service, Privacy Policy, and age confirmation.
+   - Navigate to the **Register** tab.
+   - Enter **Email**, **Password**, **Confirm password**, and optionally **Organization name**.
+   - Choose a plan and billing interval if registration is open.
+   - Accept Terms of Service and Privacy Policy.
    - Click **Create account**.
 
-### Verify your email
-1. Click the verification link sent to your email.
+### Verify Your Email
+1. Click the verification link in the email.
 2. Wait for the verification process.
-3. If successful, you will see **Email verified** and can proceed to login.
+3. On success, you will see **Email verified** and can go to login.
 
-### Change your email
+### Change Your Email
 1. Sign in and go to **Profile**.
 2. Enter **New email**.
-3. If current email is **Verified**, select **Send verification code**, enter the code, and click **Confirm email**.
-4. If **Unverified**, select **Update email and send verification**.
+3. If current email is **Verified**, send a verification code and confirm.
+4. If **Unverified**, update email and send verification.
 
-### Reset your password
+### Reset Your Password
 1. Click **Forgot password?** on the **Login** tab.
-2. Enter your **Email** and select **Send reset link**.
-3. Use the link from your email to access the reset page.
-4. Enter **New password** and **Confirm password**, then select **Update password**.
+2. Enter **Email** and send the reset link.
+3. Use the link to set a new password.
 
-### Accept an invitation
+### Accept an Invitation
 1. Open the invite link from your email.
 2. Enter **Password** and **Confirm password**.
-3. Accept Terms of Service, Privacy Policy, and age confirmation.
+3. Accept Terms of Service and Privacy Policy.
 4. Click **Create account**.
 
-### Legal consent
+### Legal Consent
 1. If terms change, you will be redirected to **Review updated terms**.
-2. Accept the updated **Terms of Service** and **Privacy Policy**.
-3. Confirm minimum age and select **Continue**.
+2. Accept the updated Terms of Service and Privacy Policy.
+3. Click **Continue** to unblock other routes.
 
-### End your session
+### End Your Session
 - Click **Log out** in the dashboard sidebar footer to return to the **Sign in** page.
 
 ## Limits and constraints
-- Invitations expire after **30 minutes**.
-- If registration is closed, the page displays **Private testing in progress**.
+- **Invitations** expire after **30 minutes**.
+- Registration may be temporarily closed, displaying **Private testing in progress**.
 - Until legal consent is accepted, other authenticated routes are blocked.
 - The app shell only allows access to the consent screen and **Log out** until consent is recorded.
 
 ## Related docs and API areas
 - [Dashboard overview](./dashboard/dashboard-overview.md) — details on the shell, profile, and billing summary.
 - [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md) — information on invites and API keys.
-- [Getting started](./getting-started.md) — guidance on obtaining Management API keys after sign-in.
-- [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md) — instructions for upgrading and managing subscriptions.
+- [Getting started](./getting-started.md) — guidance on obtaining Management API keys post sign-in.
+- [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md) — details on upgrading and subscription limits.

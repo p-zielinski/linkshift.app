@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import express from 'express';
 import { init as initSentry } from '@sentry/nestjs';
+import { createSentryInitOptions } from './sentry/sentry.config';
 import { AppModule } from './app.module';
 import { ZodFilter } from './filters/zod.filter';
 
@@ -18,10 +19,7 @@ async function bootstrap() {
 
   const sentryDsn = configService.get<string>('SENTRY_DSN') ?? '';
   if (sentryDsn) {
-    initSentry({
-      dsn: sentryDsn,
-      environment: nodeEnv,
-    });
+    initSentry(createSentryInitOptions(nodeEnv, sentryDsn));
   }
 
   const expressApp = app.getHttpAdapter().getInstance();

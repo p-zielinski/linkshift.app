@@ -40,6 +40,8 @@ export function createEntityStore<
       hasAnyLoading: computed(() => Object.values(store.isLoading()).some(Boolean))
     })),
     withMethods((store, api = inject(config.api)) => {
+      let loadGeneration = 0;
+
       const usageStore = config.invalidateUsageOnMutations
         ? inject(OrganizationUsageStore)
         : null;
@@ -92,7 +94,7 @@ export function createEntityStore<
           },
           expirationDates: {
             ...state.expirationDates,
-            [filterKey]: getExpiration(ttlMs)
+            [filterKey]: null
           }
         }));
       };
@@ -165,15 +167,29 @@ export function createEntityStore<
         pipe(
           tap((filter) => setLoading(getFilterKey(filter), true)),
           mergeMap((filter) => {
+            const requestGeneration = loadGeneration;
             const filterKey = getFilterKey(filter);
             return api.list(filter).pipe(
               tapResponse({
-                next: (result) => setListSuccess(filterKey, result),
+                next: (result) => {
+                  if (requestGeneration !== loadGeneration) {
+                    return;
+                  }
+                  setListSuccess(filterKey, result);
+                },
                 error: (error) => {
+                  if (requestGeneration !== loadGeneration) {
+                    return;
+                  }
                   setListFailure(filterKey);
                   setError(error, `${entityLabel} list request failed.`);
                 },
-                finalize: () => setLoading(filterKey, false)
+                finalize: () => {
+                  if (requestGeneration !== loadGeneration) {
+                    return;
+                  }
+                  setLoading(filterKey, false);
+                }
               })
             );
           })
@@ -183,18 +199,32 @@ export function createEntityStore<
       const loadDetails = rxMethod<string>(
         pipe(
           tap((id) => setLoading(id, true)),
-          mergeMap((id) =>
-            api.get(id).pipe(
+          mergeMap((id) => {
+            const requestGeneration = loadGeneration;
+            return api.get(id).pipe(
               tapResponse({
-                next: (result) => setDetailsSuccess(id, result),
+                next: (result) => {
+                  if (requestGeneration !== loadGeneration) {
+                    return;
+                  }
+                  setDetailsSuccess(id, result);
+                },
                 error: (error) => {
+                  if (requestGeneration !== loadGeneration) {
+                    return;
+                  }
                   setDetailsFailure(id);
                   setError(error, `${entityLabel} details request failed.`);
                 },
-                finalize: () => setLoading(id, false)
+                finalize: () => {
+                  if (requestGeneration !== loadGeneration) {
+                    return;
+                  }
+                  setLoading(id, false);
+                }
               })
-            )
-          )
+            );
+          })
         )
       );
 
@@ -202,6 +232,7 @@ export function createEntityStore<
         pipe(
           tap(({ id }) => setLoading(id ?? CREATE_ENTITY_ID, true)),
           mergeMap(({ id, entity }) => {
+            const requestGeneration = loadGeneration;
             const request$ = id
               ? api.update(id, entity as TUpdate)
               : api.create(entity as TCreate);
@@ -209,6 +240,9 @@ export function createEntityStore<
             return request$.pipe(
               tapResponse({
                 next: (result) => {
+                  if (requestGeneration !== loadGeneration) {
+                    return;
+                  }
                   const entityId = getEntityId(result);
                   setDetailsSuccess(entityId, result);
                   setLoading(entityId, false);
@@ -220,8 +254,18 @@ export function createEntityStore<
                     markListKeysExpired();
                   }
                 },
-                error: (error) => setError(error, `${entityLabel} save failed.`),
-                finalize: () => setLoading(id ?? CREATE_ENTITY_ID, false)
+                error: (error) => {
+                  if (requestGeneration !== loadGeneration) {
+                    return;
+                  }
+                  setError(error, `${entityLabel} save failed.`);
+                },
+                finalize: () => {
+                  if (requestGeneration !== loadGeneration) {
+                    return;
+                  }
+                  setLoading(id ?? CREATE_ENTITY_ID, false);
+                }
               })
             );
           })
@@ -231,20 +275,34 @@ export function createEntityStore<
       const remove = rxMethod<string>(
         pipe(
           tap((id) => setLoading(id, true)),
-          mergeMap((id) =>
-            api.delete(id).pipe(
+          mergeMap((id) => {
+            const requestGeneration = loadGeneration;
+            return api.delete(id).pipe(
               tapResponse({
                 next: () => {
+                  if (requestGeneration !== loadGeneration) {
+                    return;
+                  }
                   setDetailsFailure(id);
                   removeFromLists(id);
                   markListKeysExpired();
                   usageStore?.invalidateUsage();
                 },
-                error: (error) => setError(error, `${entityLabel} delete failed.`),
-                finalize: () => setLoading(id, false)
+                error: (error) => {
+                  if (requestGeneration !== loadGeneration) {
+                    return;
+                  }
+                  setError(error, `${entityLabel} delete failed.`);
+                },
+                finalize: () => {
+                  if (requestGeneration !== loadGeneration) {
+                    return;
+                  }
+                  setLoading(id, false);
+                }
               })
-            )
-          )
+            );
+          })
         )
       );
 
@@ -300,6 +358,7 @@ export function createEntityStore<
       };
 
       const resetStore = () => {
+        loadGeneration += 1;
         patchState(store, new BaseEntityState<T>(identifier));
       };
 

@@ -1,28 +1,26 @@
 ---
 source: shared/docs/pages/guides/link-map-entries.md
-generatedAt: 2026-06-07T10:06:44.796Z
+generatedAt: 2026-06-08T20:10:08.220Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for developers and administrators managing link map entries, explaining how to perform CRUD operations, bulk imports, and key format rules.
+This document is for developers and administrators managing link maps, explaining how to create, read, update, delete, and import link map entries.
 
 ## What this doc covers
-- Overview of link map entries
-- Entry structure and fields
-- Static URL requirements for destinations
-- Key format rules and examples
+- Overview of link map entries and their structure
 - CRUD operations for single entries
-- Listing entries with pagination
 - Bulk import and delete operations
-- Key design patterns and operational workflows
-- Safety validation and error reference
+- Key format rules and validation
+- Operational workflows for managing campaigns
+- Safety validation for destinations
+- Error reference for common issues
 
 ## Key workflows and rules
 ### Single Entry CRUD
-1. **Create Entry**
+1. **Create Entry**: 
    - Endpoint: `POST /api/v1/link-map-entries`
-   - Request body:
+   - Request Body:
      ```json
      {
        "linkMapId": "lmap_abc123",
@@ -30,16 +28,16 @@ This document is for developers and administrators managing link map entries, ex
        "destination": "https://shop.example.com/summer-sale"
      }
      ```
-
-2. **Update Entry**
+   
+2. **Update Entry**:
    - Endpoint: `PUT /api/v1/link-map-entries/:id`
-   - Request body can include:
+   - Request Body:
      ```json
      {
        "destination": "https://shop.example.com/summer-extended"
      }
      ```
-   - Or change key:
+   - To change the key:
      ```json
      {
        "key": "summer-2025",
@@ -47,59 +45,59 @@ This document is for developers and administrators managing link map entries, ex
      }
      ```
 
-3. **Delete Entry**
+3. **Delete Entry**:
    - Endpoint: `DELETE /api/v1/link-map-entries/:id`
 
-### List Entries
-- Endpoint: `GET /api/v1/link-map-entries?linkMapId=lmap_abc123&limit=50&search=summer`
-- Parameters:
-  - `linkMapId`: Required
-  - `limit`: 1–100 (default 20)
-  - `search`: Optional filter for keys
-  - `startAfterId`: Cursor for pagination
+### Bulk Operations
+- **Bulk Import**:
+  - Endpoint: `POST /api/v1/link-map-entries/import`
+  - Upsert up to **500 entries** per request.
+  - Request Body Example:
+    ```json
+    {
+      "linkMapId": "lmap_abc123",
+      "entries": [
+        {
+          "key": "summer",
+          "destination": "https://shop.example.com/summer"
+        }
+      ]
+    }
+    ```
 
-### Bulk Import
-- Endpoint: `POST /api/v1/link-map-entries/import`
-- Upsert up to **500 entries** per request.
-- Request body example:
-  ```json
-  {
-    "linkMapId": "lmap_abc123",
-    "entries": [
-      {
-        "key": "summer",
-        "destination": "https://shop.example.com/summer"
-      }
-    ]
-  }
-  ```
+- **Bulk Delete (Rollback)**:
+  - Endpoint: `DELETE /api/v1/link-map-entries`
+  - Request Body:
+    ```json
+    {
+      "linkMapId": "lmap_abc123",
+      "entryIds": ["lentry_1", "lentry_2", "lentry_3"]
+    }
+    ```
+  - Up to **1,000** `entryIds` per request.
 
-### Bulk Delete (Rollback)
-- Endpoint: `DELETE /api/v1/link-map-entries`
-- Request body:
-  ```json
-  {
-    "linkMapId": "lmap_abc123",
-    "entryIds": ["lentry_1", "lentry_2", "lentry_3"]
-  }
-  ```
-- Up to **1,000** `entryIds` per request.
+### Campaign Management
+1. **Launch Campaign**:
+   - Create a map with `fallbackDestination`.
+   - Import entries.
+   - Attach redirect rule.
+   - Simulate and monitor analytics.
 
-### Safety Validation
-- Every destination must start with `http://` or `https://` and pass a safety scanner. If it fails, a `500` error is returned.
+2. **Update Destinations**: Use single entry PUT or re-import with existing keys.
+
+3. **Retire Campaign**: Delete entries or update fallback.
 
 ## Limits and constraints
-- **Entry ID**: Assigned on create.
-- **Key Length**: Max **1,024** characters.
-- **Destination Length**: Max **16,384** characters.
+- **Key Length**: Max **1,024 characters**.
+- **Destination Length**: Max **16,384 characters**.
 - **Bulk Import**: Up to **500 entries** per request.
-- **Bulk Delete**: Up to **1,000** `entryIds` per request.
-- **Key Format**: Must not contain spaces, `%`, `#`, or be a full URL.
-- **Duplicate Keys**: Return `400` conflict if duplicates exist after normalization.
+- **Bulk Delete**: Up to **1,000 entry IDs** per request.
+- **Entry Search Limit**: `limit` parameter can be set between **1–100** (default is **20**).
+- **Key Format**: Must not contain spaces, `%`, `#`, or be a full URL. Must use allowed characters only.
 
 ## Related docs and API areas
 - [Link maps guide](./link-maps.md)
 - [Link maps in the dashboard](./dashboard/link-maps-in-dashboard.md)
 - [Redirect rules](./redirect-rules.md)
 - [Simulate before rollout](./redirect-rules-operations.md#simulate-before-rollout)
-- [Analytics for top link map keys](./redirect-rules-operations.md#analytics)
+- [Analytics](./redirect-rules-operations.md#analytics)

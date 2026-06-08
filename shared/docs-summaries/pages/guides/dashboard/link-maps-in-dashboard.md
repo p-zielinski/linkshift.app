@@ -1,6 +1,6 @@
 ---
 source: shared/docs/pages/guides/dashboard/link-maps-in-dashboard.md
-generatedAt: 2026-06-07T10:05:03.311Z
+generatedAt: 2026-06-08T20:08:17.851Z
 model: gpt-4o-mini
 ---
 
@@ -14,51 +14,52 @@ This document is for users managing link maps in the LinkShift dashboard, explai
 - **Edit map settings**: How to modify existing link map settings.
 - **Add an entry**: Steps to add a new entry to a link map.
 - **Import entries (CSV)**: Guidelines for bulk importing entries via CSV.
-- **Rollback imported entries**: Process for rolling back entries added by a bulk import.
+- **Rollback imported entries**: Process for rolling back entries added by bulk import.
 - **Delete entries**: Instructions for deleting selected entries from a link map.
 - **Search and paginate**: Features for searching and navigating through entries.
-- **Automate instead**: References to API capabilities for CRUD operations and bulk actions.
+- **Automate instead**: Reference to API methods for managing link maps and entries.
 
 ## Key workflows and rules
-1. **List link maps**:
+1. **List Link Maps**:
    - Select **Link Maps** from the sidebar.
-   - Choose a **Site** from the header menu (required).
-   - Click **Manage entries** to view details.
+   - Choose a **Site** from the page header menu (required).
+   - Click **Manage entries** to access the map detail page.
 
-2. **Create a link map**:
+2. **Create a Link Map**:
    - Click **Add link map**.
    - Fill in **Link map settings**: Name, Parent redirect rule, Query match mode, Case sensitivity, Fallback behavior.
-   - Save the map.
+   - Save the new map.
 
-3. **Add an entry**:
+3. **Add an Entry**:
    - On the map detail page, select **Add entry**.
    - Complete the **Entry details** with key and destination.
    - Save the entry.
 
-4. **Import entries (CSV)**:
-   - Click **Import entries**.
+4. **Import Entries (CSV)**:
+   - Select **Import entries**.
    - Paste or upload a CSV file (up to **500** rows).
-   - Confirm import or close the dialog.
+   - Click **Import entries** to execute the import.
 
-5. **Rollback imported entries**:
+5. **Rollback Imported Entries**:
    - After a bulk import, review the import summary.
-   - Select **Rollback imported entries** and confirm.
+   - Select **Rollback imported entries** if available.
+   - Confirm the rollback in the dialog.
 
-6. **Delete entries**:
+6. **Delete Entries**:
    - Select rows in the entries table.
-   - Click **Delete selected (N)** and confirm deletion.
+   - Click **Delete selected (N)** and confirm the deletion.
 
 ## Limits and constraints
-- A **site** must be selected in the page header before the **Add link map** option is enabled.
-- The **Import entries** feature allows a maximum of **500 rows** per import.
-- Deleting a link map is disabled if it is referenced by a parent redirect rule.
-- Rollback of imported entries only affects keys added by the bulk import and does not alter redirect rules.
+- A **site** must be selected in the page header for the **Add link map** option to be enabled.
+- The **parent redirect rule** is required when creating a link map.
+- The bulk import of entries allows a maximum of **500 rows** per import.
+- Deleting a link map is disabled if it is referenced by a parent rule.
 
 ## Related docs and API areas
 - [Redirect rules in the dashboard](./redirect-rules-in-dashboard.md)
 - [Redirect rules — link maps](../redirect-rules-link-maps.md)
 - [Link map entries (API)](../link-map-entries.md)
-- API endpoints:
+- API methods:
   - `GET /api/v1/link-maps`
   - `POST /api/v1/link-maps`
   - `PUT /api/v1/link-maps`

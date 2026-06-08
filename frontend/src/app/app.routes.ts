@@ -42,6 +42,7 @@ import { TermsPageComponent } from './features/legal/terms-page.component';
 import { PrivacyPageComponent } from './features/legal/privacy-page.component';
 import { CookiesPageComponent } from './features/legal/cookies-page.component';
 import { DoNotSellPageComponent } from './features/legal/do-not-sell-page.component';
+import { DpaPageComponent } from './features/legal/dpa-page.component';
 import { LegalConsentPageComponent } from './features/legal/legal-consent-page.component';
 import { legalConsentGuard } from './core/legal/legal-consent.guard';
 import {
@@ -221,6 +222,7 @@ export const routes: Routes = [
       { path: 'contact', component: ContactPageComponent },
       { path: 'terms', component: TermsPageComponent },
       { path: 'privacy', component: PrivacyPageComponent },
+      { path: 'dpa', component: DpaPageComponent },
       { path: 'cookies', component: CookiesPageComponent },
       { path: 'do-not-sell', component: DoNotSellPageComponent },
     ],

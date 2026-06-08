@@ -20,7 +20,7 @@ Use **two Supabase projects** (free tier allows 2): one for local/dev, one for p
 
 To robisz **raz na projekt** przy zakładaniu. Przy zmianie schematu później — nowy plik SQL (np. `migrations/002_add_foo.sql`) i znowu **Run** na dev, potem na prod.
 
-Nic nie startuje się razem z `npm run start:dev` — backend-tools tylko **INSERT/UPDATE** do już istniejącej tabeli.
+Nic nie startuje się razem z `npm run start:dev` — backend-tools **INSERT/UPDATE** do już istniejącej tabeli i okresowo **DELETE** wierszy starszych niż skonfigurowany okres retencji (`DOCS_ASSISTANT_LOG_RETENTION_DAYS`, domyślnie 90 dni). Czyszczenie uruchamia się po stronie serwera po udanym zapisie logu (maks. raz na godzinę na proces).
 
 Opcjonalnie możesz użyć [Supabase CLI](https://supabase.com/docs/guides/cli) (`supabase db push`) u siebie; **nie jest to skonfigurowane w LinkShift** — źródłem prawdy w git jest plik `.sql` w tym folderze.
 

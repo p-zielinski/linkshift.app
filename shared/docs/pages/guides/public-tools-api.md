@@ -81,7 +81,7 @@ See [LinkShift docs MCP](./linkshift-mcp.md) for the endpoint URL, tools, rate l
 
 ## Documentation assistant
 
-The in-browser **Ask docs** assistant (dashboard and docs site) calls `POST /api/v1/public/docs/search` with a Turnstile token. That flow streams search status and returns an answer from the docs catalog. MCP exposes `docs_search_catalog` and `docs_get_page` instead — no Turnstile and no server-side LLM on the MCP path.
+The in-browser **Ask docs** assistant (dashboard and docs site) calls `POST /api/v1/public/docs/search` with a Turnstile token. That flow streams search status and returns an answer from the docs catalog. Questions are sent to OpenAI for answer generation only; LinkShift does not share this data with OpenAI for model training. MCP exposes `docs_search_catalog` and `docs_get_page` instead — no Turnstile and no server-side LLM on the MCP path.
 
 ## Related
 

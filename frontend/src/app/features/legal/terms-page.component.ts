@@ -14,7 +14,7 @@ import { SeoService } from '../../core/seo/seo.service';
 export class TermsPageComponent implements OnInit {
   private readonly seo = inject(SeoService);
   readonly siteConfig = inject(SITE_CONFIG);
-  readonly updatedAt = '2026-05-31';
+  readonly updatedAt = '2026-06-08';
 
   ngOnInit(): void {
     this.seo.updateTags({

@@ -1,52 +1,44 @@
 ---
 source: shared/docs/pages/guides/dashboard/dashboard-overview.md
-generatedAt: 2026-06-07T10:04:38.054Z
+generatedAt: 2026-06-08T20:07:46.953Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for users of the LinkShift app, providing an overview of the dashboard, its features, and navigation options.
+This document is for LinkShift users and provides an overview of the dashboard, including its features, views, and navigation.
 
 ## What this doc covers
 - **Account access**: Sign-in, registration, email verification, team invites, password reset, and legal consent.
-- **Campaign and Advanced views**: Overview of sidebar layouts and primary tasks in each view.
-- **Switch views**: Instructions for toggling between Campaign and Advanced views, including route mapping.
-- **Plan and usage**: Accessing plan and usage details in both views.
+- **Campaign and Advanced views**: Differences between the two sidebar layouts and their primary tasks.
+- **Sidebar navigation**: Overview of Campaign and Advanced sidebar items and their routes.
+- **Switch views**: How to toggle between Campaign and Advanced views, including route mapping.
+- **Plan and usage**: Accessing plan limits and usage details in both views.
 - **App shell layout**: Description of the app shell components and their functions.
-- **Need help? and Ask docs**: Using the documentation assistant for help.
-- **Site filter on scoped pages**: Explanation of the site filter functionality in different views.
-- **Domain-group gate**: Details on sidebar item availability based on site loading status.
-- **Direct URL access in Advanced view**: Behavior when accessing certain pages without a site.
-- **Account footer**: Information available in the sidebar footer.
-- **Marketing site vs Campaign overview**: Differentiation between the marketing site and the app overview.
-- **Campaign overview**: Features of the Campaign overview, including quick actions and recent links.
-- **Advanced dashboard home**: Features of the Advanced dashboard, including summary cards and subscription limits.
-- **First-run onboarding**: Description of the onboarding wizard for new users.
-- **Profile**: Accessing and managing account profile settings.
+- **Setup checklist**: Onboarding steps available in both views.
+- **Profile management**: Accessing and updating account information.
 
 ## Key workflows and rules
 1. **Switching Views**:
-   - Use the sidebar header, footer, mobile header, or settings to switch between Campaign and Advanced views.
-   - Route mapping occurs when switching views, directing users to the closest equivalent page if the current route exists in both modes.
+   - Use the sidebar header, footer, or settings to switch between Campaign and Advanced views.
+   - Route mapping applies when switching; for example, `/overview` in Campaign redirects to `/dashboard` in Advanced.
 
 2. **Setup Checklist**:
-   - The checklist appears in both Campaign and Advanced views, tracking onboarding progress.
-   - Items can auto-complete based on actions taken, and users can dismiss or reopen the checklist.
+   - The checklist appears in both views and tracks onboarding progress.
+   - Items can auto-complete based on actions taken (e.g., sending an invite).
 
-3. **Using the Documentation Assistant**:
-   - Type a task question to receive guidance and links to relevant documentation.
+3. **Legal Consent**:
+   - If legal consent is required, all sidebar navigation is disabled until consent is accepted.
 
-4. **Site Filter Functionality**:
-   - Pages in Campaign and Advanced views have a **Site** filter that allows users to select which site's data to view.
+4. **Recent Links**:
+   - Displays up to five latest short links with options to copy URLs or view analytics.
 
-5. **Domain-Group Gate**:
-   - In Advanced view, certain sidebar items remain disabled until at least one site is loaded.
+5. **Profile Management**:
+   - Users can change their email and resend verification emails directly from the profile section.
 
 ## Limits and constraints
-- **Account Access**: Legal consent is required for certain actions; all sidebar navigation is disabled until consent is accepted.
-- **Usage Limits**: The dashboard displays limits for domain groups, hosts, rules, link maps, tests, and API calls. If limits are reached, users are prompted to upgrade their plan.
-- **Direct URL Access**: Accessing certain Advanced pages without a site redirects users to the Domain Groups page with a prompt to add a site.
-- **Mobile Overlay**: The sidebar opens as an overlay on smaller screens (below 1023px).
+- **Domain-group gate**: In Advanced view, sidebar items requiring at least one site are disabled until sites finish loading.
+- **Usage limits**: The dashboard displays limits for domain groups, hosts, rules, link maps, tests, and API calls.
+- **Account requirements**: Users must have a LinkShift account and may need to provide legal consent.
 
 ## Related docs and API areas
 - [Account and access](../account-and-access.md)
@@ -55,5 +47,5 @@ This document is for users of the LinkShift app, providing an overview of the da
 - [Links in the dashboard](./links-in-dashboard.md)
 - [Settings in the dashboard](./settings-in-dashboard.md)
 - [Domain groups in the dashboard](./domain-groups-in-dashboard.md)
-- [Domains and subdomains in the dashboard](./domains-and-subdomains-in-dashboard.md)
+- [Domains and subdomains in the dashboard](../domains-and-subdomains.md)
 - [Getting started (API)](../getting-started.md)

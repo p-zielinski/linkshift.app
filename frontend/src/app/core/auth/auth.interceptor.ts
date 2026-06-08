@@ -165,3 +165,10 @@ function triggerAuthFailureRedirect(authStore: AuthStoreLike, router: Router): v
     });
   });
 }
+
+/** Resets module-level interceptor state between tests. */
+export function resetAuthInterceptorStateForTests(): void {
+  isRefreshing = false;
+  isHandlingAuthFailure = false;
+  refreshTokenSubject.next(null);
+}
