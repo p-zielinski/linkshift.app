@@ -19,7 +19,7 @@ describe('legalConsentGuard', () => {
     termsAcceptedAt: new Date().toISOString(),
     privacyAcceptedAt: new Date().toISOString(),
     ageConfirmedAt: new Date().toISOString(),
-    legalVersion: 'v2',
+    legalVersion: DEFAULT_SITE_CONFIG.legalVersion,
   };
 
   const runGuard = (url: string) => {
