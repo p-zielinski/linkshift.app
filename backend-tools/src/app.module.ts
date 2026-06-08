@@ -10,6 +10,7 @@ import { McpController } from './mcp/mcp.controller';
 import { PublicToolsController } from './api/public-tools.controller';
 import { TraceController } from './api/trace.controller';
 import { AppController } from './app.controller';
+import { DocsAssistantLogRetentionService } from './docs-assistant/docs-assistant-log-retention.service';
 import { DocsAssistantRateLimitService } from './docs-assistant/docs-assistant-rate-limit.service';
 import { DocsAssistantService } from './docs-assistant/docs-assistant.service';
 import { DocsCatalogService } from './docs-assistant/docs-catalog.service';
@@ -105,6 +106,7 @@ import { createRequestId } from './utils';
     RedirectTraceRateLimitService,
     DocsCatalogService,
     DocsContentLoaderService,
+    DocsAssistantLogRetentionService,
     DocsAssistantService,
     DocsAssistantRateLimitService,
     McpRateLimitService,

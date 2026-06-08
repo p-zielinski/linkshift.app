@@ -121,6 +121,38 @@
           <button mat-stroked-button color="primary" class="cursor-pointer" (click)="onLogout()">
             Log out
           </button>
+          <div class="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-app-muted">
+            <a
+              class="no-underline hover:text-app-accent-strong"
+              routerLink="/terms"
+              (click)="onNavigate()"
+              >Terms</a
+            >
+            <a
+              class="no-underline hover:text-app-accent-strong"
+              routerLink="/privacy"
+              (click)="onNavigate()"
+              >Privacy</a
+            >
+            <a
+              class="no-underline hover:text-app-accent-strong"
+              routerLink="/dpa"
+              (click)="onNavigate()"
+              >DPA</a
+            >
+            <a
+              class="no-underline hover:text-app-accent-strong"
+              routerLink="/cookies"
+              (click)="onNavigate()"
+              >Cookies</a
+            >
+            <a
+              class="no-underline hover:text-app-accent-strong"
+              routerLink="/do-not-sell"
+              (click)="onNavigate()"
+              >Do not sell or share</a
+            >
+          </div>
         }
       </div>
     </div>

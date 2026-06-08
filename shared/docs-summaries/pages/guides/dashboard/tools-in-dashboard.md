@@ -1,41 +1,36 @@
 ---
 source: shared/docs/pages/guides/dashboard/tools-in-dashboard.md
-generatedAt: 2026-06-03T16:58:28.235Z
+generatedAt: 2026-06-08T20:09:12.056Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for users of the LinkShift dashboard, explaining how to utilize the QR Code Generator and Redirect Tester tools.
+This document is for users of the LinkShift dashboard, explaining how to utilize the QR generation and redirect tracing tools available within the authenticated shell.
 
 ## What this doc covers
-- Overview of the Tools hub in the dashboard.
-- Details on the **QR Code Generator** tool, including usage and output formats.
-- Details on the **Redirect Tester** tool, including usage and User-Agent profile selection.
-- Explanation of the expected outputs from both tools.
+- **Tools hub**: Overview of the sidebar labels and routes based on dashboard mode.
+- **QR generator / QR code generator**: Instructions for generating QR codes.
+- **Test a link / Redirect tester**: Instructions for testing and tracing URLs.
 
 ## Key workflows and rules
-### QR Code Generator
-1. Open **QR Code Generator** from the Tools hub.
+### QR generator / QR code generator
+1. Open the QR card from the hub (labeled **QR generator** in Campaign mode or **QR code generator** in Advanced mode).
 2. Enter a destination URL.
-3. Choose an output format: PNG, SVG, or EPS.
-4. Download the generated QR code.
-   - Includes **final-destination verification** to identify redirect issues before distribution.
+3. Choose an output format (PNG, SVG, or EPS).
+4. Download the generated asset.
+5. The tool performs **final-destination verification** to identify redirect issues before distribution.
 
-### Redirect Tester
-1. Open **Redirect Tester** from the Tools hub.
+### Test a link / Redirect tester
+1. Open the redirect card from the hub (labeled **Test a link** in Campaign mode or **Redirect tester** in Advanced mode).
 2. Enter a URL to trace.
 3. Select a User-Agent profile or set a custom value.
-4. Run the trace to inspect:
-   - Status
-   - Headers
-   - Final destination, hop by hop.
-   - Useful for identifying loops, broken hops, and User-Agent-specific behavior.
-   - Does not replace the functionality of [Tests in the dashboard](./tests-in-dashboard.md).
+4. Run the trace to inspect status, headers, and final destination hop by hop.
+5. This tool is useful for identifying loops, broken hops, and User-Agent-specific behavior.
 
 ## Limits and constraints
 - Tools do not require a domain group for access.
-- Each trace request in the Redirect Tester returns one hop; the UI follows chains client-side with hop limits and loop detection.
-- Generated QR files and trace outputs do not alter redirect rules or link maps unless edited separately.
+- Each trace request returns one hop; the UI handles chains client-side with hop limits and loop detection.
+- The tools are not part of the Management API OpenAPI (`linkshift-api-keys`) and utilize a separate public tools service.
 
 ## Related docs and API areas
 - [Public tools API](../public-tools-api.md)

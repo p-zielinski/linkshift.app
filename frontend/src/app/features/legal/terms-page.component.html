@@ -28,8 +28,8 @@
 
     <h2>Who we are</h2>
     <p>
-      The Service is operated by {{ siteConfig.legalName }}. Contact: {{ siteConfig.supportEmail }}.
-      Address: {{ siteConfig.legalAddress }}.
+      The Service is operated by {{ siteConfig.legalName }}, a natural person (individual). Contact:
+      {{ siteConfig.supportEmail }}. Address: {{ siteConfig.legalAddress }}.
     </p>
 
     <h2>Eligibility</h2>
@@ -76,6 +76,27 @@
       <li>Prices and limits may change; we will provide reasonable notice.</li>
     </ul>
 
+    <h2>Satisfaction guarantee</h2>
+    <p>
+      If the platform is not the right fit after your first paid purchase, you may request a refund
+      within 30 days of that purchase — no explanation required. Email
+      {{ siteConfig.privacyEmail }} or {{ siteConfig.supportEmail }} with the account email used at
+      checkout. Refunds are processed through Paddle as Merchant of Record.
+    </p>
+    <p>This guarantee does not apply when:</p>
+    <ul>
+      <li>
+        Your account or redirect rules were blocked for security screening, abuse prevention, or
+        Terms violations.
+      </li>
+      <li>Identity verification (KYC) was requested and not completed or was rejected.</li>
+      <li>You are on the free plan and have not made a paid purchase.</li>
+    </ul>
+    <p>
+      This guarantee does not override Paddle's payment terms for chargebacks or disputes handled
+      under Paddle's policies.
+    </p>
+
     <h2>Automated security screening (anti-abuse)</h2>
     <p>
       You acknowledge and agree that we utilize automated third-party security scanning services
@@ -89,9 +110,9 @@
       resulting from these automated actions, including false positives. No refunds, credits, or
       service extensions will be issued for any period during which a Redirect Rule or Account is
       blocked for security screening or enforcement. We shall not be liable for any direct or
-      indirect damages, including but not limited to **lost traffic, lost revenue, or marketing
-      budget waste**, resulting from such automated blocking, even in cases where a safe URL was
-      incorrectly flagged (false positives).
+      indirect damages, including but not limited to
+      <strong>lost traffic, lost revenue, or marketing budget waste</strong>, resulting from such
+      automated blocking, even in cases where a safe URL was incorrectly flagged (false positives).
     </p>
 
     <h2>Identity verification (KYC)</h2>
@@ -120,12 +141,22 @@
       explicitly agreed in writing.
     </p>
 
-    <h2>No-logs policy (visitor IP)</h2>
+    <h2>Visitor IP addresses</h2>
     <p>
-      We do not log or store visitor IP addresses for marketing or profiling purposes. Visitor IP
-      addresses may be processed temporarily only for technical security, abuse prevention, and
-      aggregated statistics. We do not retain visitor IPs beyond what is necessary for these limited
-      purposes.
+      We do not store visitor IP addresses in our redirect analytics database. Redirect analytics
+      aggregate request metadata (such as path, method, and destination) without retaining IP
+      addresses.
+    </p>
+    <p>
+      Visitor IP addresses may be processed temporarily for security, abuse prevention, rate
+      limiting, and operational logs. We do not retain visitor IPs beyond what is necessary for
+      these limited purposes. We do not use visitor IP addresses for marketing or profiling.
+    </p>
+    <p>
+      As a customer, you may use the <code>{{ '{' }}ip{{ '}' }}</code> placeholder in redirect rules
+      and destination URLs. When you configure rules that reference visitor IP addresses, you are
+      responsible for how that data is used at your destinations and for complying with applicable
+      law.
     </p>
 
     <h2>Intellectual property</h2>
@@ -182,8 +213,10 @@
 
     <h2>Governing law</h2>
     <p>
-      These Terms are governed by the laws applicable to {{ siteConfig.legalName }}'s place of
-      operation, without regard to conflict of law principles.
+      These Terms are governed by the laws of Poland, without regard to conflict of law principles.
+      Any disputes shall be subject to the courts competent for the registered address of
+      {{ siteConfig.legalName }} in Poland ({{ siteConfig.legalAddress }}), without prejudice to
+      mandatory consumer protection rights in your country of residence where applicable.
     </p>
 
     <h2>Contact</h2>

@@ -132,6 +132,14 @@ pages:
     description: >-
       Entry CRUD, key format rules, bulk import/delete, and operational patterns.
 
+  - slug: live-traffic-and-visitor-privacy
+    category: guide
+    source: pages/guides/live-traffic-and-visitor-privacy.md
+    route: /docs/guides/live-traffic-and-visitor-privacy
+    description: >-
+      Privacy roles for live redirect traffic — controller vs processor,
+      analytics, {ip} placeholder, and DPA.
+
   - slug: redirect-tests
     category: guide
     source: pages/guides/redirect-tests.md

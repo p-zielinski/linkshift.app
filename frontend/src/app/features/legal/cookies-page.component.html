@@ -6,24 +6,99 @@
     </div>
 
     <p>
-      {{ siteConfig.name }} uses essential cookies to operate securely and keep you signed in. We do
-      not use advertising or marketing cookies.
+      {{ siteConfig.name }} uses essential cookies and similar browser storage technologies to
+      operate securely and keep you signed in. We do not use advertising or marketing cookies.
     </p>
 
     <h2>Essential cookies</h2>
+    <p>
+      The only first-party cookie we set is <code>refresh_token</code> for session renewal
+      (documented below). Interface state and account cache are stored in browser local or session
+      storage — not in additional first-party cookies.
+    </p>
+
+    <h2>Authentication cookie</h2>
     <ul>
-      <li>Authentication cookies to maintain your session.</li>
-      <li>Security cookies to protect against abuse.</li>
-      <li>Preferences needed to operate the application.</li>
+      <li>
+        <strong>refresh_token</strong> — HttpOnly; Secure in production; SameSite=Strict; path
+        <code>/api/v1/auth/</code>; used to refresh your session; essential. In production, this
+        cookie typically expires after about 2 hours (configurable via
+        <code>JWT_REFRESH_EXPIRES_IN</code>); development environments may use longer values.
+      </li>
     </ul>
+
+    <h2>Third-party services (functional)</h2>
+    <p>
+      We load limited third-party scripts for security and checkout. These are functional, not
+      advertising or cross-site tracking cookies.
+    </p>
+    <ul>
+      <li>
+        <strong>Cloudflare Turnstile</strong> — bot protection on the documentation assistant.
+      </li>
+      <li>
+        <strong>Paddle.js</strong> — checkout overlay when upgrading your plan. Paddle may set
+        third-party cookies on Paddle's domains during checkout (for example, payment session and
+        fraud prevention). Paddle.js may also load Profitwell (<code>public.profitwell.com</code>)
+        for subscription analytics as part of checkout. See
+        <a href="https://www.paddle.com/legal/privacy" rel="noopener noreferrer" target="_blank"
+          >Paddle's Privacy Policy</a
+        >. These are functional, not advertising.
+      </li>
+      <li>
+        <strong>Google Fonts</strong> — typography fonts (Space Grotesk, IBM Plex Mono) and Material
+        Icons loaded from Google servers; Google may process your IP address when fonts are fetched.
+      </li>
+    </ul>
+
+    <h2>Local storage and session storage</h2>
+    <p>
+      In addition to cookies, the Service stores limited data in your browser's local storage and
+      session storage. These technologies are essential or functional — we do not use them for
+      advertising or cross-site tracking.
+    </p>
+    <ul>
+      <li>
+        <strong>Account cache (local storage):</strong> signed-in profile and organization details
+        under <code>user_data</code> and <code>organization_data</code> so the dashboard loads
+        faster after refresh. Removed when you sign out.
+      </li>
+      <li>
+        <strong>Interface preferences (local storage):</strong> dashboard mode
+        (<code>linkshift-dashboard-mode</code>), selected domain group
+        (<code>linkshift-active-domain-group</code>), and onboarding or setup checklist progress
+        (such as <code>dashboard-onboarding-confirmed</code> and
+        <code>linkshift-setup-checklist</code>).
+      </li>
+      <li>
+        <strong>Documentation assistant history (local storage):</strong> recent chats on your
+        device under <code>linkshift_docs_assistant_history_v1</code>. You can clear it in the
+        assistant UI.
+      </li>
+      <li>
+        <strong>OpenAPI spec cache (session storage):</strong> a cached copy of the API
+        specification under <code>linkshift.docs.openapi.v1</code> for the current browser tab
+        session.
+      </li>
+      <li>
+        <strong>Documentation Try Me (session storage):</strong> an API key
+        (<code>linkshift.docs.tryMe.apiKey</code>) and request drafts
+        (<code>linkshift.docs.tryMe.drafts.v1</code>) for the current browser tab session.
+      </li>
+    </ul>
+    <p>
+      Signing out removes only the account profile cache. Other local and session storage items
+      persist until you clear them in the UI or in your browser settings.
+    </p>
+    <p>For more detail, see our <a routerLink="/privacy">Privacy Policy</a> (Browser storage).</p>
 
     <h2>No advertising cookies</h2>
     <p>We do not use third-party advertising cookies or cross-site tracking cookies.</p>
 
-    <h2>Managing cookies</h2>
+    <h2>Managing cookies and browser storage</h2>
     <p>
-      You can control cookies in your browser settings. Blocking essential cookies may prevent the
-      Service from functioning properly.
+      You can control cookies and clear local or session storage in your browser settings. Blocking
+      essential cookies or clearing stored data may prevent the Service from functioning properly.
     </p>
 
     <h2>Contact</h2>

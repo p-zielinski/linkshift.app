@@ -130,15 +130,17 @@ app.get('/runtime-config.js', (_req, res) => {
     APP_TOOLS_BASE_URL: resolveToolsApiBase(appBaseUrl),
     APP_SITE_NAME: process.env['APP_SITE_NAME'] ?? 'LinkShift.app',
     APP_SITE_TAGLINE: process.env['APP_SITE_TAGLINE'] ?? 'Signal-driven redirect automation',
-    APP_SUPPORT_EMAIL: process.env['APP_SUPPORT_EMAIL'] ?? 'support@redirectcontrol.app',
-    APP_LEGAL_NAME: process.env['APP_LEGAL_NAME'] ?? 'Independent operator',
-    APP_LEGAL_ADDRESS: process.env['APP_LEGAL_ADDRESS'] ?? 'Available upon request',
+    APP_SUPPORT_EMAIL: process.env['APP_SUPPORT_EMAIL'] ?? 'support@linkshift.app',
+    APP_LEGAL_NAME: process.env['APP_LEGAL_NAME'] ?? 'Piotr Zieliński',
+    APP_LEGAL_ADDRESS:
+      process.env['APP_LEGAL_ADDRESS'] ??
+      'Porąbka Uszewska 13, 32-854 Porąbka Uszewska, Poland',
     APP_PRIVACY_EMAIL:
       process.env['APP_PRIVACY_EMAIL'] ??
       process.env['APP_SUPPORT_EMAIL'] ??
-      'privacy@redirectcontrol.app',
+      'privacy@linkshift.app',
     APP_MIN_AGE: process.env['APP_MIN_AGE'] ?? '16',
-    APP_LEGAL_VERSION: process.env['APP_LEGAL_VERSION'] ?? 'v2',
+    APP_LEGAL_VERSION: process.env['APP_LEGAL_VERSION'] ?? 'v3',
     APP_AUTH_GATE_ENABLED: process.env['APP_AUTH_GATE_ENABLED'] ?? 'false',
     APP_DOMAIN_TARGET_IP: process.env['APP_DOMAIN_TARGET_IP'] ?? '',
     APP_PADDLE_CLIENT_TOKEN: process.env['APP_PADDLE_CLIENT_TOKEN'] ?? '',
