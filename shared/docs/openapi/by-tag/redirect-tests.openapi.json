@@ -29,7 +29,7 @@
         "tags": [
           "Redirect Tests"
         ],
-        "summary": "List redirect tests (cursor)",
+        "summary": "List redirect tests",
         "description": "Lists stored CI/regression fixtures for one `domainGroupId`.\nDefault `limit` is 100 (max 100). Use `startAfterId` from `moreStartingAfterId` to walk pages.\n",
         "operationId": "listRedirectTests",
         "parameters": [

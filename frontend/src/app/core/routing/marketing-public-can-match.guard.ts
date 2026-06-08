@@ -19,6 +19,7 @@ export const SIGNED_IN_PUBLIC_MARKETING_ROOT_SEGMENTS = [
   'redirect-tester',
   'terms',
   'privacy',
+  'dpa',
   'cookies',
   'do-not-sell',
 ] as const;

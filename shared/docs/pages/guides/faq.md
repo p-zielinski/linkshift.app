@@ -17,6 +17,7 @@ Use this page to find answers fast. Content lives in three focused guides so det
 | **Quick routing Q&A** (short links, query match, 403/429/503, simulate, blocked rules) | [Overview FAQ](../overview-faq.md) |
 | **How-To recipes** (A/B tests, User-Agent, regex migration, anti-patterns) | [Redirect rules — recipes](./redirect-rules-recipes.md#how-to-cookbook) |
 | **Engine edge cases** (loops, encoding, priority ties, empty ternaries) | [Redirect engine — Advanced engineering FAQ](../concepts/redirect-engine-edge-cases.md#advanced-engineering-faq) |
+| **Visitor privacy** (controller vs processor, `{ip}`, DPA) | [Live traffic and visitor privacy](./live-traffic-and-visitor-privacy.md) |
 
 ---
 

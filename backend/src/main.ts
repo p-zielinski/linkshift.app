@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { setCuidFingerprint } from './utils';
 import { Logger } from 'nestjs-pino';
 import { init as initSentry } from '@sentry/nestjs';
+import { createSentryInitOptions } from './sentry/sentry.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -21,10 +22,7 @@ async function bootstrap() {
     configService.get<string>('GLITCHTIP_DSN') ??
     '';
   if (sentryDsn) {
-    initSentry({
-      dsn: sentryDsn,
-      environment: nodeEnv,
-    });
+    initSentry(createSentryInitOptions(nodeEnv, sentryDsn));
   }
 
   const expressApp = app.getHttpAdapter().getInstance();

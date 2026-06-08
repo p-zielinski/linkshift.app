@@ -15,6 +15,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { form, required, FormField } from '@angular/forms/signals';
 import { RedirectRuleStore } from '../../core/store/redirect-rule.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
@@ -93,6 +94,7 @@ export type RedirectRuleDialogResult = {
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -265,6 +267,9 @@ export class RedirectRuleFormDialogComponent {
   );
   private readonly sourceValue = computed(() => this.ruleModel().source.trim());
   private readonly destinationValue = computed(() => this.ruleModel().destination.trim());
+  readonly destinationUsesVisitorIp = computed(() =>
+    /\{ip(\}|[:])/.test(this.ruleModel().destination),
+  );
   private readonly destinationHasProtocol = computed(() =>
     this.isLinkMapRule() ? true : /^https?:\/\//i.test(this.destinationValue()),
   );

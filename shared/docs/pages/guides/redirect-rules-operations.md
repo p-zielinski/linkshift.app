@@ -188,6 +188,8 @@ Pass explicit `ip` when testing rules that branch on `{ip}`.
 
 ## Analytics
 
+> **Visitor privacy:** You are the data controller for end visitors on live redirects. LinkShift processes redirect metadata as a processor. Analytics does not store visitor IP. See [Live traffic and visitor privacy](./live-traffic-and-visitor-privacy.md) for roles, `{ip}` forwarding, and DPA.
+
 `GET /api/v1/redirect-rules/analytics` returns hit counts per rule.
 
 **Dashboard comparison:** Sidebar **Analytics** uses **Quick ranges** (Last 3/7/14/30 days) and a custom date-time picker — see [Analytics in the dashboard](./dashboard/analytics-in-dashboard.md). Those UI ranges are calendar-style; API presets `range=day|week|month` are rolling UTC **hour** windows. Use explicit `start` and `end` on the API when you need to align with a dashboard filter.

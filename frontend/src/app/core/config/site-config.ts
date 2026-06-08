@@ -15,12 +15,12 @@ export type SiteConfig = {
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
   name: 'LinkShift.app',
   tagline: 'Signal-driven redirect automation',
-  supportEmail: 'support@redirectcontrol.app',
-  legalName: 'Independent operator',
-  legalAddress: 'Available upon request',
-  privacyEmail: 'privacy@redirectcontrol.app',
+  supportEmail: 'support@linkshift.app',
+  legalName: 'Piotr Zieliński',
+  legalAddress: 'Porąbka Uszewska 13, 32-854 Porąbka Uszewska, Poland',
+  privacyEmail: 'privacy@linkshift.app',
   minAge: 16,
-  legalVersion: 'v2',
+  legalVersion: 'v6',
 };
 
 export const SITE_CONFIG = new InjectionToken<SiteConfig>('SITE_CONFIG', {

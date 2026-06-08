@@ -84,6 +84,7 @@ Detail: [Redirect rules — how routing works](./guides/redirect-rules-core.md#h
 | **API integrator** | [API reference](./reference.md) and OpenAPI pages under `/docs/api/…` |
 | **Short-link operator** | [Link maps](./guides/link-maps.md) + [Link map entries](./guides/link-map-entries.md) |
 | **CI owner** | [Redirect tests](./guides/redirect-tests.md) + simulate with optional `checkDestinationBlacklist` |
+| **Privacy / compliance** (live redirect traffic, visitor data, DPA) | [Live traffic and visitor privacy](./guides/live-traffic-and-visitor-privacy.md) |
 
 ---
 

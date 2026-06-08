@@ -60,6 +60,35 @@
   margin: 0;
 }
 
+.docs-assistant__consent-gate {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(31, 24, 28, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 248, 250, 0.9);
+}
+
+.docs-assistant__consent-text {
+  margin: 0 0 10px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: rgba(31, 24, 28, 0.82);
+}
+
+.docs-assistant__consent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.docs-assistant__starter:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .docs-assistant__submit {
   flex: 0 0 auto;
   min-width: 7.5rem;

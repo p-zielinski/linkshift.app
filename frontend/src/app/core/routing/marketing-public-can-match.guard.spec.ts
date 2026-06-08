@@ -39,6 +39,7 @@ describe('isSignedInPublicMarketingPath', () => {
       'redirect-tester',
       'terms',
       'privacy',
+      'dpa',
       'cookies',
       'do-not-sell',
     ];
