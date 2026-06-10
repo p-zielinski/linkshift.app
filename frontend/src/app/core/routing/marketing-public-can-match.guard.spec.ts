@@ -12,8 +12,8 @@ import {
 describe('isSignedInPublicMarketingPath', () => {
   const segment = (path: string) => new UrlSegment(path, {});
 
-  it('treats marketing home as non-public', () => {
-    expect(isSignedInPublicMarketingPath([])).toBe(false);
+  it('treats marketing home as public', () => {
+    expect(isSignedInPublicMarketingPath([])).toBe(true);
   });
 
   it('allows blog and nested article paths', () => {
@@ -114,18 +114,10 @@ describe('marketingPublicCanMatch', () => {
     expect(await resolveGuardResult(runGuard(['blog', 'bitly-vs-linkshift']))).toBe('true');
   });
 
-  it('redirects signed-in campaign users on marketing home to /overview', () => {
+  it('allows signed-in users on marketing home', () => {
     isAuthenticated = true;
-    TestBed.inject(DashboardModeService).setMode('campaign');
 
-    expect(String(runGuard())).toBe('/overview');
-  });
-
-  it('redirects signed-in advanced users on marketing home to /dashboard', () => {
-    isAuthenticated = true;
-    TestBed.inject(DashboardModeService).setMode('advanced');
-
-    expect(String(runGuard())).toBe('/dashboard');
+    expect(String(runGuard())).toBe('true');
   });
 
   it('does not match app routes so AppShell can handle them', () => {
@@ -151,10 +143,9 @@ describe('marketingPublicCanMatch', () => {
     expect(String(runGuard(['alternatives', 'redirect-pizza']))).toBe('true');
   });
 
-  it('redirects guests with a restored session on marketing home to the mode landing path', async () => {
+  it('allows guests with a restored session on marketing home', async () => {
     refreshSucceeds = true;
-    TestBed.inject(DashboardModeService).setMode('campaign');
 
-    expect(await resolveGuardResult(runGuard())).toBe('/overview');
+    expect(await resolveGuardResult(runGuard())).toBe('true');
   });
 });

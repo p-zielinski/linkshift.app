@@ -6,7 +6,6 @@ export type NavItem = {
   icon: string;
   requiresDomainGroups?: boolean;
   matchSubRoutes?: boolean;
-  openInNewTab?: boolean;
 };
 
 export type NavSection = {
@@ -94,7 +93,6 @@ export const ADVANCED_NAV_SECTIONS: NavSection[] = [
           route: '/docs',
           icon: 'description',
           matchSubRoutes: true,
-          openInNewTab: true,
         },
       ],
   },
