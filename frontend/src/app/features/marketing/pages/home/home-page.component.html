@@ -35,6 +35,15 @@
 </app-marketing-hero>
 
 <app-marketing-section
+  eyebrow="Product"
+  title="A live app, not a waitlist"
+  subtitle="Browse real LinkShift screens for campaign links, analytics, tools, and account management."
+  [center]="true"
+>
+  <app-marketing-screenshot-carousel [slides]="appScreenshots" />
+</app-marketing-section>
+
+<app-marketing-section
   eyebrow="Demo"
   title="Watch your first short link go live"
   subtitle="A quick walkthrough of connecting a domain, creating a link, and checking analytics in LinkShift.App."

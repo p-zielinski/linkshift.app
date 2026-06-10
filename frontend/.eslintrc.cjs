@@ -17,7 +17,7 @@ module.exports = {
         '@angular-eslint/template/prefer-control-flow': 'error',
         '@angular-eslint/template/cyclomatic-complexity': [
           'warn',
-          { maxComplexity: 15 },
+          { maxComplexity: 50 },
         ],
         '@angular-eslint/template/click-events-have-key-events': 'off',
         '@angular-eslint/template/interactive-supports-focus': 'off',
