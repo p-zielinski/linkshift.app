@@ -31,19 +31,6 @@ import { sidebarNavLinkActiveOptions, type NavItem } from './dashboard-nav.confi
           }
         </button>
       </span>
-    } @else if (item().openInNewTab) {
-      <a
-        mat-list-item
-        class="cursor-pointer"
-        [routerLink]="item().route"
-        target="_blank"
-        rel="noopener noreferrer"
-        [attr.aria-label]="item().label + ' (opens in new tab)'"
-        (click)="navigate.emit()"
-      >
-        <mat-icon class="relative top-[-2px] mr-3 align-middle text-[20px]">{{ item().icon }}</mat-icon>
-        <span>{{ item().label }}</span>
-      </a>
     } @else {
       <a
         mat-list-item

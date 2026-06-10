@@ -81,25 +81,6 @@ describe('AppSidebarNavItemComponent', () => {
     expect(fixture.nativeElement.querySelector('.sr-only')).toBeNull();
   });
 
-  it('opens nav item in a new tab when openInNewTab is set', () => {
-    fixture.componentRef.setInput('item', {
-      ...NAV_ITEM,
-      label: 'Docs',
-      route: '/docs',
-      icon: 'description',
-      openInNewTab: true,
-    });
-    fixture.detectChanges();
-
-    const link = fixture.nativeElement.querySelector('a.mat-mdc-list-item') as HTMLAnchorElement;
-
-    expect(link).toBeTruthy();
-    expect(link.getAttribute('href')).toContain('/docs');
-    expect(link.getAttribute('target')).toBe('_blank');
-    expect(link.getAttribute('rel')).toBe('noopener noreferrer');
-    expect(link.getAttribute('aria-label')).toBe('Docs (opens in new tab)');
-  });
-
   it('sets aria-current=page on the active route link', async () => {
     const router = TestBed.inject(Router);
     fixture.detectChanges();

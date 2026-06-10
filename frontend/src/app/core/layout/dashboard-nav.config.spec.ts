@@ -47,7 +47,7 @@ describe('dashboard-nav.config', () => {
       ]);
     });
 
-    it('opens Docs in a new tab', () => {
+    it('includes Docs in Help with sub-route matching', () => {
       const help = ADVANCED_NAV_SECTIONS.find((section) => section.label === 'Help');
       const docs = help?.items.find((item) => item.route === '/docs');
 
@@ -56,7 +56,6 @@ describe('dashboard-nav.config', () => {
         route: '/docs',
         icon: 'description',
         matchSubRoutes: true,
-        openInNewTab: true,
       });
     });
 
