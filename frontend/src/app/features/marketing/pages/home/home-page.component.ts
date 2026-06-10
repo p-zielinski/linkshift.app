@@ -23,6 +23,10 @@ import {
 } from '../../components/marketing-faq/marketing-faq.component';
 import { PricingPlansComponent } from '../../components/pricing-plans/pricing-plans.component';
 import { VideoHolderComponent } from '../../../../shared/components/video-holder/video-holder.component';
+import {
+  MarketingScreenshotCarouselComponent,
+  MarketingScreenshotSlide,
+} from '../../components/marketing-screenshot-carousel/marketing-screenshot-carousel.component';
 
 const WORKFLOW_STEPS = [
   {
@@ -158,6 +162,39 @@ const EXAMPLES: MarketingRuleExample[] = [
   },
 ];
 
+const APP_SCREENSHOTS: MarketingScreenshotSlide[] = [
+  {
+    src: '/2.png',
+    alt: 'LinkShift campaign overview with quick actions and setup checklist',
+    caption: 'Campaign overview with quick actions, setup checklist, and recent links',
+  },
+  {
+    src: '/5.png',
+    alt: 'LinkShift guided short link creation wizard',
+    caption: 'Guided short link creation with site, path, and destination steps',
+  },
+  {
+    src: '/3.png',
+    alt: 'LinkShift analytics dashboard with click totals and date ranges',
+    caption: 'Link analytics with date ranges, hit totals, and destination details',
+  },
+  {
+    src: '/4.png',
+    alt: 'LinkShift tools workspace with QR generator and redirect tester',
+    caption: 'Built-in QR generator and redirect tester for rollout checks',
+  },
+  {
+    src: '/6.png',
+    alt: 'LinkShift organization workspace with team invites and usage limits',
+    caption: 'Organization settings with usage limits, API keys, and teammate invites',
+  },
+  {
+    src: '/1.png',
+    alt: 'LinkShift account profile with email verification status',
+    caption: 'Account profile, email verification, and consent management',
+  },
+];
+
 const FAQ_ITEMS: MarketingFaqItem[] = [
   {
     question: 'Do I need to duplicate rules for every domain?',
@@ -197,6 +234,7 @@ const FAQ_ITEMS: MarketingFaqItem[] = [
     MarketingFaqComponent,
     PricingPlansComponent,
     VideoHolderComponent,
+    MarketingScreenshotCarouselComponent,
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.css',
@@ -210,6 +248,7 @@ export class HomePageComponent implements OnInit {
   readonly examples = EXAMPLES;
   readonly faqItems = FAQ_ITEMS;
   readonly modelCards = MODEL_CARDS;
+  readonly appScreenshots = APP_SCREENSHOTS;
 
   readonly heroHighlights = [
     'Branded shortlinks on your own domain',

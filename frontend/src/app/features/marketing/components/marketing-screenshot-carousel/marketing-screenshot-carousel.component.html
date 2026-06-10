@@ -1,0 +1,74 @@
+@if (slideCount() > 0) {
+  <div
+    class="screenshot-carousel"
+    role="region"
+    aria-roledescription="carousel"
+    [attr.aria-label]="ariaLabel()"
+    tabindex="0"
+    (keydown)="onKeydown($event)"
+  >
+    <div class="screenshot-carousel-viewport">
+      <div class="screenshot-carousel-track">
+        @for (slide of slides(); track slide.src; let index = $index) {
+          <figure class="screenshot-carousel-slide">
+            <img
+              [src]="slide.src"
+              [alt]="slide.alt"
+              [attr.loading]="index === 0 ? 'eager' : 'lazy'"
+              width="1700"
+              height="1120"
+              decoding="async"
+            />
+          </figure>
+        }
+      </div>
+
+      @if (slideCount() > 1) {
+        <button
+          type="button"
+          mat-icon-button
+          class="screenshot-carousel-nav screenshot-carousel-nav-prev"
+          aria-label="Previous screenshot"
+          (click)="prev()"
+        >
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button
+          type="button"
+          mat-icon-button
+          class="screenshot-carousel-nav screenshot-carousel-nav-next"
+          aria-label="Next screenshot"
+          (click)="next()"
+        >
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      }
+    </div>
+
+    @if (slideCount() > 1) {
+      <div
+        class="screenshot-carousel-dots"
+        role="tablist"
+        [attr.aria-label]="'Screenshot ' + (activeIndex() + 1) + ' of ' + slideCount()"
+      >
+        @for (slide of slides(); track slide.src; let index = $index) {
+          <button
+            type="button"
+            class="screenshot-carousel-dot"
+            role="tab"
+            [class.is-active]="index === activeIndex()"
+            [attr.aria-selected]="index === activeIndex()"
+            [attr.aria-label]="'Screenshot ' + (index + 1) + ' of ' + slideCount()"
+            (click)="goTo(index)"
+          ></button>
+        }
+      </div>
+    }
+
+    @if (activeSlide(); as slide) {
+      @if (slide.caption) {
+        <p class="screenshot-carousel-caption">{{ slide.caption }}</p>
+      }
+    }
+  </div>
+}
