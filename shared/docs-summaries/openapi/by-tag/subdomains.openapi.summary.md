@@ -1,7 +1,7 @@
 ---
 llmSlice: shared/docs/openapi/by-tag/subdomains.openapi.json
 source: shared/docs/openapi/by-tag/subdomains.openapi.json
-generatedAt: 2026-06-08T20:06:17.201Z
+generatedAt: 2026-06-14T15:27:20.847Z
 model: gpt-4o-mini
 sliceType: openapi-by-tag
 canonicalOpenApi: shared/docs/openapi/linkshift-api-keys.openapi.yaml
@@ -35,11 +35,12 @@ This OpenAPI tag covers the management of LinkShift-hosted subdomains for API-ke
 ## Auth, billing, and rate limits
 - **Authentication**: Send your key on every request using `X-API-Key: <your_key>` (preferred) or `Authorization: ApiKey <your_key>`.
 - **Error Codes**:
-  - `401` — Key missing, revoked, or wrong organization.
-  - `402` — API access isn't on your current plan.
-  - `429` — Per-key rate limit for your plan; back off with jitter.
-  - `400` — Request body or query failed validation; inspect `details` and `requestId` in the JSON body.
-  - `404` — ID doesn't exist or isn't in your organization scope.
+  - `401`: Key missing, revoked, or wrong organization.
+  - `402`: API access isn't on your current plan.
+  - `429`: Per-key rate limit for your plan; back off with jitter.
+  - `400`: Request body or query failed validation; inspect `details` and `requestId` in the JSON body.
+  - `404`: ID doesn't exist or isn't in your organization scope.
+- **Rate Limits**: Read current usage via `GET /api/v1/organization/usage`.
 
 ## Data shapes
 - **LinkShiftSubdomainQueryResult**: Paginated LinkShift-subdomain query response.
@@ -55,4 +56,4 @@ This OpenAPI tag covers the management of LinkShift-hosted subdomains for API-ke
   - **Fields**: `code`, `key`, `message`, `details`, `requestId`, `feature`
 
 ## Related endpoints outside this tag
-- **GET /api/v1/organization/usage**: To read current usage and avoid hitting rate limits.
+- **GET /api/v1/organization/usage** (not part of the Subdomains tag but relevant for rate limit checks).

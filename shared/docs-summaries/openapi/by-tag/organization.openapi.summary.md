@@ -1,7 +1,7 @@
 ---
 llmSlice: shared/docs/openapi/by-tag/organization.openapi.json
 source: shared/docs/openapi/by-tag/organization.openapi.json
-generatedAt: 2026-06-08T20:05:42.881Z
+generatedAt: 2026-06-14T15:26:26.920Z
 model: gpt-4o-mini
 sliceType: openapi-by-tag
 canonicalOpenApi: shared/docs/openapi/linkshift-api-keys.openapi.yaml
@@ -13,30 +13,48 @@ This OpenAPI tag covers the Organization-scoped Management API for redirect conf
 
 ## Endpoints
 - **`GET /api/v1/organization`** (`getOrganization`)
-  - Retrieves the organization profile associated with the provided API key. Returns fields such as `id`, `name`, `configuration`, `createdAt`, `updatedAt`, and `deletedAt`. This call is useful for connectivity checks after key rotations or during deployment tests.
+  - Retrieves the organization profile associated with the API key, including fields such as `id`, `name`, `createdAt`, `updatedAt`, and `deletedAt`. This endpoint serves as a connectivity check after key rotation or during deployment tests.
 
 - **`GET /api/v1/organization/usage`** (`getOrganizationUsage`)
-  - Returns active resource counts for the organization, including `domainGroups`, `domains`, `subdomains`, `rules`, `tests`, `users`, `apiKeys`, `linkMaps`, and `linkMapEntries`. This information helps clients compare their resource usage against plan limits, especially before large imports or rule batches.
+  - Returns active resource counts for the organization, including `domainGroups`, `domains`, `subdomains`, `rules`, `tests`, `users`, `apiKeys`, `linkMaps`, and `linkMapEntries`. This information is useful for comparing against plan limits and should be polled before large imports or rule batches to avoid exceeding plan caps.
 
 ## Auth, billing, and rate limits
-- Authentication is required for every request using the header `X-API-Key: <your_key>`. An alternative header is `Authorization: ApiKey <your_key>`.
-- Error responses include:
-  - `401` — Key is missing, revoked, or incorrect for the organization.
-  - `402` — API access is not included in the current subscription plan.
-  - `429` — Rate limit exceeded for the API key; clients should implement backoff strategies and can check usage via `GET /api/v1/organization/usage`.
-  - `400` — Request validation failed; details can be found in the response body.
-  - `404` — Requested ID does not exist or is not within the organization scope.
-- Some operations, such as API key CRUD and billing checkout, are only available through the dashboard and require signed-in authentication.
+- **Authentication**: Include the API key in every request using the header `X-API-Key: <your_key>`. An alternative header is `Authorization: ApiKey <your_key>`.
+- **Error Codes**:
+  - `401`: Key is missing, revoked, or does not match the organization.
+  - `402`: API access is not included in the current subscription plan.
+  - `429`: Rate limit exceeded for the API key; implement backoff with jitter and check current usage via `GET /api/v1/organization/usage`.
+  - `400`: Request validation failed; inspect `details` and `requestId` in the response.
+  - `404`: Resource ID does not exist or is outside the organization scope.
+- **Dashboard-only Operations**: API key CRUD, billing checkout, and some analytics views are not available through this API and require signed-in dashboard authentication.
 
 ## Data shapes
-- **Organization**
-  - Fields: `id`, `name`, `configuration`, `createdAt`, `updatedAt`, `deletedAt`
-  
-- **OrganizationUsage**
-  - Fields: `domainGroups`, `domains`, `subdomains`, `rules`, `tests`, `users`, `apiKeys`, `linkMaps`, `linkMapEntries`
-  
-- **ErrorResponse**
-  - Fields: `code`, `key`, `message`, `details`, `requestId`, `feature`
+- **Organization**: Represents the tenant record for the API key. Key fields include:
+  - `id`
+  - `name`
+  - `configuration` (read-only)
+  - `createdAt`
+  - `updatedAt`
+  - `deletedAt`
+
+- **OrganizationUsage**: Contains counts of active resources in the organization, excluding soft-deleted items. Key fields include:
+  - `domainGroups`
+  - `domains`
+  - `subdomains`
+  - `rules`
+  - `tests`
+  - `users`
+  - `apiKeys`
+  - `linkMaps`
+  - `linkMapEntries`
+
+- **ErrorResponse**: Standard error envelope for handling errors. Key fields include:
+  - `code`
+  - `key`
+  - `message`
+  - `details`
+  - `requestId`
+  - `feature`
 
 ## Related endpoints outside this tag
-- **Dashboard-only** operations for API key CRUD, billing checkout, and some analytics views are not included in this spec and require dashboard authentication.
+- **Dashboard Operations**: API key CRUD, billing checkout, and some analytics views (not specified in this source).
