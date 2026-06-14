@@ -44,6 +44,7 @@
 - Robots.txt management in LinkShift: https://linkshift.app/blog/robots-txt-management-in-linkshift
 - LinkShift API documentation hub: https://linkshift.app/blog/linkshift-api-documentation-hub
 - LinkShift subdomains for managed hostnames: https://linkshift.app/blog/linkshift-subdomains-for-managed-hostnames
+- Redirect with notice for domain groups: https://linkshift.app/blog/redirect-with-notice-for-domain-groups
 
 ### Legal
 - Terms: https://linkshift.app/terms

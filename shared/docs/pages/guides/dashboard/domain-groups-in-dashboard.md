@@ -9,12 +9,16 @@ Create and manage domain groups — the containers that hold domains, subdomains
 ## List domain groups
 
 1. In the sidebar, select **Domain Groups**.
-2. Review the table — name, ID, robots policy, domain count, and row actions. Use the footer paginator to change pages.
+2. Review the table — name, **Redirect** (**Instant** or **With notice**), **Robots.txt**, Id, Domains, Created at, and row actions. Use the footer paginator to change pages.
 
 ## Create a domain group
 
 1. On **Domain Groups**, select **Add group**.
-2. Step **Details** (**Domain group details**) — enter a name.
+2. Step **Details** (**Domain group details**) — enter a name and choose **Redirect behavior**:
+   - Instant redirect — send visitors to the destination immediately
+   - Redirect with notice — show a short notice page before continuing
+
+   For notice-page details (10-second countdown, **Continue now**, JavaScript required), see [Domains and domain groups — Redirect delivery mode](../domains-and-groups.md#redirect-delivery-mode).
 3. Step **Robots.txt** (**Robots.txt policy**) — choose a policy:
    - Do not use (None)
    - Allow all
@@ -26,7 +30,7 @@ Create and manage domain groups — the containers that hold domains, subdomains
 ## Edit a domain group
 
 1. In the table row, open the edit action.
-2. Walk through **Details** and **Robots.txt** with the current values.
+2. Walk through **Details** (name and **Redirect behavior**) and **Robots.txt** with the current values.
 3. Save your changes.
 
 ## Delete a domain group

@@ -40,6 +40,7 @@ import {
   ROBOTS_DISALLOW_BAD_BOTS_CONTENT,
   type RobotsPolicy,
 } from '@shared/models/robots-policy.model';
+import { DEFAULT_REDIRECT_DELIVERY_MODE } from '@shared/models/redirect-delivery-mode.model';
 import { Domain, DomainGroup, Organization } from '@shared/prisma-client';
 import { LinkShiftSubdomain } from '@shared/prisma-client';
 import {
@@ -63,6 +64,7 @@ import {
   isStoredRegexSource,
   parseStoredRegexSource,
 } from './redirect-source.util';
+import { sendRedirectNoticePage } from './redirect-notice-page.util';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -1080,6 +1082,8 @@ export class RedirectService {
       robotsPolicy === 'CUSTOM'
         ? this.normalizeCustomRobotsContent(data.customRobotsContent)
         : null;
+    const redirectDeliveryMode =
+      data.redirectDeliveryMode ?? DEFAULT_REDIRECT_DELIVERY_MODE;
 
     return this.prisma.domainGroup.create({
       data: {
@@ -1088,6 +1092,7 @@ export class RedirectService {
         organizationId,
         robotsPolicy,
         customRobotsContent,
+        redirectDeliveryMode,
       },
     });
   }
@@ -1124,6 +1129,8 @@ export class RedirectService {
       robotsPolicy === 'CUSTOM'
         ? this.normalizeCustomRobotsContent(nextCustomContent)
         : null;
+    const redirectDeliveryMode =
+      data.redirectDeliveryMode ?? existing.redirectDeliveryMode;
 
     // 2. Update
     const domainGroup = await this.prisma.domainGroup.update({
@@ -1132,6 +1139,7 @@ export class RedirectService {
         name: data.name,
         robotsPolicy,
         customRobotsContent,
+        redirectDeliveryMode,
         updatedAt: new Date(),
       },
     });
@@ -2286,6 +2294,12 @@ export class RedirectService {
             });
           });
       }
+
+      if (domainGroup.redirectDeliveryMode === 'WITH_NOTICE') {
+        sendRedirectNoticePage(res, match.target);
+        return;
+      }
+
       res.redirect(statusCode, match.target);
       return;
     }

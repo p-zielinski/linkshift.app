@@ -108,7 +108,7 @@ Simulate miss: `matched: false`, `404`, `linkMapKey: null`. See [When lookup fai
 
 ```json
 {
-  "source": "/^\\/blog\\/(.+)$/",
+  "source": "/^/blog/(.+)$/",
   "destination": "https://new.example.com/posts/$1",
   "statusCode": 301,
   "queryMatch": "ignore"
@@ -121,7 +121,7 @@ Simulate miss: `matched: false`, `404`, `linkMapKey: null`. See [When lookup fai
 
 ```json
 {
-  "source": "/^\\/(.*)$/",
+  "source": "/^/(.*)$/",
   "destination": "https://{domain.extension}/$1"
 }
 ```
@@ -136,7 +136,7 @@ Keep default `queryMatch: exact` (not `ignore`) so regex runs on `originalUrl` a
 
 ```json
 {
-  "source": "/^\\/blog\\/(.+)$/",
+  "source": "/^/blog/(.+)$/",
   "destination": "https://new-blog.example.com/posts/$1",
   "statusCode": 301,
   "queryMatch": "ignore"
@@ -147,7 +147,7 @@ Keep default `queryMatch: exact` (not `ignore`) so regex runs on `originalUrl` a
 
 ```json
 {
-  "source": "/^\\/(.*)$/",
+  "source": "/^/(.*)$/",
   "destination": "https://{domain.extension}/$1"
 }
 ```

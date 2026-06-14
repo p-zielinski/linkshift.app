@@ -2422,6 +2422,125 @@ const BLOG_ARTICLES_DATA: BlogArticle[] = [
       },
     ],
   },
+  {
+    slug: 'redirect-with-notice-for-domain-groups',
+    title: 'Redirect with notice: show visitors where a link goes before they leave',
+    description:
+      'Domain groups now support a notice-page redirect mode that displays the destination, a 10-second countdown, and a Continue now button before sending visitors onward.',
+    seoTitle: 'Redirect with notice | Domain group delivery mode in LinkShift',
+    seoDescription:
+      'Set redirectDeliveryMode to WITH_NOTICE on a domain group for a branded notice page with destination preview, countdown, and Continue now — or keep INSTANT for HTTP redirects.',
+    competitor: 'Instant-only redirect setup',
+    category: 'domain-path-redirection',
+    publishedAt: '2026-06-14',
+    updatedAt: '2026-06-14',
+    factCheckedAt: '2026-06-14',
+    readTimeMinutes: 6,
+    tags: [
+      'redirect with notice',
+      'redirect delivery mode',
+      'domain group settings',
+      'link transparency',
+      'redirect behavior',
+    ],
+    heroHighlights: [
+      'Choose Instant or With notice per domain group in dashboard or API',
+      'Notice page returns 200 HTML styled like LinkShift with destination preview',
+      'Applies to every domain and subdomain in the group automatically',
+    ],
+    comparisonRows: [
+      {
+        area: 'Visitor experience',
+        linkshift:
+          'Optional notice page shows destination URL before redirect completes',
+        competitor: 'Visitors jump straight to the target with no preview step',
+      },
+      {
+        area: 'Delivery mechanism',
+        linkshift:
+          'WITH_NOTICE returns 200 HTML; INSTANT uses the rule status code (default 302)',
+        competitor: 'HTTP redirect only — no intermediate confirmation layer',
+      },
+      {
+        area: 'Configuration scope',
+        linkshift: 'One redirectDeliveryMode setting covers the whole domain group',
+        competitor: 'Same instant behavior everywhere unless you build custom pages',
+      },
+      {
+        area: 'Branding and trust',
+        linkshift:
+          'Notice page matches LinkShift styling with countdown and Continue now',
+        competitor: 'No built-in branded pause before leaving your short link',
+      },
+      {
+        area: 'Testing and validation',
+        linkshift:
+          'Simulate and redirect tests report rule status codes — validate notice mode with live traffic',
+        competitor: 'Tests match production because behavior is always instant',
+      },
+    ],
+    sections: [
+      {
+        title: 'Why redirect with notice matters',
+        paragraphs: [
+          'Short links move traffic fast, but visitors do not always know where a click will land until the browser has already left your hostname.',
+          'Redirect with notice gives you a middle step: a clear preview of the destination, a short countdown, and an explicit Continue now action before the redirect completes.',
+        ],
+      },
+      {
+        title: 'What is included in this release',
+        paragraphs: [
+          'Each domain group now has a redirectDeliveryMode field with two values: INSTANT (default) and WITH_NOTICE.',
+          'When set to WITH_NOTICE, matching live traffic receives a 200 HTML notice page instead of an immediate HTTP redirect. The page shows the destination URL, a 10-second countdown, and a Continue now button styled to match the LinkShift app. JavaScript completes the redirect after the countdown or when the button is clicked.',
+        ],
+        bullets: [
+          'INSTANT — HTTP redirect using the matching rule status code (default 302)',
+          'WITH_NOTICE — notice page with destination preview, countdown, and Continue now',
+          'Applies to every domain and subdomain attached to the domain group',
+          'redirectDeliveryMode available on domain group create and update via API',
+        ],
+      },
+      {
+        title: 'How to configure redirect behavior',
+        paragraphs: [
+          'In the dashboard, open Domain Groups, create or edit a group, and go to the Details step. Under Redirect behavior, choose Instant or With notice.',
+          'For API workflows, pass redirectDeliveryMode on POST /api/v1/domain-groups (create) or PUT /api/v1/domain-groups/:id (update). Omit the field to keep the INSTANT default.',
+        ],
+        bullets: [
+          'Dashboard: Domain Groups → Details → Redirect behavior',
+          'API: "redirectDeliveryMode": "WITH_NOTICE" on create or update',
+          'Validate notice mode with live requests or the redirect tester — Simulate does not model the notice page',
+        ],
+      },
+      {
+        title: 'Who benefits most',
+        paragraphs: [
+          'Marketing and compliance teams that need link transparency before handoff benefit from a consistent notice step across an entire domain group.',
+          'Affiliate, partner, and external-link programs can reduce surprise redirects while keeping routing logic in the same place as your other redirect rules.',
+        ],
+      },
+    ],
+    honestWhenCompetitorWins: [
+      'When every millisecond counts and visitors should reach the destination immediately — campaign landers, deep links, and performance-sensitive flows.',
+      'When your stack already serves instant HTTP redirects and you do not need a preview or confirmation step.',
+      'When automated redirect tests must mirror production without accounting for a notice-page layer.',
+    ],
+    references: [
+      { label: 'LinkShift - home', href: 'https://linkshift.app/' },
+      {
+        label: 'LinkShift docs - Redirect delivery mode',
+        href: 'https://linkshift.app/docs/guides/domains-and-groups#redirect-delivery-mode',
+      },
+      {
+        label: 'LinkShift docs - Domain groups in dashboard',
+        href: 'https://linkshift.app/docs/guides/domain-groups-in-dashboard',
+      },
+      {
+        label: 'MDN - HTTP redirections',
+        href: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Redirections',
+      },
+    ],
+  },
 ];
 
 export const BLOG_ARTICLES: BlogArticle[] = BLOG_ARTICLES_DATA.sort((a, b) =>

@@ -25,6 +25,7 @@ const domainGroupA: DomainGroup = {
   name: 'Site A',
   organizationId: 'org-1',
   robotsPolicy: 'NONE',
+  redirectDeliveryMode: 'INSTANT',
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
 };
@@ -34,6 +35,7 @@ const domainGroupB: DomainGroup = {
   name: 'Site B',
   organizationId: 'org-1',
   robotsPolicy: 'NONE',
+  redirectDeliveryMode: 'INSTANT',
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
 };

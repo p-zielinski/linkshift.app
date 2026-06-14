@@ -75,7 +75,8 @@ pages:
     source: pages/guides/domains-and-groups.md
     route: /docs/guides/domains-and-groups
     description: >-
-      Domain topology, robots policy, multi-domain patterns, and routing setup checklist.
+      Domain topology, robots policy, redirect delivery mode, multi-domain patterns,
+      and routing setup checklist.
 
   - slug: redirect-rules
     category: guide
@@ -160,7 +161,8 @@ pages:
     source: pages/guides/dashboard/domain-groups-in-dashboard.md
     route: /docs/guides/domain-groups-in-dashboard
     description: >-
-      Create, edit, and delete domain groups and robots.txt policy from the dashboard.
+      Create, edit, and delete domain groups, robots.txt policy, and redirect behavior
+      from the dashboard.
 
   - slug: domains-and-subdomains-in-dashboard
     category: guide

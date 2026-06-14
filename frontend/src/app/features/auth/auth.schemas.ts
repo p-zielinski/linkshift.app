@@ -30,8 +30,6 @@ export const registerSchema = z.object({
       ORGANIZATION_NAME_MAX_LENGTH,
       `Organization name must be at most ${ORGANIZATION_NAME_MAX_LENGTH} characters`,
     ),
-  plan: z.enum(['FREE', 'BASIC', 'PRO']).default('FREE'),
-  billingInterval: z.enum(['MONTHLY', 'YEARLY']).default('MONTHLY'),
   acceptTerms: z.boolean().refine((value) => value === true, {
     message: 'Accept the Terms of Service to continue'
   }),

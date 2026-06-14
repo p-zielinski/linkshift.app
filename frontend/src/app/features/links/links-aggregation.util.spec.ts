@@ -118,6 +118,7 @@ describe('links-aggregation.util', () => {
         name: 'Marketing',
         organizationId: 'org-1',
         robotsPolicy: 'NONE',
+        redirectDeliveryMode: 'INSTANT',
         customRobotsContent: null,
         createdAt: '',
         updatedAt: '',

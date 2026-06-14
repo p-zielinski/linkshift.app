@@ -183,7 +183,7 @@ Store regex as a string: `/pattern/flags`
 
 ```json
 {
-  "source": "/^\\/blog\\/(.+)$/",
+  "source": "/^/blog/(.+)$/",
   "destination": "https://new-blog.example.com/posts/$1"
 }
 ```
@@ -196,7 +196,7 @@ Substitution runs before placeholders. Validation counts **capturing** groups on
 
 With `queryMatch: ignore`, regex runs against path only. Otherwise it runs against path + query (`originalUrl`).
 
-**`pathMatch` is not used for regex sources.** The API accepts `pathMatch` on create/update, but at runtime only `queryMatch` affects regex rules (path-only vs `originalUrl`). Use the pattern itself to anchor paths (for example `^\\/blog\\/`) — do not rely on `pathMatch: prefix` with a regex `source`.
+**`pathMatch` is not used for regex sources.** The API accepts `pathMatch` on create/update, but at runtime only `queryMatch` affects regex rules (path-only vs `originalUrl`). Use the pattern itself to anchor paths (for example `^/blog/`) — do not rely on `pathMatch: prefix` with a regex `source`.
 
 #### Plain path or regex?
 
@@ -204,7 +204,7 @@ If `source` looks like `/pattern/flags`, the engine may treat it as **regex** (f
 
 | `source` | Interpreted as |
 |----------|----------------|
-| `/^\\/blog\\/(.+)$/` | Regex (intended) |
+| `/^/blog/(.+)$/` | Regex (intended) |
 | `/v2/go` | Plain prefix path |
 | `/campaign/i` | **Regex** — not literal `/campaign/i` |
 | `/api/v1/g` | **Regex** — not literal path |
@@ -410,7 +410,7 @@ Put specific rules high, catch-alls low:
 |----------|--------|------|
 | 200 | `/admin` | Admin redirect |
 | 100 | `/go` + link map | Short links |
-| 50 | `/^\\/blog\\/` | Blog migration |
+| 50 | `/^/blog/` | Blog migration |
 | 0 | `*` | Default fallback |
 
 ---
@@ -445,7 +445,7 @@ Quick examples:
 
 ```json
 {
-  "source": "/^\\/blog\\/(.+)$/",
+  "source": "/^/blog/(.+)$/",
   "destination": "https://new-blog.example.com/posts/$1?from={domain.root:to_upper_case.url_encode}"
 }
 ```
@@ -455,7 +455,7 @@ Request `http://sub.my-domain.com/blog/cool-article`
 
 ```json
 {
-  "source": "/^\\/(.*)$/",
+  "source": "/^/(.*)$/",
   "destination": "https://{domain.extension}/$1"
 }
 ```

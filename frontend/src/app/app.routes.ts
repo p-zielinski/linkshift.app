@@ -201,6 +201,11 @@ export const routes: Routes = [
         data: { article: 'linkshift-subdomains-for-managed-hostnames' },
       },
       {
+        path: 'blog/redirect-with-notice-for-domain-groups',
+        component: BlogArticlePageComponent,
+        data: { article: 'redirect-with-notice-for-domain-groups' },
+      },
+      {
         path: 'alternatives/redirect-pizza',
         component: AlternativePageComponent,
         data: { alternative: 'redirect-pizza' },

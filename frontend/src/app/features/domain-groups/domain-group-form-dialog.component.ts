@@ -30,6 +30,10 @@ import {
   MAX_CUSTOM_ROBOTS_CONTENT_LENGTH,
   type RobotsPolicy,
 } from '@shared/models/robots-policy.model';
+import {
+  DEFAULT_REDIRECT_DELIVERY_MODE,
+  type RedirectDeliveryMode,
+} from '@shared/models/redirect-delivery-mode.model';
 
 export type DomainGroupDialogData = {
   group?: DomainGroup;
@@ -86,19 +90,42 @@ export class DomainGroupFormDialogComponent {
     { value: 'DISALLOW_BAD_BOTS', label: 'Disallow bad bots' },
     { value: 'CUSTOM', label: 'Custom' },
   ];
+  readonly redirectDeliveryModeOptions: {
+    value: RedirectDeliveryMode;
+    label: string;
+    description: string;
+  }[] = [
+    {
+      value: 'INSTANT',
+      label: 'Instant redirect',
+      description: 'Send visitors to the destination immediately',
+    },
+    {
+      value: 'WITH_NOTICE',
+      label: 'Redirect with notice',
+      description: 'Show a short notice page before continuing',
+    },
+  ];
 
   groupModel = signal({
     name: this.group?.name ?? '',
     robotsPolicy: this.group?.robotsPolicy ?? DEFAULT_ROBOTS_POLICY,
     customRobotsContent: this.group?.customRobotsContent ?? '',
+    redirectDeliveryMode:
+      this.group?.redirectDeliveryMode ?? DEFAULT_REDIRECT_DELIVERY_MODE,
   });
 
   groupForm = form(this.groupModel, (f) => {
     required(f.name);
     required(f.robotsPolicy);
+    required(f.redirectDeliveryMode);
     applyZodField(f.name, domainGroupSchema.shape.name);
     applyZodField(f.robotsPolicy, domainGroupSchema.shape.robotsPolicy);
     applyZodField(f.customRobotsContent, domainGroupSchema.shape.customRobotsContent);
+    applyZodField(
+      f.redirectDeliveryMode,
+      domainGroupSchema.shape.redirectDeliveryMode
+    );
   });
 
   nameError = computed(() => this.getFieldError(this.groupForm.name()));
@@ -108,6 +135,15 @@ export class DomainGroupFormDialogComponent {
     () =>
       this.robotsPolicyOptions.find((option) => option.value === this.groupModel().robotsPolicy)?.label ??
       'Do not use (None)'
+  );
+  readonly redirectDeliveryModeLabel = computed(
+    () =>
+      this.redirectDeliveryModeOptions.find(
+        (option) => option.value === this.groupModel().redirectDeliveryMode
+      )?.label ?? 'Instant redirect'
+  );
+  readonly redirectDeliveryModeError = computed(() =>
+    this.getFieldError(this.groupForm.redirectDeliveryMode())
   );
   readonly customRobotsContentError = computed(() => {
     if (!this.isCustomPolicy()) {
@@ -149,7 +185,10 @@ export class DomainGroupFormDialogComponent {
     );
   });
   readonly canSubmit = computed(
-    () => this.groupForm.name().valid() && this.robotsSectionValid()
+    () =>
+      this.groupForm.name().valid() &&
+      this.groupForm.redirectDeliveryMode().valid() &&
+      this.robotsSectionValid()
   );
   readonly submitDisabled = computed(
     () =>
@@ -163,8 +202,10 @@ export class DomainGroupFormDialogComponent {
       id: 'details',
       label: 'Details',
       title: 'Domain group details',
-      description: 'Name the domain group.',
-      complete: this.groupForm.name().valid(),
+      description: 'Name the domain group and choose redirect behavior.',
+      complete:
+        this.groupForm.name().valid() &&
+        this.groupForm.redirectDeliveryMode().valid(),
     },
     {
       id: 'robots',
