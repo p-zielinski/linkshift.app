@@ -12,6 +12,7 @@ describe('DomainGroupsTableComponent', () => {
     name: 'Marketing',
     organizationId: 'org-1',
     robotsPolicy: 'ALLOW_ALL',
+    redirectDeliveryMode: 'INSTANT',
     createdAt: '2026-06-01T00:00:00.000Z',
     updatedAt: '2026-06-01T00:00:00.000Z',
   };
@@ -63,10 +64,16 @@ describe('DomainGroupsTableComponent', () => {
     expect(createSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('maps row view models with robots labels and active styling', () => {
+  it('maps row view models with redirect and robots labels', () => {
     fixture.componentRef.setInput('groups', [
       sampleGroup,
-      { ...sampleGroup, id: 'group-2', name: 'Legacy', robotsPolicy: 'NONE' },
+      {
+        ...sampleGroup,
+        id: 'group-2',
+        name: 'Legacy',
+        robotsPolicy: 'NONE',
+        redirectDeliveryMode: 'WITH_NOTICE',
+      },
     ]);
     fixture.componentRef.setInput('domainCounts', { 'group-1': 2, 'group-2': 0 });
     fixture.componentRef.setInput('domainsLoaded', true);
@@ -74,9 +81,13 @@ describe('DomainGroupsTableComponent', () => {
 
     const rows = component.rowViewModels();
 
+    expect(rows[0].redirectLabel).toBe('Instant');
+    expect(rows[0].redirectClass).toBe('bg-app-muted/10 text-app-muted');
     expect(rows[0].robotsLabel).toBe('Allow all');
     expect(rows[0].robotsActive).toBe(true);
     expect(rows[0].robotsClass).toBe('bg-green-50 text-green-700');
+    expect(rows[1].redirectLabel).toBe('With notice');
+    expect(rows[1].redirectClass).toBe('bg-blue-50 text-blue-700');
     expect(rows[1].robotsLabel).toBe('None');
     expect(rows[1].robotsActive).toBe(false);
     expect(rows[1].robotsClass).toBe('bg-app-muted/10 text-app-muted');
@@ -134,6 +145,7 @@ describe('DomainGroupsTableComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
 
     expect(root.textContent).toContain('Marketing');
+    expect(root.textContent).toContain('Instant');
     expect(root.textContent).toContain('Allow all');
     expect(root.textContent).toContain('2');
   });

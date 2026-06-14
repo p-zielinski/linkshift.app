@@ -50,31 +50,22 @@ describe('UpgradeDialogComponent', () => {
     fixture = TestBed.createComponent(UpgradeDialogComponent);
   });
 
-  it('keeps the dialog open while checkout flow is running', async () => {
-    let resolveCheckout: (value: unknown) => void = () => undefined;
-    startSubscriptionChange.mockReturnValue(
-      new Promise((resolve) => {
-        resolveCheckout = resolve;
-      }),
-    );
+  it('closes the dialog when Paddle checkout opens', async () => {
+    startSubscriptionChange.mockImplementation(async (params: { onCheckoutOpened?: () => void }) => {
+      params.onCheckoutOpened?.();
+      return {
+        kind: 'checkout',
+        checkoutSessionId: 'chk_1',
+        status: 'closed',
+      };
+    });
 
     const component = fixture.componentInstance;
-    const selectionPromise = component.onPlanSelected({
+    await component.onPlanSelected({
       plan: OrganizationPlan.PRO,
       interval: 'MONTHLY',
       priceId: 'price_pro_monthly',
     });
-
-    await Promise.resolve();
-    expect(component.busy()).toBe(true);
-    expect(dialogClose).not.toHaveBeenCalled();
-
-    resolveCheckout({
-      kind: 'checkout',
-      checkoutSessionId: 'chk_1',
-      status: 'closed',
-    });
-    await selectionPromise;
 
     expect(dialogClose).toHaveBeenCalledTimes(1);
     expect(component.busy()).toBe(false);

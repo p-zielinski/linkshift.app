@@ -99,6 +99,8 @@ export class UpgradeDialogComponent {
       return;
     }
 
+    let checkoutOpened = false;
+
     this.busy.set(true);
     this.errorMessage.set(null);
     try {
@@ -107,7 +109,16 @@ export class UpgradeDialogComponent {
         plan,
         interval,
         source: 'upgrade_dialog',
+        onCheckoutOpened: () => {
+          checkoutOpened = true;
+          this.busy.set(false);
+          this.dialogRef.close();
+        },
       });
+
+      if (checkoutOpened) {
+        return;
+      }
 
       if (result.kind === 'updated') {
         const message =
@@ -125,13 +136,9 @@ export class UpgradeDialogComponent {
         return;
       }
 
-      if (result.status === 'completed') {
-        // CheckoutStatusDialog (opened by PaddleCheckoutFlowService) owns success feedback.
+      if (result.kind === 'checkout') {
         this.dialogRef.close();
-        return;
       }
-
-      this.closeWithMessage('Checkout canceled. Your current plan is unchanged.');
     } catch (error) {
       const message = this.resolveErrorMessage(error);
       this.errorMessage.set(message);
@@ -142,7 +149,9 @@ export class UpgradeDialogComponent {
         panelClass: ['bg-red-600', 'text-white'],
       });
     } finally {
-      this.busy.set(false);
+      if (!checkoutOpened) {
+        this.busy.set(false);
+      }
     }
   }
 

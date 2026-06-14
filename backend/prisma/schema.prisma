@@ -43,6 +43,11 @@ enum RobotsPolicy {
   CUSTOM
 }
 
+enum RedirectDeliveryMode {
+  INSTANT
+  WITH_NOTICE
+}
+
 enum BillingCheckoutStatus {
   PENDING
   PAID
@@ -148,6 +153,7 @@ model DomainGroup {
   organizationId String
   robotsPolicy   RobotsPolicy @default(NONE)
   customRobotsContent String?
+  redirectDeliveryMode RedirectDeliveryMode @default(INSTANT)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   deletedAt      DateTime?

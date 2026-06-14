@@ -179,6 +179,7 @@ exports.Prisma.DomainGroupScalarFieldEnum = {
   organizationId: 'organizationId',
   robotsPolicy: 'robotsPolicy',
   customRobotsContent: 'customRobotsContent',
+  redirectDeliveryMode: 'redirectDeliveryMode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
@@ -321,6 +322,11 @@ exports.RobotsPolicy = exports.$Enums.RobotsPolicy = {
   DISALLOW_ALL: 'DISALLOW_ALL',
   DISALLOW_BAD_BOTS: 'DISALLOW_BAD_BOTS',
   CUSTOM: 'CUSTOM'
+};
+
+exports.RedirectDeliveryMode = exports.$Enums.RedirectDeliveryMode = {
+  INSTANT: 'INSTANT',
+  WITH_NOTICE: 'WITH_NOTICE'
 };
 
 exports.RedirectQueryMatch = exports.$Enums.RedirectQueryMatch = {

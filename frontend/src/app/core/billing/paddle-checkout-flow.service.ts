@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   BillingInterval,
   OrganizationPlan,
@@ -23,11 +24,8 @@ export type StartPaddleCheckoutParams = {
   priceId: string;
   plan: OrganizationPlan;
   interval: BillingInterval;
-  source: 'upgrade_dialog' | 'registration';
-};
-
-export type StartPaddleCheckoutResult = OverlayCheckoutResult & {
-  checkoutSessionId: string;
+  source: 'upgrade_dialog';
+  onCheckoutOpened?: () => void;
 };
 
 export type StartSubscriptionChangeResult =
@@ -54,41 +52,7 @@ export class PaddleCheckoutFlowService {
   private readonly authStore = inject(AuthStore);
   private readonly usageStore = inject(OrganizationUsageStore);
   private readonly dialog = inject(MatDialog);
-
-  async startCheckout(
-    params: StartPaddleCheckoutParams,
-  ): Promise<StartPaddleCheckoutResult> {
-    const user = this.authStore.user();
-    const organization = this.authStore.organization();
-
-    if (!user || !organization) {
-      throw new Error('Session missing. Refresh and try again.');
-    }
-
-    const session = await firstValueFrom(
-      this.billingApi.createCheckoutSession(params.priceId),
-    );
-
-    const overlay = await this.openOverlayCheckout({
-      priceId: params.priceId,
-      customerEmail: user.email,
-      organizationId: organization.id,
-      userId: user.id,
-      plan: params.plan,
-      interval: params.interval,
-      source: params.source,
-      checkoutSessionId: session.checkoutSessionId,
-    });
-
-    if (overlay.status === 'completed') {
-      this.openCheckoutStatusDialog(session.checkoutSessionId);
-    }
-
-    return {
-      ...overlay,
-      checkoutSessionId: session.checkoutSessionId,
-    };
-  }
+  private readonly snackBar = inject(MatSnackBar);
 
   async startSubscriptionChange(
     params: StartPaddleCheckoutParams,
@@ -141,10 +105,17 @@ export class PaddleCheckoutFlowService {
       interval: params.interval,
       source: params.source,
       checkoutSessionId: result.checkoutSessionId,
+      onCheckoutOpened: params.onCheckoutOpened,
     });
 
     if (overlay.status === 'completed') {
       this.openCheckoutStatusDialog(result.checkoutSessionId);
+    } else if (overlay.status === 'closed') {
+      this.snackBar.open('Checkout canceled. Your current plan is unchanged.', 'Dismiss', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+      });
     }
 
     return {
@@ -171,12 +142,14 @@ export class PaddleCheckoutFlowService {
     userId: string;
     plan: OrganizationPlan;
     interval: BillingInterval;
-    source: 'upgrade_dialog' | 'registration';
+    source: 'upgrade_dialog';
     checkoutSessionId: string;
+    onCheckoutOpened?: () => void;
   }) {
     return this.paddleCheckout.openOverlayCheckout({
       priceId: params.priceId,
       customerEmail: params.customerEmail,
+      onCheckoutOpened: params.onCheckoutOpened,
       customData: {
         organizationId: params.organizationId,
         userId: params.userId,

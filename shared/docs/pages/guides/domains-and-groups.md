@@ -48,7 +48,7 @@ Organization
 A visitor hitting `links.example.com/go/summer` triggers rules on the domain group attached to `links.example.com`.
 
 :::info
-Before redirect rules run, the edge applies organization **rate limits** and **access checks**, and may serve **`robots.txt`** from the domain group policy. The first rule that **returns a target URL** wins — a matching `source` alone is not enough (link map miss with no fallback skips to the next rule). `robots.txt` requests still count toward `redirectionLimitPerMinute`.
+Before redirect rules run, the edge applies organization **rate limits** and **access checks**, and may serve **`robots.txt`** from the domain group policy. The first rule that **returns a target URL** wins — a matching `source` alone is not enough (link map miss with no fallback skips to the next rule). When a rule returns a target, the group's **redirect delivery mode** controls whether the visitor gets an immediate HTTP redirect or a notice page first. `robots.txt` requests still count toward `redirectionLimitPerMinute`.
 :::
 
 See [Redirect rules — how routing works](./redirect-rules-core.md#how-routing-works) and the [routing decision flow diagram](../concepts/redirect-engine-conditionals.md#routing-decision-flow-diagram).
@@ -72,15 +72,26 @@ POST /api/v1/domain-groups
 {
   "name": "Production",
   "robotsPolicy": "NONE",
-  "customRobotsContent": null
+  "customRobotsContent": null,
+  "redirectDeliveryMode": "INSTANT"
 }
 ```
 
 ### Get / update / delete
 
-- `GET /api/v1/domain-groups/:id`
-- `PUT /api/v1/domain-groups/:id`
+- `GET /api/v1/domain-groups/:id` — response includes `redirectDeliveryMode`
+- `PUT /api/v1/domain-groups/:id` — update `name`, robots fields, and/or `redirectDeliveryMode`
 - `DELETE /api/v1/domain-groups/:id`
+
+Example update:
+
+```json
+PUT /api/v1/domain-groups/:id
+{
+  "name": "Production",
+  "redirectDeliveryMode": "WITH_NOTICE"
+}
+```
 
 ### Robots policy
 
@@ -97,6 +108,19 @@ Controls `robots.txt` served for domains in this group:
 Notes:
 
 - Group ownership enforced by API key organization.
+
+### Redirect delivery mode
+
+Controls how visitors reach the destination after a rule match. Applies to every domain and subdomain in the group.
+
+| Value | Behavior |
+|-------|----------|
+| `INSTANT` (default) | HTTP redirect using the matching rule's `statusCode` (default `302`) |
+| `WITH_NOTICE` | Returns `200` HTML notice page showing the destination, a 10-second countdown, and a **Continue now** button; JavaScript completes the redirect after the countdown or when the button is clicked. The rule's `statusCode` is not used on live traffic. |
+
+Notes:
+
+- **Simulate** and **redirect tests** still report the rule's `statusCode` and `target` — they do not model the notice page. Validate `WITH_NOTICE` with live requests or the redirect tester, not simulate alone.
 
 ---
 
@@ -147,7 +171,7 @@ Example — redirect www to apex (works well for typical `www.example.com` → `
 
 ```json
 {
-  "source": "/^\\/(.*)$/",
+  "source": "/^/(.*)$/",
   "destination": "https://{domain.extension}/$1"
 }
 ```

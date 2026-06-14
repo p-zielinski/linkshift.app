@@ -20,6 +20,7 @@ describe('CampaignConnectDomainService', () => {
       name: 'Launch site',
       organizationId: 'org-1',
       robotsPolicy: 'NONE',
+      redirectDeliveryMode: 'INSTANT',
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     },

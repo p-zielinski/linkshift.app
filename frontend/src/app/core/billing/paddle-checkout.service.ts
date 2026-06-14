@@ -39,6 +39,7 @@ export type OpenOverlayCheckoutParams = {
   customerCountryCode?: string | null;
   customerPostalCode?: string | null;
   customData?: Record<string, any>;
+  onCheckoutOpened?: () => void;
 };
 
 @Injectable({
@@ -114,6 +115,7 @@ export class PaddleCheckoutService {
         if (event.name === 'checkout.loaded') {
           checkoutLoaded = true;
           checkoutId = this.resolveCheckoutId(event);
+          params.onCheckoutOpened?.();
           return;
         }
 

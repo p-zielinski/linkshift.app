@@ -44,7 +44,7 @@ Quick “which feature do I need?” — full detail in linked guides.
 |------|----------|-----------------------------------|---------------|------|
 | Fixed URL redirect | Plain `/path` | `exact` or `prefix` + `exact`/`ignore`/`subset` | Static or dynamic URL | [Redirect rules](./guides/redirect-rules.md) |
 | Short links at scale | Plain `/go` prefix | `prefix` + `ignore` | `null` + `linkMapId` | [Link maps](./guides/link-maps.md) |
-| Blog / path migration | `/^\\/blog\\/(.*)$/` regex | Regex: `pathMatch` ignored; tune `queryMatch` | `$1` + placeholders | [Recipes](./guides/redirect-rules-recipes.md#migrate-blog-posts-with-regex) |
+| Blog / path migration | `/^/blog/(.*)$/` regex | Regex: `pathMatch` ignored; tune `queryMatch` | `$1` + placeholders | [Recipes](./guides/redirect-rules-recipes.md#migrate-blog-posts-with-regex) |
 | Catch-all fallback | `*` | Ignored at runtime | Any | Low `priority` |
 | A/B or scheduled | Any | Often `ignore` on `*` or path | Ternary / `random()` / `datetime()` | [Engine concepts](./concepts/redirect-engine-conditionals.md#conditional-routing-syntax) |
 | GET-only short links | Prefix + `linkMapId` | + `matchMethod: ["GET"]` | `null` | [Link maps — matchMethod](./guides/link-maps.md#step-3--create-redirect-rule) |

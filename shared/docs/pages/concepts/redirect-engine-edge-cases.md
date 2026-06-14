@@ -16,11 +16,17 @@ Examples:
 
 | Source | Matches |
 |--------|---------|
-| `/^\\/blog\\/(.+)$/` | `/blog/any-slug` |
-| `/^\\/go\\/([^/]+)\\/([^/]+)$/` | `/go/docs/api` |
-| `/^\\/(.*)$/` | Any path |
+| `/^/blog/(.+)$/` | `/blog/any-slug` |
+| `/^/go/([^/]+)/([^/]+)$/` | `/go/docs/api` |
+| `/^/(.*)$/` | Any path |
 
 Capture groups populate `$0` (full match), `$1`, `$2`, … in destination **before** placeholder resolution. Validation counts **capturing** groups only (`(?:…)` non-capturing groups are not counted toward `$N` limits).
+
+:::tip
+**No backslash escaping is required for forward slashes (`/`)!**
+In LinkShift regular expressions, since they are compiled using Javascript's `new RegExp(pattern)`, forward slashes (`/`) do **not** need to be escaped with a backslash.
+You should use **`/^/(.*)$/`** instead of `/^\/(.*)$/` (which can cause confusion with JSON escaping and double-backslashes like `/^\\/(.*)$/`). Keep your patterns clean and backslash-free!
+:::
 
 :::error
 **`$N` capture substitution requires a regex `source`** (`/pattern/flags`). Plain path, wildcard, and link map rules return **`400`** if `destination` contains `$0`, `$1`, …
@@ -43,7 +49,7 @@ Example — `$0` is the full path match:
 
 ```json
 {
-  "source": "/^\\/archive\\/(.+)$/",
+  "source": "/^/archive/(.+)$/",
   "destination": "https://archive.example.com/redirect?matched=$0&slug=$1",
   "queryMatch": "ignore"
 }
@@ -55,7 +61,7 @@ With `queryMatch: ignore`, regex matches path only. Otherwise matches full path 
 
 **Flag `g` (global):** Avoid storing regex sources with a `g` flag unless you intend it. `String.match()` on a global regex can behave differently with capture groups than a non-global pattern. Prefer patterns without `g` for redirect `source` values.
 
-**Preserve query on www → apex:** For `source: /^\\/(.*)$/` and `destination: https://{domain.extension}/$1`, do not use `queryMatch: ignore` — use default `exact` so `$1` includes the query string.
+**Preserve query on www → apex:** For `source: /^/(.*)$/` and `destination: https://{domain.extension}/$1`, do not use `queryMatch: ignore` — use default `exact` so `$1` includes the query string.
 
 ### Plain path vs regex — do not confuse them
 
@@ -63,12 +69,12 @@ Any `source` that looks like `/pattern/flags` (leading `/`, another `/`, then **
 
 | `source` | Interpreted as |
 |----------|----------------|
-| `/^\\/blog\\/(.+)$/` | Regex (intended) |
+| `/^/blog/(.+)$/` | Regex (intended) |
 | `/v2/go` | Plain prefix path (suffix `go` is not valid flags) |
 | `/campaign/i` | **Regex** pattern `campaign`, flag `i` — not path `/campaign/i` |
 | `/api/v1/g` | **Regex** pattern `api/v1`, flag `g` |
 
-Use explicit regex syntax (`/^\\/campaign\\/i$/` or similar) when you need metacharacters. Use plain segments without a trailing `/flags` suffix for literal paths. Link map rule sources must be plain paths (regex form is rejected at validation).
+Use explicit regex syntax (`/^/campaign/i$/` or similar) when you need metacharacters. Use plain segments without a trailing `/flags` suffix for literal paths. Link map rule sources must be plain paths (regex form is rejected at validation).
 
 ---
 

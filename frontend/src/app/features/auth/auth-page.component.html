@@ -107,38 +107,8 @@
               }
             </mat-form-field>
 
-            <div class="plan-picker">
-              <div class="text-[13px] font-semibold text-app-ink-strong">Choose your plan</div>
-              <div class="interval-toggle">
-                <div class="text-[11px] uppercase tracking-[0.12em] text-app-muted">Billing</div>
-                <mat-button-toggle-group
-                  class="interval-toggle-group"
-                  [formField]="registerForm.billingInterval"
-                >
-                  <mat-button-toggle value="MONTHLY">Monthly</mat-button-toggle>
-                  <mat-button-toggle value="YEARLY">Yearly</mat-button-toggle>
-                </mat-button-toggle-group>
-              </div>
-              <div class="text-[11px] text-app-muted">
-                Billing cycle changes are available only after canceling an active subscription.
-              </div>
-              <mat-radio-group class="plan-grid" [formField]="registerForm.plan">
-                @for (plan of plans(); track plan.id) {
-                  <mat-radio-button class="plan-option" [value]="plan.id">
-                    <div class="plan-meta">
-                      <div class="plan-title">{{ plan.title }}</div>
-                      <div class="plan-price">{{ plan.price }}</div>
-                      <div class="plan-note text-[12px] text-app-muted">
-                        {{ plan.note }}
-                      </div>
-                    </div>
-                  </mat-radio-button>
-                }
-              </mat-radio-group>
-            </div>
-
             <div
-              class="grid gap-2 rounded-[16px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted"
+              class="mt-2 grid gap-2 rounded-[16px] border border-app-border-soft bg-app-muted/5 p-3 text-[12px] text-app-muted"
             >
               <mat-checkbox [formField]="registerForm.acceptTerms">
                 I agree to the

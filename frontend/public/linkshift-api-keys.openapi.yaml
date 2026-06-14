@@ -40,7 +40,7 @@ tags:
   - name: Domain Groups
     description: |
       First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.
-      Set robots policy defaults here before attaching domains.
+      Set robots policy and redirect delivery mode here before attaching domains.
   - name: Domains
     description: |
       Your custom hostnames assigned to a domain group.
@@ -139,6 +139,7 @@ paths:
       description: |
         Creates a domain group — the scope container for domains, rules, and link maps.
         Optional `robotsPolicy` / `customRobotsContent` apply to all domains you attach later.
+        Optional `redirectDeliveryMode` (`INSTANT` default, or `WITH_NOTICE` for a notice page before redirect).
         Returns 400 when the name is invalid or robots content is missing for CUSTOM policy.
       operationId: createDomainGroup
       requestBody:
@@ -170,7 +171,7 @@ paths:
       tags: [Domain Groups]
       summary: Get domain group by ID
       description: |
-        Fetches one domain group including robots policy fields.
+        Fetches one domain group including robots policy and redirect delivery mode fields.
         Returns 404 when the ID is unknown or soft-deleted outside your organization.
       operationId: getDomainGroup
       responses:
@@ -192,8 +193,8 @@ paths:
       tags: [Domain Groups]
       summary: Update domain group
       description: |
-        Updates name and/or robots policy for an existing group.
-        Changing robots policy impacts all domains in the group on next request.
+        Updates name, robots policy, and/or redirect delivery mode for an existing group.
+        Changing robots policy or redirect delivery mode impacts all domains in the group on next request.
         Returns 404 when the group doesn't exist in your organization.
       operationId: updateDomainGroup
       requestBody:
@@ -1441,6 +1442,8 @@ components:
           nullable: true
           maxLength: 4096
           description: Used only when robotsPolicy is CUSTOM.
+        redirectDeliveryMode:
+          $ref: '#/components/schemas/RedirectDeliveryMode'
         createdAt: { type: string, format: date-time, description: Creation timestamp (UTC). }
         updatedAt: { type: string, format: date-time, description: Last update timestamp (UTC). }
         deletedAt:
@@ -1448,7 +1451,7 @@ components:
           format: date-time
           nullable: true
           description: Soft-delete timestamp in UTC when deleted.
-      required: [id, name, organizationId, robotsPolicy, createdAt, updatedAt]
+      required: [id, name, organizationId, robotsPolicy, redirectDeliveryMode, createdAt, updatedAt]
 
     Domain:
       description: Domain entity assigned to a domain group.
@@ -1777,6 +1780,17 @@ components:
       default: NONE
       enum: [NONE, ALLOW_ALL, DISALLOW_ALL, DISALLOW_BAD_BOTS, CUSTOM]
 
+    RedirectDeliveryMode:
+      type: string
+      description: |
+        Controls how visitors reach the redirect destination after a rule match.
+        INSTANT issues an HTTP redirect using the rule statusCode (default 302).
+        WITH_NOTICE returns 200 HTML with the destination, a 10-second countdown,
+        and a Continue now button; JavaScript completes the redirect.
+        Simulate and redirect tests report the rule statusCode, not the notice page.
+      default: INSTANT
+      enum: [INSTANT, WITH_NOTICE]
+
     CreateDomainGroupRequest:
       description: Payload for creating a domain group.
       type: object
@@ -1793,6 +1807,8 @@ components:
           nullable: true
           maxLength: 4096
           description: Required when robotsPolicy is CUSTOM.
+        redirectDeliveryMode:
+          $ref: '#/components/schemas/RedirectDeliveryMode'
       required: [name]
 
     UpdateDomainGroupRequest:
@@ -1811,6 +1827,8 @@ components:
           nullable: true
           maxLength: 4096
           description: Required when robotsPolicy is CUSTOM.
+        redirectDeliveryMode:
+          $ref: '#/components/schemas/RedirectDeliveryMode'
       required: [name]
 
     CreateDomainRequest:

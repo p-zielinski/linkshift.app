@@ -2063,6 +2063,56 @@ describe('RedirectService', () => {
       expect(res.redirect).toHaveBeenCalledWith(301, 'https://example.com/new');
     });
 
+    it('should return redirect notice HTML when delivery mode is WITH_NOTICE', async () => {
+      const req = createMockRequest('http://example.com/old');
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+        setHeader: jest.fn(),
+        send: jest.fn(),
+      } as any;
+
+      (cacheManagerService.getRedirectContext as jest.Mock).mockResolvedValue({
+        domainGroup: {
+          organizationId: 'org_1',
+          redirectDeliveryMode: 'WITH_NOTICE',
+          redirectRules: [
+            {
+              source: '*',
+              destination: 'https://example.com/new',
+              statusCode: 301,
+              matchMethod: [],
+            },
+          ],
+        },
+      });
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue({
+        configuration: null,
+      });
+      (cacheManagerService.checkRateLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      mockOrganizationService.checkRedirectionAccess.mockResolvedValue(
+        undefined,
+      );
+
+      await service.applyRedirect(req, res);
+
+      expect(res.redirect).not.toHaveBeenCalled();
+      expect(res.setHeader).toHaveBeenCalledWith(
+        'Content-Security-Policy',
+        expect.stringContaining("style-src 'unsafe-inline'"),
+      );
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.stringContaining('https://example.com/new'),
+      );
+      expect(res.send).toHaveBeenCalledWith(
+        expect.stringContaining('Continue now'),
+      );
+    });
+
     it('should return 503 and not redirect when blacklist check throws', async () => {
       const req = createMockRequest('http://example.com/old');
       const res = {

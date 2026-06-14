@@ -13,12 +13,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ResourcePillComponent } from '../../../../shared/components/resource-pill/resource-pill.component';
 import type { DomainGroup } from '../../../../core/models/domain-group.model';
+import type { RedirectDeliveryMode } from '@shared/models/redirect-delivery-mode.model';
 
 type DomainGroupRowViewModel = {
   group: DomainGroup;
   robotsLabel: string;
   robotsActive: boolean;
   robotsClass: string;
+  redirectLabel: string;
+  redirectClass: string;
   domainCount: number;
   domainCountTooltip: string;
   canDelete: boolean;
@@ -49,7 +52,7 @@ export class DomainGroupsTableComponent {
   @Output() edit = new EventEmitter<DomainGroup>();
   @Output() delete = new EventEmitter<string>();
 
-  readonly columns = ['name', 'robots', 'id', 'domains', 'createdAt', 'actions'];
+  readonly columns = ['name', 'redirect', 'robots', 'id', 'domains', 'createdAt', 'actions'];
 
   readonly rowViewModels = computed((): DomainGroupRowViewModel[] => {
     const groups = this.groups();
@@ -67,6 +70,11 @@ export class DomainGroupsTableComponent {
         robotsClass: robotsActive
           ? 'bg-green-50 text-green-700'
           : 'bg-app-muted/10 text-app-muted',
+        redirectLabel: redirectDeliveryModeLabel(group.redirectDeliveryMode),
+        redirectClass:
+          group.redirectDeliveryMode === 'WITH_NOTICE'
+            ? 'bg-blue-50 text-blue-700'
+            : 'bg-app-muted/10 text-app-muted',
         domainCount,
         domainCountTooltip: `${domainCount} domains linked`,
         canDelete: domainsLoaded && domainCount === 0,
@@ -110,6 +118,16 @@ function robotsPolicyLabel(policy: DomainGroup['robotsPolicy']): string {
 
 function robotsPolicyActive(policy: DomainGroup['robotsPolicy']): boolean {
   return policy !== 'NONE';
+}
+
+function redirectDeliveryModeLabel(mode: RedirectDeliveryMode): string {
+  switch (mode) {
+    case 'WITH_NOTICE':
+      return 'With notice';
+    case 'INSTANT':
+    default:
+      return 'Instant';
+  }
 }
 
 function deleteTooltip(domainsLoaded: boolean, domainCount: number): string {

@@ -124,6 +124,14 @@ export const RobotsPolicy: {
 export type RobotsPolicy = (typeof RobotsPolicy)[keyof typeof RobotsPolicy]
 
 
+export const RedirectDeliveryMode: {
+  INSTANT: 'INSTANT',
+  WITH_NOTICE: 'WITH_NOTICE'
+};
+
+export type RedirectDeliveryMode = (typeof RedirectDeliveryMode)[keyof typeof RedirectDeliveryMode]
+
+
 export const BillingCheckoutStatus: {
   PENDING: 'PENDING',
   PAID: 'PAID',
@@ -151,6 +159,10 @@ export const RedirectPathMatch: typeof $Enums.RedirectPathMatch
 export type RobotsPolicy = $Enums.RobotsPolicy
 
 export const RobotsPolicy: typeof $Enums.RobotsPolicy
+
+export type RedirectDeliveryMode = $Enums.RedirectDeliveryMode
+
+export const RedirectDeliveryMode: typeof $Enums.RedirectDeliveryMode
 
 export type BillingCheckoutStatus = $Enums.BillingCheckoutStatus
 
@@ -7056,6 +7068,7 @@ export namespace Prisma {
     organizationId: string | null
     robotsPolicy: $Enums.RobotsPolicy | null
     customRobotsContent: string | null
+    redirectDeliveryMode: $Enums.RedirectDeliveryMode | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -7067,6 +7080,7 @@ export namespace Prisma {
     organizationId: string | null
     robotsPolicy: $Enums.RobotsPolicy | null
     customRobotsContent: string | null
+    redirectDeliveryMode: $Enums.RedirectDeliveryMode | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -7078,6 +7092,7 @@ export namespace Prisma {
     organizationId: number
     robotsPolicy: number
     customRobotsContent: number
+    redirectDeliveryMode: number
     createdAt: number
     updatedAt: number
     deletedAt: number
@@ -7091,6 +7106,7 @@ export namespace Prisma {
     organizationId?: true
     robotsPolicy?: true
     customRobotsContent?: true
+    redirectDeliveryMode?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -7102,6 +7118,7 @@ export namespace Prisma {
     organizationId?: true
     robotsPolicy?: true
     customRobotsContent?: true
+    redirectDeliveryMode?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -7113,6 +7130,7 @@ export namespace Prisma {
     organizationId?: true
     robotsPolicy?: true
     customRobotsContent?: true
+    redirectDeliveryMode?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -7197,6 +7215,7 @@ export namespace Prisma {
     organizationId: string
     robotsPolicy: $Enums.RobotsPolicy
     customRobotsContent: string | null
+    redirectDeliveryMode: $Enums.RedirectDeliveryMode
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -7225,6 +7244,7 @@ export namespace Prisma {
     organizationId?: boolean
     robotsPolicy?: boolean
     customRobotsContent?: boolean
+    redirectDeliveryMode?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7243,6 +7263,7 @@ export namespace Prisma {
     organizationId?: boolean
     robotsPolicy?: boolean
     customRobotsContent?: boolean
+    redirectDeliveryMode?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7255,6 +7276,7 @@ export namespace Prisma {
     organizationId?: boolean
     robotsPolicy?: boolean
     customRobotsContent?: boolean
+    redirectDeliveryMode?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -7267,12 +7289,13 @@ export namespace Prisma {
     organizationId?: boolean
     robotsPolicy?: boolean
     customRobotsContent?: boolean
+    redirectDeliveryMode?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
   }
 
-  export type DomainGroupOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "organizationId" | "robotsPolicy" | "customRobotsContent" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["domainGroup"]>
+  export type DomainGroupOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "organizationId" | "robotsPolicy" | "customRobotsContent" | "redirectDeliveryMode" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["domainGroup"]>
   export type DomainGroupInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     organization?: boolean | OrganizationDefaultArgs<ExtArgs>
     domains?: boolean | DomainGroup$domainsArgs<ExtArgs>
@@ -7305,6 +7328,7 @@ export namespace Prisma {
       organizationId: string
       robotsPolicy: $Enums.RobotsPolicy
       customRobotsContent: string | null
+      redirectDeliveryMode: $Enums.RedirectDeliveryMode
       createdAt: Date
       updatedAt: Date
       deletedAt: Date | null
@@ -7742,6 +7766,7 @@ export namespace Prisma {
     readonly organizationId: FieldRef<"DomainGroup", 'String'>
     readonly robotsPolicy: FieldRef<"DomainGroup", 'RobotsPolicy'>
     readonly customRobotsContent: FieldRef<"DomainGroup", 'String'>
+    readonly redirectDeliveryMode: FieldRef<"DomainGroup", 'RedirectDeliveryMode'>
     readonly createdAt: FieldRef<"DomainGroup", 'DateTime'>
     readonly updatedAt: FieldRef<"DomainGroup", 'DateTime'>
     readonly deletedAt: FieldRef<"DomainGroup", 'DateTime'>
@@ -17517,6 +17542,7 @@ export namespace Prisma {
     organizationId: 'organizationId',
     robotsPolicy: 'robotsPolicy',
     customRobotsContent: 'customRobotsContent',
+    redirectDeliveryMode: 'redirectDeliveryMode',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     deletedAt: 'deletedAt'
@@ -17764,6 +17790,20 @@ export namespace Prisma {
    * Reference to a field of type 'RobotsPolicy[]'
    */
   export type ListEnumRobotsPolicyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RobotsPolicy[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'RedirectDeliveryMode'
+   */
+  export type EnumRedirectDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RedirectDeliveryMode'>
+    
+
+
+  /**
+   * Reference to a field of type 'RedirectDeliveryMode[]'
+   */
+  export type ListEnumRedirectDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RedirectDeliveryMode[]'>
     
 
 
@@ -18215,6 +18255,7 @@ export namespace Prisma {
     organizationId?: StringFilter<"DomainGroup"> | string
     robotsPolicy?: EnumRobotsPolicyFilter<"DomainGroup"> | $Enums.RobotsPolicy
     customRobotsContent?: StringNullableFilter<"DomainGroup"> | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFilter<"DomainGroup"> | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFilter<"DomainGroup"> | Date | string
     updatedAt?: DateTimeFilter<"DomainGroup"> | Date | string
     deletedAt?: DateTimeNullableFilter<"DomainGroup"> | Date | string | null
@@ -18232,6 +18273,7 @@ export namespace Prisma {
     organizationId?: SortOrder
     robotsPolicy?: SortOrder
     customRobotsContent?: SortOrderInput | SortOrder
+    redirectDeliveryMode?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -18252,6 +18294,7 @@ export namespace Prisma {
     organizationId?: StringFilter<"DomainGroup"> | string
     robotsPolicy?: EnumRobotsPolicyFilter<"DomainGroup"> | $Enums.RobotsPolicy
     customRobotsContent?: StringNullableFilter<"DomainGroup"> | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFilter<"DomainGroup"> | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFilter<"DomainGroup"> | Date | string
     updatedAt?: DateTimeFilter<"DomainGroup"> | Date | string
     deletedAt?: DateTimeNullableFilter<"DomainGroup"> | Date | string | null
@@ -18269,6 +18312,7 @@ export namespace Prisma {
     organizationId?: SortOrder
     robotsPolicy?: SortOrder
     customRobotsContent?: SortOrderInput | SortOrder
+    redirectDeliveryMode?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -18286,6 +18330,7 @@ export namespace Prisma {
     organizationId?: StringWithAggregatesFilter<"DomainGroup"> | string
     robotsPolicy?: EnumRobotsPolicyWithAggregatesFilter<"DomainGroup"> | $Enums.RobotsPolicy
     customRobotsContent?: StringNullableWithAggregatesFilter<"DomainGroup"> | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeWithAggregatesFilter<"DomainGroup"> | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeWithAggregatesFilter<"DomainGroup"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"DomainGroup"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"DomainGroup"> | Date | string | null
@@ -19358,6 +19403,7 @@ export namespace Prisma {
     name: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -19375,6 +19421,7 @@ export namespace Prisma {
     organizationId: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -19390,6 +19437,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -19407,6 +19455,7 @@ export namespace Prisma {
     organizationId?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -19423,6 +19472,7 @@ export namespace Prisma {
     organizationId: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -19433,6 +19483,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -19444,6 +19495,7 @@ export namespace Prisma {
     organizationId?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -20590,6 +20642,13 @@ export namespace Prisma {
     not?: NestedEnumRobotsPolicyFilter<$PrismaModel> | $Enums.RobotsPolicy
   }
 
+  export type EnumRedirectDeliveryModeFilter<$PrismaModel = never> = {
+    equals?: $Enums.RedirectDeliveryMode | EnumRedirectDeliveryModeFieldRefInput<$PrismaModel>
+    in?: $Enums.RedirectDeliveryMode[] | ListEnumRedirectDeliveryModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RedirectDeliveryMode[] | ListEnumRedirectDeliveryModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRedirectDeliveryModeFilter<$PrismaModel> | $Enums.RedirectDeliveryMode
+  }
+
   export type DomainListRelationFilter = {
     every?: DomainWhereInput
     some?: DomainWhereInput
@@ -20636,6 +20695,7 @@ export namespace Prisma {
     organizationId?: SortOrder
     robotsPolicy?: SortOrder
     customRobotsContent?: SortOrder
+    redirectDeliveryMode?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -20647,6 +20707,7 @@ export namespace Prisma {
     organizationId?: SortOrder
     robotsPolicy?: SortOrder
     customRobotsContent?: SortOrder
+    redirectDeliveryMode?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -20658,6 +20719,7 @@ export namespace Prisma {
     organizationId?: SortOrder
     robotsPolicy?: SortOrder
     customRobotsContent?: SortOrder
+    redirectDeliveryMode?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -20671,6 +20733,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumRobotsPolicyFilter<$PrismaModel>
     _max?: NestedEnumRobotsPolicyFilter<$PrismaModel>
+  }
+
+  export type EnumRedirectDeliveryModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RedirectDeliveryMode | EnumRedirectDeliveryModeFieldRefInput<$PrismaModel>
+    in?: $Enums.RedirectDeliveryMode[] | ListEnumRedirectDeliveryModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RedirectDeliveryMode[] | ListEnumRedirectDeliveryModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRedirectDeliveryModeWithAggregatesFilter<$PrismaModel> | $Enums.RedirectDeliveryMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRedirectDeliveryModeFilter<$PrismaModel>
+    _max?: NestedEnumRedirectDeliveryModeFilter<$PrismaModel>
   }
 
   export type DomainGroupScalarRelationFilter = {
@@ -21711,6 +21783,10 @@ export namespace Prisma {
     set?: $Enums.RobotsPolicy
   }
 
+  export type EnumRedirectDeliveryModeFieldUpdateOperationsInput = {
+    set?: $Enums.RedirectDeliveryMode
+  }
+
   export type OrganizationUpdateOneRequiredWithoutDomainGroupsNestedInput = {
     create?: XOR<OrganizationCreateWithoutDomainGroupsInput, OrganizationUncheckedCreateWithoutDomainGroupsInput>
     connectOrCreate?: OrganizationCreateOrConnectWithoutDomainGroupsInput
@@ -22361,6 +22437,13 @@ export namespace Prisma {
     not?: NestedEnumRobotsPolicyFilter<$PrismaModel> | $Enums.RobotsPolicy
   }
 
+  export type NestedEnumRedirectDeliveryModeFilter<$PrismaModel = never> = {
+    equals?: $Enums.RedirectDeliveryMode | EnumRedirectDeliveryModeFieldRefInput<$PrismaModel>
+    in?: $Enums.RedirectDeliveryMode[] | ListEnumRedirectDeliveryModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RedirectDeliveryMode[] | ListEnumRedirectDeliveryModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRedirectDeliveryModeFilter<$PrismaModel> | $Enums.RedirectDeliveryMode
+  }
+
   export type NestedEnumRobotsPolicyWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.RobotsPolicy | EnumRobotsPolicyFieldRefInput<$PrismaModel>
     in?: $Enums.RobotsPolicy[] | ListEnumRobotsPolicyFieldRefInput<$PrismaModel>
@@ -22369,6 +22452,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumRobotsPolicyFilter<$PrismaModel>
     _max?: NestedEnumRobotsPolicyFilter<$PrismaModel>
+  }
+
+  export type NestedEnumRedirectDeliveryModeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.RedirectDeliveryMode | EnumRedirectDeliveryModeFieldRefInput<$PrismaModel>
+    in?: $Enums.RedirectDeliveryMode[] | ListEnumRedirectDeliveryModeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.RedirectDeliveryMode[] | ListEnumRedirectDeliveryModeFieldRefInput<$PrismaModel>
+    not?: NestedEnumRedirectDeliveryModeWithAggregatesFilter<$PrismaModel> | $Enums.RedirectDeliveryMode
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumRedirectDeliveryModeFilter<$PrismaModel>
+    _max?: NestedEnumRedirectDeliveryModeFilter<$PrismaModel>
   }
 
   export type NestedEnumRedirectQueryMatchFilter<$PrismaModel = never> = {
@@ -22525,6 +22618,7 @@ export namespace Prisma {
     name: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -22540,6 +22634,7 @@ export namespace Prisma {
     name: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -22800,6 +22895,7 @@ export namespace Prisma {
     organizationId?: StringFilter<"DomainGroup"> | string
     robotsPolicy?: EnumRobotsPolicyFilter<"DomainGroup"> | $Enums.RobotsPolicy
     customRobotsContent?: StringNullableFilter<"DomainGroup"> | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFilter<"DomainGroup"> | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFilter<"DomainGroup"> | Date | string
     updatedAt?: DateTimeFilter<"DomainGroup"> | Date | string
     deletedAt?: DateTimeNullableFilter<"DomainGroup"> | Date | string | null
@@ -23780,6 +23876,7 @@ export namespace Prisma {
     name: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -23796,6 +23893,7 @@ export namespace Prisma {
     organizationId: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -23826,6 +23924,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23842,6 +23941,7 @@ export namespace Prisma {
     organizationId?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23856,6 +23956,7 @@ export namespace Prisma {
     name: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -23872,6 +23973,7 @@ export namespace Prisma {
     organizationId: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -23902,6 +24004,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23918,6 +24021,7 @@ export namespace Prisma {
     organizationId?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23932,6 +24036,7 @@ export namespace Prisma {
     name: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -23948,6 +24053,7 @@ export namespace Prisma {
     organizationId: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -24049,6 +24155,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -24065,6 +24172,7 @@ export namespace Prisma {
     organizationId?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -24132,6 +24240,7 @@ export namespace Prisma {
     name: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -24148,6 +24257,7 @@ export namespace Prisma {
     organizationId: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -24254,6 +24364,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -24270,6 +24381,7 @@ export namespace Prisma {
     organizationId?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -24597,6 +24709,7 @@ export namespace Prisma {
     name: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -24613,6 +24726,7 @@ export namespace Prisma {
     organizationId: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -24684,6 +24798,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -24700,6 +24815,7 @@ export namespace Prisma {
     organizationId?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -24899,6 +25015,7 @@ export namespace Prisma {
     name: string
     robotsPolicy?: $Enums.RobotsPolicy
     customRobotsContent?: string | null
+    redirectDeliveryMode?: $Enums.RedirectDeliveryMode
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -25028,6 +25145,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -25043,6 +25161,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -25058,6 +25177,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     robotsPolicy?: EnumRobotsPolicyFieldUpdateOperationsInput | $Enums.RobotsPolicy
     customRobotsContent?: NullableStringFieldUpdateOperationsInput | string | null
+    redirectDeliveryMode?: EnumRedirectDeliveryModeFieldUpdateOperationsInput | $Enums.RedirectDeliveryMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

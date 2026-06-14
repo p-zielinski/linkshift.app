@@ -4,8 +4,13 @@ import {
   MAX_CUSTOM_ROBOTS_CONTENT_LENGTH,
   ROBOTS_POLICY_VALUES,
 } from '@shared/models/robots-policy.model';
+import {
+  DEFAULT_REDIRECT_DELIVERY_MODE,
+  REDIRECT_DELIVERY_MODE_VALUES,
+} from '@shared/models/redirect-delivery-mode.model';
 
 const RobotsPolicySchema = z.enum(ROBOTS_POLICY_VALUES);
+const RedirectDeliveryModeSchema = z.enum(REDIRECT_DELIVERY_MODE_VALUES);
 const CustomRobotsContentSchema = z
   .string()
   .max(
@@ -24,6 +29,9 @@ export const CreateDomainGroupSchema = z
     name: z.string().min(1, 'Name is required').max(255, 'Name is too long'),
     robotsPolicy: RobotsPolicySchema.optional().default(DEFAULT_ROBOTS_POLICY),
     customRobotsContent: CustomRobotsContentSchema,
+    redirectDeliveryMode: RedirectDeliveryModeSchema.optional().default(
+      DEFAULT_REDIRECT_DELIVERY_MODE,
+    ),
   })
   .superRefine((data, ctx) => {
     if (
@@ -55,6 +63,7 @@ export const UpdateDomainGroupSchema = z
     name: z.string().min(1, 'Name is required').max(255, 'Name is too long'),
     robotsPolicy: RobotsPolicySchema.optional(),
     customRobotsContent: CustomRobotsContentSchema,
+    redirectDeliveryMode: RedirectDeliveryModeSchema.optional(),
   })
   .superRefine((data, ctx) => {
     if (
