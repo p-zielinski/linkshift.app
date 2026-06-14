@@ -1,6 +1,6 @@
 {
   "source": "shared/docs/openapi/linkshift-api-keys.openapi.yaml",
-  "generatedAt": "2026-06-08T20:04:34.324Z",
+  "generatedAt": "2026-06-14T15:24:16.422Z",
   "format": "json",
   "tags": [
     {
@@ -15,7 +15,7 @@
     {
       "name": "Domain Groups",
       "slug": "domain-groups",
-      "description": "First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.\nSet robots policy defaults here before attaching domains.\n",
+      "description": "First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.\nSet robots policy and redirect delivery mode here before attaching domains.\n",
       "operationCount": 5,
       "files": [
         "shared/docs/openapi/by-tag/domain-groups.openapi.json"

@@ -1,57 +1,62 @@
 ---
 source: shared/docs/pages/guides/redirect-rules-core.md
-generatedAt: 2026-06-08T20:10:55.652Z
+generatedAt: 2026-06-14T15:24:59.018Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for developers and administrators using LinkShift, explaining how to configure and manage redirect rules, including matching requests and resolving destinations.
+This document is for developers and administrators using LinkShift, explaining how to configure and manage redirect rules for requests.
 
 ## What this doc covers
-- **How routing works**: Overview of request handling and rule evaluation order.
-- **Organization redirect rate limits (edge traffic)**: Details on rate limits for live requests.
-- **Propagation and caching**: Information on caching behavior and invalidation.
+- **How routing works**: Overview of the redirect engine and rule evaluation order.
+- **Organization redirect rate limits**: Details on rate limits for live requests.
+- **Propagation and caching**: Information on how routing data is cached and updated.
 - **Rule fields**: Catalog of fields used in redirect rules and their purposes.
-- **Path matching (`pathMatch`)**: Explanation of path matching modes and their behaviors.
-- **Query matching (`queryMatch`)**: Overview of query matching modes and how they function.
-- **HTTP method matching (`matchMethod`)**: Supported HTTP methods and their configuration.
-- **Priority and rule ordering**: How to prioritize rules and the order of evaluation.
+- **Path matching**: Explanation of `pathMatch` options for source paths.
+- **Query matching**: Details on `queryMatch` modes and their behaviors.
+- **HTTP method matching**: Supported HTTP methods and their configurations.
+- **Priority and rule ordering**: How to set and evaluate rule priorities.
 - **Static destinations**: Configuration of fixed URL redirects.
-- **Dynamic destinations — placeholders**: Using placeholders to create dynamic URLs.
-- **Dynamic destinations — conditional routing**: Implementing conditional logic in destination routing.
+- **Dynamic destinations**: Use of placeholders and conditional routing in destinations.
 
 ## Key workflows and rules
-1. **Request Handling**:
-   - Requests are processed in a pipeline: rate limit → access check → rule evaluation.
-   - The first rule that produces a redirect is applied; if none match, a `404` is returned.
+1. **Redirect Rule Evaluation**:
+   - Requests are evaluated in the order of `priority` (descending), `createdAt` (descending), and `id` (descending).
+   - The first rule that matches a request will trigger a redirect.
 
 2. **Rate Limiting**:
    - Each live request counts against `redirectionLimitPerMinute`.
-   - Exceeding limits results in a `429 Too Many Requests` response.
+   - Exceeding the limit results in a `429 Too Many Requests` response.
 
-3. **Rule Creation**:
-   - Rules are created with fields like `source`, `destination`, `statusCode`, `pathMatch`, `queryMatch`, and `matchMethod`.
-   - Rules are evaluated based on `priority`, with higher numbers evaluated first.
+3. **Caching Behavior**:
+   - Changes to redirect rules or link maps invalidate cached data immediately.
+   - Cached data can remain stale for up to 5 minutes if invalidation fails.
 
-4. **Dynamic Destinations**:
-   - Use placeholders in the `destination` field to inject request data.
+4. **Rule Creation**:
+   - Required fields include `source`, `destination`, and `domainGroupId`.
+   - Optional fields include `linkMapId`, `statusCode`, `pathMatch`, `queryMatch`, and `matchMethod`.
+
+5. **Blocked Rules**:
+   - Rules marked as `isBlocked: true` are never evaluated.
+   - Unblocking a rule requires a successful `PUT` request on the rule.
+
+6. **Dynamic Destinations**:
+   - Use placeholders in the destination URL to inject request data.
    - Conditional routing can be implemented using ternary syntax.
 
-5. **Simulate Requests**:
-   - Use `POST /api/v1/redirect-rules/simulate` to test rules without consuming rate limits.
-
 ## Limits and constraints
-- **Rate Limits**: Each organization has a `redirectionLimitPerMinute` based on the active plan. Exceeding this limit results in a `429` error.
+- **Rate Limits**: Each organization has a `redirectionLimitPerMinute` based on their plan, affecting all live requests.
 - **Field Limits**:
   - `matchMethod` can include a maximum of 6 methods.
   - The `priority` field can range from 0 to 1000.
-- **Caching**: Cached routing data may persist for up to 5 minutes if invalidation fails.
-- **Blocked Rules**: Rules marked as `isBlocked: true` are never evaluated and must be unblocked via a successful `PUT` request.
+- **Caching Limits**: Cached routing data can be stale for up to 5 minutes.
+- **Blocked Rules**: Rules with a non-null `destination` are monitored for unsafe URLs, which can lead to blocking.
 
 ## Related docs and API areas
-- **Redirect Rules Guide**: [Redirect rules guide](./redirect-rules.md)
-- **Link Maps**: [Link maps and redirect rules](./redirect-rules-link-maps.md)
-- **Operations**: [Operations](./redirect-rules-operations.md)
-- **Redirect Engine Concepts**: [Redirect engine concepts](../concepts/redirect-engine-concepts.md)
-- **Simulate vs Live Redirect**: [Simulate vs live redirect](./redirect-rules-operations.md#simulate-vs-live-redirect)
-- **Usage API**: `GET /api/v1/organization/usage` for checking current plan limits.
+- [Redirect rules guide](./redirect-rules.md)
+- [Link maps and redirect rules](./redirect-rules-link-maps.md)
+- [Operations](./redirect-rules-operations.md)
+- [Redirect engine concepts](../concepts/redirect-engine-concepts.md)
+- [Getting started — redirect rate limits](../guides/getting-started.md#redirect-rate-limits-edge-traffic)
+- [Simulate vs live redirect](./redirect-rules-operations.md#simulate-vs-live-redirect)
+- [Link map concepts — cache model](../concepts/link-map-concepts.md#cache-model)

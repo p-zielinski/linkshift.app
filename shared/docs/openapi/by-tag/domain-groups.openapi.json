@@ -4,7 +4,7 @@
     "title": "LinkShift Management API (API Key Accessible Endpoints) — Domain Groups",
     "version": "1.0.0",
     "summary": "Organization-scoped redirect management API",
-    "description": "Organization-scoped Management API for redirect configuration, link maps, and operational checks.\nUse it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.\n\n**Authentication**\n- Send your key on every request: `X-API-Key: <your_key>` (preferred).\n- Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.\n\n**Typical setup order**\n1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).\n2. Link map + entries when rules resolve keys instead of a fixed destination.\n3. Redirect tests + simulate for CI; analytics for traffic review.\n\n**Errors and recovery**\n- `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).\n- `402` — API access isn't on your current plan. Upgrade subscription, then retry.\n- `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).\n- `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.\n- `404` — ID doesn't exist or isn't in your organization scope.\n\n**Dashboard-only**\nAPI key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.\n\n**Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.\nThis document contains only operations tagged \"Domain Groups\".\nTag scope: First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.\nSet robots policy defaults here before attaching domains.\n"
+    "description": "Organization-scoped Management API for redirect configuration, link maps, and operational checks.\nUse it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.\n\n**Authentication**\n- Send your key on every request: `X-API-Key: <your_key>` (preferred).\n- Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.\n\n**Typical setup order**\n1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).\n2. Link map + entries when rules resolve keys instead of a fixed destination.\n3. Redirect tests + simulate for CI; analytics for traffic review.\n\n**Errors and recovery**\n- `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).\n- `402` — API access isn't on your current plan. Upgrade subscription, then retry.\n- `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).\n- `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.\n- `404` — ID doesn't exist or isn't in your organization scope.\n\n**Dashboard-only**\nAPI key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.\n\n**Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.\nThis document contains only operations tagged \"Domain Groups\".\nTag scope: First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.\nSet robots policy and redirect delivery mode here before attaching domains.\n"
   },
   "servers": [
     {
@@ -20,7 +20,7 @@
   "tags": [
     {
       "name": "Domain Groups",
-      "description": "First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.\nSet robots policy defaults here before attaching domains.\n"
+      "description": "First infrastructure layer: groups scope domains, subdomains, rules, tests, and link maps.\nSet robots policy and redirect delivery mode here before attaching domains.\n"
     }
   ],
   "paths": {
@@ -59,7 +59,7 @@
           "Domain Groups"
         ],
         "summary": "Create domain group",
-        "description": "Creates a domain group — the scope container for domains, rules, and link maps.\nOptional `robotsPolicy` / `customRobotsContent` apply to all domains you attach later.\nReturns 400 when the name is invalid or robots content is missing for CUSTOM policy.\n",
+        "description": "Creates a domain group — the scope container for domains, rules, and link maps.\nOptional `robotsPolicy` / `customRobotsContent` apply to all domains you attach later.\nOptional `redirectDeliveryMode` (`INSTANT` default, or `WITH_NOTICE` for a notice page before redirect).\nReturns 400 when the name is invalid or robots content is missing for CUSTOM policy.\n",
         "operationId": "createDomainGroup",
         "requestBody": {
           "required": true,
@@ -108,7 +108,7 @@
           "Domain Groups"
         ],
         "summary": "Get domain group by ID",
-        "description": "Fetches one domain group including robots policy fields.\nReturns 404 when the ID is unknown or soft-deleted outside your organization.\n",
+        "description": "Fetches one domain group including robots policy and redirect delivery mode fields.\nReturns 404 when the ID is unknown or soft-deleted outside your organization.\n",
         "operationId": "getDomainGroup",
         "responses": {
           "200": {
@@ -140,7 +140,7 @@
           "Domain Groups"
         ],
         "summary": "Update domain group",
-        "description": "Updates name and/or robots policy for an existing group.\nChanging robots policy impacts all domains in the group on next request.\nReturns 404 when the group doesn't exist in your organization.\n",
+        "description": "Updates name, robots policy, and/or redirect delivery mode for an existing group.\nChanging robots policy or redirect delivery mode impacts all domains in the group on next request.\nReturns 404 when the group doesn't exist in your organization.\n",
         "operationId": "updateDomainGroup",
         "requestBody": {
           "required": true,
@@ -247,6 +247,9 @@
             "nullable": true,
             "maxLength": 4096,
             "description": "Required when robotsPolicy is CUSTOM."
+          },
+          "redirectDeliveryMode": {
+            "$ref": "#/components/schemas/RedirectDeliveryMode"
           }
         },
         "required": [
@@ -278,6 +281,9 @@
             "maxLength": 4096,
             "description": "Used only when robotsPolicy is CUSTOM."
           },
+          "redirectDeliveryMode": {
+            "$ref": "#/components/schemas/RedirectDeliveryMode"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -300,6 +306,7 @@
           "name",
           "organizationId",
           "robotsPolicy",
+          "redirectDeliveryMode",
           "createdAt",
           "updatedAt"
         ]
@@ -322,6 +329,9 @@
             "nullable": true,
             "maxLength": 4096,
             "description": "Required when robotsPolicy is CUSTOM."
+          },
+          "redirectDeliveryMode": {
+            "$ref": "#/components/schemas/RedirectDeliveryMode"
           }
         },
         "required": [
@@ -395,6 +405,15 @@
           "DISALLOW_ALL",
           "DISALLOW_BAD_BOTS",
           "CUSTOM"
+        ]
+      },
+      "RedirectDeliveryMode": {
+        "type": "string",
+        "description": "Controls how visitors reach the redirect destination after a rule match.\nINSTANT issues an HTTP redirect using the rule statusCode (default 302).\nWITH_NOTICE returns 200 HTML with the destination, a 10-second countdown,\nand a Continue now button; JavaScript completes the redirect.\nSimulate and redirect tests report the rule statusCode, not the notice page.\n",
+        "default": "INSTANT",
+        "enum": [
+          "INSTANT",
+          "WITH_NOTICE"
         ]
       }
     },
