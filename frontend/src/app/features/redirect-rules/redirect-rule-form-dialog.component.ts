@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -48,6 +49,7 @@ import {
 import { OrganizationUsageStore } from '../../core/store/organization-usage.store';
 import { AuthStore } from '../../core/store/auth.store';
 import { resolveOrganizationConfig } from '../../core/utils/organization-config.util';
+import { needsCursorListFetch } from '../../core/utils/cursor-list-pagination.util';
 
 export type RedirectRuleFormDraft = {
   domainGroupId: string;
@@ -753,11 +755,24 @@ export class RedirectRuleFormDialogComponent {
     effect(() => {
       const groupId = this.selectedGroupId();
       if (!groupId) {
-        this.linkMapsError.set(null);
-        this.linkMapsErrorSequence.set(null);
+        untracked(() => {
+          this.linkMapsError.set(null);
+          this.linkMapsErrorSequence.set(null);
+        });
         return;
       }
-      this.loadLinkMaps(groupId);
+
+      const filter = { domainGroupId: groupId };
+      const listResult = this.linkMapStore.selectListResult(filter)();
+      const expiration = this.linkMapStore.selectListExpiration(filter)();
+
+      untracked(() => {
+        if (needsCursorListFetch(listResult, expiration)) {
+          this.linkMapsError.set(null);
+          this.linkMapsErrorSequence.set(this.linkMapStore.errorSequence());
+          this.linkMapStore.searchList(filter);
+        }
+      });
     });
 
     effect(() => {
@@ -788,12 +803,6 @@ export class RedirectRuleFormDialogComponent {
         this.ruleModel.update((model) => ({ ...model, linkMapId: null }));
       }
     });
-  }
-
-  private loadLinkMaps(domainGroupId: string): void {
-    this.linkMapsError.set(null);
-    this.linkMapsErrorSequence.set(this.linkMapStore.errorSequence());
-    this.linkMapStore.searchList({ domainGroupId });
   }
 
   async onSubmit(event?: Event): Promise<void> {

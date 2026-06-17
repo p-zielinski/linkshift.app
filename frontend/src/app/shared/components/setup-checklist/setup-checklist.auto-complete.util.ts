@@ -14,6 +14,8 @@ export type SetupChecklistAutoCompleteSignals = {
   mode: DashboardMode;
   domainGroupCount: number;
   hostCount: number;
+  linkMapCount: number;
+  redirectRuleCount: number;
   linkMapEntryCount: number;
   redirectTestCount: number;
   memberCount: number;
@@ -44,6 +46,14 @@ export function deriveSetupChecklistAutoComplete(
 
   if (organizationHasConnectedHosts(signals.domainGroupCount, signals.hostCount)) {
     completed['confirm-domain'] = true;
+  }
+
+  if (
+    signals.mode === 'advanced' &&
+    signals.linkMapCount > 0 &&
+    signals.redirectRuleCount > 0
+  ) {
+    completed['review-routing'] = true;
   }
 
   if (signals.linkMapEntryCount > 0) {

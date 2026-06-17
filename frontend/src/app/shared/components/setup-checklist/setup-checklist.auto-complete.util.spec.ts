@@ -60,6 +60,8 @@ describe('setup-checklist.auto-complete.util', () => {
         mode: 'campaign',
         domainGroupCount: 1,
         hostCount: 1,
+        linkMapCount: 1,
+        redirectRuleCount: 1,
         linkMapEntryCount: 3,
         redirectTestCount: 0,
         memberCount: 1,
@@ -79,6 +81,8 @@ describe('setup-checklist.auto-complete.util', () => {
         mode: 'campaign',
         domainGroupCount: 0,
         hostCount: 0,
+        linkMapCount: 0,
+        redirectRuleCount: 0,
         linkMapEntryCount: 0,
         redirectTestCount: 2,
         memberCount: 1,
@@ -94,6 +98,8 @@ describe('setup-checklist.auto-complete.util', () => {
         mode: 'campaign',
         domainGroupCount: 0,
         hostCount: 0,
+        linkMapCount: 0,
+        redirectRuleCount: 0,
         linkMapEntryCount: 0,
         redirectTestCount: 0,
         memberCount: 1,
@@ -111,6 +117,8 @@ describe('setup-checklist.auto-complete.util', () => {
         mode: 'advanced',
         domainGroupCount: 1,
         hostCount: 1,
+        linkMapCount: 0,
+        redirectRuleCount: 0,
         linkMapEntryCount: 0,
         redirectTestCount: 2,
         memberCount: 1,
@@ -123,12 +131,34 @@ describe('setup-checklist.auto-complete.util', () => {
     });
   });
 
+  it('auto-completes review-routing when starter link map and redirect rule exist', () => {
+    expect(
+      deriveSetupChecklistAutoComplete({
+        mode: 'advanced',
+        domainGroupCount: 1,
+        hostCount: 1,
+        linkMapCount: 1,
+        redirectRuleCount: 1,
+        linkMapEntryCount: 0,
+        redirectTestCount: 0,
+        memberCount: 1,
+        inviteSentRecorded: false,
+        redirectTesterUsedRecorded: false,
+      }),
+    ).toEqual({
+      'confirm-domain': true,
+      'review-routing': true,
+    });
+  });
+
   it('auto-completes invite teammate when multiple members exist', () => {
     expect(
       deriveSetupChecklistAutoComplete({
         mode: 'campaign',
         domainGroupCount: 0,
         hostCount: 0,
+        linkMapCount: 0,
+        redirectRuleCount: 0,
         linkMapEntryCount: 0,
         redirectTestCount: 0,
         memberCount: 2,
@@ -146,6 +176,8 @@ describe('setup-checklist.auto-complete.util', () => {
         mode: 'campaign',
         domainGroupCount: 0,
         hostCount: 0,
+        linkMapCount: 0,
+        redirectRuleCount: 0,
         linkMapEntryCount: 0,
         redirectTestCount: 0,
         memberCount: 1,

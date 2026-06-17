@@ -81,6 +81,8 @@ export class SetupChecklistService {
       mode: this.dashboardMode.mode(),
       domainGroupCount: this.domainGroups().length,
       hostCount: this.hostCount(),
+      linkMapCount: this.usageStore.usage()?.linkMaps ?? 0,
+      redirectRuleCount: this.usageStore.usage()?.rules ?? 0,
       linkMapEntryCount: this.usageStore.usage()?.linkMapEntries ?? 0,
       redirectTestCount: this.usageStore.usage()?.tests ?? 0,
       memberCount: this.membersStore.members().length,

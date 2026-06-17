@@ -20,6 +20,7 @@ import { LegalService } from '../legal/legal.service';
 import { Logger } from 'nestjs-pino';
 import { RobotsPolicy } from '@prisma/client';
 import { SubdomainBlacklistService } from '../security/subdomain-blacklist.service';
+import { OrganizationBootstrapService } from '../organization/organization-bootstrap.service';
 import { customAlphabet } from 'nanoid';
 
 const DEFAULT_DOMAIN_GROUP_NAME = 'Default';
@@ -53,6 +54,7 @@ export class AuthService {
     private readonly authTokenService: AuthTokenService,
     private readonly legalService: LegalService,
     private readonly subdomainBlacklistService: SubdomainBlacklistService,
+    private readonly organizationBootstrapService: OrganizationBootstrapService,
     private readonly logger: Logger,
   ) {}
 
@@ -127,7 +129,18 @@ export class AuthService {
         },
       });
 
-      return { user, organization, domainGroup, subdomain };
+      const starterResources =
+        await this.organizationBootstrapService.provisionStarterResourcesInTransaction(
+          tx,
+          { domainGroupId: domainGroup.id },
+        );
+
+      return { user, organization, domainGroup, subdomain, ...starterResources };
+    });
+
+    await this.organizationBootstrapService.invalidateStarterResourcesCache({
+      domainGroupId: result.domainGroup.id,
+      linkMapId: result.linkMap.id,
     });
 
     await Promise.all([
