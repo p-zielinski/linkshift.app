@@ -30,7 +30,10 @@ import { SITE_CONFIG } from '../config/site-config';
 import { needsLegalConsent } from '../legal/legal-consent.utils';
 import { DomainStore } from '../store/domain.store';
 import { DomainGroupStore } from '../store/domain-group.store';
+import { LinkMapStore } from '../store/link-map.store';
+import { RedirectRuleStore } from '../store/redirect-rule.store';
 import { SubdomainStore } from '../store/subdomain.store';
+import { prefetchDomainGroupScopedLists } from '../store/prefetch-domain-group-scoped-lists.util';
 import { DEFAULT_LIST_KEY } from '../store/entity/entity-store.utils';
 import { LogoComponent } from '../../shared/components/logo/logo.component';
 import { DocsAssistantComponent } from '../../features/documentation/components/docs-assistant/docs-assistant.component';
@@ -86,6 +89,8 @@ export class AppShellComponent {
   private readonly domainStore = inject(DomainStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly subdomainStore = inject(SubdomainStore);
+  private readonly linkMapStore = inject(LinkMapStore);
+  private readonly redirectRuleStore = inject(RedirectRuleStore);
   private readonly breakpointObserver = inject(BreakpointObserver);
   private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
@@ -185,6 +190,25 @@ export class AppShellComponent {
         this.domainStore.searchList();
         this.subdomainStore.searchList();
       }
+    });
+
+    effect(() => {
+      if (!this.authStore.isAuthenticated() || this.legalConsentRequired()) {
+        return;
+      }
+
+      const groups = this.domainGroups();
+      if (groups.length === 0) {
+        return;
+      }
+
+      prefetchDomainGroupScopedLists(
+        groups.map((group) => group.id),
+        {
+          linkMapStore: this.linkMapStore,
+          redirectRuleStore: this.redirectRuleStore,
+        },
+      );
     });
 
     effect(() => {

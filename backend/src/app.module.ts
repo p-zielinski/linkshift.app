@@ -38,6 +38,7 @@ import { EmailService } from './email/email.service';
 import { AuthTokenService } from './auth/auth-token.service';
 import { ApiOrUserAuthGuard } from './auth/api-or-user-auth.guard';
 import { OrganizationMembersService } from './organization/organization-members.service';
+import { OrganizationBootstrapService } from './organization/organization-bootstrap.service';
 import { LegalService } from './legal/legal.service';
 import { BullModule } from '@nestjs/bull';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -174,6 +175,7 @@ import { WebRiskQuotaService } from './security/web-risk-quota.service';
     AuthTokenService,
     EmailService,
     OrganizationMembersService,
+    OrganizationBootstrapService,
     LegalService,
     RedisService,
     CacheManagerIdsService,

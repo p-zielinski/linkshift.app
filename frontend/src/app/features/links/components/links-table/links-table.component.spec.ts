@@ -89,6 +89,7 @@ describe('LinksTableComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
 
     expect(root.textContent).toContain('No links yet');
+    expect(root.textContent).toContain('/short prefix is ready');
     expect(root.querySelector('button[mat-flat-button]')?.textContent?.trim()).toContain(
       'Create link',
     );

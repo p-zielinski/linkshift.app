@@ -5,6 +5,7 @@ export const SETUP_CHECKLIST_STORAGE_KEY = 'linkshift-setup-checklist';
 
 export type SetupChecklistItemId =
   | 'confirm-domain'
+  | 'review-routing'
   | 'create-link'
   | 'run-test'
   | 'invite-teammate';
@@ -18,6 +19,7 @@ export type SetupChecklistItem = {
 
 export const SETUP_CHECKLIST_ITEM_IDS: readonly SetupChecklistItemId[] = [
   'confirm-domain',
+  'review-routing',
   'create-link',
   'run-test',
   'invite-teammate',
@@ -86,6 +88,12 @@ export function resolveSetupChecklistItems(
     queryParams: { openCreate: '1' },
   };
 
+  const reviewRoutingStep: SetupChecklistItem = {
+    id: 'review-routing',
+    label: 'Review starter routing',
+    route: '/redirect-rules',
+  };
+
   if (mode === 'campaign') {
     if (options.hasConnectedHosts) {
       return [createLinkStep, testStep, inviteStep] as const;
@@ -94,11 +102,13 @@ export function resolveSetupChecklistItems(
     return [connectDomainStep, testStep, inviteStep] as const;
   }
 
+  if (options.hasConnectedHosts) {
+    return [reviewRoutingStep, createLinkStep, testStep, inviteStep] as const;
+  }
+
   const advancedCreateLinkStep: SetupChecklistItem = {
     ...createLinkStep,
-    queryParams: options.hasConnectedHosts
-      ? { openCreate: '1' }
-      : { [CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY]: '1' },
+    queryParams: { [CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY]: '1' },
   };
 
   return [connectDomainStep, advancedCreateLinkStep, testStep, inviteStep] as const;

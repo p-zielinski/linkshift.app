@@ -245,6 +245,15 @@ export class RedirectService {
     private readonly logger: Logger,
   ) {}
 
+  async invalidateDomainGroupRedirectCache(
+    domainGroupId: string,
+  ): Promise<void> {
+    await this.invalidateDomainCache({
+      type: InvalidationTargetType.DOMAIN_GROUP_ID,
+      value: domainGroupId,
+    });
+  }
+
   /**
    * Invalidates the redirect context cache based on a specific target.
    */

@@ -21,6 +21,7 @@ import { WizardDialogService } from '../../core/services/wizard-dialog.service';
 import { DomainGroupFilterPersistenceService } from '../../core/services/domain-group-filter-persistence.service';
 import { DashboardModeService } from '../../core/layout/dashboard-mode.service';
 import { areRowsEqualByIdAndUpdatedAt } from '../../core/utils/signal-list-equality.util';
+import { needsCursorListFetch } from '../../core/utils/cursor-list-pagination.util';
 
 @Component({
   selector: 'app-link-maps-page',
@@ -151,11 +152,20 @@ export class LinkMapsPageComponent {
     effect(() => {
       const groupId = this.activeGroupId();
       if (!groupId) {
-        this.listErrorSequence.set(null);
+        untracked(() => this.listErrorSequence.set(null));
         return;
       }
-      untracked(() => this.listErrorSequence.set(this.linkMapStore.errorSequence()));
-      this.linkMapStore.searchList({ domainGroupId: groupId }, true);
+
+      const filter = { domainGroupId: groupId };
+      const listResult = this.linkMapStore.selectListResult(filter)();
+      const expiration = this.linkMapStore.selectListExpiration(filter)();
+
+      untracked(() => {
+        this.listErrorSequence.set(this.linkMapStore.errorSequence());
+        if (needsCursorListFetch(listResult, expiration)) {
+          this.linkMapStore.searchList(filter);
+        }
+      });
     });
 
     effect(() => {
