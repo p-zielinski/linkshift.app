@@ -8,15 +8,57 @@
   (cancel)="onSkip()"
 >
   <ng-template wizardStepSummary="welcome">
-    @if (campaignMode()) {
-      <div>{{ domainGroups().length }} site(s)</div>
-    } @else {
-      <div>{{ domainGroups().length }} domain group(s)</div>
-    }
-    <div>{{ subdomains().length }} subdomain(s)</div>
-    @if (!campaignMode()) {
-      <div>/short prefix ready</div>
-    }
+    <div class="grid gap-2.5">
+      @if (campaignMode()) {
+        <div>
+          <div class="font-medium text-app-foreground">Your site</div>
+          @if (domainGroupPreview()[0]; as group) {
+            <div>{{ group.name }}</div>
+          } @else {
+            <div>Starter site</div>
+          }
+        </div>
+      } @else {
+        <div>
+          <div class="font-medium text-app-foreground">Your domain group</div>
+          @if (domainGroupPreview()[0]; as group) {
+            <div>{{ group.name }}</div>
+          } @else {
+            <div>Default</div>
+          }
+        </div>
+      }
+
+      @if (subdomainPreview()[0]; as subdomain) {
+        <div>
+          <div class="font-medium text-app-foreground">Starter subdomains</div>
+          <div>{{ subdomain.displayHost }}</div>
+          <div>{{ subdomain.shortUrlPattern }}</div>
+        </div>
+      }
+
+      @if (starterRoutingPreview(); as routing) {
+        <div>
+          <div class="font-medium text-app-foreground">Your link map</div>
+          @if (routing.linkMapName; as linkMapName) {
+            <div>{{ linkMapName }}</div>
+          } @else {
+            <div>First link map</div>
+          }
+        </div>
+        <div>
+          <div class="font-medium text-app-foreground">Your redirect rule</div>
+          @if (routing.ruleSource; as ruleSource) {
+            <div>{{ ruleSource }} ({{ routing.rulePathMatch | lowercase }})</div>
+            @if (routing.ruleRoutesTo; as routesTo) {
+              <div>→ {{ routesTo }}</div>
+            }
+          } @else {
+            <div>/short (prefix)</div>
+          }
+        </div>
+      }
+    </div>
   </ng-template>
 
   <ng-template wizardStepSummary="next">
@@ -31,12 +73,8 @@
           <div class="grid gap-1">
             <div class="text-base font-semibold">Your workspace is ready.</div>
             <div class="text-sm text-app-muted">
-              @if (campaignMode()) {
-                Your site includes a starter subdomain with a /short prefix for short links.
-              } @else {
-                Your starter link map and /short prefix rule are ready so you can add links right
-                away.
-              }
+              Your starter link map and /short redirect rule are ready for you. Add link keys from
+              Links to start sharing short URLs.
             </div>
           </div>
         </div>
@@ -52,17 +90,11 @@
           </div>
         </div>
         <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-4">
-          @if (campaignMode()) {
-            <div class="text-sm font-semibold">Your site</div>
-            <div class="mt-2 text-sm text-app-muted">
-              Your site keeps related hosts and short links together in one place.
-            </div>
-          } @else {
-            <div class="text-sm font-semibold">Starter routing</div>
-            <div class="mt-2 text-sm text-app-muted">
-              A prefix rule on /short routes traffic into your link map.
-            </div>
-          }
+          <div class="text-sm font-semibold">Your short link setup</div>
+          <div class="mt-2 text-sm text-app-muted">
+            Your /short redirect rule routes traffic into your link map. Add keys to the map to
+            define where each short link goes.
+          </div>
         </div>
       </div>
 
@@ -117,35 +149,43 @@
         }
       </div>
 
-      @if (!campaignMode()) {
-        <div class="grid gap-3 sm:grid-cols-2">
-          <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
-            <div class="text-sm font-semibold">Starter link map</div>
-            @if (starterLinkMap(); as linkMap) {
-              <div class="mt-2 rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm font-medium">
-                {{ linkMap.name }}
-              </div>
-            } @else {
-              <div class="mt-2 text-sm text-app-muted">
-                No link maps loaded yet. Your starter link map should appear here after refresh.
-              </div>
-            }
-          </div>
-          <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
-            <div class="text-sm font-semibold">Starter redirect rule</div>
-            @if (starterRedirectRule(); as rule) {
-              <div class="mt-2 rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm font-medium">
-                {{ rule.source }} ({{ rule.pathMatch }})
-              </div>
-            } @else {
-              <div class="mt-2 text-sm text-app-muted">
-                No redirect rules loaded yet. Your /short prefix rule should appear here after
-                refresh.
-              </div>
-            }
-          </div>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+          <div class="text-sm font-semibold">Your link map</div>
+          @if (starterLinkMap(); as linkMap) {
+            <div class="mt-2 rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm font-medium">
+              {{ linkMap.name }}
+            </div>
+            <div class="mt-2 text-xs text-app-muted">
+              Ready for your short link keys — add entries from Links.
+            </div>
+          } @else if (starterResourcesLoading()) {
+            <div class="mt-2 text-sm text-app-muted">Loading your link map…</div>
+          } @else {
+            <div class="mt-2 text-sm text-app-muted">
+              No link maps loaded yet. Your starter link map should appear here after refresh.
+            </div>
+          }
         </div>
-      }
+        <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+          <div class="text-sm font-semibold">Your redirect rule</div>
+          @if (starterRedirectRule(); as rule) {
+            <div class="mt-2 rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm font-medium">
+              {{ rule.source }} ({{ rule.pathMatch | lowercase }})
+            </div>
+            @if (starterLinkMap(); as linkMap) {
+              <div class="mt-2 text-xs text-app-muted">Routes to {{ linkMap.name }}</div>
+            }
+          } @else if (starterResourcesLoading()) {
+            <div class="mt-2 text-sm text-app-muted">Loading your redirect rule…</div>
+          } @else {
+            <div class="mt-2 text-sm text-app-muted">
+              No redirect rules loaded yet. Your /short prefix rule should appear here after
+              refresh.
+            </div>
+          }
+        </div>
+      </div>
     </div>
   </ng-template>
 

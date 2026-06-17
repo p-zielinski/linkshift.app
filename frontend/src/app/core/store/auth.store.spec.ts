@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { AuthApiService } from '../api/auth-api.service';
+import { DomainGroupsApiService } from '../api/domain-groups-api.service';
 import type { AuthResponse } from '../models/auth.model';
 import { DashboardContextService } from '../layout/dashboard-context.service';
 import { ApiKeyStore } from './api-key.store';
@@ -19,6 +20,7 @@ import { RedirectTestResultsStore } from './redirect-test-results.store';
 import { RedirectTestStore } from './redirect-test.store';
 import { SubdomainStore } from './subdomain.store';
 import { clearStoredSession } from './auth.storage';
+import { buildRedirectRuleListFilter } from '../utils/redirect-rules-list.util';
 
 function createEntityStoreMock() {
   return {
@@ -74,6 +76,7 @@ describe('AuthStore', () => {
   let redirectRulesAnalyticsStore: ReturnType<typeof createEntityStoreMock>;
   let apiKeyStore: ReturnType<typeof createEntityStoreMock>;
   let clearSelectedDomainGroupId: ReturnType<typeof vi.fn>;
+  let domainGroupsApi: { list: ReturnType<typeof vi.fn> };
 
   const dashboardStoreMocks = () => [
     domainStore,
@@ -109,6 +112,14 @@ describe('AuthStore', () => {
     redirectRulesAnalyticsStore = createEntityStoreMock();
     apiKeyStore = createEntityStoreMock();
     clearSelectedDomainGroupId = vi.fn();
+    domainGroupsApi = {
+      list: vi.fn(() =>
+        of({
+          data: [{ id: 'group-1', name: 'Default' }],
+          hasMore: false,
+        }),
+      ),
+    };
     api = {
       login: vi.fn(() => of(AUTH_RESPONSE)),
       logout: vi.fn(() => of(void 0)),
@@ -119,6 +130,7 @@ describe('AuthStore', () => {
       providers: [
         AuthStore,
         { provide: AuthApiService, useValue: api },
+        { provide: DomainGroupsApiService, useValue: domainGroupsApi },
         { provide: DomainGroupStore, useValue: domainGroupStore },
         { provide: DomainStore, useValue: domainStore },
         { provide: SubdomainStore, useValue: subdomainStore },
@@ -163,14 +175,18 @@ describe('AuthStore', () => {
       expect(domainGroupStore.resetStore).toHaveBeenCalledTimes(1);
     });
 
-    it('prefetches core data with force=true for domain groups, domains, subdomains, link maps, redirect rules, and usage', async () => {
+    it('prefetches core data with force=true for domain groups, domains, subdomains, scoped link maps and redirect rules, and usage', async () => {
       await firstValueFrom(store.login({ email: 'test@example.com', password: 'secret' }));
 
       expect(domainGroupStore.searchList).toHaveBeenCalledWith(undefined, true);
       expect(domainStore.searchList).toHaveBeenCalledWith(undefined, true);
       expect(subdomainStore.searchList).toHaveBeenCalledWith(undefined, true);
-      expect(linkMapStore.searchList).toHaveBeenCalledWith(undefined, true);
-      expect(redirectRuleStore.searchList).toHaveBeenCalledWith(undefined, true);
+      expect(domainGroupsApi.list).toHaveBeenCalledTimes(1);
+      expect(linkMapStore.searchList).toHaveBeenCalledWith({ domainGroupId: 'group-1' }, true);
+      expect(redirectRuleStore.searchList).toHaveBeenCalledWith(
+        buildRedirectRuleListFilter('group-1'),
+        true,
+      );
       expect(organizationUsageStore.loadUsage).toHaveBeenCalledWith(true);
     });
   });

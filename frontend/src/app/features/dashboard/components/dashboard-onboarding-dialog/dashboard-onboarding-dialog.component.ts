@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,6 +9,12 @@ import { DomainGroupStore } from '../../../../core/store/domain-group.store';
 import { LinkMapStore } from '../../../../core/store/link-map.store';
 import { RedirectRuleStore } from '../../../../core/store/redirect-rule.store';
 import { SubdomainStore } from '../../../../core/store/subdomain.store';
+import {
+  prefetchDomainGroupScopedLists,
+  selectEntitiesForDomainGroups,
+} from '../../../../core/store/prefetch-domain-group-scoped-lists.util';
+import { buildRedirectRuleListFilter } from '../../../../core/utils/redirect-rules-list.util';
+import { getFilterKey } from '../../../../core/store/entity/entity-store.utils';
 import { WizardComponent, type WizardStep } from '../../../../shared/components/wizard/wizard.component';
 import {
   WizardStepDirective,
@@ -61,8 +67,16 @@ export class DashboardOnboardingDialogComponent {
   readonly organization = computed(() => this.authStore.organization());
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly subdomains = this.subdomainStore.selectList();
-  readonly linkMaps = this.linkMapStore.selectList();
-  readonly redirectRules = this.redirectRuleStore.selectList();
+  readonly linkMaps = computed(() =>
+    selectEntitiesForDomainGroups(this.domainGroups(), (domainGroupId) =>
+      this.linkMapStore.selectList({ domainGroupId })(),
+    ),
+  );
+  readonly redirectRules = computed(() =>
+    selectEntitiesForDomainGroups(this.domainGroups(), (domainGroupId) =>
+      this.redirectRuleStore.selectList(buildRedirectRuleListFilter(domainGroupId))(),
+    ),
+  );
   readonly subdomainBaseHost = computed(() => {
     const configured = this.appConfig.APP_SUBDOMAIN_BASE_URL || this.appConfig.APP_BASE_URL;
     return configured.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
@@ -90,6 +104,46 @@ export class DashboardOnboardingDialogComponent {
       this.redirectRules()[0] ??
       null,
   );
+  readonly starterRoutingPreview = computed(() => {
+    const linkMap = this.starterLinkMap();
+    const rule = this.starterRedirectRule();
+
+    if (!linkMap && !rule) {
+      return null;
+    }
+
+    return {
+      linkMapName: linkMap?.name ?? null,
+      ruleSource: rule?.source ?? null,
+      rulePathMatch: rule?.pathMatch ?? null,
+      ruleRoutesTo: linkMap?.name ?? null,
+    };
+  });
+  readonly starterResourcesLoading = computed(() => {
+    const groups = this.domainGroups();
+    if (groups.length === 0) {
+      return false;
+    }
+
+    const linkMapLoading = this.linkMapStore.isLoading();
+    const redirectRuleLoading = this.redirectRuleStore.isLoading();
+
+    return groups.some((group) => {
+      const linkMapFilter = { domainGroupId: group.id };
+      const ruleFilter = buildRedirectRuleListFilter(group.id);
+      const linkMapKey = getFilterKey(linkMapFilter);
+      const ruleKey = getFilterKey(ruleFilter);
+
+      if (linkMapLoading[linkMapKey] || redirectRuleLoading[ruleKey]) {
+        return true;
+      }
+
+      return (
+        this.linkMapStore.selectListResult(linkMapFilter)() === null ||
+        this.redirectRuleStore.selectListResult(ruleFilter)() === null
+      );
+    });
+  });
   readonly domainGroupOverflow = computed(
     () => Math.max(0, this.domainGroups().length - this.domainGroupPreview().length),
   );
@@ -108,7 +162,7 @@ export class DashboardOnboardingDialogComponent {
           label: 'Welcome',
           title: 'Your workspace is ready',
           description:
-            'Your site, starter subdomain, and /short prefix are set up. Create your first short link when you are ready.',
+            'Your site, starter subdomain, link map, and /short redirect rule are ready for you. Create your first short link when you are ready.',
         },
         {
           id: 'next',
@@ -126,7 +180,7 @@ export class DashboardOnboardingDialogComponent {
         label: 'Welcome',
         title: 'Your workspace is ready',
         description:
-          'Your domain group, starter subdomain, link map, and /short prefix rule are already in place.',
+          'Your domain group, starter subdomain, link map, and /short redirect rule are ready for you.',
       },
       {
         id: 'next',
@@ -141,8 +195,22 @@ export class DashboardOnboardingDialogComponent {
   constructor() {
     this.domainGroupStore.searchList();
     this.subdomainStore.searchList();
-    this.linkMapStore.searchList();
-    this.redirectRuleStore.searchList();
+
+    effect(() => {
+      const groups = this.domainGroups();
+      if (groups.length === 0) {
+        return;
+      }
+
+      prefetchDomainGroupScopedLists(
+        groups.map((group) => group.id),
+        {
+          linkMapStore: this.linkMapStore,
+          redirectRuleStore: this.redirectRuleStore,
+        },
+        true,
+      );
+    });
   }
 
   onConfirm(): void {

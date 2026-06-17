@@ -1,11 +1,13 @@
 import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { catchError, finalize, tap, throwError, type Observable } from 'rxjs';
+import { take } from 'rxjs/operators';
 import type { AuthResponse, AuthSession, AuthTokens } from '../models/auth.model';
 import type { LoginDto, RegisterDto } from '../models/auth.dto';
 import type { Organization } from '../models/organization.model';
 import type { User } from '../models/user.model';
 import { AuthApiService } from '../api/auth-api.service';
+import { DomainGroupsApiService } from '../api/domain-groups-api.service';
 import { DashboardContextService } from '../layout/dashboard-context.service';
 import { DomainGroupStore } from './domain-group.store';
 import { DomainStore } from './domain.store';
@@ -28,6 +30,7 @@ import {
   loadStoredSession,
   storeSession
 } from './auth.storage';
+import { prefetchDomainGroupScopedLists } from './prefetch-domain-group-scoped-lists.util';
 
 export type AuthState = {
   accessToken: string | null;
@@ -53,6 +56,7 @@ export const AuthStore = signalStore(
     isAuthenticated: computed(() => !!store.accessToken())
   })),
   withMethods((store, api = inject(AuthApiService)) => {
+    const domainGroupsApi = inject(DomainGroupsApiService);
     const domainStore = inject(DomainStore);
     const domainGroupStore = inject(DomainGroupStore);
     const subdomainStore = inject(SubdomainStore);
@@ -102,9 +106,20 @@ export const AuthStore = signalStore(
       domainGroupStore.searchList(undefined, true);
       domainStore.searchList(undefined, true);
       subdomainStore.searchList(undefined, true);
-      linkMapStore.searchList(undefined, true);
-      redirectRuleStore.searchList(undefined, true);
       organizationUsageStore.loadUsage(true);
+
+      domainGroupsApi
+        .list()
+        .pipe(take(1))
+        .subscribe({
+          next: (result) => {
+            prefetchDomainGroupScopedLists(
+              result.data.map((group) => group.id),
+              { linkMapStore, redirectRuleStore },
+              true,
+            );
+          },
+        });
     };
     const setSession = (payload: AuthResponse) => {
       const nextState: AuthState = {
