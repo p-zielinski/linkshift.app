@@ -14,6 +14,9 @@
       <div>{{ domainGroups().length }} domain group(s)</div>
     }
     <div>{{ subdomains().length }} subdomain(s)</div>
+    @if (!campaignMode()) {
+      <div>/short prefix ready</div>
+    }
   </ng-template>
 
   <ng-template wizardStepSummary="next">
@@ -26,10 +29,14 @@
         <div class="flex items-start gap-3">
           <mat-icon class="mt-0.5 text-app-accent-strong">celebration</mat-icon>
           <div class="grid gap-1">
-            <div class="text-base font-semibold">Great to have you here.</div>
+            <div class="text-base font-semibold">Your workspace is ready.</div>
             <div class="text-sm text-app-muted">
-              LinkShift routes requests through clearly scoped resources, so your redirects stay
-              predictable and easy to maintain.
+              @if (campaignMode()) {
+                Your site includes a starter subdomain with a /short prefix for short links.
+              } @else {
+                Your starter link map and /short prefix rule are ready so you can add links right
+                away.
+              }
             </div>
           </div>
         </div>
@@ -37,9 +44,11 @@
 
       <div class="grid gap-3 sm:grid-cols-2">
         <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-4">
-          <div class="text-sm font-semibold">Core concept</div>
+          <div class="text-sm font-semibold">Short URL pattern</div>
           <div class="mt-2 text-sm text-app-muted">
-            You define where traffic comes from and where it should go.
+            Short links use
+            <span class="font-medium text-app-foreground">/short/{{ '{' }}key{{ '}' }}</span> on
+            each connected host.
           </div>
         </div>
         <div class="rounded-[14px] border border-app-border-soft bg-app-surface p-4">
@@ -49,9 +58,9 @@
               Your site keeps related hosts and short links together in one place.
             </div>
           } @else {
-            <div class="text-sm font-semibold">Why domain groups exist</div>
+            <div class="text-sm font-semibold">Starter routing</div>
             <div class="mt-2 text-sm text-app-muted">
-              Domain groups keep related hosts and rules together in one place.
+              A prefix rule on /short routes traffic into your link map.
             </div>
           }
         </div>
@@ -81,17 +90,9 @@
             }
           </div>
         } @else {
-          @if (campaignMode()) {
-            <div class="mt-2 text-sm text-app-muted">
-              No site loaded yet. Your starter site is created during registration and should appear
-              after refresh.
-            </div>
-          } @else {
-            <div class="mt-2 text-sm text-app-muted">
-              No sites loaded yet. Your starter site is created during registration and should
-              appear after refresh.
-            </div>
-          }
+          <div class="mt-2 text-sm text-app-muted">
+            No sites loaded yet. Your starter site should appear here after refresh.
+          </div>
         }
       </div>
 
@@ -100,8 +101,9 @@
         @if (subdomainPreview().length > 0) {
           <div class="mt-3 grid gap-2">
             @for (subdomain of subdomainPreview(); track subdomain.id) {
-              <div class="rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm font-medium">
-                {{ subdomain.displayHost }}
+              <div class="rounded-[12px] bg-app-muted/10 px-3 py-2">
+                <div class="text-sm font-medium">{{ subdomain.displayHost }}</div>
+                <div class="mt-1 text-xs text-app-muted">{{ subdomain.shortUrlPattern }}</div>
               </div>
             }
             @if (subdomainOverflow() > 0) {
@@ -110,10 +112,40 @@
           </div>
         } @else {
           <div class="mt-2 text-sm text-app-muted">
-            No subdomains loaded yet. A starter subdomain is generated from organization setup.
+            No subdomains loaded yet. Your starter subdomain should appear here after refresh.
           </div>
         }
       </div>
+
+      @if (!campaignMode()) {
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+            <div class="text-sm font-semibold">Starter link map</div>
+            @if (starterLinkMap(); as linkMap) {
+              <div class="mt-2 rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm font-medium">
+                {{ linkMap.name }}
+              </div>
+            } @else {
+              <div class="mt-2 text-sm text-app-muted">
+                No link maps loaded yet. Your starter link map should appear here after refresh.
+              </div>
+            }
+          </div>
+          <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+            <div class="text-sm font-semibold">Starter redirect rule</div>
+            @if (starterRedirectRule(); as rule) {
+              <div class="mt-2 rounded-[12px] bg-app-muted/10 px-3 py-2 text-sm font-medium">
+                {{ rule.source }} ({{ rule.pathMatch }})
+              </div>
+            } @else {
+              <div class="mt-2 text-sm text-app-muted">
+                No redirect rules loaded yet. Your /short prefix rule should appear here after
+                refresh.
+              </div>
+            }
+          </div>
+        </div>
+      }
     </div>
   </ng-template>
 
@@ -123,15 +155,15 @@
         <div class="text-sm font-semibold">Recommended first actions</div>
         @if (campaignMode()) {
           <div class="mt-3 grid gap-2 text-sm text-app-muted">
-            <div>Connect a host on your site or confirm the starter subdomain.</div>
             <div>Create your first short link from Overview or Links.</div>
             <div>Share the short URL and track clicks in Analytics.</div>
+            <div>Connect a custom domain when you want branded short links.</div>
           </div>
         } @else {
           <div class="mt-3 grid gap-2 text-sm text-app-muted">
-            <div>Review domain groups and rename if needed.</div>
-            <div>Confirm your starter subdomain or attach a custom domain.</div>
-            <div>Create your first redirect rule and test it immediately.</div>
+            <div>Review the starter /short rule and link map.</div>
+            <div>Add your first link to the link map.</div>
+            <div>Run a redirect test to confirm routing.</div>
           </div>
         }
       </div>
@@ -146,8 +178,8 @@
             Create your first link
           </button>
         } @else {
-          <button mat-flat-button color="primary" type="button" (click)="onViewDomainGroups()">
-            View domain groups
+          <button mat-flat-button color="primary" type="button" (click)="onReviewStarterRouting()">
+            Review starter routing
           </button>
         }
       </div>

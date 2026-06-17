@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { APP_CONFIG } from '../../../../core/config/app-runtime-config';
 import { DomainGroupStore } from '../../../../core/store/domain-group.store';
+import { LinkMapStore } from '../../../../core/store/link-map.store';
+import { RedirectRuleStore } from '../../../../core/store/redirect-rule.store';
 import { SubdomainStore } from '../../../../core/store/subdomain.store';
 import { WizardComponent, type WizardStep } from '../../../../shared/components/wizard/wizard.component';
 import {
@@ -22,6 +24,9 @@ export type DashboardOnboardingDialogResult = {
   openCreate?: boolean;
   navigateTo?: string;
 };
+
+const STARTER_LINK_MAP_NAME = 'First link map';
+const STARTER_RULE_SOURCE = '/short';
 
 @Component({
   selector: 'app-dashboard-onboarding-dialog',
@@ -49,11 +54,15 @@ export class DashboardOnboardingDialogComponent {
   private readonly authStore = inject(AuthStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly subdomainStore = inject(SubdomainStore);
+  private readonly linkMapStore = inject(LinkMapStore);
+  private readonly redirectRuleStore = inject(RedirectRuleStore);
   private readonly appConfig = inject(APP_CONFIG);
 
   readonly organization = computed(() => this.authStore.organization());
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly subdomains = this.subdomainStore.selectList();
+  readonly linkMaps = this.linkMapStore.selectList();
+  readonly redirectRules = this.redirectRuleStore.selectList();
   readonly subdomainBaseHost = computed(() => {
     const configured = this.appConfig.APP_SUBDOMAIN_BASE_URL || this.appConfig.APP_BASE_URL;
     return configured.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
@@ -66,7 +75,20 @@ export class DashboardOnboardingDialogComponent {
         id: subdomain.id,
         name: subdomain.name,
         displayHost: `${subdomain.name}.${this.subdomainBaseHost()}`,
+        shortUrlPattern: `${subdomain.name}.${this.subdomainBaseHost()}/short/{key}`,
       })),
+  );
+  readonly starterLinkMap = computed(
+    () =>
+      this.linkMaps().find((linkMap) => linkMap.name === STARTER_LINK_MAP_NAME) ??
+      this.linkMaps()[0] ??
+      null,
+  );
+  readonly starterRedirectRule = computed(
+    () =>
+      this.redirectRules().find((rule) => rule.source === STARTER_RULE_SOURCE) ??
+      this.redirectRules()[0] ??
+      null,
   );
   readonly domainGroupOverflow = computed(
     () => Math.max(0, this.domainGroups().length - this.domainGroupPreview().length),
@@ -84,16 +106,16 @@ export class DashboardOnboardingDialogComponent {
         {
           id: 'welcome',
           label: 'Welcome',
-          title: 'You are ready to create short links',
+          title: 'Your workspace is ready',
           description:
-            'Connect a custom domain or use a starter subdomain on your site to publish short links.',
+            'Your site, starter subdomain, and /short prefix are set up. Create your first short link when you are ready.',
         },
         {
           id: 'next',
           label: 'Next steps',
           title: 'What to do now',
           description:
-            'Connect a host on your site, then create your first short link from Overview or Links.',
+            'Create your first short link, then share it and track clicks in Analytics.',
         },
       ];
     }
@@ -102,16 +124,16 @@ export class DashboardOnboardingDialogComponent {
       {
         id: 'welcome',
         label: 'Welcome',
-        title: 'You are ready to ship redirects',
+        title: 'Your workspace is ready',
         description:
-          'Domain groups are containers. Inside them you attach custom domains or use starter subdomains.',
+          'Your domain group, starter subdomain, link map, and /short prefix rule are already in place.',
       },
       {
         id: 'next',
         label: 'Next steps',
         title: 'What to do now',
         description:
-          'Use the sidebar to refine domain groups and hosts, then add your first redirect rule.',
+          'Review the starter routing, add links to your link map, and run a redirect test.',
       },
     ];
   });
@@ -119,6 +141,8 @@ export class DashboardOnboardingDialogComponent {
   constructor() {
     this.domainGroupStore.searchList();
     this.subdomainStore.searchList();
+    this.linkMapStore.searchList();
+    this.redirectRuleStore.searchList();
   }
 
   onConfirm(): void {
@@ -133,7 +157,7 @@ export class DashboardOnboardingDialogComponent {
     this.dialogRef.close({ confirmed: true, openCreate: true });
   }
 
-  onViewDomainGroups(): void {
-    this.dialogRef.close({ confirmed: true, navigateTo: '/domain-groups' });
+  onReviewStarterRouting(): void {
+    this.dialogRef.close({ confirmed: true, navigateTo: '/redirect-rules' });
   }
 }

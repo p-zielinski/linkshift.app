@@ -102,6 +102,9 @@ export const AuthStore = signalStore(
       domainGroupStore.searchList(undefined, true);
       domainStore.searchList(undefined, true);
       subdomainStore.searchList(undefined, true);
+      linkMapStore.searchList(undefined, true);
+      redirectRuleStore.searchList(undefined, true);
+      organizationUsageStore.loadUsage(true);
     };
     const setSession = (payload: AuthResponse) => {
       const nextState: AuthState = {

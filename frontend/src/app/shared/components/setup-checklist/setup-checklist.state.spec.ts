@@ -125,6 +125,24 @@ describe('resolveSetupChecklistItems', () => {
     });
   });
 
+  it('routes advanced review-routing step when hosts exist', () => {
+    const items = resolveSetupChecklistItems('advanced', { hasConnectedHosts: true });
+    const reviewStep = items.find((item) => item.id === 'review-routing');
+
+    expect(reviewStep).toEqual({
+      id: 'review-routing',
+      label: 'Review starter routing',
+      route: '/redirect-rules',
+    });
+    expect(items.map((item) => item.id)).toEqual([
+      'review-routing',
+      'create-link',
+      'run-test',
+      'invite-teammate',
+    ]);
+    expect(items.find((item) => item.id === 'confirm-domain')).toBeUndefined();
+  });
+
   it('keeps advanced connect-domain step on domain groups page', () => {
     const items = resolveSetupChecklistItems('advanced');
     const connectStep = items.find((item) => item.id === 'confirm-domain');

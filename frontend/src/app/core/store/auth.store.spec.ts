@@ -27,6 +27,13 @@ function createEntityStoreMock() {
   };
 }
 
+function createUsageStoreMock() {
+  return {
+    loadUsage: vi.fn(),
+    resetStore: vi.fn(),
+  };
+}
+
 const AUTH_RESPONSE: AuthResponse = {
   accessToken: 'access-token',
   user: {
@@ -63,7 +70,7 @@ describe('AuthStore', () => {
   let redirectTestResultsStore: ReturnType<typeof createEntityStoreMock>;
   let organizationMembersStore: ReturnType<typeof createEntityStoreMock>;
   let billingPlansStore: ReturnType<typeof createEntityStoreMock>;
-  let organizationUsageStore: ReturnType<typeof createEntityStoreMock>;
+  let organizationUsageStore: ReturnType<typeof createUsageStoreMock>;
   let redirectRulesAnalyticsStore: ReturnType<typeof createEntityStoreMock>;
   let apiKeyStore: ReturnType<typeof createEntityStoreMock>;
   let clearSelectedDomainGroupId: ReturnType<typeof vi.fn>;
@@ -98,7 +105,7 @@ describe('AuthStore', () => {
     redirectTestResultsStore = createEntityStoreMock();
     organizationMembersStore = createEntityStoreMock();
     billingPlansStore = createEntityStoreMock();
-    organizationUsageStore = createEntityStoreMock();
+    organizationUsageStore = createUsageStoreMock();
     redirectRulesAnalyticsStore = createEntityStoreMock();
     apiKeyStore = createEntityStoreMock();
     clearSelectedDomainGroupId = vi.fn();
@@ -156,12 +163,15 @@ describe('AuthStore', () => {
       expect(domainGroupStore.resetStore).toHaveBeenCalledTimes(1);
     });
 
-    it('prefetches core data with force=true for domain groups, domains, and subdomains', async () => {
+    it('prefetches core data with force=true for domain groups, domains, subdomains, link maps, redirect rules, and usage', async () => {
       await firstValueFrom(store.login({ email: 'test@example.com', password: 'secret' }));
 
       expect(domainGroupStore.searchList).toHaveBeenCalledWith(undefined, true);
       expect(domainStore.searchList).toHaveBeenCalledWith(undefined, true);
       expect(subdomainStore.searchList).toHaveBeenCalledWith(undefined, true);
+      expect(linkMapStore.searchList).toHaveBeenCalledWith(undefined, true);
+      expect(redirectRuleStore.searchList).toHaveBeenCalledWith(undefined, true);
+      expect(organizationUsageStore.loadUsage).toHaveBeenCalledWith(true);
     });
   });
 
