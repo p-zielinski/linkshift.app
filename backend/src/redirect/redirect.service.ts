@@ -545,6 +545,25 @@ export class RedirectService {
     }
 
     const cacheKey = this.getCaddyDomainCacheKey(normalized);
+    const subdomainName = this.extractSubdomainName(normalized);
+
+    if (
+      subdomainName &&
+      !this.subdomainBlacklistService.canExistInRegistry(subdomainName)
+    ) {
+      this.logger.debug('Caddy domain allow check rejected by subdomain policy', {
+        requestId,
+        normalized,
+        subdomainName,
+      });
+      await this.cacheManagerService.setCustomCache(
+        cacheKey,
+        false,
+        CADDY_DOMAIN_CACHE_TTL_SECONDS,
+      );
+      return false;
+    }
+
     const cached =
       await this.cacheManagerService.getCustomCache<boolean>(cacheKey);
     if (cached !== undefined) {
@@ -562,7 +581,6 @@ export class RedirectService {
       cacheKey,
     });
 
-    const subdomainName = this.extractSubdomainName(normalized);
     const allowed = await this.isRegisteredHostnameAllowed(
       normalized,
       subdomainName,
