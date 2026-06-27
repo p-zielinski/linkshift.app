@@ -20,6 +20,10 @@ import { Logger } from 'nestjs-pino';
 import { LinkMapService } from '../link-map/link-map.service';
 import { ROBOTS_ALLOW_ALL_CONTENT } from '@shared/models/robots-policy.model';
 import { ConfigService } from '@nestjs/config';
+import {
+  CachedByProperty,
+  DataType,
+} from '../cache/cache-manager.service';
 
 const mockPrismaService = {
   domain: {
@@ -143,6 +147,8 @@ describe('RedirectService', () => {
             getData: jest.fn(),
             getCustomCache: jest.fn(),
             setCustomCache: jest.fn(),
+            setDataExist: jest.fn(),
+            invalidateData: jest.fn(),
             checkRateLimit: jest.fn(),
           },
         },
@@ -2608,6 +2614,152 @@ describe('RedirectService', () => {
           statusCode: 404,
         }),
       );
+    });
+  });
+
+  describe('isDomainAllowed', () => {
+    beforeEach(() => {
+      (cacheManagerService.getCustomCache as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      (cacheManagerService.getData as jest.Mock).mockResolvedValue(undefined);
+    });
+
+    it('allows a registered custom domain', async () => {
+      (cacheManagerService.getData as jest.Mock).mockImplementation(
+        ({ dataType, properties }) => {
+          if (
+            dataType === DataType.DOMAINS &&
+            properties[CachedByProperty.NAME] === 'example.com'
+          ) {
+            return { id: 'dom_1', domainGroupId: 'dg_1' };
+          }
+          if (
+            dataType === DataType.DOMAIN_GROUPS &&
+            properties[CachedByProperty.ID] === 'dg_1'
+          ) {
+            return { id: 'dg_1' };
+          }
+          return undefined;
+        },
+      );
+
+      const allowed = await service.isDomainAllowed('Example.COM');
+
+      expect(allowed).toBe(true);
+      expect(cacheManagerService.getData).toHaveBeenCalledWith({
+        dataType: DataType.DOMAINS,
+        properties: { [CachedByProperty.NAME]: 'example.com' },
+      });
+      expect(cacheManagerService.getData).toHaveBeenCalledWith({
+        dataType: DataType.DOMAIN_GROUPS,
+        properties: { [CachedByProperty.ID]: 'dg_1' },
+      });
+      expect(prisma.domain.findFirst).not.toHaveBeenCalled();
+      expect(prisma.linkShiftSubdomain.findFirst).not.toHaveBeenCalled();
+      expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
+        'CADDY_DOMAIN_ALLOWED:example.com',
+        true,
+        expect.any(Number),
+      );
+    });
+
+    it('denies an unknown custom domain', async () => {
+      const allowed = await service.isDomainAllowed('unknown.example');
+
+      expect(allowed).toBe(false);
+      expect(cacheManagerService.getData).toHaveBeenCalledWith({
+        dataType: DataType.DOMAINS,
+        properties: { [CachedByProperty.NAME]: 'unknown.example' },
+      });
+      expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
+        'CADDY_DOMAIN_ALLOWED:unknown.example',
+        false,
+        expect.any(Number),
+      );
+    });
+
+    it('allows a registered LinkShift subdomain', async () => {
+      (cacheManagerService.getData as jest.Mock).mockImplementation(
+        ({ dataType, properties }) => {
+          if (
+            dataType === DataType.SUBDOMAINS &&
+            properties[CachedByProperty.NAME] === 'demo'
+          ) {
+            return { id: 'sub_1', domainGroupId: 'dg_1' };
+          }
+          if (
+            dataType === DataType.DOMAIN_GROUPS &&
+            properties[CachedByProperty.ID] === 'dg_1'
+          ) {
+            return { id: 'dg_1' };
+          }
+          return undefined;
+        },
+      );
+
+      const allowed = await service.isDomainAllowed('Demo.LinkShift.App');
+
+      expect(allowed).toBe(true);
+      expect(cacheManagerService.getData).toHaveBeenCalledWith({
+        dataType: DataType.SUBDOMAINS,
+        properties: { [CachedByProperty.NAME]: 'demo' },
+      });
+      expect(cacheManagerService.getData).toHaveBeenCalledWith({
+        dataType: DataType.DOMAIN_GROUPS,
+        properties: { [CachedByProperty.ID]: 'dg_1' },
+      });
+      expect(prisma.domain.findFirst).not.toHaveBeenCalled();
+      expect(prisma.linkShiftSubdomain.findFirst).not.toHaveBeenCalled();
+      expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
+        'CADDY_DOMAIN_ALLOWED:demo.linkshift.app',
+        true,
+        expect.any(Number),
+      );
+    });
+
+    it('denies an unregistered LinkShift subdomain', async () => {
+      const allowed = await service.isDomainAllowed('random.linkshift.app');
+
+      expect(allowed).toBe(false);
+      expect(cacheManagerService.getData).toHaveBeenCalledWith({
+        dataType: DataType.SUBDOMAINS,
+        properties: { [CachedByProperty.NAME]: 'random' },
+      });
+      expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
+        'CADDY_DOMAIN_ALLOWED:random.linkshift.app',
+        false,
+        expect.any(Number),
+      );
+    });
+
+    it('denies a subdomain when its domain group is inactive', async () => {
+      (cacheManagerService.getData as jest.Mock).mockImplementation(
+        ({ dataType, properties }) => {
+          if (
+            dataType === DataType.SUBDOMAINS &&
+            properties[CachedByProperty.NAME] === 'demo'
+          ) {
+            return { id: 'sub_1', domainGroupId: 'dg_deleted' };
+          }
+          return undefined;
+        },
+      );
+
+      const allowed = await service.isDomainAllowed('demo.linkshift.app');
+
+      expect(allowed).toBe(false);
+    });
+
+    it('returns cached allow decision without entity lookup', async () => {
+      (cacheManagerService.getCustomCache as jest.Mock).mockResolvedValue(true);
+
+      const allowed = await service.isDomainAllowed('cached.example');
+
+      expect(allowed).toBe(true);
+      expect(cacheManagerService.getData).not.toHaveBeenCalled();
+      expect(prisma.domain.findFirst).not.toHaveBeenCalled();
+      expect(prisma.linkShiftSubdomain.findFirst).not.toHaveBeenCalled();
     });
   });
 

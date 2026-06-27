@@ -426,6 +426,58 @@ export class RedirectService {
     return `CADDY_DOMAIN_ALLOWED:${hostname}`;
   }
 
+  private async isActiveDomainGroup(domainGroupId: string): Promise<boolean> {
+    const domainGroup = await this.cacheManagerService.getData<DomainGroup>({
+      dataType: DataType.DOMAIN_GROUPS,
+      properties: { [CachedByProperty.ID]: domainGroupId },
+    });
+    return !!domainGroup;
+  }
+
+  private async isRegisteredHostnameAllowed(
+    hostname: string,
+    subdomainName: string | null,
+  ): Promise<boolean> {
+    if (subdomainName) {
+      const subdomain = await this.cacheManagerService.getData<LinkShiftSubdomain>(
+        {
+          dataType: DataType.SUBDOMAINS,
+          properties: { [CachedByProperty.NAME]: subdomainName },
+        },
+      );
+      if (!subdomain) {
+        return false;
+      }
+      return this.isActiveDomainGroup(subdomain.domainGroupId);
+    }
+
+    const domain = await this.cacheManagerService.getData<Domain>({
+      dataType: DataType.DOMAINS,
+      properties: { [CachedByProperty.NAME]: hostname },
+    });
+    if (!domain) {
+      return false;
+    }
+    return this.isActiveDomainGroup(domain.domainGroupId);
+  }
+
+  private async invalidateHostnameEntityCache(params: {
+    dataType: DataType.DOMAINS | DataType.SUBDOMAINS;
+    id: string;
+    name: string;
+  }): Promise<void> {
+    await Promise.all([
+      this.cacheManagerService.invalidateData({
+        dataType: params.dataType,
+        properties: { [CachedByProperty.ID]: params.id },
+      }),
+      this.cacheManagerService.invalidateData({
+        dataType: params.dataType,
+        properties: { [CachedByProperty.NAME]: params.name },
+      }),
+    ]);
+  }
+
   private getRequestPath(req: Request): string {
     const original = req.originalUrl ?? req.url ?? req.path ?? '/';
 
@@ -510,21 +562,16 @@ export class RedirectService {
       cacheKey,
     });
 
-    const domain = await this.prisma.domain.findFirst({
-      where: {
-        name: normalized,
-        deletedAt: null,
-        domainGroup: { deletedAt: null },
-      },
-      select: { id: true },
-    });
-
-    const allowed = !!domain;
-    this.logger.debug('Caddy domain allow check db lookup', {
+    const subdomainName = this.extractSubdomainName(normalized);
+    const allowed = await this.isRegisteredHostnameAllowed(
+      normalized,
+      subdomainName,
+    );
+    this.logger.debug('Caddy domain allow check entity lookup', {
       requestId,
       normalized,
+      subdomainName,
       allowed,
-      domainId: domain?.id ?? null,
     });
     await this.cacheManagerService.setCustomCache(
       cacheKey,
@@ -648,6 +695,10 @@ export class RedirectService {
       type: InvalidationTargetType.HOSTNAME,
       value: domain.name,
     });
+    await this.cacheManagerService.setDataExist({
+      dataType: DataType.DOMAINS,
+      data: domain,
+    });
     return domain;
   }
 
@@ -744,6 +795,22 @@ export class RedirectService {
         value: existing.name,
       });
     }
+    await this.invalidateHostnameEntityCache({
+      dataType: DataType.DOMAINS,
+      id: domain.id,
+      name: domain.name,
+    });
+    if (existing.name !== domain.name) {
+      await this.invalidateHostnameEntityCache({
+        dataType: DataType.DOMAINS,
+        id: existing.id,
+        name: existing.name,
+      });
+    }
+    await this.cacheManagerService.setDataExist({
+      dataType: DataType.DOMAINS,
+      data: domain,
+    });
     return domain;
   }
 
@@ -773,6 +840,11 @@ export class RedirectService {
     await this.invalidateDomainCache({
       type: InvalidationTargetType.HOSTNAME,
       value: existing.name,
+    });
+    await this.invalidateHostnameEntityCache({
+      dataType: DataType.DOMAINS,
+      id: existing.id,
+      name: existing.name,
     });
     return;
   }
@@ -890,6 +962,10 @@ export class RedirectService {
     await this.invalidateDomainCache({
       type: InvalidationTargetType.SUBDOMAIN_NAME,
       value: subdomain.name,
+    });
+    await this.cacheManagerService.setDataExist({
+      dataType: DataType.SUBDOMAINS,
+      data: subdomain,
     });
     return subdomain;
   }
@@ -1013,6 +1089,22 @@ export class RedirectService {
         value: existing.name,
       });
     }
+    await this.invalidateHostnameEntityCache({
+      dataType: DataType.SUBDOMAINS,
+      id: subdomain.id,
+      name: subdomain.name,
+    });
+    if (existing.name !== subdomain.name) {
+      await this.invalidateHostnameEntityCache({
+        dataType: DataType.SUBDOMAINS,
+        id: existing.id,
+        name: existing.name,
+      });
+    }
+    await this.cacheManagerService.setDataExist({
+      dataType: DataType.SUBDOMAINS,
+      data: subdomain,
+    });
     return subdomain;
   }
 
@@ -1042,6 +1134,11 @@ export class RedirectService {
     await this.invalidateDomainCache({
       type: InvalidationTargetType.SUBDOMAIN_NAME,
       value: existing.name,
+    });
+    await this.invalidateHostnameEntityCache({
+      dataType: DataType.SUBDOMAINS,
+      id: existing.id,
+      name: existing.name,
     });
     return;
   }
@@ -1189,6 +1286,10 @@ export class RedirectService {
     await this.invalidateDomainCache({
       type: InvalidationTargetType.DOMAIN_GROUP_ID,
       value: existing.id,
+    });
+    await this.cacheManagerService.invalidateData({
+      dataType: DataType.DOMAIN_GROUPS,
+      properties: { [CachedByProperty.ID]: existing.id },
     });
 
     return;
