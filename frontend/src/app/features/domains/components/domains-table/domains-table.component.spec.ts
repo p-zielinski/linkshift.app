@@ -11,6 +11,7 @@ describe('DomainsTableComponent', () => {
     id: 'domain-1',
     name: 'go.example.com',
     domainGroupId: 'group-1',
+    dnsStatus: 'PENDING',
     createdAt: '2026-06-01T00:00:00.000Z',
     updatedAt: '2026-06-01T00:00:00.000Z',
   };
@@ -84,9 +85,48 @@ describe('DomainsTableComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
     const buttons = Array.from(root.querySelectorAll('tr.mat-mdc-row button[aria-label]'));
 
-    expect(buttons).toHaveLength(2);
-    expect(buttons[0]?.getAttribute('aria-label')).toBe(`Edit domain ${sampleDomain.name}`);
-    expect(buttons[1]?.getAttribute('aria-label')).toBe(`Delete domain ${sampleDomain.name}`);
+    expect(buttons).toHaveLength(3);
+    expect(buttons[0]?.getAttribute('aria-label')).toBe(`Verify DNS for domain ${sampleDomain.name}`);
+    expect(buttons[1]?.getAttribute('aria-label')).toBe(
+      `Change group for domain ${sampleDomain.name}`,
+    );
+    expect(buttons[2]?.getAttribute('aria-label')).toBe(`Delete domain ${sampleDomain.name}`);
+  });
+
+  it('renders DNS status pill and verify action for pending domains', () => {
+    fixture.componentRef.setInput('domains', [sampleDomain]);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+
+    expect(root.textContent).toContain('Pending');
+    expect(root.querySelector('button[aria-label^="Verify DNS"]')).not.toBeNull();
+  });
+
+  it('hides verify action for verified domains', () => {
+    fixture.componentRef.setInput('domains', [{ ...sampleDomain, dnsStatus: 'VERIFIED' }]);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+
+    expect(root.textContent).toContain('Verified');
+    expect(root.querySelector('button[aria-label^="Verify DNS"]')).toBeNull();
+  });
+
+  it('emits verifyDns when verify action is clicked', () => {
+    const verifySpy = vi.fn();
+    component.verifyDns.subscribe(verifySpy);
+
+    fixture.componentRef.setInput('domains', [sampleDomain]);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const button = root.querySelector(
+      'button[aria-label^="Verify DNS"]',
+    ) as HTMLButtonElement;
+    button.click();
+
+    expect(verifySpy).toHaveBeenCalledWith(sampleDomain.id);
   });
 
   it('maps row view models with group labels and tooltips from groupMap', () => {

@@ -102,6 +102,34 @@ export class DomainsController {
     }
   }
 
+  @Post(':id/verify-dns')
+  @UseGuards(ApiOrUserAuthGuard)
+  verifyDns(
+    @Param('id') id: string,
+    @User('organizationId') organizationId: string,
+  ) {
+    this.logger.log('Domain DNS verify requested', {
+      requestId: this.clsService.getId(),
+      organizationId,
+      domainId: id,
+    });
+    try {
+      return this.redirectService.verifyDomainDns(id, organizationId);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throwHttpException(
+          new NotFoundError({
+            requestId: this.clsService.getId(),
+            details: error.message,
+            relatedObject: 'Domain',
+            relatedObjectId: id,
+          }),
+        );
+      }
+      throw error;
+    }
+  }
+
   @Put(':id')
   @UseGuards(ApiOrUserAuthGuard)
   update(

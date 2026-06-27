@@ -13,6 +13,5 @@ export type CreateSubdomainDto = {
 };
 
 export type UpdateSubdomainDto = {
-  name?: string;
-  domainGroupId?: string;
+  domainGroupId: string;
 };

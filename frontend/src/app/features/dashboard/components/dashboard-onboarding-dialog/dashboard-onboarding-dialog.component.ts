@@ -6,9 +6,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { APP_CONFIG } from '../../../../core/config/app-runtime-config';
 import { DomainGroupStore } from '../../../../core/store/domain-group.store';
+import { DomainStore } from '../../../../core/store/domain.store';
 import { LinkMapStore } from '../../../../core/store/link-map.store';
 import { RedirectRuleStore } from '../../../../core/store/redirect-rule.store';
 import { SubdomainStore } from '../../../../core/store/subdomain.store';
+import { CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY } from '../../../campaign-connect-domain/campaign-connect-domain.util';
 import {
   prefetchDomainGroupScopedLists,
   selectEntitiesForDomainGroups,
@@ -59,6 +61,7 @@ export class DashboardOnboardingDialogComponent {
   );
   private readonly authStore = inject(AuthStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly domainStore = inject(DomainStore);
   private readonly subdomainStore = inject(SubdomainStore);
   private readonly linkMapStore = inject(LinkMapStore);
   private readonly redirectRuleStore = inject(RedirectRuleStore);
@@ -66,7 +69,11 @@ export class DashboardOnboardingDialogComponent {
 
   readonly organization = computed(() => this.authStore.organization());
   readonly domainGroups = this.domainGroupStore.selectList();
+  readonly domains = this.domainStore.selectList();
   readonly subdomains = this.subdomainStore.selectList();
+  readonly hasConnectedHosts = computed(
+    () => this.subdomains().length > 0 || this.domains().length > 0,
+  );
   readonly linkMaps = computed(() =>
     selectEntitiesForDomainGroups(this.domainGroups(), (domainGroupId) =>
       this.linkMapStore.selectList({ domainGroupId })(),
@@ -155,21 +162,25 @@ export class DashboardOnboardingDialogComponent {
     return `Welcome to LinkShift, ${organizationName}`;
   });
   readonly steps = computed<WizardStep[]>(() => {
+    const hasHosts = this.hasConnectedHosts();
+
     if (this.campaignMode()) {
       return [
         {
           id: 'welcome',
           label: 'Welcome',
-          title: 'Your workspace is ready',
-          description:
-            'Your site, starter subdomain, link map, and /short redirect rule are ready for you. Create your first short link when you are ready.',
+          title: hasHosts ? 'Your workspace is ready' : 'Your workspace is ready',
+          description: hasHosts
+            ? 'Your site, starter subdomain, link map, and /short redirect rule are ready for you. Create your first short link when you are ready.'
+            : 'Your site, link map, and /short redirect rule are ready, but you do not have a short-link host yet. Connect a domain to get started.',
         },
         {
           id: 'next',
           label: 'Next steps',
           title: 'What to do now',
-          description:
-            'Create your first short link, then share it and track clicks in Analytics.',
+          description: hasHosts
+            ? 'Create your first short link, then share it and track clicks in Analytics.'
+            : 'Connect a domain for short links, then create your first link and track clicks in Analytics.',
         },
       ];
     }
@@ -179,15 +190,17 @@ export class DashboardOnboardingDialogComponent {
         id: 'welcome',
         label: 'Welcome',
         title: 'Your workspace is ready',
-        description:
-          'Your domain group, starter subdomain, link map, and /short redirect rule are ready for you.',
+        description: hasHosts
+          ? 'Your domain group, starter subdomain, link map, and /short redirect rule are ready for you.'
+          : 'Your domain group, link map, and /short redirect rule are ready, but you do not have a short-link host yet. Connect a domain to get started.',
       },
       {
         id: 'next',
         label: 'Next steps',
         title: 'What to do now',
-        description:
-          'Review the starter routing, add links to your link map, and run a redirect test.',
+        description: hasHosts
+          ? 'Review the starter routing, add links to your link map, and run a redirect test.'
+          : 'Connect a domain for short links, then add links to your link map and run a redirect test.',
       },
     ];
   });
@@ -195,6 +208,7 @@ export class DashboardOnboardingDialogComponent {
   constructor() {
     this.domainGroupStore.searchList();
     this.subdomainStore.searchList();
+    this.domainStore.searchList();
 
     effect(() => {
       const groups = this.domainGroups();
@@ -214,6 +228,14 @@ export class DashboardOnboardingDialogComponent {
   }
 
   onConfirm(): void {
+    if (!this.hasConnectedHosts()) {
+      this.dialogRef.close({
+        confirmed: true,
+        navigateTo: `/links?${CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY}=1`,
+      });
+      return;
+    }
+
     this.dialogRef.close({ confirmed: true });
   }
 
@@ -227,5 +249,12 @@ export class DashboardOnboardingDialogComponent {
 
   onReviewStarterRouting(): void {
     this.dialogRef.close({ confirmed: true, navigateTo: '/redirect-rules' });
+  }
+
+  onConnectDomain(): void {
+    this.dialogRef.close({
+      confirmed: true,
+      navigateTo: `/links?${CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY}=1`,
+    });
   }
 }

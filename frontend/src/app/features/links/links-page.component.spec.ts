@@ -165,6 +165,7 @@ describe('LinksPageComponent', () => {
                   id: 'domain-1',
                   name: 'go.example.com',
                   domainGroupId: 'group-1',
+                  dnsStatus: 'VERIFIED',
                   createdAt: '2026-01-01T00:00:00.000Z',
                   updatedAt: '2026-01-01T00:00:00.000Z',
                 },

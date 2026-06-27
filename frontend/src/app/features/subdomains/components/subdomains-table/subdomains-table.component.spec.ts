@@ -87,7 +87,9 @@ describe('SubdomainsTableComponent', () => {
     );
 
     expect(buttons).toHaveLength(2);
-    expect(buttons[0]?.getAttribute('aria-label')).toBe(`Edit subdomain ${sampleSubdomain.name}`);
+    expect(buttons[0]?.getAttribute('aria-label')).toBe(
+      `Change group for subdomain ${sampleSubdomain.name}`,
+    );
     expect(buttons[1]?.getAttribute('aria-label')).toBe(
       `Delete subdomain ${sampleSubdomain.name}`,
     );

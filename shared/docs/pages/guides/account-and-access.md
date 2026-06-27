@@ -33,6 +33,23 @@ The public marketing site uses `/` for visitors who are not signed in. That URL 
 
 If registration is temporarily closed, the page shows **Private testing in progress** instead of the tabs.
 
+### What registration creates
+
+Registration sets up your organization workspace — it does **not** assign a public short-link hostname yet.
+
+LinkShift creates:
+
+- Your **organization** and owner account
+- A **Default** domain group
+- A starter **link map** and **redirect rule** in that group
+
+It does **not** automatically create a LinkShift subdomain (for example `yourname.linkshift.app`) or add a custom domain. Connect your first host when you are ready:
+
+1. Complete the **onboarding** wizard after sign-in, or
+2. Open **Connect your domain** from the dashboard (for example from **Links** or **Domains**)
+
+See [Domains and subdomains in the dashboard](./dashboard/domains-and-subdomains-in-dashboard.md) for adding a subdomain or custom domain and verifying DNS.
+
 ## Verify your email
 
 When you register or change email, LinkShift sends a verification link.

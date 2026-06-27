@@ -64,7 +64,10 @@ export class SubdomainFormDialogComponent {
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly subdomain = this.data?.subdomain ?? null;
   readonly isEdit = !!this.subdomain;
-  readonly dialogTitle = this.isEdit ? 'Edit subdomain' : 'Create subdomain';
+  readonly dialogTitle = this.isEdit ? 'Change subdomain group' : 'Create subdomain';
+  readonly wizardSubtitle = this.isEdit
+    ? 'The subdomain name is permanent. Choose a different domain group to move routing for this host.'
+    : 'Add or update a subdomain used on the LinkShift base host.';
   readonly submitLabel = this.isEdit ? 'Save' : 'Create';
   readonly loadingMessage = this.isEdit ? 'Updating subdomain…' : 'Creating subdomain…';
   readonly effectiveSubmitLabel = computed(() => {
@@ -103,7 +106,9 @@ export class SubdomainFormDialogComponent {
       id: 'details',
       label: 'Details',
       title: 'Subdomain details',
-      description: 'Set the subdomain name and group.',
+      description: this.isEdit
+        ? 'The subdomain name cannot be changed. Select a domain group for routing.'
+        : 'Set the subdomain name and group.',
       complete: this.canSubmit(),
     },
   ]);
@@ -154,7 +159,11 @@ export class SubdomainFormDialogComponent {
       this.errorSequenceAtSubmit.set(this.subdomainStore.errorSequence());
       const id = this.subdomain?.id;
       this.activeRequestId.set(id ?? CREATE_ENTITY_ID);
-      this.subdomainStore.upsert({ id, entity: formValue().value() });
+      const value = formValue().value();
+      const entity = this.isEdit
+        ? { domainGroupId: value.domainGroupId }
+        : value;
+      this.subdomainStore.upsert({ id, entity });
       return undefined;
     });
   }

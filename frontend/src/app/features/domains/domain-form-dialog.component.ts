@@ -65,7 +65,10 @@ export class DomainFormDialogComponent {
   readonly domainGroups = this.domainGroupStore.selectList();
   readonly domain = this.data?.domain ?? null;
   readonly isEdit = !!this.domain;
-  readonly dialogTitle = this.isEdit ? 'Edit domain' : 'Create domain';
+  readonly dialogTitle = this.isEdit ? 'Change domain group' : 'Create domain';
+  readonly wizardSubtitle = this.isEdit
+    ? 'The domain name cannot be changed. Delete this domain and add a new one to use a different hostname.'
+    : 'Add or update a domain used in routing.';
   readonly submitLabel = this.isEdit ? 'Save' : 'Create';
   readonly loadingMessage = this.isEdit ? 'Updating domain…' : 'Creating domain…';
   readonly effectiveSubmitLabel = computed(() => {
@@ -104,7 +107,9 @@ export class DomainFormDialogComponent {
       id: 'details',
       label: 'Details',
       title: 'Domain details',
-      description: 'Set the domain name and group.',
+      description: this.isEdit
+        ? 'The domain name cannot be changed. Select a domain group for routing.'
+        : 'Set the domain name and group.',
       complete: this.canSubmit(),
     },
   ]);
@@ -169,7 +174,11 @@ export class DomainFormDialogComponent {
       this.errorSequenceAtSubmit.set(this.domainStore.errorSequence());
       const id = this.domain?.id;
       this.activeRequestId.set(id ?? CREATE_ENTITY_ID);
-      this.domainStore.upsert({ id, entity: formValue().value() });
+      const value = formValue().value();
+      const entity = this.isEdit
+        ? { domainGroupId: value.domainGroupId }
+        : value;
+      this.domainStore.upsert({ id, entity });
       return undefined;
     });
   }

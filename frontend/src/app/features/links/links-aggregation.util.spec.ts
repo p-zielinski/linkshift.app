@@ -128,7 +128,7 @@ describe('links-aggregation.util', () => {
       { id: 'sub-1', name: 'promo', domainGroupId: 'group-1', createdAt: '', updatedAt: '' },
     ];
     const domains: Domain[] = [
-      { id: 'dom-1', name: 'campaign.example.com', domainGroupId: 'group-1', createdAt: '', updatedAt: '' },
+      { id: 'dom-1', name: 'campaign.example.com', domainGroupId: 'group-1', dnsStatus: 'VERIFIED', createdAt: '', updatedAt: '' },
     ];
 
     const hosts = buildGroupHostOptions(groups, subdomains, domains, 'https://ls.linkshift.app');

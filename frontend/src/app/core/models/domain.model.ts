@@ -1,7 +1,12 @@
+export type DomainDnsStatus = 'PENDING' | 'VERIFIED' | 'FAILED';
+
 export type Domain = {
   id: string;
   name: string;
   domainGroupId: string;
+  dnsStatus: DomainDnsStatus;
+  dnsVerifiedAt?: string | null;
+  dnsLastCheckedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;
@@ -13,6 +18,5 @@ export type CreateDomainDto = {
 };
 
 export type UpdateDomainDto = {
-  name?: string;
-  domainGroupId?: string;
+  domainGroupId: string;
 };

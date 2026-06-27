@@ -142,6 +142,15 @@ export const BillingCheckoutStatus: {
 
 export type BillingCheckoutStatus = (typeof BillingCheckoutStatus)[keyof typeof BillingCheckoutStatus]
 
+
+export const DomainDnsStatus: {
+  PENDING: 'PENDING',
+  VERIFIED: 'VERIFIED',
+  FAILED: 'FAILED'
+};
+
+export type DomainDnsStatus = (typeof DomainDnsStatus)[keyof typeof DomainDnsStatus]
+
 }
 
 export type HttpMethod = $Enums.HttpMethod
@@ -167,6 +176,10 @@ export const RedirectDeliveryMode: typeof $Enums.RedirectDeliveryMode
 export type BillingCheckoutStatus = $Enums.BillingCheckoutStatus
 
 export const BillingCheckoutStatus: typeof $Enums.BillingCheckoutStatus
+
+export type DomainDnsStatus = $Enums.DomainDnsStatus
+
+export const DomainDnsStatus: typeof $Enums.DomainDnsStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -8318,6 +8331,9 @@ export namespace Prisma {
     id: string | null
     name: string | null
     domainGroupId: string | null
+    dnsStatus: $Enums.DomainDnsStatus | null
+    dnsVerifiedAt: Date | null
+    dnsLastCheckedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -8327,6 +8343,9 @@ export namespace Prisma {
     id: string | null
     name: string | null
     domainGroupId: string | null
+    dnsStatus: $Enums.DomainDnsStatus | null
+    dnsVerifiedAt: Date | null
+    dnsLastCheckedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
     deletedAt: Date | null
@@ -8336,6 +8355,9 @@ export namespace Prisma {
     id: number
     name: number
     domainGroupId: number
+    dnsStatus: number
+    dnsVerifiedAt: number
+    dnsLastCheckedAt: number
     createdAt: number
     updatedAt: number
     deletedAt: number
@@ -8347,6 +8369,9 @@ export namespace Prisma {
     id?: true
     name?: true
     domainGroupId?: true
+    dnsStatus?: true
+    dnsVerifiedAt?: true
+    dnsLastCheckedAt?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -8356,6 +8381,9 @@ export namespace Prisma {
     id?: true
     name?: true
     domainGroupId?: true
+    dnsStatus?: true
+    dnsVerifiedAt?: true
+    dnsLastCheckedAt?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -8365,6 +8393,9 @@ export namespace Prisma {
     id?: true
     name?: true
     domainGroupId?: true
+    dnsStatus?: true
+    dnsVerifiedAt?: true
+    dnsLastCheckedAt?: true
     createdAt?: true
     updatedAt?: true
     deletedAt?: true
@@ -8447,6 +8478,9 @@ export namespace Prisma {
     id: string
     name: string
     domainGroupId: string
+    dnsStatus: $Enums.DomainDnsStatus
+    dnsVerifiedAt: Date | null
+    dnsLastCheckedAt: Date | null
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -8473,6 +8507,9 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     domainGroupId?: boolean
+    dnsStatus?: boolean
+    dnsVerifiedAt?: boolean
+    dnsLastCheckedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -8483,6 +8520,9 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     domainGroupId?: boolean
+    dnsStatus?: boolean
+    dnsVerifiedAt?: boolean
+    dnsLastCheckedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -8493,6 +8533,9 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     domainGroupId?: boolean
+    dnsStatus?: boolean
+    dnsVerifiedAt?: boolean
+    dnsLastCheckedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
@@ -8503,12 +8546,15 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     domainGroupId?: boolean
+    dnsStatus?: boolean
+    dnsVerifiedAt?: boolean
+    dnsLastCheckedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     deletedAt?: boolean
   }
 
-  export type DomainOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "domainGroupId" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["domain"]>
+  export type DomainOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "domainGroupId" | "dnsStatus" | "dnsVerifiedAt" | "dnsLastCheckedAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["domain"]>
   export type DomainInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     domainGroup?: boolean | DomainGroupDefaultArgs<ExtArgs>
   }
@@ -8528,6 +8574,9 @@ export namespace Prisma {
       id: string
       name: string
       domainGroupId: string
+      dnsStatus: $Enums.DomainDnsStatus
+      dnsVerifiedAt: Date | null
+      dnsLastCheckedAt: Date | null
       createdAt: Date
       updatedAt: Date
       deletedAt: Date | null
@@ -8958,6 +9007,9 @@ export namespace Prisma {
     readonly id: FieldRef<"Domain", 'String'>
     readonly name: FieldRef<"Domain", 'String'>
     readonly domainGroupId: FieldRef<"Domain", 'String'>
+    readonly dnsStatus: FieldRef<"Domain", 'DomainDnsStatus'>
+    readonly dnsVerifiedAt: FieldRef<"Domain", 'DateTime'>
+    readonly dnsLastCheckedAt: FieldRef<"Domain", 'DateTime'>
     readonly createdAt: FieldRef<"Domain", 'DateTime'>
     readonly updatedAt: FieldRef<"Domain", 'DateTime'>
     readonly deletedAt: FieldRef<"Domain", 'DateTime'>
@@ -17555,6 +17607,9 @@ export namespace Prisma {
     id: 'id',
     name: 'name',
     domainGroupId: 'domainGroupId',
+    dnsStatus: 'dnsStatus',
+    dnsVerifiedAt: 'dnsVerifiedAt',
+    dnsLastCheckedAt: 'dnsLastCheckedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     deletedAt: 'deletedAt'
@@ -17804,6 +17859,20 @@ export namespace Prisma {
    * Reference to a field of type 'RedirectDeliveryMode[]'
    */
   export type ListEnumRedirectDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RedirectDeliveryMode[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'DomainDnsStatus'
+   */
+  export type EnumDomainDnsStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DomainDnsStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'DomainDnsStatus[]'
+   */
+  export type ListEnumDomainDnsStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DomainDnsStatus[]'>
     
 
 
@@ -18343,6 +18412,9 @@ export namespace Prisma {
     id?: StringFilter<"Domain"> | string
     name?: StringFilter<"Domain"> | string
     domainGroupId?: StringFilter<"Domain"> | string
+    dnsStatus?: EnumDomainDnsStatusFilter<"Domain"> | $Enums.DomainDnsStatus
+    dnsVerifiedAt?: DateTimeNullableFilter<"Domain"> | Date | string | null
+    dnsLastCheckedAt?: DateTimeNullableFilter<"Domain"> | Date | string | null
     createdAt?: DateTimeFilter<"Domain"> | Date | string
     updatedAt?: DateTimeFilter<"Domain"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Domain"> | Date | string | null
@@ -18353,6 +18425,9 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     domainGroupId?: SortOrder
+    dnsStatus?: SortOrder
+    dnsVerifiedAt?: SortOrderInput | SortOrder
+    dnsLastCheckedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -18366,6 +18441,9 @@ export namespace Prisma {
     NOT?: DomainWhereInput | DomainWhereInput[]
     name?: StringFilter<"Domain"> | string
     domainGroupId?: StringFilter<"Domain"> | string
+    dnsStatus?: EnumDomainDnsStatusFilter<"Domain"> | $Enums.DomainDnsStatus
+    dnsVerifiedAt?: DateTimeNullableFilter<"Domain"> | Date | string | null
+    dnsLastCheckedAt?: DateTimeNullableFilter<"Domain"> | Date | string | null
     createdAt?: DateTimeFilter<"Domain"> | Date | string
     updatedAt?: DateTimeFilter<"Domain"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Domain"> | Date | string | null
@@ -18376,6 +18454,9 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     domainGroupId?: SortOrder
+    dnsStatus?: SortOrder
+    dnsVerifiedAt?: SortOrderInput | SortOrder
+    dnsLastCheckedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrderInput | SortOrder
@@ -18391,6 +18472,9 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Domain"> | string
     name?: StringWithAggregatesFilter<"Domain"> | string
     domainGroupId?: StringWithAggregatesFilter<"Domain"> | string
+    dnsStatus?: EnumDomainDnsStatusWithAggregatesFilter<"Domain"> | $Enums.DomainDnsStatus
+    dnsVerifiedAt?: DateTimeNullableWithAggregatesFilter<"Domain"> | Date | string | null
+    dnsLastCheckedAt?: DateTimeNullableWithAggregatesFilter<"Domain"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Domain"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Domain"> | Date | string
     deletedAt?: DateTimeNullableWithAggregatesFilter<"Domain"> | Date | string | null
@@ -19504,6 +19588,9 @@ export namespace Prisma {
   export type DomainCreateInput = {
     id: string
     name: string
+    dnsStatus?: $Enums.DomainDnsStatus
+    dnsVerifiedAt?: Date | string | null
+    dnsLastCheckedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -19514,6 +19601,9 @@ export namespace Prisma {
     id: string
     name: string
     domainGroupId: string
+    dnsStatus?: $Enums.DomainDnsStatus
+    dnsVerifiedAt?: Date | string | null
+    dnsLastCheckedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -19522,6 +19612,9 @@ export namespace Prisma {
   export type DomainUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    dnsStatus?: EnumDomainDnsStatusFieldUpdateOperationsInput | $Enums.DomainDnsStatus
+    dnsVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dnsLastCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -19532,6 +19625,9 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     domainGroupId?: StringFieldUpdateOperationsInput | string
+    dnsStatus?: EnumDomainDnsStatusFieldUpdateOperationsInput | $Enums.DomainDnsStatus
+    dnsVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dnsLastCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -19541,6 +19637,9 @@ export namespace Prisma {
     id: string
     name: string
     domainGroupId: string
+    dnsStatus?: $Enums.DomainDnsStatus
+    dnsVerifiedAt?: Date | string | null
+    dnsLastCheckedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -19549,6 +19648,9 @@ export namespace Prisma {
   export type DomainUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    dnsStatus?: EnumDomainDnsStatusFieldUpdateOperationsInput | $Enums.DomainDnsStatus
+    dnsVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dnsLastCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -19558,6 +19660,9 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     domainGroupId?: StringFieldUpdateOperationsInput | string
+    dnsStatus?: EnumDomainDnsStatusFieldUpdateOperationsInput | $Enums.DomainDnsStatus
+    dnsVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dnsLastCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -20745,6 +20850,13 @@ export namespace Prisma {
     _max?: NestedEnumRedirectDeliveryModeFilter<$PrismaModel>
   }
 
+  export type EnumDomainDnsStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.DomainDnsStatus | EnumDomainDnsStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DomainDnsStatus[] | ListEnumDomainDnsStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DomainDnsStatus[] | ListEnumDomainDnsStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDomainDnsStatusFilter<$PrismaModel> | $Enums.DomainDnsStatus
+  }
+
   export type DomainGroupScalarRelationFilter = {
     is?: DomainGroupWhereInput
     isNot?: DomainGroupWhereInput
@@ -20754,6 +20866,9 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     domainGroupId?: SortOrder
+    dnsStatus?: SortOrder
+    dnsVerifiedAt?: SortOrder
+    dnsLastCheckedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -20763,6 +20878,9 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     domainGroupId?: SortOrder
+    dnsStatus?: SortOrder
+    dnsVerifiedAt?: SortOrder
+    dnsLastCheckedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
@@ -20772,9 +20890,22 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     domainGroupId?: SortOrder
+    dnsStatus?: SortOrder
+    dnsVerifiedAt?: SortOrder
+    dnsLastCheckedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     deletedAt?: SortOrder
+  }
+
+  export type EnumDomainDnsStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.DomainDnsStatus | EnumDomainDnsStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DomainDnsStatus[] | ListEnumDomainDnsStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DomainDnsStatus[] | ListEnumDomainDnsStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDomainDnsStatusWithAggregatesFilter<$PrismaModel> | $Enums.DomainDnsStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumDomainDnsStatusFilter<$PrismaModel>
+    _max?: NestedEnumDomainDnsStatusFilter<$PrismaModel>
   }
 
   export type LinkShiftSubdomainCountOrderByAggregateInput = {
@@ -21941,6 +22072,10 @@ export namespace Prisma {
     connect?: DomainGroupWhereUniqueInput
   }
 
+  export type EnumDomainDnsStatusFieldUpdateOperationsInput = {
+    set?: $Enums.DomainDnsStatus
+  }
+
   export type DomainGroupUpdateOneRequiredWithoutDomainsNestedInput = {
     create?: XOR<DomainGroupCreateWithoutDomainsInput, DomainGroupUncheckedCreateWithoutDomainsInput>
     connectOrCreate?: DomainGroupCreateOrConnectWithoutDomainsInput
@@ -22462,6 +22597,23 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumRedirectDeliveryModeFilter<$PrismaModel>
     _max?: NestedEnumRedirectDeliveryModeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumDomainDnsStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.DomainDnsStatus | EnumDomainDnsStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DomainDnsStatus[] | ListEnumDomainDnsStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DomainDnsStatus[] | ListEnumDomainDnsStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDomainDnsStatusFilter<$PrismaModel> | $Enums.DomainDnsStatus
+  }
+
+  export type NestedEnumDomainDnsStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.DomainDnsStatus | EnumDomainDnsStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.DomainDnsStatus[] | ListEnumDomainDnsStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.DomainDnsStatus[] | ListEnumDomainDnsStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumDomainDnsStatusWithAggregatesFilter<$PrismaModel> | $Enums.DomainDnsStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumDomainDnsStatusFilter<$PrismaModel>
+    _max?: NestedEnumDomainDnsStatusFilter<$PrismaModel>
   }
 
   export type NestedEnumRedirectQueryMatchFilter<$PrismaModel = never> = {
@@ -23527,6 +23679,9 @@ export namespace Prisma {
   export type DomainCreateWithoutDomainGroupInput = {
     id: string
     name: string
+    dnsStatus?: $Enums.DomainDnsStatus
+    dnsVerifiedAt?: Date | string | null
+    dnsLastCheckedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -23535,6 +23690,9 @@ export namespace Prisma {
   export type DomainUncheckedCreateWithoutDomainGroupInput = {
     id: string
     name: string
+    dnsStatus?: $Enums.DomainDnsStatus
+    dnsVerifiedAt?: Date | string | null
+    dnsLastCheckedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -23754,6 +23912,9 @@ export namespace Prisma {
     id?: StringFilter<"Domain"> | string
     name?: StringFilter<"Domain"> | string
     domainGroupId?: StringFilter<"Domain"> | string
+    dnsStatus?: EnumDomainDnsStatusFilter<"Domain"> | $Enums.DomainDnsStatus
+    dnsVerifiedAt?: DateTimeNullableFilter<"Domain"> | Date | string | null
+    dnsLastCheckedAt?: DateTimeNullableFilter<"Domain"> | Date | string | null
     createdAt?: DateTimeFilter<"Domain"> | Date | string
     updatedAt?: DateTimeFilter<"Domain"> | Date | string
     deletedAt?: DateTimeNullableFilter<"Domain"> | Date | string | null
@@ -25482,6 +25643,9 @@ export namespace Prisma {
   export type DomainCreateManyDomainGroupInput = {
     id: string
     name: string
+    dnsStatus?: $Enums.DomainDnsStatus
+    dnsVerifiedAt?: Date | string | null
+    dnsLastCheckedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     deletedAt?: Date | string | null
@@ -25537,6 +25701,9 @@ export namespace Prisma {
   export type DomainUpdateWithoutDomainGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    dnsStatus?: EnumDomainDnsStatusFieldUpdateOperationsInput | $Enums.DomainDnsStatus
+    dnsVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dnsLastCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -25545,6 +25712,9 @@ export namespace Prisma {
   export type DomainUncheckedUpdateWithoutDomainGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    dnsStatus?: EnumDomainDnsStatusFieldUpdateOperationsInput | $Enums.DomainDnsStatus
+    dnsVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dnsLastCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -25553,6 +25723,9 @@ export namespace Prisma {
   export type DomainUncheckedUpdateManyWithoutDomainGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    dnsStatus?: EnumDomainDnsStatusFieldUpdateOperationsInput | $Enums.DomainDnsStatus
+    dnsVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    dnsLastCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

@@ -61,6 +61,7 @@ services:
       ZEPTOMAIL_FROM_ADDRESS: ${ZEPTOMAIL_FROM_ADDRESS}
       ZEPTOMAIL_FROM_NAME: ${ZEPTOMAIL_FROM_NAME}
       EMAIL_FROM: ${EMAIL_FROM}
+      APP_DOMAIN_TARGET_IP: ${APP_DOMAIN_TARGET_IP}
     secrets:
       - database_url
       - redis_password
