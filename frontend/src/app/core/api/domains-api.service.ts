@@ -32,4 +32,8 @@ export class DomainsApiService {
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  verifyDns(id: string): Observable<Domain> {
+    return this.http.post<Domain>(`${this.apiUrl}/${id}/verify-dns`, {});
+  }
 }

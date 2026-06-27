@@ -168,7 +168,8 @@ export class SubdomainsPageComponent {
       width: '420px',
       data: {
         title: 'Delete subdomain',
-        message: 'This removes the subdomain from the LinkShift base host routing.',
+        message:
+          'Published short links using this host will stop working. The subdomain name is reserved for 7 days and cannot be reused immediately.',
         confirmLabel: 'Delete',
         tone: 'warning'
       }

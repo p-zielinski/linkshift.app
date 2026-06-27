@@ -56,6 +56,12 @@ enum BillingCheckoutStatus {
   EXPIRED
 }
 
+enum DomainDnsStatus {
+  PENDING
+  VERIFIED
+  FAILED
+}
+
 // Organization entity - top-level tenant
 model Organization {
   id        String    @id
@@ -171,12 +177,15 @@ model DomainGroup {
 
 // Domain entity - individual hostname (e.g., google.com, www.google.com)
 model Domain {
-  id            String    @id
-  name          String // Hostname must be unique among active domains
-  domainGroupId String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
+  id               String          @id
+  name             String // Hostname must be unique among active domains
+  domainGroupId    String
+  dnsStatus        DomainDnsStatus @default(PENDING)
+  dnsVerifiedAt    DateTime?
+  dnsLastCheckedAt DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  deletedAt        DateTime?
 
   domainGroup DomainGroup @relation(fields: [domainGroupId], references: [id], onDelete: Cascade)
 

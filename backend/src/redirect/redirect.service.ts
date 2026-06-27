@@ -24,8 +24,10 @@ import {
 } from '../zod-schames/domain-group.schemas';
 import { AppEntity, createCustomCuid, throwHttpException } from '../utils';
 import { OrganizationService } from '../organization/organization.service';
-import { REDIRECT_ENGINE_LIMITS } from '../constants';
-import { HttpMethod, Prisma } from '@prisma/client';
+import {
+  REDIRECT_ENGINE_LIMITS,
+} from '../constants';
+import { HttpMethod, Prisma, DomainDnsStatus } from '@prisma/client';
 import {
   CachedByProperty,
   CacheManagerService,
@@ -55,7 +57,20 @@ import { DestinationExtractorService } from '../security/destination-extractor.s
 import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { SubdomainBlacklistService } from '../security/subdomain-blacklist.service';
+import { DnsVerificationService } from '../security/dns-verification.service';
+import {
+  CHECK_DOMAIN_OUTCOME,
+  type CheckDomainHostType,
+  type CheckDomainOutcome,
+  type DomainAllowCheckCached,
+  type DomainAllowCheckResult,
+} from '../security/check-domain-outcome.constants';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
+import {
+  getHostnameReleaseCooldownConflictDetails,
+  getHostnameReleaseCooldownEndsAt,
+  isHostnameInReleaseCooldown,
+} from '../security/hostname-policy.constants';
 import { Logger } from 'nestjs-pino';
 import { LinkMapService } from '../link-map/link-map.service';
 import { ConfigService } from '@nestjs/config';
@@ -240,6 +255,7 @@ export class RedirectService {
     private readonly safetyScannerService: SafetyScannerService,
     private readonly domainBlacklistService: DomainBlacklistService,
     private readonly subdomainBlacklistService: SubdomainBlacklistService,
+    private readonly dnsVerificationService: DnsVerificationService,
     private readonly redirectAnalyticsService: RedirectAnalyticsService,
     private readonly linkMapService: LinkMapService,
     private readonly logger: Logger,
@@ -434,10 +450,44 @@ export class RedirectService {
     return !!domainGroup;
   }
 
+  private resolveCheckDomainHostType(
+    normalized: string,
+    subdomainName: string | null,
+  ): CheckDomainHostType {
+    if (!normalized) {
+      return 'unknown';
+    }
+    if (subdomainName) {
+      return 'subdomain';
+    }
+    return 'custom';
+  }
+
+  private normalizeCachedAllowCheck(
+    cached: DomainAllowCheckCached | boolean | DomainAllowCheckResult,
+    hostType: CheckDomainHostType,
+  ): DomainAllowCheckResult {
+    if (typeof cached === 'boolean') {
+      return {
+        allowed: cached,
+        outcome: cached
+          ? CHECK_DOMAIN_OUTCOME.allowed
+          : CHECK_DOMAIN_OUTCOME.not_found,
+        hostType,
+      };
+    }
+
+    return {
+      allowed: cached.allowed,
+      outcome: cached.outcome,
+      hostType: 'hostType' in cached ? cached.hostType : hostType,
+    };
+  }
+
   private async isRegisteredHostnameAllowed(
     hostname: string,
     subdomainName: string | null,
-  ): Promise<boolean> {
+  ): Promise<Pick<DomainAllowCheckResult, 'allowed' | 'outcome'>> {
     if (subdomainName) {
       const subdomain = await this.cacheManagerService.getData<LinkShiftSubdomain>(
         {
@@ -446,9 +496,15 @@ export class RedirectService {
         },
       );
       if (!subdomain) {
-        return false;
+        return {
+          allowed: false,
+          outcome: CHECK_DOMAIN_OUTCOME.not_found,
+        };
       }
-      return this.isActiveDomainGroup(subdomain.domainGroupId);
+      const active = await this.isActiveDomainGroup(subdomain.domainGroupId);
+      return active
+        ? { allowed: true, outcome: CHECK_DOMAIN_OUTCOME.allowed }
+        : { allowed: false, outcome: CHECK_DOMAIN_OUTCOME.inactive_group };
     }
 
     const domain = await this.cacheManagerService.getData<Domain>({
@@ -456,9 +512,48 @@ export class RedirectService {
       properties: { [CachedByProperty.NAME]: hostname },
     });
     if (!domain) {
-      return false;
+      return {
+        allowed: false,
+        outcome: CHECK_DOMAIN_OUTCOME.not_found,
+      };
     }
-    return this.isActiveDomainGroup(domain.domainGroupId);
+    if (!(await this.isActiveDomainGroup(domain.domainGroupId))) {
+      return {
+        allowed: false,
+        outcome: CHECK_DOMAIN_OUTCOME.inactive_group,
+      };
+    }
+
+    if (domain.dnsStatus === DomainDnsStatus.VERIFIED) {
+      return { allowed: true, outcome: CHECK_DOMAIN_OUTCOME.allowed };
+    }
+
+    const dnsVerified =
+      await this.dnsVerificationService.getCachedOrVerify(hostname);
+    if (dnsVerified) {
+      const now = new Date();
+      const updatedDomain = await this.prisma.domain.update({
+        where: { id: domain.id },
+        data: {
+          dnsStatus: DomainDnsStatus.VERIFIED,
+          dnsVerifiedAt: now,
+          dnsLastCheckedAt: now,
+        },
+      });
+      await this.invalidateHostnameEntityCache({
+        dataType: DataType.DOMAINS,
+        id: domain.id,
+        name: domain.name,
+      });
+      await this.cacheManagerService.setDataExist({
+        dataType: DataType.DOMAINS,
+        data: updatedDomain,
+      });
+      await this.invalidateCaddyDomainCache(hostname);
+      return { allowed: true, outcome: CHECK_DOMAIN_OUTCOME.allowed };
+    }
+
+    return { allowed: false, outcome: CHECK_DOMAIN_OUTCOME.dns_pending };
   }
 
   private async invalidateHostnameEntityCache(params: {
@@ -529,6 +624,13 @@ export class RedirectService {
   }
 
   async isDomainAllowed(hostname: string): Promise<boolean> {
+    const { allowed } = await this.getDomainAllowCheck(hostname);
+    return allowed;
+  }
+
+  async getDomainAllowCheck(
+    hostname: string,
+  ): Promise<DomainAllowCheckResult> {
     const normalized = this.normalizeHostname(hostname);
     const requestId = this.clsService.getId();
     this.logger.debug('Caddy domain allow check start', {
@@ -541,39 +643,74 @@ export class RedirectService {
         requestId,
         hostname,
       });
-      return false;
+      return {
+        allowed: false,
+        outcome: CHECK_DOMAIN_OUTCOME.not_found,
+        hostType: 'unknown',
+      };
     }
 
     const cacheKey = this.getCaddyDomainCacheKey(normalized);
     const subdomainName = this.extractSubdomainName(normalized);
+    const hostType = this.resolveCheckDomainHostType(normalized, subdomainName);
 
-    if (
-      subdomainName &&
-      !this.subdomainBlacklistService.canExistInRegistry(subdomainName)
-    ) {
-      this.logger.debug('Caddy domain allow check rejected by subdomain policy', {
-        requestId,
-        normalized,
-        subdomainName,
-      });
-      await this.cacheManagerService.setCustomCache(
-        cacheKey,
-        false,
-        CADDY_DOMAIN_CACHE_TTL_SECONDS,
-      );
-      return false;
+    if (subdomainName) {
+      if (!this.subdomainBlacklistService.isValidName(subdomainName)) {
+        this.logger.debug(
+          'Caddy domain allow check rejected by invalid subdomain format',
+          {
+            requestId,
+            normalized,
+            subdomainName,
+          },
+        );
+        const result: DomainAllowCheckResult = {
+          allowed: false,
+          outcome: CHECK_DOMAIN_OUTCOME.invalid_subdomain_format,
+          hostType,
+        };
+        await this.cacheManagerService.setCustomCache(
+          cacheKey,
+          { allowed: result.allowed, outcome: result.outcome },
+          CADDY_DOMAIN_CACHE_TTL_SECONDS,
+        );
+        return result;
+      }
+
+      if (!this.subdomainBlacklistService.canExistInRegistry(subdomainName)) {
+        this.logger.debug('Caddy domain allow check rejected by subdomain policy', {
+          requestId,
+          normalized,
+          subdomainName,
+        });
+        const result: DomainAllowCheckResult = {
+          allowed: false,
+          outcome: CHECK_DOMAIN_OUTCOME.reserved_subdomain,
+          hostType,
+        };
+        await this.cacheManagerService.setCustomCache(
+          cacheKey,
+          { allowed: result.allowed, outcome: result.outcome },
+          CADDY_DOMAIN_CACHE_TTL_SECONDS,
+        );
+        return result;
+      }
     }
 
-    const cached =
-      await this.cacheManagerService.getCustomCache<boolean>(cacheKey);
+    const cached = await this.cacheManagerService.getCustomCache<
+      DomainAllowCheckCached | boolean | DomainAllowCheckResult
+    >(cacheKey);
     if (cached !== undefined) {
+      const result = this.normalizeCachedAllowCheck(cached, hostType);
       this.logger.debug('Caddy domain allow check cache hit', {
         requestId,
         normalized,
-        allowed: cached,
+        allowed: result.allowed,
+        outcome: result.outcome,
+        hostType: result.hostType,
         cacheKey,
       });
-      return cached;
+      return result;
     }
     this.logger.debug('Caddy domain allow check cache miss', {
       requestId,
@@ -581,7 +718,7 @@ export class RedirectService {
       cacheKey,
     });
 
-    const allowed = await this.isRegisteredHostnameAllowed(
+    const result = await this.isRegisteredHostnameAllowed(
       normalized,
       subdomainName,
     );
@@ -589,24 +726,27 @@ export class RedirectService {
       requestId,
       normalized,
       subdomainName,
-      allowed,
+      allowed: result.allowed,
+      outcome: result.outcome,
     });
     await this.cacheManagerService.setCustomCache(
       cacheKey,
-      allowed,
+      { allowed: result.allowed, outcome: result.outcome },
       CADDY_DOMAIN_CACHE_TTL_SECONDS,
     );
     this.logger.debug('Caddy domain allow check cache set', {
       requestId,
       normalized,
-      allowed,
+      allowed: result.allowed,
+      outcome: result.outcome,
       cacheKey,
       ttlSeconds: CADDY_DOMAIN_CACHE_TTL_SECONDS,
     });
-    return allowed;
+    return {
+      ...result,
+      hostType: this.resolveCheckDomainHostType(normalized, subdomainName),
+    };
   }
-
-  // --- Management Methods (CRUD) ---
 
   async listDomains(organizationId: string): Promise<QueryResult<Domain>> {
     const domains = await this.prisma.domain.findMany({
@@ -648,6 +788,16 @@ export class RedirectService {
   }
 
   async createDomain(organizationId: string, data: CreateDomainDto) {
+    const domainName = this.normalizeHostname(data.name);
+    if (!domainName) {
+      return throwHttpException(
+        new ConflictError({
+          details: 'Domain name is required',
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+
     await this.organizationService.checkDomainLimit(
       organizationId,
       data.domainGroupId,
@@ -673,7 +823,7 @@ export class RedirectService {
     // 2. Check duplicate name
     const existing = await this.prisma.domain.findFirst({
       where: {
-        name: data.name,
+        name: domainName,
         deletedAt: null,
       },
     });
@@ -681,7 +831,30 @@ export class RedirectService {
     if (existing) {
       return throwHttpException(
         new ConflictError({
-          details: `Domain name ${data.name} already exists`,
+          details: `Domain name ${domainName} already exists`,
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+
+    const released = await this.prisma.domain.findFirst({
+      where: {
+        name: domainName,
+        deletedAt: { not: null },
+      },
+      orderBy: { deletedAt: 'desc' },
+      select: { deletedAt: true },
+    });
+
+    if (released?.deletedAt && isHostnameInReleaseCooldown(released.deletedAt)) {
+      const cooldownEndsAt = getHostnameReleaseCooldownEndsAt(released.deletedAt);
+      return throwHttpException(
+        new ConflictError({
+          details: getHostnameReleaseCooldownConflictDetails(
+            'Domain',
+            domainName,
+            cooldownEndsAt,
+          ),
           requestId: this.clsService.getId(),
         }),
       );
@@ -693,15 +866,16 @@ export class RedirectService {
       domain = await this.prisma.domain.create({
         data: {
           id: createCustomCuid(AppEntity.Domain),
-          name: data.name,
+          name: domainName,
           domainGroupId: data.domainGroupId,
+          dnsStatus: DomainDnsStatus.PENDING,
         },
       });
     } catch (error) {
       if (isUniqueConstraintError(error)) {
         return throwHttpException(
           new ConflictError({
-            details: `Domain name ${data.name} already exists`,
+            details: `Domain name ${domainName} already exists`,
             requestId: this.clsService.getId(),
           }),
         );
@@ -718,6 +892,38 @@ export class RedirectService {
       data: domain,
     });
     return domain;
+  }
+
+  async verifyDomainDns(id: string, organizationId: string) {
+    const domain = await this.getDomainById(id, organizationId);
+    const now = new Date();
+    const dnsVerified = await this.dnsVerificationService.pointsToTarget(
+      domain.name,
+    );
+
+    const updatedDomain = await this.prisma.domain.update({
+      where: { id },
+      data: {
+        dnsStatus: dnsVerified
+          ? DomainDnsStatus.VERIFIED
+          : DomainDnsStatus.FAILED,
+        dnsLastCheckedAt: now,
+        ...(dnsVerified ? { dnsVerifiedAt: now } : {}),
+      },
+    });
+
+    await this.invalidateHostnameEntityCache({
+      dataType: DataType.DOMAINS,
+      id: domain.id,
+      name: domain.name,
+    });
+    await this.invalidateCaddyDomainCache(domain.name);
+    await this.cacheManagerService.setDataExist({
+      dataType: DataType.DOMAINS,
+      data: updatedDomain,
+    });
+
+    return updatedDomain;
   }
 
   async updateDomain(
@@ -743,26 +949,21 @@ export class RedirectService {
       );
     }
 
-    // 2. Check duplicates if name changes
-    if (data.name && data.name !== existing.name) {
-      const duplicate = await this.prisma.domain.findFirst({
-        where: {
-          name: data.name,
-          deletedAt: null,
-        },
-      });
-
-      if (duplicate) {
-        return throwHttpException(
-          new ConflictError({
-            details: `Domain name ${data.name} already exists`,
-            requestId: this.clsService.getId(),
-          }),
-        );
-      }
+    const requestedName = (data as { name?: string }).name;
+    if (
+      requestedName &&
+      requestedName.toLowerCase() !== existing.name.toLowerCase()
+    ) {
+      return throwHttpException(
+        new ConflictError({
+          details:
+            'Domain name cannot be changed. Delete and create a new domain instead; a new TLS certificate will be required.',
+          requestId: this.clsService.getId(),
+        }),
+      );
     }
 
-    // 3. Verify new group if changing
+    // 2. Verify new group if changing
     if (data.domainGroupId) {
       const newDomainGroup = await this.prisma.domainGroup.findFirst({
         where: {
@@ -791,10 +992,9 @@ export class RedirectService {
       });
     } catch (error) {
       if (isUniqueConstraintError(error)) {
-        const attemptedName = data.name ?? existing.name;
         return throwHttpException(
           new ConflictError({
-            details: `Domain name ${attemptedName} already exists`,
+            details: `Domain name ${existing.name} already exists`,
             requestId: this.clsService.getId(),
           }),
         );
@@ -807,24 +1007,11 @@ export class RedirectService {
       type: InvalidationTargetType.HOSTNAME,
       value: domain.name,
     });
-    if (existing.name !== domain.name) {
-      await this.invalidateDomainCache({
-        type: InvalidationTargetType.HOSTNAME,
-        value: existing.name,
-      });
-    }
     await this.invalidateHostnameEntityCache({
       dataType: DataType.DOMAINS,
       id: domain.id,
       name: domain.name,
     });
-    if (existing.name !== domain.name) {
-      await this.invalidateHostnameEntityCache({
-        dataType: DataType.DOMAINS,
-        id: existing.id,
-        name: existing.name,
-      });
-    }
     await this.cacheManagerService.setDataExist({
       dataType: DataType.DOMAINS,
       data: domain,
@@ -956,6 +1143,29 @@ export class RedirectService {
       );
     }
 
+    const released = await this.prisma.linkShiftSubdomain.findFirst({
+      where: {
+        name: data.name,
+        deletedAt: { not: null },
+      },
+      orderBy: { deletedAt: 'desc' },
+      select: { deletedAt: true },
+    });
+
+    if (released?.deletedAt && isHostnameInReleaseCooldown(released.deletedAt)) {
+      const cooldownEndsAt = getHostnameReleaseCooldownEndsAt(released.deletedAt);
+      return throwHttpException(
+        new ConflictError({
+          details: getHostnameReleaseCooldownConflictDetails(
+            'Subdomain',
+            data.name,
+            cooldownEndsAt,
+          ),
+          requestId: this.clsService.getId(),
+        }),
+      );
+    }
+
     let subdomain: LinkShiftSubdomain;
     try {
       subdomain = await this.prisma.linkShiftSubdomain.create({
@@ -1010,35 +1220,21 @@ export class RedirectService {
       );
     }
 
-    const nextName = data.name ?? existing.name;
-    const nextDomainGroupId = data.domainGroupId ?? existing.domainGroupId;
-
-    if (this.subdomainBlacklistService.isReserved(nextName)) {
+    const requestedName = (data as { name?: string }).name;
+    if (
+      requestedName &&
+      requestedName.toLowerCase() !== existing.name.toLowerCase()
+    ) {
       return throwHttpException(
         new ConflictError({
-          details: `Subdomain name ${nextName} is reserved`,
+          details:
+            'Subdomain name cannot be changed. Delete and create a new subdomain instead.',
           requestId: this.clsService.getId(),
         }),
       );
     }
 
-    if (nextName !== existing.name) {
-      const duplicate = await this.prisma.linkShiftSubdomain.findFirst({
-        where: {
-          name: nextName,
-          deletedAt: null,
-        },
-      });
-
-      if (duplicate) {
-        return throwHttpException(
-          new ConflictError({
-            details: `Subdomain name ${nextName} already exists`,
-            requestId: this.clsService.getId(),
-          }),
-        );
-      }
-    }
+    const nextDomainGroupId = data.domainGroupId ?? existing.domainGroupId;
 
     const newDomainGroup = await this.prisma.domainGroup.findFirst({
       where: {
@@ -1089,7 +1285,7 @@ export class RedirectService {
       if (isUniqueConstraintError(error)) {
         return throwHttpException(
           new ConflictError({
-            details: `Subdomain name ${nextName} already exists`,
+            details: `Subdomain name ${existing.name} already exists`,
             requestId: this.clsService.getId(),
           }),
         );
@@ -1101,24 +1297,11 @@ export class RedirectService {
       type: InvalidationTargetType.SUBDOMAIN_NAME,
       value: subdomain.name,
     });
-    if (existing.name !== subdomain.name) {
-      await this.invalidateDomainCache({
-        type: InvalidationTargetType.SUBDOMAIN_NAME,
-        value: existing.name,
-      });
-    }
     await this.invalidateHostnameEntityCache({
       dataType: DataType.SUBDOMAINS,
       id: subdomain.id,
       name: subdomain.name,
     });
-    if (existing.name !== subdomain.name) {
-      await this.invalidateHostnameEntityCache({
-        dataType: DataType.SUBDOMAINS,
-        id: existing.id,
-        name: existing.name,
-      });
-    }
     await this.cacheManagerService.setDataExist({
       dataType: DataType.SUBDOMAINS,
       data: subdomain,

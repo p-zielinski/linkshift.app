@@ -14,6 +14,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ResourcePillComponent } from '../../../../shared/components/resource-pill/resource-pill.component';
 import { switchSiteOrAllSitesCopy } from '../../../../core/layout/page-workspace-empty-state.copy';
 import type { Domain } from '../../../../core/models/domain.model';
+import {
+  canVerifyDomainDns,
+  domainDnsStatusView,
+  type DomainDnsStatusView,
+} from './domains-table.util';
 
 type GroupMap = Record<string, { name: string } | undefined>;
 
@@ -21,6 +26,8 @@ type DomainRowViewModel = {
   domain: Domain;
   groupLabel: string;
   groupTooltip: string;
+  dnsStatus: DomainDnsStatusView;
+  canVerifyDns: boolean;
 };
 
 @Component({
@@ -35,6 +42,7 @@ type DomainRowViewModel = {
     ResourcePillComponent,
   ],
   templateUrl: './domains-table.component.html',
+  styleUrl: './domains-table.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DomainsTableComponent {
@@ -45,12 +53,14 @@ export class DomainsTableComponent {
   readonly loading = input(false);
   readonly workspaceFilterActive = input(false);
   readonly totalUnfilteredCount = input<number | undefined>(undefined);
+  readonly verifyingDnsId = input<string | null>(null);
 
   @Output() create = new EventEmitter<void>();
   @Output() edit = new EventEmitter<Domain>();
   @Output() delete = new EventEmitter<string>();
+  @Output() verifyDns = new EventEmitter<string>();
 
-  readonly columns = ['name', 'id', 'group', 'createdAt', 'actions'];
+  readonly columns = ['name', 'id', 'group', 'dnsStatus', 'createdAt', 'actions'];
 
   readonly rowViewModels = computed((): DomainRowViewModel[] => {
     const groupMap = this.groupMap();
@@ -59,8 +69,14 @@ export class DomainsTableComponent {
       domain,
       groupLabel: groupLabel(groupMap, domain.domainGroupId),
       groupTooltip: groupTooltip(groupMap, domain.domainGroupId),
+      dnsStatus: domainDnsStatusView(domain.dnsStatus),
+      canVerifyDns: canVerifyDomainDns(domain),
     }));
   });
+
+  onVerifyDns(domainId: string): void {
+    this.verifyDns.emit(domainId);
+  }
 
   onCreate(): void {
     this.create.emit();

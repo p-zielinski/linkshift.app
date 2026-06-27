@@ -4,13 +4,23 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { APP_CONFIG } from '../../../../core/config/app-runtime-config';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { DomainGroupStore } from '../../../../core/store/domain-group.store';
+import { DomainStore } from '../../../../core/store/domain.store';
 import { LinkMapStore } from '../../../../core/store/link-map.store';
 import { RedirectRuleStore } from '../../../../core/store/redirect-rule.store';
 import { SubdomainStore } from '../../../../core/store/subdomain.store';
+import { CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY } from '../../../campaign-connect-domain/campaign-connect-domain.util';
 import { DashboardOnboardingDialogComponent } from './dashboard-onboarding-dialog.component';
 
 describe('DashboardOnboardingDialogComponent', () => {
-  const subdomainsSignal = signal([
+  const subdomainsSignal = signal<
+    {
+      id: string;
+      name: string;
+      domainGroupId: string;
+      createdAt: string;
+      updatedAt: string;
+    }[]
+  >([
     {
       id: 'sub-1',
       name: 'launch',
@@ -19,6 +29,16 @@ describe('DashboardOnboardingDialogComponent', () => {
       updatedAt: '2026-01-01T00:00:00.000Z',
     },
   ]);
+  const domainsSignal = signal<
+    {
+      id: string;
+      name: string;
+      domainGroupId: string;
+      dnsStatus: 'PENDING' | 'VERIFIED' | 'FAILED';
+      createdAt: string;
+      updatedAt: string;
+    }[]
+  >([]);
   const linkMapsSignal = signal([
     {
       id: 'map-1',
@@ -84,6 +104,13 @@ describe('DashboardOnboardingDialogComponent', () => {
           },
         },
         {
+          provide: DomainStore,
+          useValue: {
+            selectList: () => domainsSignal,
+            searchList: vi.fn(),
+          },
+        },
+        {
           provide: SubdomainStore,
           useValue: {
             selectList: () => subdomainsSignal,
@@ -124,6 +151,7 @@ describe('DashboardOnboardingDialogComponent', () => {
   }
 
   beforeEach(() => {
+    domainsSignal.set([]);
     subdomainsSignal.set([
       {
         id: 'sub-1',
@@ -187,5 +215,78 @@ describe('DashboardOnboardingDialogComponent', () => {
     expect(component.steps()[0].title).toContain('ready');
     expect(component.steps()[0].description).toContain('ready for you');
     expect(component.steps()[1].label).toBe('Next steps');
+  });
+
+  it('detects when no hosts are connected', () => {
+    domainsSignal.set([]);
+    subdomainsSignal.set([]);
+
+    const component = configure(false);
+
+    expect(component.hasConnectedHosts()).toBe(false);
+  });
+
+  it('uses no-host copy in campaign mode when there are no connected hosts', () => {
+    domainsSignal.set([]);
+    subdomainsSignal.set([]);
+
+    const component = configure(true);
+
+    expect(component.steps()[0].description).toContain('short-link host');
+    expect(component.steps()[0].description).not.toContain('starter subdomain');
+    expect(component.steps()[1].description).toContain('Connect a domain');
+  });
+
+  it('uses no-host copy in advanced mode when there are no connected hosts', () => {
+    domainsSignal.set([]);
+    subdomainsSignal.set([]);
+
+    const component = configure(false);
+
+    expect(component.steps()[0].description).toContain('short-link host');
+    expect(component.steps()[0].description).not.toContain('starter subdomain');
+    expect(component.steps()[1].description).toContain('Connect a domain');
+  });
+
+  it('navigates to connect-domain flow on confirm in campaign mode when no hosts exist', () => {
+    domainsSignal.set([]);
+    subdomainsSignal.set([]);
+    const component = configure(true);
+    const close = vi.spyOn(component['dialogRef'], 'close');
+
+    component.onConfirm();
+
+    expect(close).toHaveBeenCalledWith({
+      confirmed: true,
+      navigateTo: `/links?${CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY}=1`,
+    });
+  });
+
+  it('navigates to connect-domain flow on confirm in advanced mode when no hosts exist', () => {
+    domainsSignal.set([]);
+    subdomainsSignal.set([]);
+    const component = configure(false);
+    const close = vi.spyOn(component['dialogRef'], 'close');
+
+    component.onConfirm();
+
+    expect(close).toHaveBeenCalledWith({
+      confirmed: true,
+      navigateTo: `/links?${CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY}=1`,
+    });
+  });
+
+  it('closes connect-domain flow when CTA is clicked with no hosts', () => {
+    domainsSignal.set([]);
+    subdomainsSignal.set([]);
+    const component = configure(false);
+    const close = vi.spyOn(component['dialogRef'], 'close');
+
+    component.onConnectDomain();
+
+    expect(close).toHaveBeenCalledWith({
+      confirmed: true,
+      navigateTo: `/links?${CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY}=1`,
+    });
   });
 });

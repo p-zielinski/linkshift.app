@@ -8,6 +8,7 @@ import { form } from '@angular/forms/signals';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { TablePaginatorComponent } from '../../shared/components/table-paginator/table-paginator.component';
 import { DomainStore } from '../../core/store/domain.store';
+import { DomainsApiService } from '../../core/api/domains-api.service';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { DomainFormDialogComponent, type DomainDialogData } from './domain-form-dialog.component';
 import type { Domain } from '../../core/models/domain.model';
@@ -45,6 +46,7 @@ export class DomainsPageComponent {
   private readonly wizardDialog = inject(WizardDialogService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly domainStore = inject(DomainStore);
+  private readonly domainsApi = inject(DomainsApiService);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly domainGroupFilterPersistence = inject(DomainGroupFilterPersistenceService);
   private readonly dashboardMode = inject(DashboardModeService);
@@ -57,6 +59,7 @@ export class DomainsPageComponent {
   readonly pageLimitOptions = [10, 20, 50];
   readonly pageLimit = signal(20);
   readonly page = signal(1);
+  readonly verifyingDnsId = signal<string | null>(null);
 
   filterModel = signal({
     domainGroupId: ''
@@ -149,6 +152,13 @@ export class DomainsPageComponent {
 
     dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((created) => {
       if (created) {
+        this.snackBar
+          .open('Domain added. Point DNS to the target IP, then verify when ready.', 'Domain setup', {
+            duration: 6000,
+          })
+          .onAction()
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => this.openSetupDialog());
         this.openSetupDialog();
       }
     });
@@ -169,7 +179,8 @@ export class DomainsPageComponent {
       width: '420px',
       data: {
         title: 'Delete domain',
-        message: 'This removes the domain from the routing configuration.',
+        message:
+          'Published short links using this domain will stop working. Update your DNS records accordingly. The domain name is reserved for 7 days and cannot be reused immediately. Adding a new domain requires issuing a new TLS certificate.',
         confirmLabel: 'Delete',
         tone: 'warning'
       }
@@ -195,5 +206,50 @@ export class DomainsPageComponent {
     this.dialog.open(DomainSetupDialogComponent, {
       width: '480px'
     });
+  }
+
+  verifyDns(domainId: string): void {
+    if (this.verifyingDnsId()) {
+      return;
+    }
+
+    this.verifyingDnsId.set(domainId);
+    this.domainsApi.verifyDns(domainId).subscribe({
+        next: (domain) => {
+          this.verifyingDnsId.set(null);
+          this.domainStore.searchDetails(domain.id, true);
+          this.domainStore.searchList(undefined, true);
+
+          if (domain.dnsStatus === 'VERIFIED') {
+            this.snackBar.open('DNS verified. Redirects are ready for this domain.', 'Dismiss', {
+              duration: 4000,
+            });
+            return;
+          }
+
+          if (domain.dnsStatus === 'FAILED') {
+            this.snackBar
+              .open(
+                'DNS verification failed. Ensure your A record points to the target IP.',
+                'Domain setup',
+                { duration: 6000 },
+              )
+              .onAction()
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe(() => this.openSetupDialog());
+            return;
+          }
+
+          this.snackBar.open('DNS check complete. Verification is still pending.', 'Dismiss', {
+            duration: 4000,
+          });
+        },
+        error: () => {
+          this.verifyingDnsId.set(null);
+          this.snackBar.open('DNS verification request failed. Try again shortly.', 'Dismiss', {
+            duration: 4000,
+          });
+        },
+      });
   }
 }

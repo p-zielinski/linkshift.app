@@ -59,7 +59,7 @@
           "Subdomains"
         ],
         "summary": "Create LinkShift subdomain",
-        "description": "Reserves a lowercase label (max 30 chars) on LinkShift infrastructure under `domainGroupId`.\nReturns 404 when the group is invalid; 409 when the label is already taken.\n",
+        "description": "Reserves a lowercase label (max 30 chars) on LinkShift infrastructure under `domainGroupId`.\nLabels must already be lowercase in the request body.\nReturns 404 when the group is invalid; 409 when the label is already registered\nplatform-wide (among active records), is on the reserved platform label list\n(for example `admin`, `api`, `www`, `support`), or is in a 7-day release cooldown\nafter a recent deletion (label reserved globally).\n",
         "operationId": "createSubdomain",
         "requestBody": {
           "required": true,
@@ -92,7 +92,36 @@
             "$ref": "#/components/responses/NotFound"
           },
           "409": {
-            "$ref": "#/components/responses/Conflict"
+            "description": "Label already registered platform-wide (active record), reserved for platform infrastructure (for example `admin`, `api`, `www`), in a 7-day release cooldown after a recent deletion, or invalid after validation. Cooldown `details` follow the pattern: `Subdomain name {label} was recently deleted and is in a 7-day release cooldown until {iso8601}`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "reservedLabel": {
+                    "summary": "Reserved platform label",
+                    "value": {
+                      "code": 409,
+                      "key": "conflict",
+                      "message": "Conflict",
+                      "details": "Subdomain name admin is reserved",
+                      "requestId": "req_example"
+                    }
+                  },
+                  "releaseCooldown": {
+                    "summary": "Label in release cooldown",
+                    "value": {
+                      "code": 409,
+                      "key": "conflict",
+                      "message": "Conflict",
+                      "details": "Subdomain name my-label was recently deleted and is in a 7-day release cooldown until 2026-07-04T12:00:00.000Z",
+                      "requestId": "req_example"
+                    }
+                  }
+                }
+              }
+            }
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
@@ -143,7 +172,7 @@
           "Subdomains"
         ],
         "summary": "Update LinkShift subdomain",
-        "description": "Renames the label and/or reassigns `domainGroupId` (required in body).\nReturns 409 on label conflict.\n",
+        "description": "Reassigns `domainGroupId` only. The subdomain label (`name`) is immutable after creation;\nsending `name` in the body returns 400 (strict request schema).\nTo use a new label, delete this subdomain and create a new one.\n`domainGroupId` is required in the body.\n",
         "operationId": "updateSubdomain",
         "requestBody": {
           "required": true,
@@ -165,6 +194,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -188,7 +220,7 @@
           "Subdomains"
         ],
         "summary": "Delete LinkShift subdomain (soft)",
-        "description": "Soft-deletes the label; it stops serving redirect traffic.\nReturns 404 when out of scope.\n",
+        "description": "Soft-deletes the label. Published links on this subdomain stop working immediately.\nThe label stays reserved globally for 7 days (release cooldown) before it can be created again.\nReturns 404 when out of scope.\n",
         "operationId": "deleteSubdomain",
         "responses": {
           "200": {
@@ -298,49 +330,6 @@
           "updatedAt"
         ]
       },
-      "UpdateLinkShiftSubdomainRequest": {
-        "description": "Payload for updating a LinkShift subdomain.",
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 30,
-            "pattern": "^[a-z0-9-]{1,30}$",
-            "description": "Subdomain label before base host, lowercase letters/numbers/hyphens."
-          },
-          "domainGroupId": {
-            "type": "string",
-            "maxLength": 100,
-            "description": "Target domain-group ID."
-          }
-        },
-        "required": [
-          "domainGroupId"
-        ]
-      },
-      "QueryResultMeta": {
-        "description": "Metadata envelope shared by cursor-paginated query responses.",
-        "type": "object",
-        "properties": {
-          "dataType": {
-            "type": "string",
-            "description": "Logical item type in the `data` array."
-          },
-          "hasMore": {
-            "type": "boolean",
-            "description": "Whether there are additional results after this page."
-          },
-          "moreStartingAfterId": {
-            "type": "string",
-            "description": "Cursor token to request the next page."
-          }
-        },
-        "required": [
-          "dataType",
-          "hasMore"
-        ]
-      },
       "ErrorResponse": {
         "description": "Standard error envelope. Use `key` for branching in code, `details` for human-readable fixes,\nand `requestId` when escalating to support.\n",
         "type": "object",
@@ -374,6 +363,43 @@
           "code",
           "key",
           "message"
+        ]
+      },
+      "UpdateLinkShiftSubdomainRequest": {
+        "description": "Payload for updating a LinkShift subdomain. Only `domainGroupId` is accepted; the label is immutable (sending `name` returns 400).",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "domainGroupId": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Target domain-group ID."
+          }
+        },
+        "required": [
+          "domainGroupId"
+        ]
+      },
+      "QueryResultMeta": {
+        "description": "Metadata envelope shared by cursor-paginated query responses.",
+        "type": "object",
+        "properties": {
+          "dataType": {
+            "type": "string",
+            "description": "Logical item type in the `data` array."
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether there are additional results after this page."
+          },
+          "moreStartingAfterId": {
+            "type": "string",
+            "description": "Cursor token to request the next page."
+          }
+        },
+        "required": [
+          "dataType",
+          "hasMore"
         ]
       }
     },
@@ -452,8 +478,18 @@
           }
         }
       },
+      "BadRequest": {
+        "description": "Request body or query failed validation. Read `details` (and optional field hints) in the JSON body; fix the payload and retry. Include `requestId` when contacting support.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
       "Conflict": {
-        "description": "Unique constraint conflict (e.g. domain hostname or subdomain label already registered). Change the name or update the existing resource instead of creating again.",
+        "description": "Unique constraint conflict (e.g. domain hostname or subdomain label already registered, or hostname in release cooldown after deletion). Use a different name/label or wait for the cooldown to end; hostnames and labels cannot be renamed via update.",
         "content": {
           "application/json": {
             "schema": {

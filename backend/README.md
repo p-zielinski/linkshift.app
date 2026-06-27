@@ -122,3 +122,12 @@ interface ApiError {
   relatedObjectId?: string;
 }
 ```
+
+### Environment — custom domains and registration
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `APP_DOMAIN_TARGET_IP` | Yes (production) | Public IPv4 address custom domains must resolve to before `/check-domain` allows TLS certificate issuance. Used by DNS verification for custom domains. |
+| `CADDY_CHECK_DOMAIN_ALLOWED_IPS` | No | Optional comma-separated extra IPs/CIDRs allowed to call `GET /check-domain`. By default only private/loopback ranges (Docker overlay, localhost) are permitted; public `API_HOSTNAME` callers are blocked. |
+
+**Registration:** `POST /auth/register` creates the organization, default domain group, starter link map, and redirect rule. It does **not** auto-create a LinkShift subdomain or custom domain; users connect their first host via onboarding or the dashboard domain flows.

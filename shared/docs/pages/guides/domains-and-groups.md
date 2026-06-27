@@ -144,14 +144,26 @@ POST /api/v1/domains
 
 - `GET /api/v1/domains` — list
 - `GET /api/v1/domains/:id` — get one
-- `PUT /api/v1/domains/:id` — update (e.g. move to another group)
+- `POST /api/v1/domains/:id/verify-dns` — check DNS and update `dnsStatus` (see [DNS verification](#dns-verification-for-custom-domains))
+- `PUT /api/v1/domains/:id` — move to another domain group (`domainGroupId` only; see [Hostname lifecycle](#hostname-lifecycle))
 - `DELETE /api/v1/domains/:id` — remove
+
+Example — move to another group:
+
+```json
+PUT /api/v1/domains/:id
+{
+  "domainGroupId": "dmg_other"
+}
+```
 
 Notes:
 
-- Domain names unique among active records.
+- Domain names unique among active records; stored **lowercase** on create.
+- New domains start with **`dnsStatus: PENDING`** until DNS points at the LinkShift target IP.
 - Plan limits validated on create.
 - Moving domain between groups changes which rules apply.
+- The domain **name cannot be changed** after creation — delete and create a new domain to use a different hostname.
 
 ### Domain placeholders in rules
 
@@ -202,14 +214,24 @@ POST /api/v1/subdomains
 
 - `GET /api/v1/subdomains`
 - `GET /api/v1/subdomains/:id`
-- `PUT /api/v1/subdomains/:id`
+- `PUT /api/v1/subdomains/:id` — move to another domain group (`domainGroupId` only; see [Hostname lifecycle](#hostname-lifecycle))
 - `DELETE /api/v1/subdomains/:id`
+
+Example — move to another group:
+
+```json
+PUT /api/v1/subdomains/:id
+{
+  "domainGroupId": "dmg_other"
+}
+```
 
 Notes:
 
 - Name: `[a-z0-9-]` only, max 30 characters.
 - Reserved names blocked (e.g. `support`, `docs`, `admin`).
 - Same rule set as other resources in the domain group.
+- The subdomain **label cannot be changed** after creation — delete and create a new subdomain to use a different name.
 
 ### Unknown or unregistered subdomain hostname
 
@@ -224,6 +246,69 @@ If a request hits the LinkShift subdomain **hosting endpoint** but the hostname 
 Register the subdomain via API before sending traffic to `your-name.linkshift.app`.
 
 This is different from a **custom domain** that is not attached to LinkShift (`404` on the edge). See [Overview — traffic to linkshift.app but rules never run](../overview.md).
+
+---
+
+## Hostname lifecycle
+
+Custom domains and LinkShift subdomain labels share the same lifecycle rules.
+
+### Immutable hostnames
+
+After creation, the hostname (custom domain FQDN or subdomain label) is **immutable**. The only field you can change via `PUT` is `domainGroupId` — moving the host to another group changes which redirect rules apply.
+
+To use a different hostname:
+
+1. `DELETE` the existing domain or subdomain.
+2. Wait out the [release cooldown](#release-cooldown) if reusing the same name.
+3. `POST` a new domain or subdomain with the desired name.
+
+Sending `name` in a `PUT` body returns **400** (strict schema). The API rejects name changes even if the value matches the existing record.
+
+### Release cooldown
+
+After `DELETE`, the hostname is **globally reserved for 7 days** before anyone in any organization can register it again. `POST` with that name during the cooldown returns **409 Conflict** with the cooldown end time.
+
+Active domain and subdomain names are also **globally unique** across the platform (not per organization). Two organizations cannot register the same hostname or label while either record is active.
+
+Subdomain labels on the reserved platform list (for example `admin`, `api`, `www`, `support`) return **409 Conflict** on create.
+
+This applies to both custom domains and LinkShift subdomain labels.
+
+### Normalization
+
+Custom domain names are trimmed, lowercased, and stored without a trailing dot on create. Use lowercase in API requests; mixed case in `POST` is accepted and normalized.
+
+Subdomain labels must already match `[a-z0-9-]` (lowercase only).
+
+### DNS verification for custom domains
+
+Custom domains require DNS pointing at LinkShift before the edge issues on-demand TLS or serves HTTPS traffic.
+
+| `dnsStatus` | Meaning |
+|-------------|---------|
+| `PENDING` | Domain registered; DNS not yet confirmed. Default on `POST /api/v1/domains`. |
+| `VERIFIED` | A record (or CNAME chain) resolves to the LinkShift target IP (`APP_DOMAIN_TARGET_IP`). |
+| `FAILED` | Last check did not find the target IP — update DNS and retry. |
+
+**Manual check:** `POST /api/v1/domains/:id/verify-dns` performs a live lookup (3s timeout, follows CNAME chains) and updates `dnsStatus`, `dnsVerifiedAt`, and `dnsLastCheckedAt`. Safe to retry after propagation.
+
+**Automatic check:** When Caddy requests on-demand TLS, it calls the internal `GET /check-domain?domain={hostname}` endpoint. For registered custom domains that are not yet `VERIFIED`, the backend performs the same DNS lookup. Success promotes the domain to `VERIFIED`; failure returns **403** (`dns_pending`) so Let's Encrypt is not triggered prematurely.
+
+LinkShift subdomains (`*.linkshift.app`) skip DNS verification — they use wildcard TLS.
+
+### TLS and edge routing
+
+LinkShift's edge (`config/Caddyfile`) uses two TLS models:
+
+| Host type | TLS model | Implication |
+|-----------|-----------|-------------|
+| LinkShift subdomains (`*.linkshift.app`) | Wildcard certificate via DNS (Cloudflare) | One cert covers all subdomain labels. Creating or deleting a subdomain does **not** consume a Let's Encrypt per-hostname slot. |
+| Custom domains | On-demand TLS (Let's Encrypt) | Each new hostname triggers a separate certificate order when traffic arrives. Subject to [Let's Encrypt rate limits](https://letsencrypt.org/docs/rate-limits/) (~50 new certificates per registered domain per week). |
+
+Custom domains are authorized through internal `GET /check-domain?domain={hostname}` before Caddy issues a certificate. That endpoint returns **403** when the hostname is unknown, the domain group is inactive, or DNS is not verified yet. Deleting a custom domain stops redirect routing for that host; DNS may still point at LinkShift until you update your provider.
+
+Renaming is blocked because a new hostname would require a new on-demand certificate for custom domains and would break published short links. Delete + create is the supported path.
 
 ---
 

@@ -1,7 +1,7 @@
 <form class="h-full" (submit)="onSubmit($event)" (keydown.enter)="$event.preventDefault()">
   <app-wizard
     [title]="dialogTitle"
-    subtitle="Add or update a subdomain used on the LinkShift base host."
+    [subtitle]="wizardSubtitle"
     [steps]="steps()"
     [saveLabel]="effectiveSubmitLabel()"
     [saveDisabled]="subdomainForm().submitting() || !canSubmit()"
@@ -17,9 +17,21 @@
 
     <ng-template wizardStep="details">
       <div class="grid gap-4">
+        @if (isEdit) {
+          <div
+            class="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-[13px] text-sky-800"
+          >
+            Changing the domain group moves routing for this host. The subdomain name is permanent.
+          </div>
+        }
+
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Subdomain name</mat-label>
-          <input matInput type="text" [formField]="subdomainForm.name" />
+          @if (isEdit) {
+            <input matInput type="text" readonly [value]="subdomainModel().name" />
+          } @else {
+            <input matInput type="text" [formField]="subdomainForm.name" />
+          }
           @if (nameError(); as error) {
             <mat-error>{{ error }}</mat-error>
           }
