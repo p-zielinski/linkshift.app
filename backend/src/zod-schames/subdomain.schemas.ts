@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { AppEntity, getEntityIdRegex } from '../utils';
-
-const subdomainNamePattern = /^[a-z0-9-]{1,30}$/;
+import { LINKSHIFT_SUBDOMAIN_NAME_PATTERN } from '../security/subdomain-name.constants';
 
 export const CreateSubdomainSchema = z.object({
   name: z
@@ -9,7 +8,7 @@ export const CreateSubdomainSchema = z.object({
     .min(1, 'Subdomain name is required')
     .max(30, 'Subdomain name must be at most 30 characters')
     .regex(
-      subdomainNamePattern,
+      LINKSHIFT_SUBDOMAIN_NAME_PATTERN,
       'Subdomain name can contain only lowercase letters, numbers, and hyphens',
     ),
   domainGroupId: z
@@ -24,7 +23,7 @@ export const UpdateSubdomainSchema = z.object({
     .min(1, 'Subdomain name is required')
     .max(30, 'Subdomain name must be at most 30 characters')
     .regex(
-      subdomainNamePattern,
+      LINKSHIFT_SUBDOMAIN_NAME_PATTERN,
       'Subdomain name can contain only lowercase letters, numbers, and hyphens',
     )
     .optional(),

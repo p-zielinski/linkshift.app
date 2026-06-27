@@ -174,9 +174,7 @@ describe('RedirectService', () => {
         },
         {
           provide: SubdomainBlacklistService,
-          useValue: {
-            isReserved: jest.fn().mockReturnValue(false),
-          },
+          useClass: SubdomainBlacklistService,
         },
         {
           provide: RedirectAnalyticsService,
@@ -2728,6 +2726,31 @@ describe('RedirectService', () => {
       });
       expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
         'CADDY_DOMAIN_ALLOWED:random.linkshift.app',
+        false,
+        expect.any(Number),
+      );
+    });
+
+    it('denies reserved LinkShift subdomain without entity lookup', async () => {
+      const allowed = await service.isDomainAllowed('api.linkshift.app');
+
+      expect(allowed).toBe(false);
+      expect(cacheManagerService.getData).not.toHaveBeenCalled();
+      expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
+        'CADDY_DOMAIN_ALLOWED:api.linkshift.app',
+        false,
+        expect.any(Number),
+      );
+    });
+
+    it('denies invalid-format LinkShift subdomain without entity lookup', async () => {
+      const invalidLabel = `${'a'.repeat(31)}.linkshift.app`;
+      const allowed = await service.isDomainAllowed(invalidLabel);
+
+      expect(allowed).toBe(false);
+      expect(cacheManagerService.getData).not.toHaveBeenCalled();
+      expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
+        `CADDY_DOMAIN_ALLOWED:${invalidLabel}`,
         false,
         expect.any(Number),
       );
