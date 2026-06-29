@@ -14,7 +14,7 @@ import {
   ApiKey,
 } from '@prisma/client';
 import * as _ from 'lodash';
-import type { DomainWithRelationsContext } from '../redirect/redirect.service';
+import type { RedirectContext } from '../redirect/redirect.service';
 import { LRUCache } from 'lru-cache';
 import { TooManyRequestsError } from '@shared/models/error.model';
 import { ClsService } from 'nestjs-cls';
@@ -293,7 +293,7 @@ export class CacheManagerService {
    */
   async getRedirectContext(
     hostname: string,
-  ): Promise<DomainWithRelationsContext | null | undefined> {
+  ): Promise<RedirectContext | undefined> {
     const key = `REDIRECT_CONTEXT:${hostname}`;
 
     // 1. Try L1 Local Cache (LRU)
@@ -302,10 +302,10 @@ export class CacheManagerService {
         hostname,
         cacheKey: key,
       });
-      return this.localCache.get(key) as DomainWithRelationsContext | null;
+      return this.localCache.get(key) as RedirectContext;
     }
 
-    const cached = await this.redisService.get<DomainWithRelationsContext>(key);
+    const cached = await this.redisService.get<RedirectContext>(key);
 
     if (cached !== undefined) {
       this.localCache.set(key, cached);
@@ -319,7 +319,7 @@ export class CacheManagerService {
    */
   async setRedirectContext(
     hostname: string,
-    data: DomainWithRelationsContext | null,
+    data: RedirectContext,
   ): Promise<void> {
     const key = `REDIRECT_CONTEXT:${hostname}`;
 

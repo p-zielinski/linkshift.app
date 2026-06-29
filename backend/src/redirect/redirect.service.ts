@@ -140,6 +140,11 @@ export type DomainWithRelationsContext = Prisma.DomainGetPayload<
 export type LinkShiftSubdomainWithRelationsContext =
   Prisma.LinkShiftSubdomainGetPayload<typeof linkShiftSubdomainWithRelations>;
 
+export type RedirectContext =
+  | DomainWithRelationsContext
+  | LinkShiftSubdomainWithRelationsContext
+  | null;
+
 export enum InvalidationTargetType {
   HOSTNAME = 'hostname',
   DOMAIN_ID = 'domainId',
@@ -2446,7 +2451,7 @@ export class RedirectService {
     const cached =
       await this.cacheManagerService.getRedirectContext(normalizedHostname);
     if (cached !== undefined) {
-      return cached as LinkShiftSubdomainWithRelationsContext | null;
+      return cached as LinkShiftSubdomainWithRelationsContext;
     }
 
     const subdomain: LinkShiftSubdomainWithRelationsContext | null =
