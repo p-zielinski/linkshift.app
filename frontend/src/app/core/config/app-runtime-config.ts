@@ -30,7 +30,7 @@ export const DEFAULT_APP_RUNTIME_CONFIG: AppRuntimeConfig = {
   APP_LEGAL_ADDRESS: 'Porąbka Uszewska 13, 32-854 Porąbka Uszewska, Poland',
   APP_PRIVACY_EMAIL: 'privacy@linkshift.app',
   APP_MIN_AGE: '16',
-  APP_LEGAL_VERSION: 'v6',
+  APP_LEGAL_VERSION: 'v7',
   APP_DOMAIN_TARGET_IP: '',
   APP_AUTH_GATE_ENABLED: 'false',
   APP_PADDLE_CLIENT_TOKEN: '',

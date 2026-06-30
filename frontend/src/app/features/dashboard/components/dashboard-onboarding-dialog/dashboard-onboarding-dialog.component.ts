@@ -1,14 +1,29 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthStore } from '../../../../core/store/auth.store';
 import { APP_CONFIG } from '../../../../core/config/app-runtime-config';
 import { DomainGroupStore } from '../../../../core/store/domain-group.store';
+import { DomainStore } from '../../../../core/store/domain.store';
 import { LinkMapStore } from '../../../../core/store/link-map.store';
 import { RedirectRuleStore } from '../../../../core/store/redirect-rule.store';
 import { SubdomainStore } from '../../../../core/store/subdomain.store';
+import {
+  buildOnboardingConnectDomainData,
+  resolveNeedsSubdomainChoice,
+} from '../../../campaign-connect-domain/campaign-connect-domain.util';
+import type { CampaignConnectDomainDialogData } from '../../../campaign-connect-domain/campaign-connect-domain-dialog.component';
 import {
   prefetchDomainGroupScopedLists,
   selectEntitiesForDomainGroups,
@@ -23,12 +38,18 @@ import {
 
 export type DashboardOnboardingDialogData = {
   campaignMode?: boolean;
+  /** Set after the user picked a subdomain during onboarding handoff. */
+  subdomainChoiceCompleted?: boolean;
+  /** Jump to a step when resuming onboarding (e.g. after connect-domain). */
+  initialStepId?: 'welcome' | 'next';
 };
 
 export type DashboardOnboardingDialogResult = {
   confirmed: boolean;
   openCreate?: boolean;
   navigateTo?: string;
+  openConnectDomain?: boolean;
+  connectDomainData?: Partial<CampaignConnectDomainDialogData>;
 };
 
 const STARTER_LINK_MAP_NAME = 'First link map';
@@ -48,7 +69,9 @@ const STARTER_RULE_SOURCE = '/short';
   templateUrl: './dashboard-onboarding-dialog.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DashboardOnboardingDialogComponent {
+export class DashboardOnboardingDialogComponent implements AfterViewInit {
+  @ViewChild(WizardComponent) private wizard?: WizardComponent;
+
   private readonly dialogData = inject<DashboardOnboardingDialogData>(MAT_DIALOG_DATA, {
     optional: true,
   });
@@ -59,6 +82,7 @@ export class DashboardOnboardingDialogComponent {
   );
   private readonly authStore = inject(AuthStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
+  private readonly domainStore = inject(DomainStore);
   private readonly subdomainStore = inject(SubdomainStore);
   private readonly linkMapStore = inject(LinkMapStore);
   private readonly redirectRuleStore = inject(RedirectRuleStore);
@@ -66,7 +90,17 @@ export class DashboardOnboardingDialogComponent {
 
   readonly organization = computed(() => this.authStore.organization());
   readonly domainGroups = this.domainGroupStore.selectList();
+  readonly domains = this.domainStore.selectList();
   readonly subdomains = this.subdomainStore.selectList();
+  readonly hasConnectedHosts = computed(
+    () => this.subdomains().length > 0 || this.domains().length > 0,
+  );
+  readonly needsSubdomainChoice = computed(() => {
+    if (this.dialogData?.subdomainChoiceCompleted) {
+      return false;
+    }
+    return resolveNeedsSubdomainChoice(this.subdomains(), this.domains());
+  });
   readonly linkMaps = computed(() =>
     selectEntitiesForDomainGroups(this.domainGroups(), (domainGroupId) =>
       this.linkMapStore.selectList({ domainGroupId })(),
@@ -155,21 +189,30 @@ export class DashboardOnboardingDialogComponent {
     return `Welcome to LinkShift, ${organizationName}`;
   });
   readonly steps = computed<WizardStep[]>(() => {
+    const needsChoice = this.needsSubdomainChoice();
+    const hasHosts = this.hasConnectedHosts() && !needsChoice;
+
     if (this.campaignMode()) {
       return [
         {
           id: 'welcome',
           label: 'Welcome',
-          title: 'Your workspace is ready',
-          description:
-            'Your site, starter subdomain, link map, and /short redirect rule are ready for you. Create your first short link when you are ready.',
+          title: hasHosts ? 'Your workspace is ready' : 'Your workspace is ready',
+          description: needsChoice
+            ? 'Your site, link map, and /short redirect rule are ready. Choose your short-link subdomain next.'
+            : hasHosts
+              ? 'Your site, starter subdomain, link map, and /short redirect rule are ready for you. Create your first short link when you are ready.'
+              : 'Your site, link map, and /short redirect rule are ready, but you do not have a short-link host yet. Connect a domain to get started.',
         },
         {
           id: 'next',
           label: 'Next steps',
           title: 'What to do now',
-          description:
-            'Create your first short link, then share it and track clicks in Analytics.',
+          description: needsChoice
+            ? 'Pick your subdomain, then create your first short link and track clicks in Analytics.'
+            : hasHosts
+              ? 'Create your first short link, then share it and track clicks in Analytics.'
+              : 'Connect a domain for short links, then create your first link and track clicks in Analytics.',
         },
       ];
     }
@@ -179,22 +222,29 @@ export class DashboardOnboardingDialogComponent {
         id: 'welcome',
         label: 'Welcome',
         title: 'Your workspace is ready',
-        description:
-          'Your domain group, starter subdomain, link map, and /short redirect rule are ready for you.',
+        description: needsChoice
+          ? 'Your domain group, link map, and /short redirect rule are ready. Choose your short-link subdomain next.'
+          : hasHosts
+            ? 'Your domain group, starter subdomain, link map, and /short redirect rule are ready for you.'
+            : 'Your domain group, link map, and /short redirect rule are ready, but you do not have a short-link host yet. Connect a domain to get started.',
       },
       {
         id: 'next',
         label: 'Next steps',
         title: 'What to do now',
-        description:
-          'Review the starter routing, add links to your link map, and run a redirect test.',
+        description: needsChoice
+          ? 'Pick your subdomain, then add links to your link map and run a redirect test.'
+          : hasHosts
+            ? 'Review the starter routing, add links to your link map, and run a redirect test.'
+            : 'Connect a domain for short links, then add links to your link map and run a redirect test.',
       },
     ];
   });
 
   constructor() {
-    this.domainGroupStore.searchList();
-    this.subdomainStore.searchList();
+    this.domainGroupStore.searchList(undefined, true);
+    this.subdomainStore.searchList(undefined, true);
+    this.domainStore.searchList(undefined, true);
 
     effect(() => {
       const groups = this.domainGroups();
@@ -213,7 +263,32 @@ export class DashboardOnboardingDialogComponent {
     });
   }
 
+  ngAfterViewInit(): void {
+    const initialStepId = this.dialogData?.initialStepId;
+    if (!initialStepId) {
+      return;
+    }
+
+    const index = this.steps().findIndex((step) => step.id === initialStepId);
+    if (index > 0) {
+      this.wizard?.setActiveStep(index);
+    }
+  }
+
   onConfirm(): void {
+    if (this.needsSubdomainChoice()) {
+      this.dialogRef.close({
+        confirmed: true,
+        openConnectDomain: true,
+        connectDomainData: buildOnboardingConnectDomainData({
+          domainGroups: this.domainGroups(),
+          subdomains: this.subdomains(),
+          domains: this.domains(),
+        }),
+      });
+      return;
+    }
+
     this.dialogRef.close({ confirmed: true });
   }
 
@@ -227,5 +302,17 @@ export class DashboardOnboardingDialogComponent {
 
   onReviewStarterRouting(): void {
     this.dialogRef.close({ confirmed: true, navigateTo: '/redirect-rules' });
+  }
+
+  onConnectDomain(): void {
+    this.dialogRef.close({
+      confirmed: true,
+      openConnectDomain: true,
+      connectDomainData: buildOnboardingConnectDomainData({
+        domainGroups: this.domainGroups(),
+        subdomains: this.subdomains(),
+        domains: this.domains(),
+      }),
+    });
   }
 }

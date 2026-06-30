@@ -25,6 +25,8 @@
         (create)="openCreateDialog()"
         (edit)="openEditDialog($event)"
         (delete)="confirmDelete($event)"
+        (verifyDns)="verifyDns($event)"
+        [verifyingDnsId]="verifyingDnsId()"
       />
     </div>
     <div table-footer>

@@ -37,6 +37,7 @@ const sampleDomain: Domain = {
   id: 'dom-1',
   name: 'campaign.example.com',
   domainGroupId: 'group-1',
+  dnsStatus: 'VERIFIED',
   createdAt: '',
   updatedAt: '',
 };

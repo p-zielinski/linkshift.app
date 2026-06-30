@@ -15,6 +15,7 @@ import { DestinationExtractorService } from '../security/destination-extractor.s
 import { SafetyScannerService } from '../security/safety-scanner.service';
 import { DomainBlacklistService } from '../security/domain-blacklist.service';
 import { SubdomainBlacklistService } from '../security/subdomain-blacklist.service';
+import { DnsVerificationService } from '../security/dns-verification.service';
 import { RedirectAnalyticsService } from '../security/redirect-analytics.service';
 import { Logger } from 'nestjs-pino';
 import { LinkMapService } from '../link-map/link-map.service';
@@ -49,8 +50,10 @@ const mockPrismaService = {
 const mockOrganizationService = {
   checkDomainGroupLimit: jest.fn(),
   checkDomainLimit: jest.fn(),
+  checkSubdomainLimit: jest.fn(),
   checkRedirectRuleLimit: jest.fn(),
   checkRedirectionAccess: jest.fn(), // Added
+  getConfiguration: jest.fn(),
   getEffectiveSubscription: jest.fn((config: any) => config.activeSubscription),
 };
 
@@ -63,6 +66,7 @@ describe('RedirectService', () => {
   let redirectAnalyticsService: RedirectAnalyticsService;
   let domainBlacklistService: { isBlacklisted: jest.Mock };
   let destinationExtractor: { extractUrl: jest.Mock };
+  let dnsVerificationService: { getCachedOrVerify: jest.Mock; pointsToTarget: jest.Mock };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -177,6 +181,13 @@ describe('RedirectService', () => {
           useClass: SubdomainBlacklistService,
         },
         {
+          provide: DnsVerificationService,
+          useValue: {
+            getCachedOrVerify: jest.fn().mockResolvedValue(true),
+            pointsToTarget: jest.fn().mockResolvedValue(true),
+          },
+        },
+        {
           provide: RedirectAnalyticsService,
           useValue: {
             trackRuleHit: jest.fn().mockResolvedValue(undefined),
@@ -213,6 +224,7 @@ describe('RedirectService', () => {
     );
     domainBlacklistService = module.get(DomainBlacklistService);
     destinationExtractor = module.get(DestinationExtractorService);
+    dnsVerificationService = module.get(DnsVerificationService);
 
     (prisma.domain.findMany as jest.Mock).mockResolvedValue([]);
     (prisma.linkShiftSubdomain.findMany as jest.Mock).mockResolvedValue([]);
@@ -2623,14 +2635,14 @@ describe('RedirectService', () => {
       (cacheManagerService.getData as jest.Mock).mockResolvedValue(undefined);
     });
 
-    it('allows a registered custom domain', async () => {
+    it('allows a registered custom domain when DNS is verified', async () => {
       (cacheManagerService.getData as jest.Mock).mockImplementation(
         ({ dataType, properties }) => {
           if (
             dataType === DataType.DOMAINS &&
             properties[CachedByProperty.NAME] === 'example.com'
           ) {
-            return { id: 'dom_1', domainGroupId: 'dg_1' };
+            return { id: 'dom_1', domainGroupId: 'dg_1', dnsStatus: 'VERIFIED' };
           }
           if (
             dataType === DataType.DOMAIN_GROUPS &&
@@ -2645,6 +2657,7 @@ describe('RedirectService', () => {
       const allowed = await service.isDomainAllowed('Example.COM');
 
       expect(allowed).toBe(true);
+      expect(dnsVerificationService.getCachedOrVerify).not.toHaveBeenCalled();
       expect(cacheManagerService.getData).toHaveBeenCalledWith({
         dataType: DataType.DOMAINS,
         properties: { [CachedByProperty.NAME]: 'example.com' },
@@ -2657,9 +2670,83 @@ describe('RedirectService', () => {
       expect(prisma.linkShiftSubdomain.findFirst).not.toHaveBeenCalled();
       expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
         'CADDY_DOMAIN_ALLOWED:example.com',
-        true,
+        { allowed: true, outcome: 'allowed' },
         expect.any(Number),
       );
+    });
+
+    it('denies a registered custom domain when DNS verification fails', async () => {
+      (cacheManagerService.getData as jest.Mock).mockImplementation(
+        ({ dataType, properties }) => {
+          if (
+            dataType === DataType.DOMAINS &&
+            properties[CachedByProperty.NAME] === 'example.com'
+          ) {
+            return { id: 'dom_1', domainGroupId: 'dg_1', dnsStatus: 'PENDING' };
+          }
+          if (
+            dataType === DataType.DOMAIN_GROUPS &&
+            properties[CachedByProperty.ID] === 'dg_1'
+          ) {
+            return { id: 'dg_1' };
+          }
+          return undefined;
+        },
+      );
+      dnsVerificationService.getCachedOrVerify.mockResolvedValue(false);
+
+      const check = await service.getDomainAllowCheck('example.com');
+
+      expect(check).toEqual({
+        allowed: false,
+        outcome: 'dns_pending',
+        hostType: 'custom',
+      });
+      expect(dnsVerificationService.getCachedOrVerify).toHaveBeenCalledWith(
+        'example.com',
+      );
+    });
+
+    it('allows a pending custom domain when live DNS verification succeeds', async () => {
+      (cacheManagerService.getData as jest.Mock).mockImplementation(
+        ({ dataType, properties }) => {
+          if (
+            dataType === DataType.DOMAINS &&
+            properties[CachedByProperty.NAME] === 'example.com'
+          ) {
+            return { id: 'dom_1', domainGroupId: 'dg_1', dnsStatus: 'PENDING' };
+          }
+          if (
+            dataType === DataType.DOMAIN_GROUPS &&
+            properties[CachedByProperty.ID] === 'dg_1'
+          ) {
+            return { id: 'dg_1' };
+          }
+          return undefined;
+        },
+      );
+      dnsVerificationService.getCachedOrVerify.mockResolvedValue(true);
+      (prisma.domain.update as jest.Mock).mockResolvedValue({
+        id: 'dom_1',
+        name: 'example.com',
+        dnsStatus: 'VERIFIED',
+      });
+
+      const check = await service.getDomainAllowCheck('example.com');
+
+      expect(check).toEqual({
+        allowed: true,
+        outcome: 'allowed',
+        hostType: 'custom',
+      });
+      expect(prisma.domain.update).toHaveBeenCalledWith({
+        where: { id: 'dom_1' },
+        data: expect.objectContaining({
+          dnsStatus: 'VERIFIED',
+          dnsVerifiedAt: expect.any(Date),
+          dnsLastCheckedAt: expect.any(Date),
+        }),
+      });
     });
 
     it('denies an unknown custom domain', async () => {
@@ -2672,7 +2759,7 @@ describe('RedirectService', () => {
       });
       expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
         'CADDY_DOMAIN_ALLOWED:unknown.example',
-        false,
+        { allowed: false, outcome: 'not_found' },
         expect.any(Number),
       );
     });
@@ -2711,7 +2798,7 @@ describe('RedirectService', () => {
       expect(prisma.linkShiftSubdomain.findFirst).not.toHaveBeenCalled();
       expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
         'CADDY_DOMAIN_ALLOWED:demo.linkshift.app',
-        true,
+        { allowed: true, outcome: 'allowed' },
         expect.any(Number),
       );
     });
@@ -2726,7 +2813,7 @@ describe('RedirectService', () => {
       });
       expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
         'CADDY_DOMAIN_ALLOWED:random.linkshift.app',
-        false,
+        { allowed: false, outcome: 'not_found' },
         expect.any(Number),
       );
     });
@@ -2738,7 +2825,7 @@ describe('RedirectService', () => {
       expect(cacheManagerService.getData).not.toHaveBeenCalled();
       expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
         'CADDY_DOMAIN_ALLOWED:api.linkshift.app',
-        false,
+        { allowed: false, outcome: 'reserved_subdomain' },
         expect.any(Number),
       );
     });
@@ -2751,7 +2838,7 @@ describe('RedirectService', () => {
       expect(cacheManagerService.getData).not.toHaveBeenCalled();
       expect(cacheManagerService.setCustomCache).toHaveBeenCalledWith(
         `CADDY_DOMAIN_ALLOWED:${invalidLabel}`,
-        false,
+        { allowed: false, outcome: 'invalid_subdomain_format' },
         expect.any(Number),
       );
     });
@@ -2775,7 +2862,10 @@ describe('RedirectService', () => {
     });
 
     it('returns cached allow decision without entity lookup', async () => {
-      (cacheManagerService.getCustomCache as jest.Mock).mockResolvedValue(true);
+      (cacheManagerService.getCustomCache as jest.Mock).mockResolvedValue({
+        allowed: true,
+        outcome: 'allowed',
+      });
 
       const allowed = await service.isDomainAllowed('cached.example');
 
@@ -2783,6 +2873,65 @@ describe('RedirectService', () => {
       expect(cacheManagerService.getData).not.toHaveBeenCalled();
       expect(prisma.domain.findFirst).not.toHaveBeenCalled();
       expect(prisma.linkShiftSubdomain.findFirst).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('verifyDomainDns', () => {
+    it('marks domain as verified when DNS points to target', async () => {
+      (prisma.domain.findFirst as jest.Mock).mockResolvedValue({
+        id: 'dom_1',
+        name: 'example.com',
+        domainGroupId: 'dg_1',
+      });
+      dnsVerificationService.pointsToTarget.mockResolvedValue(true);
+      (prisma.domain.update as jest.Mock).mockResolvedValue({
+        id: 'dom_1',
+        name: 'example.com',
+        dnsStatus: 'VERIFIED',
+        dnsVerifiedAt: new Date('2026-06-27T00:00:00.000Z'),
+        dnsLastCheckedAt: new Date('2026-06-27T00:00:00.000Z'),
+      });
+
+      const result = await service.verifyDomainDns('dom_1', 'org_1');
+
+      expect(dnsVerificationService.pointsToTarget).toHaveBeenCalledWith(
+        'example.com',
+      );
+      expect(prisma.domain.update).toHaveBeenCalledWith({
+        where: { id: 'dom_1' },
+        data: expect.objectContaining({
+          dnsStatus: 'VERIFIED',
+          dnsVerifiedAt: expect.any(Date),
+          dnsLastCheckedAt: expect.any(Date),
+        }),
+      });
+      expect(result.dnsStatus).toBe('VERIFIED');
+    });
+
+    it('marks domain as failed when DNS does not point to target', async () => {
+      (prisma.domain.findFirst as jest.Mock).mockResolvedValue({
+        id: 'dom_1',
+        name: 'example.com',
+        domainGroupId: 'dg_1',
+      });
+      dnsVerificationService.pointsToTarget.mockResolvedValue(false);
+      (prisma.domain.update as jest.Mock).mockResolvedValue({
+        id: 'dom_1',
+        name: 'example.com',
+        dnsStatus: 'FAILED',
+        dnsLastCheckedAt: new Date('2026-06-27T00:00:00.000Z'),
+      });
+
+      const result = await service.verifyDomainDns('dom_1', 'org_1');
+
+      expect(prisma.domain.update).toHaveBeenCalledWith({
+        where: { id: 'dom_1' },
+        data: {
+          dnsStatus: 'FAILED',
+          dnsLastCheckedAt: expect.any(Date),
+        },
+      });
+      expect(result.dnsStatus).toBe('FAILED');
     });
   });
 
@@ -3320,5 +3469,139 @@ describe('RedirectService', () => {
       expect(domainBlacklistService.isBlacklisted).not.toHaveBeenCalled();
     });
 
+  });
+
+  describe('hostname rename and release cooldown', () => {
+    const organizationId = 'org_1';
+
+    const getConflictDetails = async (
+      promise: Promise<unknown>,
+    ): Promise<string> => {
+      try {
+        await promise;
+        throw new Error('Expected promise to reject');
+      } catch (error) {
+        expect(error).toBeInstanceOf(HttpException);
+        const response = (error as HttpException).getResponse() as {
+          details: string;
+        };
+        return response.details;
+      }
+    };
+
+    it('updateSubdomain rejects name change', async () => {
+      (prisma.linkShiftSubdomain.findFirst as jest.Mock).mockResolvedValue({
+        id: 'sub_1',
+        name: 'my-sub',
+        domainGroupId: 'dg_1',
+      });
+
+      const details = await getConflictDetails(
+        service.updateSubdomain('sub_1', organizationId, {
+          name: 'new-sub',
+          domainGroupId: 'dg_1',
+        } as never),
+      );
+
+      expect(details).toContain('Subdomain name cannot be changed');
+      expect(prisma.linkShiftSubdomain.update).not.toHaveBeenCalled();
+    });
+
+    it('updateDomain rejects name change', async () => {
+      (prisma.domain.findFirst as jest.Mock).mockResolvedValue({
+        id: 'dom_1',
+        name: 'links.example.com',
+        domainGroupId: 'dg_1',
+      });
+
+      const details = await getConflictDetails(
+        service.updateDomain('dom_1', organizationId, {
+          name: 'other.example.com',
+          domainGroupId: 'dg_1',
+        } as never),
+      );
+
+      expect(details).toContain('Domain name cannot be changed');
+      expect(details).toContain('TLS certificate');
+      expect(prisma.domain.update).not.toHaveBeenCalled();
+    });
+
+    it('createSubdomain rejects name within cooldown after delete', async () => {
+      const deletedAt = new Date();
+      (mockOrganizationService.checkSubdomainLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      (prisma.domainGroup.findFirst as jest.Mock).mockResolvedValue({
+        id: 'dg_1',
+      });
+      (prisma.linkShiftSubdomain.findFirst as jest.Mock)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ deletedAt });
+
+      const details = await getConflictDetails(
+        service.createSubdomain(organizationId, {
+          name: 'taken',
+          domainGroupId: 'dg_1',
+        }),
+      );
+
+      expect(details).toContain('release cooldown');
+      expect(details).toContain('taken');
+      expect(prisma.linkShiftSubdomain.create).not.toHaveBeenCalled();
+    });
+
+    it('createDomain rejects name within cooldown after delete', async () => {
+      const deletedAt = new Date();
+      (mockOrganizationService.checkDomainLimit as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      (prisma.domainGroup.findFirst as jest.Mock).mockResolvedValue({
+        id: 'dg_1',
+      });
+      (prisma.domain.findFirst as jest.Mock)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ deletedAt });
+
+      const details = await getConflictDetails(
+        service.createDomain(organizationId, {
+          name: 'links.example.com',
+          domainGroupId: 'dg_1',
+        }),
+      );
+
+      expect(details).toContain('release cooldown');
+      expect(details).toContain('links.example.com');
+      expect(prisma.domain.create).not.toHaveBeenCalled();
+    });
+
+    it('updateSubdomain still allows domainGroupId change', async () => {
+      (prisma.linkShiftSubdomain.findFirst as jest.Mock).mockResolvedValue({
+        id: 'sub_1',
+        name: 'my-sub',
+        domainGroupId: 'dg_1',
+      });
+      (prisma.domainGroup.findFirst as jest.Mock).mockResolvedValue({
+        id: 'dg_2',
+      });
+      (mockOrganizationService.getConfiguration as jest.Mock).mockResolvedValue({
+        activeSubscription: { limits: { maxSubdomainsPerGroup: 10 } },
+      });
+      (prisma.linkShiftSubdomain.count as jest.Mock).mockResolvedValue(0);
+      (prisma.linkShiftSubdomain.update as jest.Mock).mockResolvedValue({
+        id: 'sub_1',
+        name: 'my-sub',
+        domainGroupId: 'dg_2',
+      });
+
+      const result = await service.updateSubdomain('sub_1', organizationId, {
+        domainGroupId: 'dg_2',
+      });
+
+      expect(result.domainGroupId).toBe('dg_2');
+      expect(prisma.linkShiftSubdomain.update).toHaveBeenCalledWith({
+        where: { id: 'sub_1' },
+        data: { domainGroupId: 'dg_2', updatedAt: expect.any(Date) },
+      });
+    });
   });
 });

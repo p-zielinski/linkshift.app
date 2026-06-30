@@ -182,9 +182,12 @@ export const AuthStore = signalStore(
       patchState(store, { error: message, isLoading: false });
     };
 
-    const login = (payload: LoginDto): Observable<AuthResponse> => {
+    const login = (
+      payload: LoginDto,
+      turnstileToken?: string | null,
+    ): Observable<AuthResponse> => {
       patchState(store, { isLoading: true, error: null });
-      return api.login(payload).pipe(
+      return api.login(payload, turnstileToken).pipe(
         tap((response) => {
           resetStores();
           setSession(response);
@@ -198,9 +201,12 @@ export const AuthStore = signalStore(
       );
     };
 
-    const register = (payload: RegisterDto): Observable<AuthResponse> => {
+    const register = (
+      payload: RegisterDto,
+      turnstileToken?: string | null,
+    ): Observable<AuthResponse> => {
       patchState(store, { isLoading: true, error: null });
-      return api.register(payload).pipe(
+      return api.register(payload, turnstileToken).pipe(
         tap((response) => {
           resetStores();
           setSession(response);

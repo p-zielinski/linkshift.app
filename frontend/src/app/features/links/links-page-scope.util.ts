@@ -9,17 +9,31 @@ export type LinksOpenCreateQueryResolution =
   | 'open-connect-domain'
   | 'open-create';
 
+export function isWaitingForDomainGroupsBeforeDialog(params: {
+  dialogRequested: boolean;
+  authLoaded: boolean;
+  domainGroupsLoading: boolean;
+  domainGroupsListLoaded: boolean;
+}): boolean {
+  if (!params.dialogRequested || !params.authLoaded) {
+    return false;
+  }
+
+  return params.domainGroupsLoading || !params.domainGroupsListLoaded;
+}
+
 export function resolveLinksWaitingForDomainGroups(params: {
   openCreateRequested: boolean;
   authLoaded: boolean;
   domainGroupsLoading: boolean;
   domainGroupsListLoaded: boolean;
 }): boolean {
-  if (!params.openCreateRequested || !params.authLoaded) {
-    return false;
-  }
-
-  return params.domainGroupsLoading || !params.domainGroupsListLoaded;
+  return isWaitingForDomainGroupsBeforeDialog({
+    dialogRequested: params.openCreateRequested,
+    authLoaded: params.authLoaded,
+    domainGroupsLoading: params.domainGroupsLoading,
+    domainGroupsListLoaded: params.domainGroupsListLoaded,
+  });
 }
 
 export function resolveLinksOpenCreateQueryAction(

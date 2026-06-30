@@ -11,6 +11,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { form, required, validate, FormField } from '@angular/forms/signals';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { SITE_CONFIG } from '../../core/config/site-config';
+import { TurnstileService } from '../../core/security/turnstile.service';
+import { extractErrorMessage } from '../../core/store/store-error.utils';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -35,6 +37,7 @@ export class InviteAcceptPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly authApi = inject(AuthApiService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly turnstile = inject(TurnstileService);
   readonly siteConfig = inject(SITE_CONFIG);
 
   readonly token = signal<string | null>(null);
@@ -117,6 +120,7 @@ export class InviteAcceptPageComponent {
 
     this.busy.set(true);
     try {
+      const turnstileToken = await this.turnstile.requestToken();
       await firstValueFrom(
         this.authApi.registerInvite({
           token,
@@ -125,11 +129,13 @@ export class InviteAcceptPageComponent {
           acceptTerms: this.formModel().acceptTerms,
           acceptPrivacy: this.formModel().acceptPrivacy,
           confirmAge: this.formModel().confirmAge
-        })
+        }, turnstileToken)
       );
+      this.turnstile.reset();
       this.completed.set(true);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Couldn't create account. Try again.";
+      this.turnstile.reset();
+      const message = extractErrorMessage(error, "Couldn't create account. Try again.");
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });
     } finally {
       this.busy.set(false);

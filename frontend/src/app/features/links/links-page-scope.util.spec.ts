@@ -1,6 +1,7 @@
 import type { DomainGroup } from '../../core/models/domain-group.model';
 import type { LinkMap } from '../../core/models/link-map.model';
 import {
+  isWaitingForDomainGroupsBeforeDialog,
   resolveLinksOpenCreateQueryAction,
   resolveLinksWaitingForDomainGroups,
   resolveLinksPageActiveGroupId,
@@ -148,6 +149,21 @@ describe('links-page-scope.util', () => {
     expect(resolveLinksOpenCreateQueryAction(true, 0, 0)).toBe('pending-groups');
     expect(resolveLinksOpenCreateQueryAction(true, 1, 0)).toBe('open-connect-domain');
     expect(resolveLinksOpenCreateQueryAction(true, 1, 1)).toBe('open-create');
+  });
+
+  it('waits for domain groups before opening dashboard dialogs', () => {
+    const base = {
+      dialogRequested: true,
+      authLoaded: true,
+      domainGroupsLoading: false,
+      domainGroupsListLoaded: false,
+    };
+
+    expect(isWaitingForDomainGroupsBeforeDialog(base)).toBe(true);
+    expect(
+      isWaitingForDomainGroupsBeforeDialog({ ...base, domainGroupsListLoaded: true }),
+    ).toBe(false);
+    expect(isWaitingForDomainGroupsBeforeDialog({ ...base, dialogRequested: false })).toBe(false);
   });
 
   it('waits for domain groups when openCreate is pending and groups are not loaded', () => {

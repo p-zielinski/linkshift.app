@@ -1,6 +1,6 @@
 {
   "source": "shared/docs/openapi/linkshift-api-keys.openapi.yaml",
-  "generatedAt": "2026-06-14T15:24:16.422Z",
+  "generatedAt": "2026-06-27T21:28:54.672Z",
   "format": "json",
   "tags": [
     {
@@ -24,8 +24,8 @@
     {
       "name": "Domains",
       "slug": "domains",
-      "description": "Your custom hostnames assigned to a domain group.\nCreate after the group exists; rules match traffic on these hosts.\n",
-      "operationCount": 5,
+      "description": "Your custom hostnames assigned to a domain group.\nCreate after the group exists; rules match traffic on these hosts.\n\nNew domains start with `dnsStatus: PENDING` until DNS points at the LinkShift target IP\n(`APP_DOMAIN_TARGET_IP`). Call POST `/api/v1/domains/{id}/verify-dns` to check manually, or\nlet the edge probe succeed on first HTTPS traffic.\n\n**Internal (not in this spec):** Caddy calls `GET /check-domain?domain={hostname}` before\non-demand TLS for custom domains. That endpoint returns **403** when the hostname is unknown,\nthe domain group is inactive, or DNS is not verified yet (`dns_pending`). LinkShift subdomains\n(`*.linkshift.app`) skip DNS verification (wildcard TLS).\n",
+      "operationCount": 6,
       "files": [
         "shared/docs/openapi/by-tag/domains.openapi.json"
       ]

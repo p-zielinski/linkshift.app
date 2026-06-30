@@ -189,6 +189,9 @@ exports.Prisma.DomainScalarFieldEnum = {
   id: 'id',
   name: 'name',
   domainGroupId: 'domainGroupId',
+  dnsStatus: 'dnsStatus',
+  dnsVerifiedAt: 'dnsVerifiedAt',
+  dnsLastCheckedAt: 'dnsLastCheckedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
@@ -327,6 +330,12 @@ exports.RobotsPolicy = exports.$Enums.RobotsPolicy = {
 exports.RedirectDeliveryMode = exports.$Enums.RedirectDeliveryMode = {
   INSTANT: 'INSTANT',
   WITH_NOTICE: 'WITH_NOTICE'
+};
+
+exports.DomainDnsStatus = exports.$Enums.DomainDnsStatus = {
+  PENDING: 'PENDING',
+  VERIFIED: 'VERIFIED',
+  FAILED: 'FAILED'
 };
 
 exports.RedirectQueryMatch = exports.$Enums.RedirectQueryMatch = {

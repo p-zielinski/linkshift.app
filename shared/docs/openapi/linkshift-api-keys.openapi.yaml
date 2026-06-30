@@ -45,6 +45,15 @@ tags:
     description: |
       Your custom hostnames assigned to a domain group.
       Create after the group exists; rules match traffic on these hosts.
+
+      New domains start with `dnsStatus: PENDING` until DNS points at the LinkShift target IP
+      (`APP_DOMAIN_TARGET_IP`). Call POST `/api/v1/domains/{id}/verify-dns` to check manually, or
+      let the edge probe succeed on first HTTPS traffic.
+
+      **Internal (not in this spec):** Caddy calls `GET /check-domain?domain={hostname}` before
+      on-demand TLS for custom domains. That endpoint returns **403** when the hostname is unknown,
+      the domain group is inactive, or DNS is not verified yet (`dns_pending`). LinkShift subdomains
+      (`*.linkshift.app`) skip DNS verification (wildcard TLS).
   - name: Subdomains
     description: |
       LinkShift-hosted short labels (e.g. `promo` → `promo.linkshift.app`) in a domain group.
@@ -263,7 +272,12 @@ paths:
       summary: Create domain
       description: |
         Registers a custom hostname under `domainGroupId`.
-        Hostname must match the request pattern (lowercase labels). Returns 404 when the group ID is invalid; 409 when the name is already taken in your organization.
+        Hostname must match the request pattern; it is stored in lowercase (mixed-case input is normalized).
+        The response includes `dnsStatus: PENDING` until DNS points at the LinkShift target IP and verification succeeds.
+        On-demand TLS (`GET /check-domain`, internal) is denied until DNS is verified.
+        Returns 404 when the group ID is invalid; 409 when the hostname is already registered
+        platform-wide (among active records), is reserved on the platform infrastructure,
+        or is in a 7-day release cooldown after a recent deletion (hostname reserved globally).
       operationId: createDomain
       requestBody:
         required: true
@@ -285,7 +299,23 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: >-
+            Hostname already registered platform-wide (active record), in a 7-day release cooldown
+            after a recent deletion, or invalid after normalization. Cooldown `details` follow the pattern:
+            `Domain name {hostname} was recently deleted and is in a 7-day release cooldown until {iso8601}`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                releaseCooldown:
+                  summary: Hostname in release cooldown
+                  value:
+                    code: 409
+                    key: conflict
+                    message: Conflict
+                    details: Domain name example.com was recently deleted and is in a 7-day release cooldown until 2026-07-04T12:00:00.000Z
+                    requestId: req_example
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
@@ -296,7 +326,7 @@ paths:
       tags: [Domains]
       summary: Get domain by ID
       description: |
-        Fetches one domain record (`name`, `domainGroupId`, timestamps).
+        Fetches one domain record (`name`, `domainGroupId`, DNS verification fields, timestamps).
         Returns 404 when the ID is unknown, soft-deleted, or outside your organization.
       operationId: getDomain
       responses:
@@ -318,8 +348,10 @@ paths:
       tags: [Domains]
       summary: Update domain
       description: |
-        Changes hostname and/or moves the domain to another group (`domainGroupId` is required in the body).
-        Returns 409 when the new hostname conflicts with an existing domain.
+        Moves the domain to another group only. The hostname (`name`) is immutable after creation;
+        sending `name` in the body returns 400 (strict request schema).
+        To use a new hostname, delete this domain and create a new one (triggers a new TLS certificate for custom domains).
+        `domainGroupId` is required in the body.
       operationId: updateDomain
       requestBody:
         required: true
@@ -336,24 +368,57 @@ paths:
                 $ref: '#/components/schemas/Domain'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '402':
           $ref: '#/components/responses/PaymentRequired'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
         '429':
           $ref: '#/components/responses/TooManyRequests'
     delete:
       tags: [Domains]
       summary: Delete domain (soft)
       description: |
-        Soft-deletes the domain; it no longer matches live redirect traffic.
+        Soft-deletes the domain. Published links on this hostname stop working immediately.
+        The hostname stays reserved globally for 7 days (release cooldown) before it can be created again.
         Returns 404 when the ID isn't in your organization.
       operationId: deleteDomain
       responses:
         '200':
           description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /api/v1/domains/{id}/verify-dns:
+    parameters:
+      - $ref: '#/components/parameters/EntityId'
+    post:
+      tags: [Domains]
+      summary: Verify domain DNS
+      description: |
+        Performs a live DNS lookup for the domain's hostname and updates `dnsStatus`,
+        `dnsVerifiedAt`, and `dnsLastCheckedAt`.
+
+        Resolves A records (following CNAME chains) and compares them to the platform target IP
+        (`APP_DOMAIN_TARGET_IP`). On success, sets `dnsStatus` to `VERIFIED` and clears the edge
+        `check-domain` gate for on-demand TLS. On failure, sets `dnsStatus` to `FAILED`.
+
+        Does not apply to LinkShift subdomains. Idempotent — safe to retry after DNS propagation.
+      operationId: verifyDomainDns
+      responses:
+        '200':
+          description: Updated domain with DNS verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Domain'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '402':
@@ -389,7 +454,11 @@ paths:
       summary: Create LinkShift subdomain
       description: |
         Reserves a lowercase label (max 30 chars) on LinkShift infrastructure under `domainGroupId`.
-        Returns 404 when the group is invalid; 409 when the label is already taken.
+        Labels must already be lowercase in the request body.
+        Returns 404 when the group is invalid; 409 when the label is already registered
+        platform-wide (among active records), is on the reserved platform label list
+        (for example `admin`, `api`, `www`, `support`), or is in a 7-day release cooldown
+        after a recent deletion (label reserved globally).
       operationId: createSubdomain
       requestBody:
         required: true
@@ -411,7 +480,32 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: >-
+            Label already registered platform-wide (active record), reserved for platform
+            infrastructure (for example `admin`, `api`, `www`), in a 7-day release cooldown
+            after a recent deletion, or invalid after validation. Cooldown `details` follow the pattern:
+            `Subdomain name {label} was recently deleted and is in a 7-day release cooldown until {iso8601}`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                reservedLabel:
+                  summary: Reserved platform label
+                  value:
+                    code: 409
+                    key: conflict
+                    message: Conflict
+                    details: Subdomain name admin is reserved
+                    requestId: req_example
+                releaseCooldown:
+                  summary: Label in release cooldown
+                  value:
+                    code: 409
+                    key: conflict
+                    message: Conflict
+                    details: Subdomain name my-label was recently deleted and is in a 7-day release cooldown until 2026-07-04T12:00:00.000Z
+                    requestId: req_example
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
@@ -444,8 +538,10 @@ paths:
       tags: [Subdomains]
       summary: Update LinkShift subdomain
       description: |
-        Renames the label and/or reassigns `domainGroupId` (required in body).
-        Returns 409 on label conflict.
+        Reassigns `domainGroupId` only. The subdomain label (`name`) is immutable after creation;
+        sending `name` in the body returns 400 (strict request schema).
+        To use a new label, delete this subdomain and create a new one.
+        `domainGroupId` is required in the body.
       operationId: updateSubdomain
       requestBody:
         required: true
@@ -462,6 +558,8 @@ paths:
                 $ref: '#/components/schemas/LinkShiftSubdomain'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '402':
           $ref: '#/components/responses/PaymentRequired'
         '404':
@@ -474,7 +572,8 @@ paths:
       tags: [Subdomains]
       summary: Delete LinkShift subdomain (soft)
       description: |
-        Soft-deletes the label; it stops serving redirect traffic.
+        Soft-deletes the label. Published links on this subdomain stop working immediately.
+        The label stays reserved globally for 7 days (release cooldown) before it can be created again.
         Returns 404 when out of scope.
       operationId: deleteSubdomain
       responses:
@@ -1371,7 +1470,8 @@ components:
     Conflict:
       description: >-
         Unique constraint conflict (e.g. domain hostname or subdomain label already
-        registered). Change the name or update the existing resource instead of creating again.
+        registered, or hostname in release cooldown after deletion). Use a different name/label
+        or wait for the cooldown to end; hostnames and labels cannot be renamed via update.
       content:
         application/json:
           schema:
@@ -1454,12 +1554,27 @@ components:
       required: [id, name, organizationId, robotsPolicy, redirectDeliveryMode, createdAt, updatedAt]
 
     Domain:
-      description: Domain entity assigned to a domain group.
+      description: |
+        Domain entity assigned to a domain group.
+        Custom domains start with `dnsStatus: PENDING` on create. TLS and redirect routing on the
+        edge require verified DNS (`VERIFIED`) unless the edge probe succeeds during `check-domain`.
       type: object
       properties:
         id: { type: string, description: Domain ID. }
         name: { type: string, description: Fully qualified domain name. }
         domainGroupId: { type: string, description: Parent domain-group ID. }
+        dnsStatus:
+          $ref: '#/components/schemas/DomainDnsStatus'
+        dnsVerifiedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: UTC timestamp when DNS last verified successfully (null until first success).
+        dnsLastCheckedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: UTC timestamp of the most recent DNS verification attempt.
         createdAt: { type: string, format: date-time, description: Creation timestamp (UTC). }
         updatedAt: { type: string, format: date-time, description: Last update timestamp (UTC). }
         deletedAt:
@@ -1467,7 +1582,7 @@ components:
           format: date-time
           nullable: true
           description: Soft-delete timestamp in UTC when deleted.
-      required: [id, name, domainGroupId, createdAt, updatedAt]
+      required: [id, name, domainGroupId, dnsStatus, createdAt, updatedAt]
 
     LinkShiftSubdomain:
       description: LinkShift-hosted subdomain label assigned to a domain group.
@@ -1791,6 +1906,15 @@ components:
       default: INSTANT
       enum: [INSTANT, WITH_NOTICE]
 
+    DomainDnsStatus:
+      description: |
+        DNS verification state for custom domains. LinkShift subdomains do not use this field.
+        `PENDING` — created but DNS not yet confirmed; edge TLS blocked via internal `check-domain`.
+        `VERIFIED` — A record (or CNAME chain) points at the LinkShift target IP.
+        `FAILED` — last manual or automatic check did not find the target IP.
+      type: string
+      enum: [PENDING, VERIFIED, FAILED]
+
     CreateDomainGroupRequest:
       description: Payload for creating a domain group.
       type: object
@@ -1832,13 +1956,15 @@ components:
       required: [name]
 
     CreateDomainRequest:
-      description: Payload for creating a domain.
+      description: Payload for creating a domain. Hostnames are stored in lowercase.
       type: object
       properties:
         name:
           type: string
           minLength: 1
-          description: Fully qualified domain name (DNS hostname labels).
+          description: >-
+            Fully qualified domain name (DNS hostname labels). The API accepts mixed-case input
+            and normalizes to lowercase before persistence; the pattern below is the stored form.
           pattern: '^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$'
         domainGroupId:
           type: string
@@ -1847,14 +1973,12 @@ components:
       required: [name, domainGroupId]
 
     UpdateDomainRequest:
-      description: Payload for updating a domain.
+      description: >-
+        Payload for updating a domain. Only `domainGroupId` is accepted; hostname is immutable
+        (sending `name` returns 400).
       type: object
+      additionalProperties: false
       properties:
-        name:
-          type: string
-          minLength: 1
-          description: Fully qualified domain name (DNS hostname labels).
-          pattern: '^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$'
         domainGroupId:
           type: string
           maxLength: 100
@@ -1878,15 +2002,12 @@ components:
       required: [name, domainGroupId]
 
     UpdateLinkShiftSubdomainRequest:
-      description: Payload for updating a LinkShift subdomain.
+      description: >-
+        Payload for updating a LinkShift subdomain. Only `domainGroupId` is accepted; the label
+        is immutable (sending `name` returns 400).
       type: object
+      additionalProperties: false
       properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 30
-          pattern: '^[a-z0-9-]{1,30}$'
-          description: Subdomain label before base host, lowercase letters/numbers/hyphens.
         domainGroupId:
           type: string
           maxLength: 100

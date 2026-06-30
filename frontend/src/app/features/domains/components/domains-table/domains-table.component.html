@@ -26,6 +26,15 @@
     </td>
   </ng-container>
 
+  <ng-container matColumnDef="dnsStatus">
+    <th mat-header-cell *matHeaderCellDef class="font-semibold w-[120px] truncate">DNS</th>
+    <td mat-cell *matCellDef="let row" class="py-3 w-[120px]">
+      <span [class]="row.dnsStatus.className" [matTooltip]="row.dnsStatus.tooltip">
+        {{ row.dnsStatus.label }}
+      </span>
+    </td>
+  </ng-container>
+
   <ng-container matColumnDef="createdAt">
     <th mat-header-cell *matHeaderCellDef class="font-semibold w-[156px] truncate">Created at</th>
     <td mat-cell *matCellDef="let row" class="py-3 truncate max-w-0 text-[13px] text-app-muted">
@@ -34,14 +43,26 @@
   </ng-container>
 
   <ng-container matColumnDef="actions">
-    <th mat-header-cell *matHeaderCellDef class="w-[100px]"></th>
-    <td mat-cell *matCellDef="let row" class="py-3 w-[100px]">
+    <th mat-header-cell *matHeaderCellDef class="w-[140px]"></th>
+    <td mat-cell *matCellDef="let row" class="py-3 w-[140px]">
       <div class="flex items-center gap-1">
+        @if (row.canVerifyDns) {
+          <button
+            mat-icon-button
+            type="button"
+            matTooltip="Verify DNS points to the target IP"
+            [attr.aria-label]="'Verify DNS for domain ' + row.domain.name"
+            [disabled]="verifyingDnsId() === row.domain.id"
+            (click)="onVerifyDns(row.domain.id)"
+          >
+            <mat-icon>dns</mat-icon>
+          </button>
+        }
         <button
           mat-icon-button
           type="button"
-          matTooltip="Edit domain"
-          [attr.aria-label]="'Edit domain ' + row.domain.name"
+          matTooltip="Change group"
+          [attr.aria-label]="'Change group for domain ' + row.domain.name"
           (click)="onEdit(row.domain)"
         >
           <mat-icon>edit</mat-icon>

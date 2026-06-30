@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { By } from '@angular/platform-browser';
+import { DEFAULT_PLAN_LIMITS } from '@shared/models/plan-limits.model';
 import { DOMAIN_SETUP_CONFIG } from '../../core/config/domain-setup-config';
+import { AuthStore } from '../../core/store/auth.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { WizardComponent } from '../../shared/components/wizard/wizard.component';
 import { CampaignConnectDomainDialogComponent } from './campaign-connect-domain-dialog.component';
@@ -14,7 +16,10 @@ const sampleDomainGroups = [
 describe('CampaignConnectDomainDialogComponent', () => {
   const closeMock = vi.fn();
 
-  const configure = (dialogData: Record<string, unknown>) => {
+  const configure = (
+    dialogData: Record<string, unknown>,
+    options?: { maxDomainGroups?: number },
+  ) => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       imports: [CampaignConnectDomainDialogComponent],
@@ -35,6 +40,21 @@ describe('CampaignConnectDomainDialogComponent', () => {
           provide: DomainGroupStore,
           useValue: {
             searchList: vi.fn(),
+          },
+        },
+        {
+          provide: AuthStore,
+          useValue: {
+            organization: () => ({
+              configuration: {
+                activeSubscription: {
+                  limits: {
+                    ...DEFAULT_PLAN_LIMITS,
+                    maxDomainGroups: options?.maxDomainGroups ?? DEFAULT_PLAN_LIMITS.maxDomainGroups,
+                  },
+                },
+              },
+            }),
           },
         },
       ],
@@ -184,11 +204,30 @@ describe('CampaignConnectDomainDialogComponent', () => {
     expect(component.activeStepId()).toBe('host');
   });
 
-  it('shows site step with existing/new toggle when sites are available', () => {
+  it('hides new site option when plan limit is reached', () => {
     configure({
       subdomainBaseHost: 'go.linkshift.app',
-      domainGroups: [...sampleDomainGroups],
+      domainGroups: [{ id: 'group-default', name: 'Default' }],
     });
+
+    const fixture = TestBed.createComponent(CampaignConnectDomainDialogComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.canCreateNewSite()).toBe(false);
+    expect(component.steps().map((step) => step.id)).toEqual(['site', 'host', 'done']);
+    expect(fixture.nativeElement.textContent).not.toContain('New site');
+    expect(fixture.nativeElement.textContent).toContain('add your subdomain on the next step');
+  });
+
+  it('shows site step with existing/new toggle when plan allows another site', () => {
+    configure(
+      {
+        subdomainBaseHost: 'go.linkshift.app',
+        domainGroups: [...sampleDomainGroups],
+      },
+      { maxDomainGroups: 3 },
+    );
 
     const fixture = TestBed.createComponent(CampaignConnectDomainDialogComponent);
     const component = fixture.componentInstance;
@@ -196,6 +235,7 @@ describe('CampaignConnectDomainDialogComponent', () => {
 
     expect(component.steps().map((step) => step.id)).toEqual(['site', 'host', 'done']);
     expect(component.hasExistingSites()).toBe(true);
+    expect(component.canCreateNewSite()).toBe(true);
     expect(component.model().workspaceMode).toBe('existing');
     expect(component.steps()[0]?.title).toBe('Choose a site');
     expect(fixture.nativeElement.textContent).toContain('Existing site');

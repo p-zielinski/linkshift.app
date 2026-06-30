@@ -106,7 +106,7 @@ cp deploy/stack.env.example deploy/stack.env
 Edit `deploy/stack.env` and set:
 - Image tags (backend/frontend/backend-tools)
 - Hosts (frontend/grafana/dozzle + tools hostnames)
-- Caddy ACME email
+- Caddy ACME email and `CLOUDFLARE_API_TOKEN` (wildcard TLS for `*.FRONTEND_HOST`)
 - App settings
 
 Note:
@@ -115,8 +115,9 @@ Note:
 
 ## Caddy routing notes
 - Infra Caddy issues TLS for `FRONTEND_HOST`, `GRAFANA_HOST`, and `DOZZLE_HOST`.
+- LinkShift subdomains (`*.{$FRONTEND_HOST}`) use a **wildcard certificate** via Cloudflare DNS challenge — set `CLOUDFLARE_API_TOKEN` in `deploy/stack.env` (see `deploy/stack.env.example`). Without it, wildcard TLS for user subdomains will fail.
+- Custom client domains use **on-demand TLS**; Caddy calls `GET /check-domain?domain=...` on the backend before issuing a certificate.
 - Tools stack has its own Caddy (`config/Caddyfile.tools`) and issues TLS for `TOOLS_HOST` and `TOOLS_DOZZLE_HOST`.
-- Catch-all traffic uses on-demand TLS and calls `GET /check-domain?domain=...` on the backend.
 - Update `config/Caddyfile` or `config/Caddyfile.tools` depending on which stack owns the hostname.
 
 ## 2) Create the shared overlay network

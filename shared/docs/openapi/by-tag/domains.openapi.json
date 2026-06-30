@@ -4,7 +4,7 @@
     "title": "LinkShift Management API (API Key Accessible Endpoints) — Domains",
     "version": "1.0.0",
     "summary": "Organization-scoped redirect management API",
-    "description": "Organization-scoped Management API for redirect configuration, link maps, and operational checks.\nUse it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.\n\n**Authentication**\n- Send your key on every request: `X-API-Key: <your_key>` (preferred).\n- Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.\n\n**Typical setup order**\n1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).\n2. Link map + entries when rules resolve keys instead of a fixed destination.\n3. Redirect tests + simulate for CI; analytics for traffic review.\n\n**Errors and recovery**\n- `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).\n- `402` — API access isn't on your current plan. Upgrade subscription, then retry.\n- `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).\n- `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.\n- `404` — ID doesn't exist or isn't in your organization scope.\n\n**Dashboard-only**\nAPI key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.\n\n**Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.\nThis document contains only operations tagged \"Domains\".\nTag scope: Your custom hostnames assigned to a domain group.\nCreate after the group exists; rules match traffic on these hosts.\n"
+    "description": "Organization-scoped Management API for redirect configuration, link maps, and operational checks.\nUse it to automate what you can also do in the LinkShift dashboard — without dashboard session cookies.\n\n**Authentication**\n- Send your key on every request: `X-API-Key: <your_key>` (preferred).\n- Alternative header supported by the backend: `Authorization: ApiKey <your_key>`.\n\n**Typical setup order**\n1. Domain group → custom domains and/or LinkShift subdomains → redirect rules (and optional link maps).\n2. Link map + entries when rules resolve keys instead of a fixed destination.\n3. Redirect tests + simulate for CI; analytics for traffic review.\n\n**Errors and recovery**\n- `401` — key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).\n- `402` — API access isn't on your current plan. Upgrade subscription, then retry.\n- `429` — per-key rate limit for your plan. Back off with jitter; read current usage via GET /api/v1/organization/usage (don't hard-code limits).\n- `400` — request body or query failed validation; inspect `details` and `requestId` in the JSON body.\n- `404` — ID doesn't exist or isn't in your organization scope.\n\n**Dashboard-only**\nAPI key CRUD, billing checkout, and some analytics views aren't in this spec — they require signed-in dashboard auth.\n\n**Guides** (same concepts, more examples): *Getting started*, *Domains and groups*, *Redirect rules*, *Redirect rules — operations*, *Link map entries*.\nThis document contains only operations tagged \"Domains\".\nTag scope: Your custom hostnames assigned to a domain group.\nCreate after the group exists; rules match traffic on these hosts.\n\nNew domains start with `dnsStatus: PENDING` until DNS points at the LinkShift target IP\n(`APP_DOMAIN_TARGET_IP`). Call POST `/api/v1/domains/{id}/verify-dns` to check manually, or\nlet the edge probe succeed on first HTTPS traffic.\n\n**Internal (not in this spec):** Caddy calls `GET /check-domain?domain={hostname}` before\non-demand TLS for custom domains. That endpoint returns **403** when the hostname is unknown,\nthe domain group is inactive, or DNS is not verified yet (`dns_pending`). LinkShift subdomains\n(`*.linkshift.app`) skip DNS verification (wildcard TLS).\n"
   },
   "servers": [
     {
@@ -20,7 +20,7 @@
   "tags": [
     {
       "name": "Domains",
-      "description": "Your custom hostnames assigned to a domain group.\nCreate after the group exists; rules match traffic on these hosts.\n"
+      "description": "Your custom hostnames assigned to a domain group.\nCreate after the group exists; rules match traffic on these hosts.\n\nNew domains start with `dnsStatus: PENDING` until DNS points at the LinkShift target IP\n(`APP_DOMAIN_TARGET_IP`). Call POST `/api/v1/domains/{id}/verify-dns` to check manually, or\nlet the edge probe succeed on first HTTPS traffic.\n\n**Internal (not in this spec):** Caddy calls `GET /check-domain?domain={hostname}` before\non-demand TLS for custom domains. That endpoint returns **403** when the hostname is unknown,\nthe domain group is inactive, or DNS is not verified yet (`dns_pending`). LinkShift subdomains\n(`*.linkshift.app`) skip DNS verification (wildcard TLS).\n"
     }
   ],
   "paths": {
@@ -59,7 +59,7 @@
           "Domains"
         ],
         "summary": "Create domain",
-        "description": "Registers a custom hostname under `domainGroupId`.\nHostname must match the request pattern (lowercase labels). Returns 404 when the group ID is invalid; 409 when the name is already taken in your organization.\n",
+        "description": "Registers a custom hostname under `domainGroupId`.\nHostname must match the request pattern; it is stored in lowercase (mixed-case input is normalized).\nThe response includes `dnsStatus: PENDING` until DNS points at the LinkShift target IP and verification succeeds.\nOn-demand TLS (`GET /check-domain`, internal) is denied until DNS is verified.\nReturns 404 when the group ID is invalid; 409 when the hostname is already registered\nplatform-wide (among active records), is reserved on the platform infrastructure,\nor is in a 7-day release cooldown after a recent deletion (hostname reserved globally).\n",
         "operationId": "createDomain",
         "requestBody": {
           "required": true,
@@ -92,7 +92,26 @@
             "$ref": "#/components/responses/NotFound"
           },
           "409": {
-            "$ref": "#/components/responses/Conflict"
+            "description": "Hostname already registered platform-wide (active record), in a 7-day release cooldown after a recent deletion, or invalid after normalization. Cooldown `details` follow the pattern: `Domain name {hostname} was recently deleted and is in a 7-day release cooldown until {iso8601}`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "releaseCooldown": {
+                    "summary": "Hostname in release cooldown",
+                    "value": {
+                      "code": 409,
+                      "key": "conflict",
+                      "message": "Conflict",
+                      "details": "Domain name example.com was recently deleted and is in a 7-day release cooldown until 2026-07-04T12:00:00.000Z",
+                      "requestId": "req_example"
+                    }
+                  }
+                }
+              }
+            }
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
@@ -111,7 +130,7 @@
           "Domains"
         ],
         "summary": "Get domain by ID",
-        "description": "Fetches one domain record (`name`, `domainGroupId`, timestamps).\nReturns 404 when the ID is unknown, soft-deleted, or outside your organization.\n",
+        "description": "Fetches one domain record (`name`, `domainGroupId`, DNS verification fields, timestamps).\nReturns 404 when the ID is unknown, soft-deleted, or outside your organization.\n",
         "operationId": "getDomain",
         "responses": {
           "200": {
@@ -143,7 +162,7 @@
           "Domains"
         ],
         "summary": "Update domain",
-        "description": "Changes hostname and/or moves the domain to another group (`domainGroupId` is required in the body).\nReturns 409 when the new hostname conflicts with an existing domain.\n",
+        "description": "Moves the domain to another group only. The hostname (`name`) is immutable after creation;\nsending `name` in the body returns 400 (strict request schema).\nTo use a new hostname, delete this domain and create a new one (triggers a new TLS certificate for custom domains).\n`domainGroupId` is required in the body.\n",
         "operationId": "updateDomain",
         "requestBody": {
           "required": true,
@@ -166,6 +185,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
@@ -174,9 +196,6 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
@@ -188,11 +207,50 @@
           "Domains"
         ],
         "summary": "Delete domain (soft)",
-        "description": "Soft-deletes the domain; it no longer matches live redirect traffic.\nReturns 404 when the ID isn't in your organization.\n",
+        "description": "Soft-deletes the domain. Published links on this hostname stop working immediately.\nThe hostname stays reserved globally for 7 days (release cooldown) before it can be created again.\nReturns 404 when the ID isn't in your organization.\n",
         "operationId": "deleteDomain",
         "responses": {
           "200": {
             "description": "Deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/domains/{id}/verify-dns": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/EntityId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Domains"
+        ],
+        "summary": "Verify domain DNS",
+        "description": "Performs a live DNS lookup for the domain's hostname and updates `dnsStatus`,\n`dnsVerifiedAt`, and `dnsLastCheckedAt`.\n\nResolves A records (following CNAME chains) and compares them to the platform target IP\n(`APP_DOMAIN_TARGET_IP`). On success, sets `dnsStatus` to `VERIFIED` and clears the edge\n`check-domain` gate for on-demand TLS. On failure, sets `dnsStatus` to `FAILED`.\n\nDoes not apply to LinkShift subdomains. Idempotent — safe to retry after DNS propagation.\n",
+        "operationId": "verifyDomainDns",
+        "responses": {
+          "200": {
+            "description": "Updated domain with DNS verification result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Domain"
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
@@ -236,13 +294,13 @@
         ]
       },
       "CreateDomainRequest": {
-        "description": "Payload for creating a domain.",
+        "description": "Payload for creating a domain. Hostnames are stored in lowercase.",
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
             "minLength": 1,
-            "description": "Fully qualified domain name (DNS hostname labels).",
+            "description": "Fully qualified domain name (DNS hostname labels). The API accepts mixed-case input and normalizes to lowercase before persistence; the pattern below is the stored form.",
             "pattern": "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
           },
           "domainGroupId": {
@@ -257,7 +315,7 @@
         ]
       },
       "Domain": {
-        "description": "Domain entity assigned to a domain group.",
+        "description": "Domain entity assigned to a domain group.\nCustom domains start with `dnsStatus: PENDING` on create. TLS and redirect routing on the\nedge require verified DNS (`VERIFIED`) unless the edge probe succeeds during `check-domain`.\n",
         "type": "object",
         "properties": {
           "id": {
@@ -271,6 +329,21 @@
           "domainGroupId": {
             "type": "string",
             "description": "Parent domain-group ID."
+          },
+          "dnsStatus": {
+            "$ref": "#/components/schemas/DomainDnsStatus"
+          },
+          "dnsVerifiedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "UTC timestamp when DNS last verified successfully (null until first success)."
+          },
+          "dnsLastCheckedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "UTC timestamp of the most recent DNS verification attempt."
           },
           "createdAt": {
             "type": "string",
@@ -293,50 +366,9 @@
           "id",
           "name",
           "domainGroupId",
+          "dnsStatus",
           "createdAt",
           "updatedAt"
-        ]
-      },
-      "UpdateDomainRequest": {
-        "description": "Payload for updating a domain.",
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Fully qualified domain name (DNS hostname labels).",
-            "pattern": "^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$"
-          },
-          "domainGroupId": {
-            "type": "string",
-            "maxLength": 100,
-            "description": "Target domain-group ID."
-          }
-        },
-        "required": [
-          "domainGroupId"
-        ]
-      },
-      "QueryResultMeta": {
-        "description": "Metadata envelope shared by cursor-paginated query responses.",
-        "type": "object",
-        "properties": {
-          "dataType": {
-            "type": "string",
-            "description": "Logical item type in the `data` array."
-          },
-          "hasMore": {
-            "type": "boolean",
-            "description": "Whether there are additional results after this page."
-          },
-          "moreStartingAfterId": {
-            "type": "string",
-            "description": "Cursor token to request the next page."
-          }
-        },
-        "required": [
-          "dataType",
-          "hasMore"
         ]
       },
       "ErrorResponse": {
@@ -372,6 +404,52 @@
           "code",
           "key",
           "message"
+        ]
+      },
+      "UpdateDomainRequest": {
+        "description": "Payload for updating a domain. Only `domainGroupId` is accepted; hostname is immutable (sending `name` returns 400).",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "domainGroupId": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Target domain-group ID."
+          }
+        },
+        "required": [
+          "domainGroupId"
+        ]
+      },
+      "QueryResultMeta": {
+        "description": "Metadata envelope shared by cursor-paginated query responses.",
+        "type": "object",
+        "properties": {
+          "dataType": {
+            "type": "string",
+            "description": "Logical item type in the `data` array."
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether there are additional results after this page."
+          },
+          "moreStartingAfterId": {
+            "type": "string",
+            "description": "Cursor token to request the next page."
+          }
+        },
+        "required": [
+          "dataType",
+          "hasMore"
+        ]
+      },
+      "DomainDnsStatus": {
+        "description": "DNS verification state for custom domains. LinkShift subdomains do not use this field.\n`PENDING` — created but DNS not yet confirmed; edge TLS blocked via internal `check-domain`.\n`VERIFIED` — A record (or CNAME chain) points at the LinkShift target IP.\n`FAILED` — last manual or automatic check did not find the target IP.\n",
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "VERIFIED",
+          "FAILED"
         ]
       }
     },
@@ -450,8 +528,8 @@
           }
         }
       },
-      "Conflict": {
-        "description": "Unique constraint conflict (e.g. domain hostname or subdomain label already registered). Change the name or update the existing resource instead of creating again.",
+      "BadRequest": {
+        "description": "Request body or query failed validation. Read `details` (and optional field hints) in the JSON body; fix the payload and retry. Include `requestId` when contacting support.",
         "content": {
           "application/json": {
             "schema": {
@@ -483,7 +561,7 @@
   },
   "x-linkshift": {
     "sourceTag": "Domains",
-    "operationCount": 5,
+    "operationCount": 6,
     "generatedBy": "scripts/openapi-split-by-tag.mjs"
   }
 }

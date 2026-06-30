@@ -19,28 +19,10 @@ import { AuthTokenService } from './auth-token.service';
 import { LegalService } from '../legal/legal.service';
 import { Logger } from 'nestjs-pino';
 import { RobotsPolicy } from '@prisma/client';
-import { SubdomainBlacklistService } from '../security/subdomain-blacklist.service';
 import { OrganizationBootstrapService } from '../organization/organization-bootstrap.service';
-import { customAlphabet } from 'nanoid';
 
 const DEFAULT_DOMAIN_GROUP_NAME = 'Default';
-const DEFAULT_SUBDOMAIN_BASE = 'org';
 const DEFAULT_ORGANIZATION_NAME = 'Organization';
-const INITIAL_SUBDOMAIN_MAX_LENGTH = 30;
-const INITIAL_SUBDOMAIN_RETRY_SUFFIX_LENGTH = 10;
-const SUBDOMAIN_RETRY_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
-const generateSubdomainRetrySuffix = customAlphabet(SUBDOMAIN_RETRY_ALPHABET);
-type SubdomainTransactionClient = {
-  linkShiftSubdomain: {
-    create(args: {
-      data: { id: string; name: string; domainGroupId: string };
-    }): Promise<{ id: string; name: string; domainGroupId: string }>;
-    findFirst(args: {
-      where: { name: string; deletedAt: null };
-      select: { id: true };
-    }): Promise<{ id: string } | null>;
-  };
-};
 
 @Injectable()
 export class AuthService {
@@ -53,7 +35,6 @@ export class AuthService {
     private readonly emailService: EmailService,
     private readonly authTokenService: AuthTokenService,
     private readonly legalService: LegalService,
-    private readonly subdomainBlacklistService: SubdomainBlacklistService,
     private readonly organizationBootstrapService: OrganizationBootstrapService,
     private readonly logger: Logger,
   ) {}
@@ -85,7 +66,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(data.password, 10);
     const legalConsent = this.legalService.buildConsentRecord();
 
-    // 3. Create organization, user, default domain group, and starter subdomain in a transaction
+    // 3. Create organization, user, default domain group, and starter resources in a transaction
     const result = await this.prisma.$transaction(async (tx) => {
       // Create organization
       const organization = await tx.organization.create({
@@ -116,26 +97,13 @@ export class AuthService {
         },
       });
 
-      const subdomainTx = tx as unknown as SubdomainTransactionClient;
-      const subdomainName = await this.resolveInitialSubdomainName(
-        subdomainTx,
-        organization.name,
-      );
-      const subdomain = await subdomainTx.linkShiftSubdomain.create({
-        data: {
-          id: createCustomCuid(AppEntity.LinkShiftSubdomain),
-          name: subdomainName,
-          domainGroupId: domainGroup.id,
-        },
-      });
-
       const starterResources =
         await this.organizationBootstrapService.provisionStarterResourcesInTransaction(
           tx,
           { domainGroupId: domainGroup.id },
         );
 
-      return { user, organization, domainGroup, subdomain, ...starterResources };
+      return { user, organization, domainGroup, ...starterResources };
     });
 
     await this.organizationBootstrapService.invalidateStarterResourcesCache({
@@ -155,10 +123,6 @@ export class AuthService {
       this.cacheManagerService.setDataExist({
         dataType: DataType.DOMAIN_GROUPS,
         data: result.domainGroup as any,
-      }),
-      this.cacheManagerService.setDataExist({
-        dataType: DataType.SUBDOMAINS,
-        data: result.subdomain as any,
       }),
     ]);
 
@@ -764,70 +728,6 @@ export class AuthService {
     if (ttl > 0) {
       await this.cacheManagerService.blacklistToken(jti, ttl);
     }
-  }
-
-  private async resolveInitialSubdomainName(
-    tx: SubdomainTransactionClient,
-    organizationName: string,
-  ): Promise<string> {
-    const baseName =
-      this.normalizeOrganizationNameForSubdomain(organizationName);
-    if (await this.isSubdomainNameAvailable(tx, baseName)) {
-      return baseName;
-    }
-
-    const retryCandidate = `${baseName}${generateSubdomainRetrySuffix(INITIAL_SUBDOMAIN_RETRY_SUFFIX_LENGTH)}`;
-    if (await this.isSubdomainNameAvailable(tx, retryCandidate)) {
-      return retryCandidate;
-    }
-
-    return throwHttpException(
-      new ConflictError({
-        requestId: this.clsService.getId(),
-        details:
-          'Could not generate a unique starter subdomain for this organization.',
-      }),
-    );
-  }
-
-  private normalizeOrganizationNameForSubdomain(
-    organizationName: string,
-  ): string {
-    const normalized = String(organizationName ?? '')
-      .normalize('NFKD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9-]+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    const truncated = normalized
-      .slice(0, INITIAL_SUBDOMAIN_MAX_LENGTH)
-      .replace(/^-+|-+$/g, '');
-
-    return truncated || DEFAULT_SUBDOMAIN_BASE;
-  }
-
-  private async isSubdomainNameAvailable(
-    tx: SubdomainTransactionClient,
-    candidate: string,
-  ): Promise<boolean> {
-    if (!candidate) {
-      return false;
-    }
-    if (this.subdomainBlacklistService.isReserved(candidate)) {
-      return false;
-    }
-
-    const existing = await tx.linkShiftSubdomain.findFirst({
-      where: {
-        name: candidate,
-        deletedAt: null,
-      },
-      select: { id: true },
-    });
-
-    return !existing;
   }
 }
 

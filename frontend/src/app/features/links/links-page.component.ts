@@ -77,6 +77,7 @@ import { needsCursorListFetch } from '../../core/utils/cursor-list-pagination.ut
 import { areSortedIdListsEqual } from '../../core/utils/signal-list-equality.util';
 import { refetchLoadedRedirectRulePagesForGroup } from './links-list-refresh.util';
 import {
+  isWaitingForDomainGroupsBeforeDialog,
   resolveLinksOpenCreateQueryAction,
   resolveLinksWaitingForDomainGroups,
   resolveLinksPageActiveGroupId,
@@ -326,6 +327,12 @@ export class LinksPageComponent {
       authLoaded: this.authStore.isAuthenticated() && !this.authStore.isLoading(),
       domainGroupsLoading: this.domainGroupStore.isLoading()[DEFAULT_LIST_KEY] ?? false,
       domainGroupsListLoaded: this.domainGroupsListLoaded(),
+    }) ||
+    isWaitingForDomainGroupsBeforeDialog({
+      dialogRequested: this.pendingOpenConnectDomainFromQuery(),
+      authLoaded: this.authStore.isAuthenticated() && !this.authStore.isLoading(),
+      domainGroupsLoading: this.domainGroupStore.isLoading()[DEFAULT_LIST_KEY] ?? false,
+      domainGroupsListLoaded: this.domainGroupsListLoaded(),
     }),
   );
 
@@ -440,7 +447,32 @@ export class LinksPageComponent {
       if (!this.isCampaignMode()) {
         return;
       }
+
+      const listLoaded = this.domainGroupsListLoaded();
+      const error = this.domainGroupStore.lastError();
+      if (listLoaded && error) {
+        untracked(() => {
+          this.pendingOpenConnectDomainFromQuery.set(false);
+          this.clearConnectDomainQueryParam();
+          this.snackBar.open(error, 'Dismiss', { duration: 5000 });
+          this.domainGroupStore.clearError();
+        });
+        return;
+      }
+
+      if (
+        isWaitingForDomainGroupsBeforeDialog({
+          dialogRequested: true,
+          authLoaded: this.authStore.isAuthenticated() && !this.authStore.isLoading(),
+          domainGroupsLoading: this.domainGroupStore.isLoading()[DEFAULT_LIST_KEY] ?? false,
+          domainGroupsListLoaded: listLoaded,
+        })
+      ) {
+        return;
+      }
+
       this.pendingOpenConnectDomainFromQuery.set(false);
+
       this.dialogQueue.runWhenIdle(() => {
         this.openConnectDomainDialog();
         this.clearConnectDomainQueryParam();

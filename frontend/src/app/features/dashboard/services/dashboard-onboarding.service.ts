@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { WizardDialogService } from '../../../core/services/wizard-dialog.service';
 import { DashboardModeService } from '../../../core/layout/dashboard-mode.service';
 import { CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY } from '../../campaign-connect-domain/campaign-connect-domain.util';
+import { CampaignConnectDomainService } from '../../campaign-connect-domain/campaign-connect-domain.service';
 import { DashboardDialogQueueService } from './dashboard-dialog-queue.service';
 import {
   DashboardOnboardingDialogComponent,
@@ -57,6 +58,7 @@ export class DashboardOnboardingService {
   private readonly dialogQueue = inject(DashboardDialogQueueService);
   private readonly dashboardModeService = inject(DashboardModeService);
   private readonly router = inject(Router);
+  private readonly campaignConnectDomain = inject(CampaignConnectDomainService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
@@ -83,7 +85,14 @@ export class DashboardOnboardingService {
     return shouldDeferOnboardingForRoute(routerUrl, this.dashboardModeService.isCampaign());
   }
 
-  open(): MatDialogRef<DashboardOnboardingDialogComponent, DashboardOnboardingDialogResult> {
+  open(
+    options?: Partial<DashboardOnboardingDialogData>,
+  ): MatDialogRef<DashboardOnboardingDialogComponent, DashboardOnboardingDialogResult> {
+    const dialogData: DashboardOnboardingDialogData = {
+      campaignMode: this.dashboardModeService.isCampaign(),
+      ...options,
+    };
+
     const dialogRef = this.dialogQueue.openBlocking(() =>
       this.wizardDialog.openWizard<
         DashboardOnboardingDialogComponent,
@@ -91,7 +100,7 @@ export class DashboardOnboardingService {
         DashboardOnboardingDialogResult
       >(
         DashboardOnboardingDialogComponent,
-        { campaignMode: this.dashboardModeService.isCampaign() },
+        dialogData,
         0,
         { disableClose: false },
       ),
@@ -109,6 +118,12 @@ export class DashboardOnboardingService {
     if (!this.isBrowser || DASHBOARD_ONBOARDING_SHOW_ALWAYS) {
       return;
     }
+
+    if (result?.openConnectDomain) {
+      await this.handleConnectDomainHandoff(result.connectDomainData);
+      return;
+    }
+
     this.markDismissed();
 
     if (result?.openCreate) {
@@ -119,6 +134,28 @@ export class DashboardOnboardingService {
     if (result?.navigateTo) {
       void this.router.navigateByUrl(result.navigateTo);
     }
+  }
+
+  private async handleConnectDomainHandoff(
+    connectDomainData: DashboardOnboardingDialogResult['connectDomainData'],
+  ): Promise<void> {
+    const connectRef = this.campaignConnectDomain.openDialog(connectDomainData);
+    const connectResult = await firstValueFrom(connectRef.afterClosed());
+
+    if (connectResult?.openCreateLink) {
+      this.markDismissed();
+      void this.router.navigate(['/links'], { queryParams: { openCreate: '1' } });
+      return;
+    }
+
+    if (connectResult?.connected) {
+      await this.handleDialogClosed(
+        this.open({ subdomainChoiceCompleted: true, initialStepId: 'next' }),
+      );
+      return;
+    }
+
+    await this.handleDialogClosed(this.open());
   }
 
   markDismissed(): void {
