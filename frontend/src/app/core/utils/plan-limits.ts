@@ -1,4 +1,9 @@
-import type { PlanLimits } from '@shared/models/plan-limits.model';
+import {
+  canCreateAdditionalDomainGroup,
+  type PlanLimits,
+} from '@shared/models/plan-limits.model';
+
+export { canCreateAdditionalDomainGroup };
 
 const pluralize = (value: number, singular: string, plural: string) =>
   value === 1 ? singular : plural;

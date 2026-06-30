@@ -16,6 +16,7 @@ import {
   shouldDeferOnboardingForRoute,
 } from './dashboard-onboarding.service';
 import type { DashboardOnboardingDialogResult } from '../components/dashboard-onboarding-dialog/dashboard-onboarding-dialog.component';
+import { CampaignConnectDomainService } from '../../campaign-connect-domain/campaign-connect-domain.service';
 
 function createDialogRef<TResult>(): {
   ref: MatDialogRef<TResult>;
@@ -38,16 +39,29 @@ describe('DashboardOnboardingService', () => {
   let isCampaign: ReturnType<typeof vi.fn>;
   let navigate: ReturnType<typeof vi.fn>;
   let navigateByUrl: ReturnType<typeof vi.fn>;
+  let openConnectDialog: ReturnType<typeof vi.fn>;
+  let connectAfterClosed$: Subject<unknown>;
+  let onboardingOpenCount: number;
 
   beforeEach(() => {
     afterClosed$ = new Subject<DashboardOnboardingDialogResult | null | undefined>();
     isCampaign = vi.fn().mockReturnValue(false);
     navigate = vi.fn().mockResolvedValue(true);
     navigateByUrl = vi.fn().mockResolvedValue(true);
-    wizardOpen = vi.fn().mockReturnValue({
-      afterClosed: () => afterClosed$.asObservable(),
+    openConnectDialog = vi.fn();
+    connectAfterClosed$ = new Subject<unknown>();
+    onboardingOpenCount = 0;
+    wizardOpen = vi.fn().mockImplementation(() => {
+      onboardingOpenCount += 1;
+      return {
+        afterClosed: () => afterClosed$.asObservable(),
+        componentRef: null,
+      } as MatDialogRef<unknown, DashboardOnboardingDialogResult | null | undefined>;
+    });
+    openConnectDialog.mockImplementation(() => ({
+      afterClosed: () => connectAfterClosed$.asObservable(),
       componentRef: null,
-    } as MatDialogRef<unknown, DashboardOnboardingDialogResult | null | undefined>);
+    }));
 
     localStorage.clear();
     vi.spyOn(Date, 'now').mockReturnValue(1_000_000);
@@ -62,6 +76,10 @@ describe('DashboardOnboardingService', () => {
         {
           provide: Router,
           useValue: { navigate, navigateByUrl },
+        },
+        {
+          provide: CampaignConnectDomainService,
+          useValue: { openDialog: openConnectDialog },
         },
       ],
     });
@@ -230,6 +248,92 @@ describe('DashboardOnboardingService', () => {
 
     expect(navigateByUrl).toHaveBeenCalledWith('/domain-groups');
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('open launches connect-domain dialog when onboarding requests subdomain choice', async () => {
+    const connectDomainData = {
+      domainGroupId: 'group-default',
+      existingWorkspaceName: 'Default',
+    };
+
+    service.open();
+    afterClosed$.next({ confirmed: true, openConnectDomain: true, connectDomainData });
+    await flushDialogClosedHandler();
+
+    expect(openConnectDialog).toHaveBeenCalledWith(connectDomainData);
+    expect(localStorage.getItem(DASHBOARD_ONBOARDING_STORAGE_KEY)).toBeNull();
+    expect(navigate).not.toHaveBeenCalled();
+    expect(navigateByUrl).not.toHaveBeenCalled();
+  });
+
+  it('resumes onboarding on next step after connect-domain succeeds', async () => {
+    service.open();
+    afterClosed$.next({
+      confirmed: true,
+      openConnectDomain: true,
+      connectDomainData: { domainGroupId: 'group-default' },
+    });
+    await flushDialogClosedHandler();
+
+    connectAfterClosed$.next({
+      connected: true,
+      domainGroupId: 'group-default',
+      host: 'launch.localhost',
+    });
+    await flushDialogClosedHandler();
+
+    expect(onboardingOpenCount).toBe(2);
+    expect(wizardOpen).toHaveBeenLastCalledWith(
+      expect.any(Function),
+      { campaignMode: false, subdomainChoiceCompleted: true, initialStepId: 'next' },
+      0,
+      { disableClose: false },
+    );
+    expect(localStorage.getItem(DASHBOARD_ONBOARDING_STORAGE_KEY)).toBeNull();
+  });
+
+  it('reopens onboarding when connect-domain is cancelled', async () => {
+    service.open();
+    afterClosed$.next({
+      confirmed: true,
+      openConnectDomain: true,
+      connectDomainData: { domainGroupId: 'group-default' },
+    });
+    await flushDialogClosedHandler();
+
+    connectAfterClosed$.next(undefined);
+    await flushDialogClosedHandler();
+
+    expect(onboardingOpenCount).toBe(2);
+    expect(wizardOpen).toHaveBeenLastCalledWith(
+      expect.any(Function),
+      { campaignMode: false },
+      0,
+      { disableClose: false },
+    );
+    expect(localStorage.getItem(DASHBOARD_ONBOARDING_STORAGE_KEY)).toBeNull();
+  });
+
+  it('marks dismissed and opens create-link flow when connect-domain requests openCreateLink', async () => {
+    service.open();
+    afterClosed$.next({
+      confirmed: true,
+      openConnectDomain: true,
+      connectDomainData: { domainGroupId: 'group-default' },
+    });
+    await flushDialogClosedHandler();
+
+    connectAfterClosed$.next({
+      connected: true,
+      domainGroupId: 'group-default',
+      host: 'launch.localhost',
+      openCreateLink: true,
+    });
+    await flushDialogClosedHandler();
+
+    expect(localStorage.getItem(DASHBOARD_ONBOARDING_STORAGE_KEY)).toBe('true');
+    expect(navigate).toHaveBeenCalledWith(['/links'], { queryParams: { openCreate: '1' } });
+    expect(onboardingOpenCount).toBe(1);
   });
 
   it('respects DASHBOARD_ONBOARDING_SHOW_ALWAYS for shouldOpen eligibility', () => {

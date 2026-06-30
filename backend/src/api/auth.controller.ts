@@ -29,6 +29,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
 import { OrganizationMembersService } from '../organization/organization-members.service';
 import { Logger } from 'nestjs-pino';
+import { TurnstileGuard } from '../security/turnstile.guard';
 
 @Controller('api/v1/auth')
 export class AuthController {
@@ -93,6 +94,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @UseGuards(TurnstileGuard)
   async register(
     @Res({ passthrough: true }) response: Response,
     @Body(new ZodPipe(authSchemas.RegisterSchema))
@@ -120,6 +122,7 @@ export class AuthController {
   }
 
   @Post('register-invite')
+  @UseGuards(TurnstileGuard)
   async registerInvite(
     @Body(new ZodPipe(authSchemas.InviteRegisterSchema))
     body: authSchemas.InviteRegisterDto,
@@ -176,6 +179,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @UseGuards(TurnstileGuard)
   async login(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
@@ -225,6 +229,7 @@ export class AuthController {
   }
 
   @Post('password-reset/request')
+  @UseGuards(TurnstileGuard)
   async requestPasswordReset(
     @Body(new ZodPipe(authSchemas.PasswordResetRequestSchema))
     body: authSchemas.PasswordResetRequestDto,

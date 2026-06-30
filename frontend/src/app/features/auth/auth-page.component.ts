@@ -23,6 +23,7 @@ import { loginSchema, registerSchema } from './auth.schemas';
 import { SITE_CONFIG } from '../../core/config/site-config';
 import { APP_CONFIG } from '../../core/config/app-runtime-config';
 import { DashboardModeService } from '../../core/layout/dashboard-mode.service';
+import { TurnstileService } from '../../core/security/turnstile.service';
 
 @Component({
   selector: 'app-auth-page',
@@ -51,6 +52,7 @@ export class AuthPageComponent {
   readonly siteConfig = inject(SITE_CONFIG);
   private readonly appConfig = inject(APP_CONFIG);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly turnstile = inject(TurnstileService);
 
   loginModel = signal({
     email: '',
@@ -150,9 +152,12 @@ export class AuthPageComponent {
     event?.preventDefault();
     await submit(this.loginForm, async (formValue) => {
       try {
-        await firstValueFrom(this.authStore.login(formValue().value()));
+        const turnstileToken = await this.turnstile.requestToken();
+        await firstValueFrom(this.authStore.login(formValue().value(), turnstileToken));
+        this.turnstile.reset();
         await this.router.navigateByUrl(this.dashboardMode.defaultLandingPath());
       } catch {
+        this.turnstile.reset();
         return undefined;
       }
       return undefined;
@@ -169,8 +174,11 @@ export class AuthPageComponent {
         organizationName: trimmedOrganizationName || undefined,
       };
       try {
-        await firstValueFrom(this.authStore.register(payload));
+        const turnstileToken = await this.turnstile.requestToken();
+        await firstValueFrom(this.authStore.register(payload, turnstileToken));
+        this.turnstile.reset();
       } catch {
+        this.turnstile.reset();
         return undefined;
       }
 

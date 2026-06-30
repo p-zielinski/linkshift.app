@@ -29,7 +29,12 @@
         </div>
       }
 
-      @if (hasConnectedHosts()) {
+      @if (needsSubdomainChoice()) {
+        <div>
+          <div class="font-medium text-app-foreground">Short-link host</div>
+          <div>Choose your LinkShift subdomain in the next step.</div>
+        </div>
+      } @else if (hasConnectedHosts()) {
         @if (subdomainPreview()[0]; as subdomain) {
           <div>
             <div class="font-medium text-app-foreground">Starter subdomains</div>
@@ -80,7 +85,10 @@
           <div class="grid gap-1">
             <div class="text-base font-semibold">Your workspace is ready.</div>
             <div class="text-sm text-app-muted">
-              @if (hasConnectedHosts()) {
+              @if (needsSubdomainChoice()) {
+                Your link map and /short redirect rule are ready. Choose your short-link subdomain
+                next to start sharing URLs.
+              } @else if (hasConnectedHosts()) {
                 Your starter link map and /short redirect rule are ready for you. Add link keys from
                 Links to start sharing short URLs.
               } @else {
@@ -140,7 +148,25 @@
         }
       </div>
 
-      @if (hasConnectedHosts()) {
+      @if (needsSubdomainChoice()) {
+        <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
+          <div class="text-sm font-semibold">Choose your subdomain</div>
+          <div class="mt-2 text-sm text-app-muted">
+            Pick the address for your short links — for example
+            <span class="font-medium text-app-foreground">launch.{{ subdomainBaseHost() }}</span
+            >.
+          </div>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            class="mt-4"
+            (click)="onConnectDomain()"
+          >
+            Choose your subdomain
+          </button>
+        </div>
+      } @else if (hasConnectedHosts()) {
         <div class="rounded-[16px] border border-app-border-soft bg-app-surface p-4">
           <div class="text-sm font-semibold">Starter subdomains</div>
           @if (subdomainPreview().length > 0) {
@@ -227,7 +253,11 @@
         <div class="text-sm font-semibold">Recommended first actions</div>
         @if (campaignMode()) {
           <div class="mt-3 grid gap-2 text-sm text-app-muted">
-            @if (hasConnectedHosts()) {
+            @if (needsSubdomainChoice()) {
+              <div>Choose your LinkShift subdomain.</div>
+              <div>Create your first short link from Overview or Links.</div>
+              <div>Share the short URL and track clicks in Analytics.</div>
+            } @else if (hasConnectedHosts()) {
               <div>Create your first short link from Overview or Links.</div>
               <div>Share the short URL and track clicks in Analytics.</div>
               <div>Connect a custom domain when you want branded short links.</div>
@@ -239,7 +269,11 @@
           </div>
         } @else {
           <div class="mt-3 grid gap-2 text-sm text-app-muted">
-            @if (hasConnectedHosts()) {
+            @if (needsSubdomainChoice()) {
+              <div>Choose your LinkShift subdomain.</div>
+              <div>Add your first link to the link map.</div>
+              <div>Run a redirect test to confirm routing.</div>
+            } @else if (hasConnectedHosts()) {
               <div>Review the starter /short rule and link map.</div>
               <div>Add your first link to the link map.</div>
               <div>Run a redirect test to confirm routing.</div>
@@ -257,7 +291,11 @@
       </div>
 
       <div class="flex flex-wrap gap-2">
-        @if (!hasConnectedHosts()) {
+        @if (needsSubdomainChoice()) {
+          <button mat-flat-button color="primary" type="button" (click)="onConnectDomain()">
+            Choose your subdomain
+          </button>
+        } @else if (!hasConnectedHosts()) {
           <button mat-flat-button color="primary" type="button" (click)="onConnectDomain()">
             Connect your domain
           </button>

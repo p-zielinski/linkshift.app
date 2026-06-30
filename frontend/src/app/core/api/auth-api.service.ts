@@ -15,6 +15,7 @@ import type {
   LegalConsentDto
 } from '../models/auth.dto';
 import { API_CONFIG } from '../config/api-config';
+import { withTurnstileToken } from '../security/turnstile-headers.util';
 
 @Injectable({
   providedIn: 'root'
@@ -24,22 +25,28 @@ export class AuthApiService {
   private readonly apiConfig = inject(API_CONFIG);
   private readonly apiUrl = `${this.apiConfig.baseUrl}/api/v1/auth`;
 
-  login(payload: LoginDto): Observable<AuthResponse> {
+  login(payload: LoginDto, turnstileToken?: string | null): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, payload, {
       withCredentials: true,
+      headers: withTurnstileToken(turnstileToken),
     });
   }
 
-  register(payload: RegisterDto): Observable<AuthResponse> {
+  register(payload: RegisterDto, turnstileToken?: string | null): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, payload, {
       withCredentials: true,
+      headers: withTurnstileToken(turnstileToken),
     });
   }
 
-  registerInvite(payload: InviteRegisterDto): Observable<{ success: true }> {
+  registerInvite(
+    payload: InviteRegisterDto,
+    turnstileToken?: string | null,
+  ): Observable<{ success: true }> {
     return this.http.post<{ success: true }>(
       `${this.apiUrl}/register-invite`,
       payload,
+      { headers: withTurnstileToken(turnstileToken) },
     );
   }
 
@@ -84,10 +91,14 @@ export class AuthApiService {
     );
   }
 
-  requestPasswordReset(payload: PasswordResetRequestDto): Observable<{ sent: true }> {
+  requestPasswordReset(
+    payload: PasswordResetRequestDto,
+    turnstileToken?: string | null,
+  ): Observable<{ sent: true }> {
     return this.http.post<{ sent: true }>(
       `${this.apiUrl}/password-reset/request`,
       payload,
+      { headers: withTurnstileToken(turnstileToken) },
     );
   }
 

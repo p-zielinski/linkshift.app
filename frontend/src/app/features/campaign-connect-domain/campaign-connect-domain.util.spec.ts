@@ -1,4 +1,5 @@
 import { of } from 'rxjs';
+import { DEFAULT_PLAN_LIMITS } from '@shared/models/plan-limits.model';
 import {
   buildCampaignSubdomainHost,
   createCampaignConnectDomainModel,
@@ -6,7 +7,11 @@ import {
   isCampaignSiteStepValid,
   normalizeCampaignWorkspaceName,
   provisionCampaignConnectDomain,
+  resolveCampaignConnectCanCreateNewSite,
+  resolveCampaignConnectInitialDomainGroupId,
   resolveConnectDomainSuccessMessage,
+  resolveNeedsSubdomainChoice,
+  buildOnboardingConnectDomainData,
   validateCampaignCustomDomainName,
   validateCampaignSubdomainName,
 } from './campaign-connect-domain.util';
@@ -53,6 +58,25 @@ describe('campaign-connect-domain.util', () => {
       subdomainName: '',
       customDomainName: '',
     });
+  });
+
+  it('blocks new site creation when plan limit is reached', () => {
+    expect(
+      resolveCampaignConnectCanCreateNewSite(1, DEFAULT_PLAN_LIMITS.maxDomainGroups),
+    ).toBe(false);
+    expect(
+      createCampaignConnectDomainModel({
+        hasExistingSites: true,
+        canCreateNewSite: false,
+        initialDomainGroupId: 'group-default',
+      }).workspaceMode,
+    ).toBe('existing');
+    expect(
+      resolveCampaignConnectInitialDomainGroupId({
+        domainGroups: [{ id: 'group-default' }],
+        canCreateNewSite: false,
+      }),
+    ).toBe('group-default');
   });
 
   it('checks site and host step validity', () => {
@@ -199,5 +223,93 @@ describe('campaign-connect-domain.util', () => {
     expect(resolveConnectDomainSuccessMessage({ addedHostToExistingSite: false }, true)).toBe(
       'Host added.',
     );
+  });
+
+  it('detects when onboarding should offer subdomain choice', () => {
+    expect(resolveNeedsSubdomainChoice([], [])).toBe(true);
+    expect(resolveNeedsSubdomainChoice([{ id: 'sub-1' }], [])).toBe(true);
+    expect(resolveNeedsSubdomainChoice([], [{ id: 'dom-1' }])).toBe(false);
+    expect(
+      resolveNeedsSubdomainChoice([{ id: 'sub-1' }, { id: 'sub-2' }], []),
+    ).toBe(false);
+  });
+
+  it('builds onboarding connect-domain data for a single bootstrap site', () => {
+    expect(
+      buildOnboardingConnectDomainData({
+        domainGroups: [{ id: 'group-default', name: 'Default' } as never],
+        subdomains: [{ id: 'sub-old', name: 'piotrzsxo90jaus' } as never],
+        domains: [],
+      }),
+    ).toEqual({
+      domainGroups: [{ id: 'group-default', name: 'Default' }],
+      domainGroupId: 'group-default',
+      existingWorkspaceName: 'Default',
+      replaceSubdomainId: 'sub-old',
+      replaceSubdomainName: 'piotrzsxo90jaus',
+    });
+  });
+
+  it('replaces a placeholder subdomain during onboarding', async () => {
+    const deleteSubdomain = vi.fn(() => of(void 0));
+    const createSubdomain = vi.fn(() => of({ id: 'sub-new' }));
+
+    const result = await provisionCampaignConnectDomain({
+      model: {
+        workspaceMode: 'existing',
+        selectedDomainGroupId: 'group-default',
+        workspaceName: '',
+        hostKind: 'subdomain',
+        subdomainName: 'launch',
+        customDomainName: '',
+      },
+      subdomainBaseHost: 'go.linkshift.app',
+      lockedDomainGroupId: 'group-default',
+      replaceSubdomainId: 'sub-old',
+      replaceSubdomainName: 'piotrzsxo90jaus',
+      domainGroupsApi: { create: vi.fn() } as never,
+      subdomainsApi: { create: createSubdomain, delete: deleteSubdomain } as never,
+      domainsApi: { create: vi.fn() } as never,
+    });
+
+    expect(deleteSubdomain).toHaveBeenCalledWith('sub-old');
+    expect(createSubdomain).toHaveBeenCalledWith({
+      name: 'launch',
+      domainGroupId: 'group-default',
+    });
+    expect(result).toEqual({
+      domainGroupId: 'group-default',
+      host: 'launch.go.linkshift.app',
+    });
+  });
+
+  it('skips replace when onboarding keeps the same subdomain name', async () => {
+    const deleteSubdomain = vi.fn(() => of(void 0));
+    const createSubdomain = vi.fn(() => of({ id: 'sub-new' }));
+
+    const result = await provisionCampaignConnectDomain({
+      model: {
+        workspaceMode: 'existing',
+        selectedDomainGroupId: 'group-default',
+        workspaceName: '',
+        hostKind: 'subdomain',
+        subdomainName: 'launch',
+        customDomainName: '',
+      },
+      subdomainBaseHost: 'go.linkshift.app',
+      lockedDomainGroupId: 'group-default',
+      replaceSubdomainId: 'sub-old',
+      replaceSubdomainName: 'launch',
+      domainGroupsApi: { create: vi.fn() } as never,
+      subdomainsApi: { create: createSubdomain, delete: deleteSubdomain } as never,
+      domainsApi: { create: vi.fn() } as never,
+    });
+
+    expect(deleteSubdomain).not.toHaveBeenCalled();
+    expect(createSubdomain).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      domainGroupId: 'group-default',
+      host: 'launch.go.linkshift.app',
+    });
   });
 });

@@ -38,6 +38,17 @@ export const DEFAULT_PLAN_LIMITS: Readonly<PlanLimits> = {
   analyticsRetentionDays: 14,
 };
 
+export function canCreateAdditionalDomainGroup(
+  existingCount: number,
+  maxDomainGroups: number,
+): boolean {
+  if (!Number.isFinite(maxDomainGroups)) {
+    return true;
+  }
+
+  return existingCount < maxDomainGroups;
+}
+
 export const UNMETERED_PLAN_LIMITS: Readonly<PlanLimits> = {
   maxDomainGroups: Infinity,
   maxDomainsPerGroup: Infinity,

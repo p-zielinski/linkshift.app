@@ -14,7 +14,7 @@ import { SeoService } from '../../core/seo/seo.service';
 export class CookiesPageComponent implements OnInit {
   private readonly seo = inject(SeoService);
   readonly siteConfig = inject(SITE_CONFIG);
-  readonly updatedAt = '2026-06-08';
+  readonly updatedAt = '2026-06-29';
 
   ngOnInit(): void {
     this.seo.updateTags({

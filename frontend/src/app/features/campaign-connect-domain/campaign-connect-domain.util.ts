@@ -1,7 +1,10 @@
+import { canCreateAdditionalDomainGroup } from '@shared/models/plan-limits.model';
 import { DEFAULT_ROBOTS_POLICY } from '@shared/models/robots-policy.model';
 import type { CreateDomainDto } from '../../core/models/domain.model';
 import type { CreateDomainGroupDto } from '../../core/models/domain-group.model';
-import type { CreateSubdomainDto } from '../../core/models/subdomain.model';
+import type { DomainGroup } from '../../core/models/domain-group.model';
+import type { Domain } from '../../core/models/domain.model';
+import type { CreateSubdomainDto, Subdomain } from '../../core/models/subdomain.model';
 import type { DomainGroupsApiService } from '../../core/api/domain-groups-api.service';
 import type { DomainsApiService } from '../../core/api/domains-api.service';
 import type { SubdomainsApiService } from '../../core/api/subdomains-api.service';
@@ -46,11 +49,24 @@ export const DEFAULT_CAMPAIGN_WORKSPACE_NAME = 'My site';
 export function createCampaignConnectDomainModel(options?: {
   initialDomainGroupId?: string;
   hasExistingSites?: boolean;
+  canCreateNewSite?: boolean;
 }): CampaignConnectDomainModel {
   const hasExistingSites = options?.hasExistingSites ?? false;
+  const canCreateNewSite = options?.canCreateNewSite ?? true;
   const initialDomainGroupId = options?.initialDomainGroupId?.trim() ?? '';
 
   if (hasExistingSites) {
+    return {
+      workspaceMode: 'existing',
+      selectedDomainGroupId: initialDomainGroupId,
+      workspaceName: '',
+      hostKind: 'subdomain',
+      subdomainName: '',
+      customDomainName: '',
+    };
+  }
+
+  if (!canCreateNewSite) {
     return {
       workspaceMode: 'existing',
       selectedDomainGroupId: initialDomainGroupId,
@@ -69,6 +85,36 @@ export function createCampaignConnectDomainModel(options?: {
     subdomainName: '',
     customDomainName: '',
   };
+}
+
+export function resolveCampaignConnectCanCreateNewSite(
+  existingSiteCount: number,
+  maxDomainGroups: number,
+): boolean {
+  return canCreateAdditionalDomainGroup(existingSiteCount, maxDomainGroups);
+}
+
+export function resolveCampaignConnectInitialDomainGroupId(params: {
+  lockedDomainGroupId?: string;
+  initialDomainGroupId?: string;
+  domainGroups: ReadonlyArray<{ id: string }>;
+  canCreateNewSite: boolean;
+}): string {
+  const locked = params.lockedDomainGroupId?.trim() ?? '';
+  if (locked) {
+    return locked;
+  }
+
+  const initial = params.initialDomainGroupId?.trim() ?? '';
+  if (initial) {
+    return initial;
+  }
+
+  if (!params.canCreateNewSite && params.domainGroups.length === 1) {
+    return params.domainGroups[0]?.id ?? '';
+  }
+
+  return '';
 }
 
 export function normalizeCampaignWorkspaceName(value: string): string {
@@ -112,10 +158,58 @@ export function isCampaignHostStepValid(model: CampaignConnectDomainModel): bool
   return validateCampaignCustomDomainName(model.customDomainName) === null;
 }
 
+export function resolveNeedsSubdomainChoice(
+  subdomains: ReadonlyArray<Pick<Subdomain, 'id'>>,
+  domains: ReadonlyArray<Pick<Domain, 'id'>>,
+): boolean {
+  if (subdomains.length === 0 && domains.length === 0) {
+    return true;
+  }
+
+  return subdomains.length === 1 && domains.length === 0;
+}
+
+export function buildOnboardingConnectDomainData(params: {
+  domainGroups: ReadonlyArray<DomainGroup>;
+  subdomains: ReadonlyArray<Subdomain>;
+  domains: ReadonlyArray<Domain>;
+}): {
+  domainGroups: DomainGroup[];
+  domainGroupId?: string;
+  existingWorkspaceName?: string;
+  replaceSubdomainId?: string;
+  replaceSubdomainName?: string;
+} {
+  const domainGroups = [...params.domainGroups];
+  const soleSite = domainGroups.length === 1 ? domainGroups[0] : undefined;
+  const replaceSubdomain =
+    params.subdomains.length === 1 && params.domains.length === 0
+      ? params.subdomains[0]
+      : undefined;
+
+  return {
+    domainGroups,
+    ...(soleSite
+      ? {
+          domainGroupId: soleSite.id,
+          existingWorkspaceName: soleSite.name,
+        }
+      : {}),
+    ...(replaceSubdomain
+      ? {
+          replaceSubdomainId: replaceSubdomain.id,
+          replaceSubdomainName: replaceSubdomain.name,
+        }
+      : {}),
+  };
+}
+
 export async function provisionCampaignConnectDomain(params: {
   model: CampaignConnectDomainModel;
   subdomainBaseHost: string;
   lockedDomainGroupId?: string;
+  replaceSubdomainId?: string;
+  replaceSubdomainName?: string;
   domainGroupsApi: DomainGroupsApiService;
   subdomainsApi: SubdomainsApiService;
   domainsApi: DomainsApiService;
@@ -124,6 +218,19 @@ export async function provisionCampaignConnectDomain(params: {
 
   if (params.model.hostKind === 'subdomain') {
     const subdomainName = params.model.subdomainName.trim().toLowerCase();
+    const existingName = params.replaceSubdomainName?.trim().toLowerCase() ?? '';
+
+    if (params.replaceSubdomainId && existingName === subdomainName) {
+      return {
+        domainGroupId,
+        host: buildCampaignSubdomainHost(subdomainName, params.subdomainBaseHost),
+      };
+    }
+
+    if (params.replaceSubdomainId) {
+      await firstValueFrom(params.subdomainsApi.delete(params.replaceSubdomainId));
+    }
+
     const subdomainPayload: CreateSubdomainDto = {
       name: subdomainName,
       domainGroupId,

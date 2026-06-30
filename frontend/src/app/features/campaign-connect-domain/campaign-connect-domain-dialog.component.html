@@ -42,14 +42,16 @@
     <ng-template wizardStep="site">
       <div class="grid max-w-lg gap-4">
         @if (hasExistingSites()) {
-          <mat-button-toggle-group
-            class="w-full"
-            [value]="model().workspaceMode"
-            (change)="setWorkspaceMode($event.value)"
-          >
-            <mat-button-toggle class="flex-1" value="existing">Existing site</mat-button-toggle>
-            <mat-button-toggle class="flex-1" value="new">New site</mat-button-toggle>
-          </mat-button-toggle-group>
+          @if (canCreateNewSite()) {
+            <mat-button-toggle-group
+              class="w-full"
+              [value]="model().workspaceMode"
+              (change)="setWorkspaceMode($event.value)"
+            >
+              <mat-button-toggle class="flex-1" value="existing">Existing site</mat-button-toggle>
+              <mat-button-toggle class="flex-1" value="new">New site</mat-button-toggle>
+            </mat-button-toggle-group>
+          }
 
           @if (model().workspaceMode === 'existing') {
             <mat-form-field appearance="outline" class="w-full">
@@ -59,7 +61,13 @@
                   <mat-option [value]="group.id">{{ group.name }}</mat-option>
                 }
               </mat-select>
-              <mat-hint>Short links will use hosts on this site</mat-hint>
+              <mat-hint>
+                @if (canCreateNewSite()) {
+                  Short links will use hosts on this site
+                } @else {
+                  Your plan includes one site — choose it, then add your subdomain on the next step
+                }
+              </mat-hint>
               @if (selectedSiteError(); as error) {
                 <mat-error>{{ error }}</mat-error>
               }
