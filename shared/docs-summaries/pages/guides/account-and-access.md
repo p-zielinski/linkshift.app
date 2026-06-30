@@ -1,20 +1,22 @@
 ---
 source: shared/docs/pages/guides/account-and-access.md
-generatedAt: 2026-06-08T20:07:13.557Z
+generatedAt: 2026-06-30T19:39:51.526Z
 model: gpt-4o-mini
 ---
 
 ## Purpose
-This document is for users of LinkShift and explains the processes for account management, including signing in, registration, email verification, password reset, accepting team invitations, and legal consent.
+This document is for users of LinkShift and explains the processes for account management, including sign-in, registration, email verification, password reset, and legal consent.
 
 ## What this doc covers
-- **Sign in or register**
-- **Verify your email**
-- **Change your email**
-- **Reset your password**
-- **Accept an invitation**
-- **Legal consent**
-- **End your session**
+- **Bot protection**: Details on Cloudflare Turnstile for sign-in and registration.
+- **Sign in or register**: Steps for signing in and creating an account, including fields required.
+- **What registration creates**: Overview of what is set up upon registration.
+- **Verify your email**: Steps to verify your email after registration or change.
+- **Change your email**: Process for changing your email address.
+- **Reset your password**: Steps to reset your password through the login tab.
+- **Accept an invitation**: Instructions for accepting team invitations.
+- **Legal consent**: Process for accepting updated terms and privacy policies.
+- **End your session**: How to log out of the dashboard.
 
 ## Key workflows and rules
 ### Sign in or Register
@@ -22,29 +24,28 @@ This document is for users of LinkShift and explains the processes for account m
    - Navigate to the **Login** tab.
    - Enter **Email** and **Password**.
    - Click **Sign in**.
-   
 2. **Register**:
    - Navigate to the **Register** tab.
-   - Enter **Email**, **Password**, **Confirm password**, and optionally **Organization name**.
-   - Choose a plan and billing interval if registration is open.
+   - Fill in **Email**, **Password**, **Confirm password**, and **Organization name** (optional).
+   - Choose a plan and billing interval.
    - Accept Terms of Service and Privacy Policy.
    - Click **Create account**.
 
 ### Verify Your Email
 1. Click the verification link in the email.
 2. Wait for the verification process.
-3. On success, you will see **Email verified** and can go to login.
+3. If successful, proceed to login.
 
 ### Change Your Email
 1. Sign in and go to **Profile**.
 2. Enter **New email**.
-3. If current email is **Verified**, send a verification code and confirm.
-4. If **Unverified**, update email and send verification.
+3. If current email is verified, send a verification code and confirm.
+4. If unverified, update email and send verification.
 
 ### Reset Your Password
 1. Click **Forgot password?** on the **Login** tab.
-2. Enter **Email** and send the reset link.
-3. Use the link to set a new password.
+2. Enter **Email** and click **Send reset link**.
+3. Use the link from the email to set a new password.
 
 ### Accept an Invitation
 1. Open the invite link from your email.
@@ -53,21 +54,18 @@ This document is for users of LinkShift and explains the processes for account m
 4. Click **Create account**.
 
 ### Legal Consent
-1. If terms change, you will be redirected to **Review updated terms**.
-2. Accept the updated Terms of Service and Privacy Policy.
+1. Redirected to **Review updated terms** upon changes.
+2. Accept the updated terms and confirm minimum age.
 3. Click **Continue** to unblock other routes.
-
-### End Your Session
-- Click **Log out** in the dashboard sidebar footer to return to the **Sign in** page.
 
 ## Limits and constraints
 - **Invitations** expire after **30 minutes**.
-- Registration may be temporarily closed, displaying **Private testing in progress**.
-- Until legal consent is accepted, other authenticated routes are blocked.
-- The app shell only allows access to the consent screen and **Log out** until consent is recorded.
+- Registration does not assign a public short-link hostname.
+- Bot protection via Cloudflare Turnstile is required for sign-in, registration, and password reset.
+- Until legal consent is accepted, access to other authenticated routes is blocked.
 
 ## Related docs and API areas
-- [Dashboard overview](./dashboard/dashboard-overview.md) — details on the shell, profile, and billing summary.
-- [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md) — information on invites and API keys.
-- [Getting started](./getting-started.md) — guidance on obtaining Management API keys post sign-in.
-- [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md) — details on upgrading and subscription limits.
+- [Getting started](./getting-started.md) — Information on obtaining Management API keys.
+- [Dashboard overview](./dashboard/dashboard-overview.md) — Overview of the dashboard shell and profile.
+- [Organization and API keys in the dashboard](./dashboard/organization-and-api-keys-in-dashboard.md) — Managing team invites and API keys.
+- [Billing and plans in the dashboard](./billing-and-plans-in-dashboard.md) — Information on upgrading and subscription limits.

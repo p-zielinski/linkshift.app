@@ -1,75 +1,58 @@
 ---
 llmSlice: shared/docs/openapi/by-tag/domains.openapi.json
 source: shared/docs/openapi/by-tag/domains.openapi.json
-generatedAt: 2026-06-27T00:00:00.000Z
-model: manual
+generatedAt: 2026-06-30T19:39:21.730Z
+model: gpt-4o-mini
 sliceType: openapi-by-tag
 canonicalOpenApi: shared/docs/openapi/linkshift-api-keys.openapi.yaml
 openApiTag: Domains
 ---
 
 ## Purpose
-This OpenAPI tag covers the management of custom domains within the LinkShift platform for API-key clients, including DNS verification before on-demand TLS.
+This OpenAPI tag covers the management of custom domains within the LinkShift platform for API-key clients.
 
 ## Endpoints
 - **`GET /api/v1/domains`** (`listDomains`)
-  - Returns all active custom domains in one response (no cursor pagination). Clients can filter results client-side by `domainGroupId`.
+  - Returns all active custom domains in one response (no cursor pagination). Clients can filter results by `domainGroupId`.
 
 - **`POST /api/v1/domains`** (`createDomain`)
-  - Registers a custom hostname under `domainGroupId`. Hostname must match the request pattern; it is stored in lowercase (mixed-case input is normalized).
-  - Response includes `dnsStatus: PENDING` until DNS points at the LinkShift target IP.
+  - Registers a custom hostname under `domainGroupId`. The hostname must match the request pattern and is stored in lowercase. The response includes `dnsStatus: PENDING` until DNS verification succeeds. Returns `404` for invalid group IDs and `409` if the hostname is already registered.
   - **Request Body Fields**: `name`, `domainGroupId`
   - **Response Fields**: `id`, `name`, `domainGroupId`, `dnsStatus`, `dnsVerifiedAt`, `dnsLastCheckedAt`, `createdAt`, `updatedAt`, `deletedAt`
-  - Returns `404` when the group ID is invalid; `409` when the name is already taken or in a 7-day release cooldown after deletion (`Domain name {hostname} was recently deleted and is in a 7-day release cooldown until {iso8601}`).
 
 - **`GET /api/v1/domains/{id}`** (`getDomain`)
-  - Fetches a single domain record by its ID, including DNS verification fields.
+  - Fetches a domain record by ID, including `name`, `domainGroupId`, and DNS verification fields. Returns `404` if the ID is unknown or outside the organization.
   - **Response Fields**: `id`, `name`, `domainGroupId`, `dnsStatus`, `dnsVerifiedAt`, `dnsLastCheckedAt`, `createdAt`, `updatedAt`, `deletedAt`
-  - Returns `404` when the ID is unknown, soft-deleted, or outside your organization.
-
-- **`POST /api/v1/domains/{id}/verify-dns`** (`verifyDomainDns`)
-  - Live DNS lookup (A records, CNAME chain) against `APP_DOMAIN_TARGET_IP`. Updates `dnsStatus`, `dnsVerifiedAt`, `dnsLastCheckedAt`.
-  - Sets `VERIFIED` on success, `FAILED` on failure. Clears edge `check-domain` gate when verified.
-  - **Response Fields**: updated `Domain` object
-  - Returns `404` when the domain ID is unknown or outside your organization.
 
 - **`PUT /api/v1/domains/{id}`** (`updateDomain`)
-  - Moves the domain to another group only. Hostname is immutable; sending `name` returns `400` (strict schema).
-  - To use a new hostname, delete and create a new domain (new TLS certificate required for custom domains).
-  - **Request Body Fields**: `domainGroupId` (required)
+  - Moves the domain to another group only; the hostname is immutable after creation. Sending `name` in the body results in a `400` error. `domainGroupId` is required in the body.
+  - **Request Body Fields**: `domainGroupId`
   - **Response Fields**: `id`, `name`, `domainGroupId`, `dnsStatus`, `dnsVerifiedAt`, `dnsLastCheckedAt`, `createdAt`, `updatedAt`, `deletedAt`
 
 - **`DELETE /api/v1/domains/{id}`** (`deleteDomain`)
-  - Soft-deletes the domain. Published links stop working immediately; hostname reserved globally for 7 days.
-  - Returns `404` when the ID isn't in your organization.
+  - Soft-deletes the domain, stopping published links immediately. The hostname remains reserved globally for 7 days before it can be recreated. Returns `404` if the ID is not in the organization.
 
-## Internal edge endpoint (not in this tag)
-- **`GET /check-domain?domain={hostname}`** — Caddy-only. Returns **403** when hostname is unknown, group inactive, or DNS not verified (`dns_pending`). LinkShift subdomains skip DNS verification.
+- **`POST /api/v1/domains/{id}/verify-dns`** (`verifyDomainDns`)
+  - Performs a live DNS lookup for the domain's hostname, updating `dnsStatus`, `dnsVerifiedAt`, and `dnsLastCheckedAt`. On success, sets `dnsStatus` to `VERIFIED`. This operation is idempotent.
+  - **Response Fields**: `id`, `name`, `domainGroupId`, `dnsStatus`, `dnsVerifiedAt`, `dnsLastCheckedAt`, `createdAt`, `updatedAt`, `deletedAt`
 
 ## Auth, billing, and rate limits
-- **Authentication**: Send your key on every request using `X-API-Key: <your_key>` (preferred) or `Authorization: ApiKey <your_key>`.
+- **Authentication**: Send your API key on every request using the header `X-API-Key: <your_key>` or alternatively `Authorization: ApiKey <your_key>`.
 - **Error Codes**:
-  - `401`: Key missing, revoked, or wrong organization. Create or rotate a key in the dashboard (Organization → API keys).
-  - `402`: API access isn't on your current plan. Upgrade subscription, then retry.
-  - `429`: Per-key rate limit for your plan. Back off with jitter; read current usage via `GET /api/v1/organization/usage`.
-  - `400`: Request body or query failed validation; inspect `details` and `requestId` in the JSON body.
+  - `401`: Key missing, revoked, or wrong organization.
+  - `402`: API access isn't on your current plan.
+  - `429`: Per-key rate limit for your plan; clients should back off with jitter.
+  - `400`: Request body or query failed validation.
   - `404`: ID doesn't exist or isn't in your organization scope.
-  - `409`: Hostname already taken or in 7-day release cooldown after deletion.
-- **Dashboard-only**: API key CRUD, billing checkout, and some analytics views require signed-in dashboard authentication.
+- **Rate Limits**: Clients should read current usage via `GET /api/v1/organization/usage` and avoid hard-coding limits.
 
 ## Data shapes
 - **DomainQueryResult**: Paginated domain query response.
-- **CreateDomainRequest**: Payload for creating a domain (hostnames stored lowercase).
-  - **Fields**: `name`, `domainGroupId`
-- **Domain**: Domain entity assigned to a domain group.
-  - **Fields**: `id`, `name`, `domainGroupId`, `dnsStatus`, `dnsVerifiedAt`, `dnsLastCheckedAt`, `createdAt`, `updatedAt`, `deletedAt`
-- **DomainDnsStatus**: `PENDING` | `VERIFIED` | `FAILED`
-- **UpdateDomainRequest**: Payload for updating a domain (group reassignment only).
-  - **Fields**: `domainGroupId`
-- **QueryResultMeta**: Metadata envelope shared by cursor-paginated query responses.
-  - **Fields**: `dataType`, `hasMore`, `moreStartingAfterId`
-- **ErrorResponse**: Standard error envelope.
-  - **Fields**: `code`, `key`, `message`, `details`, `requestId`, `feature`
+- **CreateDomainRequest**: Payload for creating a domain with fields `name`, `domainGroupId`.
+- **Domain**: Represents a domain entity with fields `id`, `name`, `domainGroupId`, `dnsStatus`, `dnsVerifiedAt`, `dnsLastCheckedAt`, `createdAt`, `updatedAt`, `deletedAt`.
+- **ErrorResponse**: Standard error envelope with fields `code`, `key`, `message`, `details`, `requestId`, `feature`.
+- **UpdateDomainRequest**: Payload for updating a domain, accepting only `domainGroupId`.
+- **DomainDnsStatus**: DNS verification state for custom domains with values `PENDING` and `VERIFIED`.
 
 ## Related endpoints outside this tag
-- **GET /api/v1/organization/usage**: To read current usage and manage rate limits.
+- **`GET /check-domain?domain={hostname}`**: Internal endpoint for checking domain status before on-demand TLS. Returns `403` for unknown hostnames or inactive domain groups.
