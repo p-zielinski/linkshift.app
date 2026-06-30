@@ -162,7 +162,8 @@
         incident response.
       </li>
       <li>
-        Cloudflare Turnstile bot protection when you use the documentation assistant (Ask docs).
+        Cloudflare Turnstile bot protection when you sign in, register, request a password reset,
+        accept a team invite, or use the documentation assistant (Ask docs).
       </li>
       <li>
         Optional <code>{{ '{' }}ip{{ '}' }}</code> placeholder substitution in customer-configured
@@ -269,6 +270,23 @@
       destinations.
     </p>
 
+    <h2>Bot protection (Cloudflare Turnstile)</h2>
+    <p>
+      We use Cloudflare Turnstile on public account flows — sign-in, registration, password reset
+      requests, and team invite acceptance — and on the documentation assistant (Ask docs).
+      Turnstile may run in invisible mode. Cloudflare processes limited technical signals (such as
+      browser and network characteristics) to distinguish humans from bots. Your IP address may be
+      processed as part of this check. For details on the data Cloudflare collects and how it is
+      used, see
+      <a
+        href="https://www.cloudflare.com/turnstile-privacy-policy/"
+        rel="noopener noreferrer"
+        target="_blank"
+        >Cloudflare’s Turnstile Privacy Addendum</a
+      >
+      (which supplements Cloudflare’s main privacy policy).
+    </p>
+
     <h2>Automated decisions</h2>
     <p>
       Web Risk and other automated security screening may block redirect rules or accounts without
@@ -321,16 +339,8 @@
       stored in Supabase.
     </p>
     <p>
-      Bot protection for the documentation assistant uses Cloudflare Turnstile, including invisible
-      mode. Cloudflare processes limited technical signals to distinguish humans from bots. For
-      details on the data Cloudflare collects and how it is used, see
-      <a
-        href="https://www.cloudflare.com/turnstile-privacy-policy/"
-        rel="noopener noreferrer"
-        target="_blank"
-        >Cloudflare’s Turnstile Privacy Addendum</a
-      >
-      (which supplements Cloudflare’s main privacy policy).
+      Bot protection for this feature uses Cloudflare Turnstile — see
+      <strong>Bot protection (Cloudflare Turnstile)</strong> above.
     </p>
     <p>
       The documentation assistant uses OpenAI as a subprocessor to generate answers from retrieved
@@ -373,7 +383,8 @@
       <li>Profitwell may load via Paddle checkout for subscription analytics (not advertising).</li>
       <li>Google for Web Risk API security screening and Google Fonts on the website.</li>
       <li>
-        Cloudflare for Turnstile bot protection and DNS/TLS services where used — see
+        Cloudflare for Turnstile bot protection on account and documentation assistant flows and
+        DNS/TLS services where used — see
         <a
           href="https://www.cloudflare.com/turnstile-privacy-policy/"
           rel="noopener noreferrer"

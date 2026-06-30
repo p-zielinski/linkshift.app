@@ -8,7 +8,6 @@ import { DomainStore } from '../../../../core/store/domain.store';
 import { LinkMapStore } from '../../../../core/store/link-map.store';
 import { RedirectRuleStore } from '../../../../core/store/redirect-rule.store';
 import { SubdomainStore } from '../../../../core/store/subdomain.store';
-import { CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY } from '../../../campaign-connect-domain/campaign-connect-domain.util';
 import { DashboardOnboardingDialogComponent } from './dashboard-onboarding-dialog.component';
 
 describe('DashboardOnboardingDialogComponent', () => {
@@ -198,6 +197,16 @@ describe('DashboardOnboardingDialogComponent', () => {
   });
 
   it('exposes two informational steps without complete flags in advanced mode (UX-209)', () => {
+    domainsSignal.set([
+      {
+        id: 'dom-1',
+        name: 'links.example.com',
+        domainGroupId: 'group-1',
+        dnsStatus: 'VERIFIED',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
     const component = configure(false);
 
     expect(component.steps()).toHaveLength(2);
@@ -208,6 +217,16 @@ describe('DashboardOnboardingDialogComponent', () => {
   });
 
   it('exposes campaign-specific copy in two steps (UX-209)', () => {
+    domainsSignal.set([
+      {
+        id: 'dom-1',
+        name: 'links.example.com',
+        domainGroupId: 'group-1',
+        dnsStatus: 'VERIFIED',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
     const component = configure(true);
 
     expect(component.steps()).toHaveLength(2);
@@ -232,9 +251,10 @@ describe('DashboardOnboardingDialogComponent', () => {
 
     const component = configure(true);
 
-    expect(component.steps()[0].description).toContain('short-link host');
+    expect(component.needsSubdomainChoice()).toBe(true);
+    expect(component.steps()[0].description).toContain('Choose your short-link subdomain');
     expect(component.steps()[0].description).not.toContain('starter subdomain');
-    expect(component.steps()[1].description).toContain('Connect a domain');
+    expect(component.steps()[1].description).toContain('Pick your subdomain');
   });
 
   it('uses no-host copy in advanced mode when there are no connected hosts', () => {
@@ -243,12 +263,119 @@ describe('DashboardOnboardingDialogComponent', () => {
 
     const component = configure(false);
 
-    expect(component.steps()[0].description).toContain('short-link host');
+    expect(component.needsSubdomainChoice()).toBe(true);
+    expect(component.steps()[0].description).toContain('Choose your short-link subdomain');
     expect(component.steps()[0].description).not.toContain('starter subdomain');
-    expect(component.steps()[1].description).toContain('Connect a domain');
+    expect(component.steps()[1].description).toContain('Pick your subdomain');
   });
 
-  it('navigates to connect-domain flow on confirm in campaign mode when no hosts exist', () => {
+  it('treats a lone bootstrap subdomain as needing user choice', () => {
+    domainsSignal.set([]);
+    subdomainsSignal.set([
+      {
+        id: 'sub-1',
+        name: 'piotrzsxo90jaus',
+        domainGroupId: 'group-1',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
+
+    const component = configure(false);
+
+    expect(component.hasConnectedHosts()).toBe(true);
+    expect(component.needsSubdomainChoice()).toBe(true);
+    expect(component.steps()[0].description).toContain('Choose your short-link subdomain');
+  });
+
+  it('shows post-host onboarding after subdomain choice is completed', () => {
+    domainsSignal.set([]);
+    subdomainsSignal.set([
+      {
+        id: 'sub-1',
+        name: 'launch',
+        domainGroupId: 'group-1',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [DashboardOnboardingDialogComponent],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: { campaignMode: false, subdomainChoiceCompleted: true, initialStepId: 'next' },
+        },
+        {
+          provide: MatDialogRef,
+          useValue: { close: vi.fn() },
+        },
+        {
+          provide: AuthStore,
+          useValue: {
+            organization: () => ({ name: 'Acme' }),
+          },
+        },
+        {
+          provide: DomainGroupStore,
+          useValue: {
+            selectList: () => domainGroupsSignal,
+            searchList: vi.fn(),
+          },
+        },
+        {
+          provide: DomainStore,
+          useValue: {
+            selectList: () => domainsSignal,
+            searchList: vi.fn(),
+          },
+        },
+        {
+          provide: SubdomainStore,
+          useValue: {
+            selectList: () => subdomainsSignal,
+            searchList: vi.fn(),
+          },
+        },
+        {
+          provide: LinkMapStore,
+          useValue: {
+            selectList: () => linkMapsSignal,
+            selectListResult: () => signal({ data: ['map-1'], hasMore: false }),
+            isLoading: () => ({}),
+            searchList: vi.fn(),
+          },
+        },
+        {
+          provide: RedirectRuleStore,
+          useValue: {
+            selectList: () => redirectRulesSignal,
+            selectListResult: () => signal({ data: ['rule-1'], hasMore: false }),
+            isLoading: () => ({}),
+            searchList: vi.fn(),
+          },
+        },
+        {
+          provide: APP_CONFIG,
+          useValue: {
+            APP_SUBDOMAIN_BASE_URL: 'go.linkshift.app',
+            APP_BASE_URL: 'https://linkshift.app',
+          },
+        },
+      ],
+    });
+
+    const fixture = TestBed.createComponent(DashboardOnboardingDialogComponent);
+    const component = fixture.componentInstance;
+
+    expect(component.needsSubdomainChoice()).toBe(false);
+    expect(component.steps()[0].description).toContain('starter subdomain');
+    expect(component.steps()[1].description).toContain('Review the starter routing');
+  });
+
+  it('opens connect-domain dialog on confirm when subdomain choice is needed', () => {
     domainsSignal.set([]);
     subdomainsSignal.set([]);
     const component = configure(true);
@@ -258,27 +385,25 @@ describe('DashboardOnboardingDialogComponent', () => {
 
     expect(close).toHaveBeenCalledWith({
       confirmed: true,
-      navigateTo: `/links?${CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY}=1`,
+      openConnectDomain: true,
+      connectDomainData: expect.objectContaining({
+        domainGroupId: 'group-1',
+        existingWorkspaceName: 'Default',
+      }),
     });
   });
 
-  it('navigates to connect-domain flow on confirm in advanced mode when no hosts exist', () => {
+  it('opens connect-domain dialog with replace data for bootstrap subdomain', () => {
     domainsSignal.set([]);
-    subdomainsSignal.set([]);
-    const component = configure(false);
-    const close = vi.spyOn(component['dialogRef'], 'close');
-
-    component.onConfirm();
-
-    expect(close).toHaveBeenCalledWith({
-      confirmed: true,
-      navigateTo: `/links?${CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY}=1`,
-    });
-  });
-
-  it('closes connect-domain flow when CTA is clicked with no hosts', () => {
-    domainsSignal.set([]);
-    subdomainsSignal.set([]);
+    subdomainsSignal.set([
+      {
+        id: 'sub-1',
+        name: 'piotrzsxo90jaus',
+        domainGroupId: 'group-1',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
     const component = configure(false);
     const close = vi.spyOn(component['dialogRef'], 'close');
 
@@ -286,7 +411,13 @@ describe('DashboardOnboardingDialogComponent', () => {
 
     expect(close).toHaveBeenCalledWith({
       confirmed: true,
-      navigateTo: `/links?${CAMPAIGN_OPEN_CONNECT_DOMAIN_QUERY}=1`,
+      openConnectDomain: true,
+      connectDomainData: expect.objectContaining({
+        domainGroupId: 'group-1',
+        existingWorkspaceName: 'Default',
+        replaceSubdomainId: 'sub-1',
+        replaceSubdomainName: 'piotrzsxo90jaus',
+      }),
     });
   });
 });

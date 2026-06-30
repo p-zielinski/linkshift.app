@@ -20,7 +20,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   legalAddress: 'Porąbka Uszewska 13, 32-854 Porąbka Uszewska, Poland',
   privacyEmail: 'privacy@linkshift.app',
   minAge: 16,
-  legalVersion: 'v6',
+  legalVersion: 'v7',
 };
 
 export const SITE_CONFIG = new InjectionToken<SiteConfig>('SITE_CONFIG', {

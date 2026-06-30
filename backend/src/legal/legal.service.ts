@@ -10,7 +10,7 @@ export class LegalService {
   ) {}
 
   getLegalVersion(): string {
-    return this.configService.get<string>('LEGAL_VERSION') ?? 'v3';
+    return this.configService.get<string>('LEGAL_VERSION') ?? 'v7';
   }
 
   buildConsentRecord(): {

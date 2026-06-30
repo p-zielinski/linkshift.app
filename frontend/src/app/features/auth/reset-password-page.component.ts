@@ -11,6 +11,8 @@ import { z } from 'zod';
 import { AuthApiService } from '../../core/api/auth-api.service';
 import { applyZodField } from '../../core/forms/zod-validators';
 import { EMAIL_MAX_LENGTH } from '../../core/forms/validation.constants';
+import { TurnstileService } from '../../core/security/turnstile.service';
+import { extractErrorMessage } from '../../core/store/store-error.utils';
 import { firstValueFrom } from 'rxjs';
 
 const emailSchema = z
@@ -40,6 +42,7 @@ export class ResetPasswordPageComponent {
   private readonly authApi = inject(AuthApiService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly turnstile = inject(TurnstileService);
 
   readonly token = signal<string | null>(null);
   readonly hasToken = computed(() => !!this.token());
@@ -88,12 +91,15 @@ export class ResetPasswordPageComponent {
     this.busy.set(true);
     try {
       const email = this.requestModel().email.trim();
-      await firstValueFrom(this.authApi.requestPasswordReset({ email }));
+      const turnstileToken = await this.turnstile.requestToken();
+      await firstValueFrom(this.authApi.requestPasswordReset({ email }, turnstileToken));
+      this.turnstile.reset();
       this.snackBar.open('Check your email for a reset link.', 'Dismiss', {
         duration: 4000,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Couldn't send reset link. Try again.";
+      this.turnstile.reset();
+      const message = extractErrorMessage(error, "Couldn't send reset link. Try again.");
       this.snackBar.open(message, 'Dismiss', { duration: 4000 });
     } finally {
       this.busy.set(false);

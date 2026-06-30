@@ -86,8 +86,8 @@ export abstract class RedirectRulesAnalyticsPageBase implements OnInit {
   protected readonly dialog = inject(MatDialog);
   protected readonly dashboardMode = inject(DashboardModeService);
   private readonly analyticsStore = inject(RedirectRulesAnalyticsStore);
-  private readonly authStore = inject(AuthStore);
-  private readonly domainGroupStore = inject(DomainGroupStore);
+  protected readonly authStore = inject(AuthStore);
+  protected readonly domainGroupStore = inject(DomainGroupStore);
   private readonly domainGroupFilterPersistence = inject(DomainGroupFilterPersistenceService);
   protected readonly dashboardContext = inject(DashboardContextService);
   protected readonly route = inject(ActivatedRoute);

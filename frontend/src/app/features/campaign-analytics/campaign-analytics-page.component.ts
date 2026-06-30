@@ -32,6 +32,8 @@ import type {
 import { APP_CONFIG } from '../../core/config/app-runtime-config';
 import { DomainStore } from '../../core/store/domain.store';
 import { SubdomainStore } from '../../core/store/subdomain.store';
+import { DEFAULT_LIST_KEY } from '../../core/store/entity/entity-store.utils';
+import { isWaitingForDomainGroupsBeforeDialog } from '../links/links-page-scope.util';
 import { resolveSubdomainBaseHost } from '../links/links-aggregation.util';
 import {
   countOrganizationHosts,
@@ -93,6 +95,9 @@ export class CampaignAnalyticsPageComponent extends RedirectRulesAnalyticsPageBa
   readonly hasConnectedHosts = computed(() =>
     organizationHasConnectedHosts(this.domainGroups().length, this.hostCount()),
   );
+  readonly domainGroupsListLoaded = computed(
+    () => !!this.domainGroupStore.list()[DEFAULT_LIST_KEY],
+  );
 
   protected override resolveAllowEmptyWorkspaceSelection(): Signal<boolean> {
     return this.allowAllSitesSelection;
@@ -116,6 +121,28 @@ export class CampaignAnalyticsPageComponent extends RedirectRulesAnalyticsPageBa
         this.clearConnectDomainQueryParam();
         return;
       }
+
+      const listLoaded = this.domainGroupsListLoaded();
+      const error = this.domainGroupStore.lastError();
+      if (listLoaded && error) {
+        this.pendingOpenConnectDomainFromQuery.set(false);
+        this.clearConnectDomainQueryParam();
+        this.snackBar.open(error, 'Dismiss', { duration: 5000 });
+        this.domainGroupStore.clearError();
+        return;
+      }
+
+      if (
+        isWaitingForDomainGroupsBeforeDialog({
+          dialogRequested: true,
+          authLoaded: this.authStore.isAuthenticated() && !this.authStore.isLoading(),
+          domainGroupsLoading: this.domainGroupStore.isLoading()[DEFAULT_LIST_KEY] ?? false,
+          domainGroupsListLoaded: listLoaded,
+        })
+      ) {
+        return;
+      }
+
       this.pendingOpenConnectDomainFromQuery.set(false);
       this.dialogQueue.runWhenIdle(() => {
         this.openConnectDomainDialog();

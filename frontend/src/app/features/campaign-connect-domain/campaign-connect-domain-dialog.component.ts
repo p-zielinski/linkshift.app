@@ -22,10 +22,12 @@ import { DomainsApiService } from '../../core/api/domains-api.service';
 import { SubdomainsApiService } from '../../core/api/subdomains-api.service';
 import { applyZodField } from '../../core/forms/zod-validators';
 import type { DomainGroup } from '../../core/models/domain-group.model';
+import { AuthStore } from '../../core/store/auth.store';
 import { DomainGroupStore } from '../../core/store/domain-group.store';
 import { DomainStore } from '../../core/store/domain.store';
 import { SubdomainStore } from '../../core/store/subdomain.store';
 import { extractErrorMessage } from '../../core/store/store-error.utils';
+import { resolveOrganizationConfig } from '../../core/utils/organization-config.util';
 import { domainSchema } from '../domains/domain.schemas';
 import { subdomainSchema } from '../subdomains/subdomain.schemas';
 import { WizardComponent, type WizardStep } from '../../shared/components/wizard/wizard.component';
@@ -42,6 +44,8 @@ import {
   isCampaignSiteStepValid,
   normalizeCampaignWorkspaceName,
   provisionCampaignConnectDomain,
+  resolveCampaignConnectCanCreateNewSite,
+  resolveCampaignConnectInitialDomainGroupId,
 } from './campaign-connect-domain.util';
 
 export type CampaignConnectDomainDialogData = {
@@ -52,6 +56,9 @@ export type CampaignConnectDomainDialogData = {
   existingWorkspaceName?: string;
   /** Pre-select a site on the site step without locking add-host mode. */
   initialDomainGroupId?: string;
+  /** During onboarding, replace a placeholder subdomain before creating the chosen name. */
+  replaceSubdomainId?: string;
+  replaceSubdomainName?: string;
 };
 
 export type CampaignConnectDomainDialogResult = {
@@ -91,6 +98,7 @@ export class CampaignConnectDomainDialogComponent implements AfterViewInit {
   private readonly domainGroupsApi = inject(DomainGroupsApiService);
   private readonly subdomainsApi = inject(SubdomainsApiService);
   private readonly domainsApi = inject(DomainsApiService);
+  private readonly authStore = inject(AuthStore);
   private readonly domainGroupStore = inject(DomainGroupStore);
   private readonly subdomainStore = inject(SubdomainStore);
   private readonly domainStore = inject(DomainStore);
@@ -107,14 +115,29 @@ export class CampaignConnectDomainDialogComponent implements AfterViewInit {
 
   readonly isAddHostMode = computed(() => !!this.dialogData.domainGroupId);
   readonly hasExistingSites = computed(() => this.domainGroups.length > 0);
+  readonly maxDomainGroups = computed(
+    () =>
+      resolveOrganizationConfig(this.authStore.organization()?.configuration).activeSubscription
+        .limits.maxDomainGroups,
+  );
+  readonly canCreateNewSite = computed(() =>
+    resolveCampaignConnectCanCreateNewSite(this.domainGroups.length, this.maxDomainGroups()),
+  );
   readonly existingWorkspaceDisplayName = computed(
     () => this.dialogData.existingWorkspaceName?.trim() ?? '',
   );
-  readonly wizardTitle = computed(() => (this.isAddHostMode() ? 'Add host' : 'Connect your domain'));
+  readonly wizardTitle = computed(() => {
+    if (this.dialogData.replaceSubdomainId) {
+      return 'Choose your subdomain';
+    }
+    return this.isAddHostMode() ? 'Add host' : 'Connect your domain';
+  });
   readonly wizardSubtitle = computed(() => {
     if (!this.isAddHostMode()) {
       return this.hasExistingSites()
-        ? 'Choose a site, then add a host for short links.'
+        ? this.canCreateNewSite()
+          ? 'Choose a site, then add a host for short links.'
+          : 'Add a host to your existing site.'
         : 'Create a site, then add a host for short links.';
     }
     const siteName = this.existingWorkspaceDisplayName();
@@ -126,9 +149,13 @@ export class CampaignConnectDomainDialogComponent implements AfterViewInit {
 
   readonly model = signal<CampaignConnectDomainModel>(
     createCampaignConnectDomainModel({
-      initialDomainGroupId:
-        this.dialogData.domainGroupId ?? this.dialogData.initialDomainGroupId,
+      initialDomainGroupId: this.resolveInitialDomainGroupId(),
       hasExistingSites: this.domainGroups.length > 0,
+      canCreateNewSite: resolveCampaignConnectCanCreateNewSite(
+        this.domainGroups.length,
+        resolveOrganizationConfig(this.authStore.organization()?.configuration).activeSubscription
+          .limits.maxDomainGroups,
+      ),
     }),
   );
 
@@ -234,7 +261,9 @@ export class CampaignConnectDomainDialogComponent implements AfterViewInit {
           id: 'site',
           label: 'Site',
           title: 'Choose a site',
-          description: 'Add a host to an existing site or create a new one.',
+          description: this.canCreateNewSite()
+            ? 'Add a host to an existing site or create a new one.'
+            : 'Your plan includes one site. Continue to add a host.',
           complete: this.siteStepValid(),
         }
       : {
@@ -324,6 +353,8 @@ export class CampaignConnectDomainDialogComponent implements AfterViewInit {
         model: this.model(),
         subdomainBaseHost: this.dialogData.subdomainBaseHost,
         lockedDomainGroupId: this.dialogData.domainGroupId,
+        replaceSubdomainId: this.dialogData.replaceSubdomainId,
+        replaceSubdomainName: this.dialogData.replaceSubdomainName,
         domainGroupsApi: this.domainGroupsApi,
         subdomainsApi: this.subdomainsApi,
         domainsApi: this.domainsApi,
@@ -359,6 +390,10 @@ export class CampaignConnectDomainDialogComponent implements AfterViewInit {
   }
 
   setWorkspaceMode(mode: CampaignWorkspaceMode): void {
+    if (mode === 'new' && !this.canCreateNewSite()) {
+      return;
+    }
+
     this.siteStepAttempted.set(false);
     this.model.update((current) => ({ ...current, workspaceMode: mode }));
   }
@@ -366,6 +401,19 @@ export class CampaignConnectDomainDialogComponent implements AfterViewInit {
   setHostKind(kind: CampaignConnectDomainModel['hostKind']): void {
     this.hostStepAttempted.set(false);
     this.model.update((current) => ({ ...current, hostKind: kind }));
+  }
+
+  private resolveInitialDomainGroupId(): string {
+    return resolveCampaignConnectInitialDomainGroupId({
+      lockedDomainGroupId: this.dialogData.domainGroupId,
+      initialDomainGroupId: this.dialogData.initialDomainGroupId,
+      domainGroups: this.domainGroups,
+      canCreateNewSite: resolveCampaignConnectCanCreateNewSite(
+        this.domainGroups.length,
+        resolveOrganizationConfig(this.authStore.organization()?.configuration).activeSubscription
+          .limits.maxDomainGroups,
+      ),
+    });
   }
 
   private closeWithResult(): void {

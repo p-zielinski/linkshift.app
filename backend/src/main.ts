@@ -64,6 +64,7 @@ async function bootstrap() {
       'Accept',
       'X-Requested-With',
       'X-XSRF-TOKEN',
+      'X-Turnstile-Token',
       'Cache-Control',
       'Pragma',
       'Expires',
