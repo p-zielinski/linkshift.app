@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from 'nestjs-pino';
 import { ClsModule } from 'nestjs-cls';
 import { HttpModule } from '@nestjs/axios';
@@ -24,11 +25,13 @@ import { McpDocsCatalogSearchService } from './mcp/mcp-docs-catalog-search.servi
 import { McpHttpService } from './mcp/mcp-http.service';
 import { McpRateLimitService } from './mcp/mcp-rate-limit.service';
 import { TurnstileGuard } from './security/turnstile.guard';
+import { SupabaseKeepaliveScheduler } from './supabase/supabase-keepalive.scheduler';
 import { createRequestId } from './utils';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    ScheduleModule.forRoot(),
     LoggerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -107,6 +110,7 @@ import { createRequestId } from './utils';
     DocsCatalogService,
     DocsContentLoaderService,
     DocsAssistantLogRetentionService,
+    SupabaseKeepaliveScheduler,
     DocsAssistantService,
     DocsAssistantRateLimitService,
     McpRateLimitService,

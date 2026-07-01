@@ -22,6 +22,8 @@ To robisz **raz na projekt** przy zakładaniu. Przy zmianie schematu później �
 
 Nic nie startuje się razem z `npm run start:dev` — backend-tools **INSERT/UPDATE** do już istniejącej tabeli i okresowo **DELETE** wierszy starszych niż skonfigurowany okres retencji (`DOCS_ASSISTANT_LOG_RETENTION_DAYS`, domyślnie 90 dni). Czyszczenie uruchamia się po stronie serwera po udanym zapisie logu (maks. raz na godzinę na proces).
 
+Na free tier Supabase pauzuje projekt po ~7 dniach bez aktywności API. Gdy `SUPABASE_URL` i `SUPABASE_SERVICE_ROLE_KEY` są ustawione, backend-tools wysyła lekki ping do `agent_search_logs` przy starcie i co 6 godzin (`SupabaseKeepaliveScheduler`), żeby projekt nie wygasł w ciszy.
+
 Opcjonalnie możesz użyć [Supabase CLI](https://supabase.com/docs/guides/cli) (`supabase db push`) u siebie; **nie jest to skonfigurowane w LinkShift** — źródłem prawdy w git jest plik `.sql` w tym folderze.
 
 ## 1. Create projects
