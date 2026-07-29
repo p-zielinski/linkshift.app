@@ -20,6 +20,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { SITE_CONFIG } from '../../../../core/config/site-config';
 import { LogoComponent } from '../../../../shared/components/logo/logo.component';
+import { SunsetBannerComponent } from '../sunset-banner/sunset-banner.component';
 
 const MOBILE_BREAKPOINT = '(max-width: 767px)';
 
@@ -36,6 +37,7 @@ const MOBILE_BREAKPOINT = '(max-width: 767px)';
     MatSidenavModule,
     MatListModule,
     LogoComponent,
+    SunsetBannerComponent,
   ],
   templateUrl: './marketing-shell.component.html',
   styleUrl: './marketing-shell.component.css',

@@ -1,5 +1,5 @@
-## Redirect Master API Specification (v1)
-REST API documentation for the Redirect Master application. This specification defines endpoints, data structures, and validation logic required for implementing Angular services.
+## LinkShift.app API Specification (v1)
+REST API documentation for the LinkShift.app application. This specification defines endpoints, data structures, and validation logic required for implementing Angular services.
 ### 1.Global Configuration
   - Base Path: /api/v1
   - Authorization Strategy: Bearer JWT.

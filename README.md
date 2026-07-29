@@ -1,334 +1,193 @@
-# Redirect Master
+# LinkShift.app
 
-Redirect Master is a multi-tenant redirection platform with a NestJS backend,
-Angular frontend, and shared models. It includes plan-based limits, billing via
-Paddle, Redis-backed caching and rate limiting, and an ngrok-based local
-testing flow for webhooks and redirects.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
+Multi-tenant redirect management platform — NestJS API, Angular UI, Redis caching/rate limits, plan limits, and Paddle billing for the hosted service.
+
+**Hosted:** [https://linkshift.app](https://linkshift.app)  
+**Source:** [https://github.com/p-zielinski/linkshift.app](https://github.com/p-zielinski/linkshift.app)
+
+## Status / sunset
+
+This repository is **open source (MIT)**.
+
+The hosted SaaS at [linkshift.app](https://linkshift.app) is planned to run through **February 2027**. If the product reaches **≥ $500 MRR** before then, hosted service continues. Otherwise the hosted stack may shut down; the code here remains available for self-hosting and forks.
+
+| | Hosted (linkshift.app) | Self-host (this repo) |
+|---|---|---|
+| Billing / plans | Paddle subscriptions | Your own ops; disable or replace billing as needed |
+| Support | Best-effort while hosted runs | Community / DIY |
+| Code | Same MIT codebase | Same MIT codebase |
 
 ## Repository layout
-- `backend/`: NestJS API, billing, subscriptions, redirects, caching.
-- `frontend/`: Angular 21 UI (SSR-ready).
-- `shared/`: shared models and types used by backend and frontend.
-- `documentation.html`: end-user guide for redirect rule syntax.
-- `INFRASTRUCTURE.md`: runtime notes for cache and CORS behavior.
+
+- `backend/` — NestJS API, billing, subscriptions, redirects, caching
+- `frontend/` — Angular UI (SSR-ready), marketing site, dashboard, docs UI
+- `backend-tools/` — public tools API (QR, redirect trace, docs assistant, MCP)
+- `shared/` — shared models, public docs sources, operator notes (`shared/not-public/`)
+- `INFRASTRUCTURE.md` — runtime notes for cache and CORS
+- `Deployment.Readme.md` — production Docker Swarm / CI details
 
 ## Quick start (local)
-1) Start dependencies (Postgres + Redis) using Docker Compose:
+
+1. Start dependencies (Postgres + Redis):
+
 ```bash
 docker compose up -d
 ```
 
-2) Configure env files:
+2. Configure env files:
+
 ```bash
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
+cp backend-tools/.env.example backend-tools/.env
 ```
 
-3) Install dependencies:
+3. Install dependencies:
+
 ```bash
 cd backend && bun install
 corepack enable
 cd ../frontend && npm install
+cd ../backend-tools && bun install
 ```
 
-> **VERY IMPORTANT (backend):** after changing `backend/package.json`, run `bun install` in `backend/` and commit `backend/bun.lock`. CI and the backend image use `bun install --frozen-lockfile` (Bun 1.3.11). Details: [Deployment.Readme.md — Backend dependencies (Bun)](Deployment.Readme.md#backend-dependencies-bun--very-important).
+> **Backend:** after changing `backend/package.json`, run `bun install` in `backend/` and commit `backend/bun.lock`. CI uses `bun install --frozen-lockfile` (Bun 1.3.11). Details: [Deployment.Readme.md — Backend dependencies (Bun)](Deployment.Readme.md#backend-dependencies-bun--very-important).
 
-> **VERY IMPORTANT (frontend):** use npm **10.9.4** (via Corepack / `packageManager` in `frontend/package.json`) when installing or updating frontend packages. Other npm versions can desync `package-lock.json` and break CI and Docker builds (`npm ci`). Details: [Deployment.Readme.md — Frontend dependencies (npm)](Deployment.Readme.md#frontend-dependencies-npm--very-important).
+> **Frontend:** use npm **10.9.4** (via Corepack / `packageManager` in `frontend/package.json`). Other npm versions can desync `package-lock.json`. Details: [Deployment.Readme.md — Frontend dependencies (npm)](Deployment.Readme.md#frontend-dependencies-npm--very-important).
 
-4) Run backend:
+4. Run backend:
+
 ```bash
 cd backend
 bun run start:dev
 ```
-`start:dev` runs migrations, starts NestJS in watch mode, and launches ngrok.
-Use `bun run start:dev-offline` if you do not want ngrok.
 
-5) Run frontend:
+`start:dev` runs migrations, starts NestJS in watch mode, and launches ngrok. Use `bun run start:dev-offline` without ngrok.
+
+5. Run frontend:
+
 ```bash
 cd frontend
 npm run start
 ```
 
+6. (Optional) Run public tools API:
+
+```bash
+cd backend-tools
+bun run start:dev
+```
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for tests, PR hygiene, and coding standards. Report vulnerabilities via [SECURITY.md](./SECURITY.md).
+
 ## Environment variables
 
 ### Backend (`backend/.env`)
+
 Core:
-- `NODE_ENV`: `development` or `production`. Controls logging and security headers.
-- `PORT`: API port (default `3000`).
-- `API_HOSTNAME`: Hostname used to distinguish API traffic from redirect traffic.
-- `CORS_ORIGINS`: Comma-separated list of allowed frontend origins.
-- `TRUST_PROXY`: Set `true` behind a proxy or load balancer so IP-based logic is correct.
-- `HOST_ID`: Optional fingerprint used for CUIDs; keep stable per environment.
+
+- `NODE_ENV`: `development` or `production`
+- `PORT`: API port (default `3000`)
+- `API_HOSTNAME`: Hostname used to distinguish API traffic from redirect traffic
+- `CORS_ORIGINS`: Comma-separated allowed frontend origins
+- `TRUST_PROXY`: Set `true` behind a proxy/load balancer
+- `HOST_ID`: Optional fingerprint used for CUIDs; keep stable per environment
 
 Database:
-- `DATABASE_URL`: Postgres connection string used by Prisma.
+
+- `DATABASE_URL`: Postgres connection string (Prisma)
 
 Redis:
-- `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`, `REDIS_PASSWORD`: Redis connection.
-  Redis is used for caching, rate limiting, and token blacklisting.
+
+- `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME`, `REDIS_PASSWORD` — cache, rate limiting, token blacklist
 
 Auth:
-- `JWT_SECRET`: Access token signing secret.
-- `JWT_REFRESH_SECRET`: Refresh token signing secret.
-- `JWT_REFRESH_EXPIRES_IN`: Refresh token TTL (e.g. `7d`, `12h`).
-  Refresh tokens are stored in an HttpOnly cookie.
 
-Billing (Paddle):
-- `PADDLE_API_KEY`: API token (in Swarm, use secret `paddle_api_key`).
-- `PADDLE_WEBHOOK_SECRET`: Webhook signing secret (in Swarm, use secret `paddle_webhook_secret`).
-- `PADDLE_SUCCESS_URL`: Base redirect URL after checkout.
-  The app appends `checkout_session=<id>` automatically.
-- `PADDLE_API_VERSION`: Optional API version header value.
-- `PADDLE_PRICE_BASIC_MONTHLY_ID`: Price ID for the Basic (monthly) plan.
-- `PADDLE_PRICE_BASIC_YEARLY_ID`: Price ID for the Basic (yearly) plan.
-- `PADDLE_PRICE_PRO_MONTHLY_ID`: Price ID for the Pro (monthly) plan.
-- `PADDLE_PRICE_PRO_YEARLY_ID`: Price ID for the Pro (yearly) plan.
+- `JWT_SECRET`, `JWT_REFRESH_SECRET`, `JWT_REFRESH_EXPIRES_IN` (e.g. `7d`)
+  Refresh tokens use an HttpOnly cookie.
+
+Billing (Paddle — hosted / optional self-host):
+
+- `PADDLE_API_KEY`, `PADDLE_WEBHOOK_SECRET`, `PADDLE_SUCCESS_URL`
+- `PADDLE_API_VERSION` (optional)
+- `PADDLE_PRICE_BASIC_MONTHLY_ID`, `PADDLE_PRICE_BASIC_YEARLY_ID`
+- `PADDLE_PRICE_PRO_MONTHLY_ID`, `PADDLE_PRICE_PRO_YEARLY_ID`
 
 Ngrok (local dev only):
-- `NGROK_AUTH_TOKEN`: Ngrok auth token used by `start:dev`.
-- `NGROK_URL`: Automatically injected by the ngrok wrapper.
-- `DEV_NGROK_ORG_ID`: Organization to receive the ngrok domain.
-- `DEV_NGROK_ORG_EMAIL`: Alternative to org ID (owner email).
-- `DEV_NGROK_DOMAIN_GROUP_ID`: Optional domain group to attach the ngrok domain.
-  On each dev startup, any existing `*ngrok*` domains for that org are removed
-  and replaced with the new ngrok hostname.
+
+- `NGROK_AUTH_TOKEN`, `NGROK_URL` (injected by wrapper)
+- `DEV_NGROK_ORG_ID` or `DEV_NGROK_ORG_EMAIL`
+- `DEV_NGROK_DOMAIN_GROUP_ID` (optional)
 
 ### Frontend (`frontend/.env`)
-- `PORT`: SSR server port (when running `serve:ssr:frontend`).
-- `APP_BASE_URL`: Base URL for API calls, exposed to the browser.
+
+- `PORT`: SSR server port (when running `serve:ssr:frontend`)
+- `APP_BASE_URL`: Base URL for API calls, exposed to the browser
+
+### Backend tools (`backend-tools/.env`)
+
+See `backend-tools/.env.example` (port, CORS, Turnstile, rate limits, optional Supabase for docs-assistant logs).
 
 ## Docker Compose defaults
-The provided `docker-compose.yml` exposes:
+
+`docker-compose.yml` exposes:
+
 - Postgres on port `5454`
 - Redis on port `6767`
 
-If you use Docker Compose, update `DATABASE_URL` and `REDIS_PORT` accordingly.
+Update `DATABASE_URL` and `REDIS_PORT` accordingly.
 
-## Docker Swarm (Stack Deployment)
-We deploy **two stacks** to keep Traefik stable during app updates:
-- **Infra stack**: Traefik + Postgres + Redis + Loki/Promtail + Grafana + Dozzle
-- **App stack**: Backend + Frontend
+## Production (Docker Swarm)
 
-Both stacks connect to the same external overlay network so Traefik can route
-to the app without restarting when you deploy the app stack.
+Full production deploy (Caddy, secrets, Swarm stacks, CI) is documented in **[Deployment.Readme.md](Deployment.Readme.md)**. Summary:
 
-### 1) Build and push images (registry login required)
-Login to your registry (example: GHCR):
-```bash
-docker login ghcr.io
-```
+1. Copy `deploy/stack.env.example` → `deploy/stack.env` and set hosts/images.
+2. Build/push images (`backend`, `frontend`, `backend-tools`, Caddy).
+3. Create Docker secrets and the shared overlay network.
+4. Deploy infra + app (+ tools) stacks from the root `docker-stack.*.yml` files.
 
-Build and push images from the repo root:
-```bash
-docker build -f backend/Dockerfile -t ghcr.io/your-org/linkshift-backend:latest .
-docker build -f frontend/Dockerfile -t ghcr.io/your-org/linkshift-frontend:latest .
+Do not commit `deploy/stack.env` or Dozzle user YAML — use the `.example` files and Swarm/GitHub secrets.
 
-docker push ghcr.io/your-org/linkshift-backend:latest
-docker push ghcr.io/your-org/linkshift-frontend:latest
-```
+### Custom plans (per organization)
 
-### 2) Prepare the stack environment
-Copy the env template and set values for your domains and runtime config:
-```bash
-cp deploy/stack.env.example deploy/stack.env
-```
+Custom plans live in Postgres (`CustomPlan`) and appear in the upgrade dialog for that organization only. Fields match `PlanLimits` in `backend/src/billing/billing.config.ts`. See older notes in git history or insert via SQL against your DB; checkout includes `customPlanId` for webhook mapping. Catalog cache is ~10 minutes.
 
-Export it for `docker stack deploy`:
-```bash
-set -a
-source deploy/stack.env
-set +a
-```
+## Observability
 
-### 3) Create the shared Swarm network
-Create the external overlay network once (manager node):
-```bash
-docker network create --driver overlay --attachable ${TRAEFIK_SWARM_NETWORK}
-```
+- NestJS JSON logs (`nestjs-pino`) → Promtail → Loki → Grafana (Swarm infra stack)
+- Dozzle for container logs
+- Optional Sentry/GlitchTip (`GET /debug-sentry` for a deliberate error in non-prod setups)
 
-### 4) Create Docker secrets (sensitive keys)
-Swarm stores secrets internally and mounts them into containers. Backend loads
-them at runtime via `backend/docker-entrypoint.sh`.
-
-Required secrets (create once on the Swarm manager):
-```bash
-printf "postgres-password" | docker secret create postgres_password -
-printf "redis-password" | docker secret create redis_password -
-printf "postgresql://postgres:postgres-password@postgres:5432/linkshift?schema=public" | docker secret create database_url -
-printf "jwt-secret" | docker secret create jwt_secret -
-printf "jwt-refresh-secret" | docker secret create jwt_refresh_secret -
-printf "sentry-dsn" | docker secret create sentry_dsn -
-```
-
-Billing + email + safe browsing secrets (if enabled):
-```bash
-printf "paddle-api-key" | docker secret create paddle_api_key -
-printf "paddle-webhook-secret" | docker secret create paddle_webhook_secret -
-printf "zeptomail-api-key" | docker secret create zeptomail_api_key -
-printf "web-risk-browsing-api-key" | docker secret create web_risk_api_key -
-```
-
-### 5) Initialize Swarm and deploy
-Initialize Swarm on the manager node (run once):
-```bash
-docker swarm init
-```
-
-Deploy infra stack (Traefik + data + observability):
-```bash
-docker stack deploy -c docker-stack.infra.yml --with-registry-auth ${INFRA_STACK_NAME}
-```
-
-Deploy app stack (backend + frontend):
-```bash
-docker stack deploy -c docker-stack.app.yml --with-registry-auth ${APP_STACK_NAME}
-```
-
-Check status:
-```bash
-docker stack services ${INFRA_STACK_NAME}
-docker stack services ${APP_STACK_NAME}
-```
-
-### 6) Routing notes (Traefik)
-Set DNS (or `/etc/hosts`) for:
-- `FRONTEND_HOST` (app)
-- `BACKEND_HOST` (api)
-- `GRAFANA_HOST` (grafana)
-- `DOZZLE_HOST` (dozzle)
-
-For local testing, add:
-```
-127.0.0.1 app.localhost api.localhost grafana.localhost dozzle.localhost
-```
-
-### 7) Dynamic domain updates (Traefik labels)
-Backend can update Traefik router rules when domains change:
-- Enable with `TRAEFIK_UPDATE_ENABLED=true`.
-
-## Custom plans (per organization)
-Custom plans are stored in Postgres and are visible only to the owning organization.
-They show up inside the upgrade dialog and can be purchased like any other plan.
-
-### Table schema
-Custom plans live in the `CustomPlan` table with these fields:
-- `id`: Custom plan ID (string).
-- `organizationId`: Owning organization ID.
-- `name`: Plan display name shown in the UI.
-- `description`: Optional short description.
-- `monthlyPriceId`: Paddle price ID for monthly billing.
-- `yearlyPriceId`: Paddle price ID for yearly billing.
-- `limits`: JSON payload matching `PlanLimits` in `backend/src/billing/billing.config.ts`.
-
-### Create a custom plan (manual)
-Insert a record with limits tailored to the organization. Example:
-```sql
-INSERT INTO "CustomPlan" (
-  "id",
-  "organizationId",
-  "name",
-  "description",
-  "monthlyPriceId",
-  "yearlyPriceId",
-  "limits",
-  "createdAt",
-  "updatedAt"
-)
-VALUES (
-  'cpl_custom_001',
-  'org_123',
-  'Enterprise',
-  'Higher limits for the enterprise rollout',
-  '1299001',
-  '1299002',
-  '{
-     "maxDomainGroups": 5,
-     "maxDomainsPerGroup": 50,
-     "maxTotalDomains": 50,
-     "maxRulesPerGroup": 2000,
-     "maxTotalRules": 2000,
-     "maxTestsPerGroup": 4000,
-     "maxTotalTests": 4000,
-     "maxUsers": 20,
-     "redirectionLimitPerMinute": 500
-   }'::jsonb,
-  NOW(),
-  NOW()
-);
-```
-
-Tip: you can run the insert directly via `psql`:
-```bash
-psql "$DATABASE_URL" -c "INSERT INTO \"CustomPlan\" (\"id\",\"organizationId\",\"name\",\"description\",\"monthlyPriceId\",\"yearlyPriceId\",\"limits\",\"createdAt\",\"updatedAt\") VALUES ('cpl_custom_001','org_123','Enterprise','Higher limits for the enterprise rollout','1299001','1299002','{\"maxDomainGroups\":5,\"maxDomainsPerGroup\":50,\"maxTotalDomains\":50,\"maxRulesPerGroup\":2000,\"maxTotalRules\":2000,\"maxTestsPerGroup\":4000,\"maxTotalTests\":4000,\"maxUsers\":20,\"redirectionLimitPerMinute\":500}'::jsonb,NOW(),NOW());"
-```
-
-### Purchase flow
-1) Log in as a user in the organization that owns the custom plan.
-2) Open the upgrade dialog (Dashboard → Upgrade).
-3) Choose the custom plan card and select monthly or yearly billing.
-
-The checkout payload includes `customPlanId` so webhooks map the subscription
-back to the plan and apply the custom limits.
-Custom plan catalogs are cached for ~10 minutes, so allow a short delay after
-inserting a new record.
-- Set `TRAEFIK_TARGET_SERVICE` to the Swarm service name
-  (e.g. `${APP_STACK_NAME}_backend`).
-- Set `TRAEFIK_BASE_HOSTS` to include your API host.
-
-This requires mounting `/var/run/docker.sock` into the backend container
-and running in production mode. Expect a short rolling update when the rule
-changes.
-
-## Secret management notes
-- Use `docker login` and deploy with `--with-registry-auth` so Swarm can pull
-  private images.
-- Manage secrets with `docker secret ls` and `docker secret rm <name>`.
-- Backend secrets are mounted at `/run/secrets/*` and loaded by
-  `backend/docker-entrypoint.sh`.
-
-## Observability & Monitoring
-Architecture:
-- NestJS emits JSON logs via `nestjs-pino` -> Promtail tails Docker logs -> Loki stores them -> Grafana queries them.
-
-Services:
-- Grafana: `http://localhost:4000` (User: `admin`, Password: `GF_SECURITY_ADMIN_PASSWORD` from `.env`).
-- Dozzle: `http://localhost:8888`.
-
-Testing:
-- Call `GET /debug-sentry` to trigger a deliberate error and verify GlitchTip/Sentry alerts.
-
-Startup:
-```bash
-docker compose up -d
-```
+Operator-oriented notes: [`shared/not-public/`](./shared/not-public/).
 
 ## Billing flow (high level)
-- Checkout creates a local `BillingCheckoutSession` record.
-- Paddle webhooks update subscription status.
-- The UI shows a "Processing" dialog and polls the backend for the session status.
+
+- Checkout creates a local `BillingCheckoutSession`
+- Paddle webhooks update subscription status
+- UI shows a processing dialog and polls session status
 
 ## Testing
-Backend:
-```bash
-cd backend
-bun run test
-```
 
-Frontend:
 ```bash
-cd frontend
-npm run test
+cd backend && bun run test
+cd frontend && npm run test
+cd backend-tools && bun run test
 ```
 
 ## Formatting and pre-commit
-Angular templates are formatted and linted via ESLint + Prettier:
+
 ```bash
 cd frontend
-npm run format:templates 
+npm run format:templates
 ```
 
-Pre-commit runs template formatting on staged HTML via Husky + lint-staged.
+Pre-commit formats staged HTML via Husky + lint-staged.
 
 ## Additional docs
-- `documentation.html` contains the redirect rules syntax guide.
-- `backend/README.md` documents the API endpoints.
+
+- Public product docs: sources under `shared/docs/` (synced into the app docs UI)
+- API contract: `shared/docs/openapi/linkshift-api-keys.openapi.yaml`
+- `backend/README.md` — API overview notes
+- `AI_CONTEXT.md` — architecture map for contributors and agents

@@ -1,5 +1,6 @@
 {
-  "name": "project-4",
+  "name": "linkshift.app",
+  "license": "MIT",
   "scripts": {
     "docs:links:check": "node scripts/check-docs-links.mjs",
     "docs:sync": "node scripts/check-docs-links.mjs && node scripts/docs-sync.mjs",

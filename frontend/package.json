@@ -25,6 +25,7 @@
     ]
   },
   "private": true,
+  "license": "MIT",
   "packageManager": "npm@10.9.4",
   "dependencies": {
     "@angular/animations": "21.2.15",
