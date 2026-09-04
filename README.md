@@ -1,23 +1,19 @@
 # LinkShift.app
 
+> **DISCONTINUED — hosted service shut down.**  
+> The SaaS at linkshift.app is no longer available. This repository remains open source (MIT) for archival use, self-hosting, and forks.  
+> Questions or contact: [LinkedIn](https://www.linkedin.com/in/p-zielinski96/)
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-Multi-tenant redirect management platform — NestJS API, Angular UI, Redis caching/rate limits, plan limits, and Paddle billing for the hosted service.
+Multi-tenant redirect management platform — NestJS API, Angular UI, Redis caching/rate limits, plan limits, and Paddle billing for the (former) hosted service.
 
-**Hosted:** [https://linkshift.app](https://linkshift.app)  
+**Hosted service:** discontinued  
 **Source:** [https://github.com/p-zielinski/linkshift.app](https://github.com/p-zielinski/linkshift.app)
 
-## Status / sunset
+## Status
 
-This repository is **open source (MIT)**.
-
-The hosted SaaS at [linkshift.app](https://linkshift.app) is planned to run through **February 2027**. If the product reaches **≥ $500 MRR** before then, hosted service continues. Otherwise the hosted stack may shut down; the code here remains available for self-hosting and forks.
-
-| | Hosted (linkshift.app) | Self-host (this repo) |
-|---|---|---|
-| Billing / plans | Paddle subscriptions | Your own ops; disable or replace billing as needed |
-| Support | Best-effort while hosted runs | Community / DIY |
-| Code | Same MIT codebase | Same MIT codebase |
+This repository is **open source (MIT)**. The previously hosted product is shut down; there is no public hosted instance and no commercial support. You can still run the stack yourself from this codebase.
 
 ## Repository layout
 
